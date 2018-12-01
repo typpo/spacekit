@@ -18,11 +18,14 @@ class Container {
   init() {
     this.initRenderer();
 
+    // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
-    this._camera.position.set(0, 10, 10);
+    this._camera.position.set(0, 0, 10);
 
+    // Controls
     this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
 
+    // Scene
     this._scene = new THREE.Scene();
   }
 

@@ -36,13 +36,7 @@ class SpaceObject {
       console.warn(`SpaceObject ${this._id}: textureUrl is a required option`);
       return false;
     }
-    /*
-    const loader = new THREE.TextureLoader();
-    loader.crossOrigin = '';
-    loader.load(this.getFullTextureUrl(), texture => {
-    });
-   */
-    //const texture = ThreeUtil.loadTexture(this.getFullTextureUrl());
+
     const spriteMap = new THREE.TextureLoader().load(this.getFullTextureUrl());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: spriteMap,
@@ -99,7 +93,7 @@ class SpaceObject {
   }
 }
 
-SpaceObjectPresets = {
+const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/sunsprite.png',
   },

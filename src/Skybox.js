@@ -79,4 +79,7 @@ const SkyboxPresets = {
   ESO_MILKYWAY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
   },
+  NASA_TYCHO: {
+    textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
+  },
 };

@@ -9,6 +9,7 @@ class Container {
     this._renderer = null;
 
     this._camera = null;
+    this._cameraControls = null;
 
     this.init();
     this.animate();
@@ -18,11 +19,15 @@ class Container {
     this.initRenderer();
 
     this._camera = new Camera(this.getContext()).get3jsCamera();
+    this._camera.position.set(0, 10, 10);
+
+    this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
 
     this._scene = new THREE.Scene();
   }
 
   animate() {
+    this._cameraControls.update();
     this._renderer.render(this._scene, this._camera);
     window.requestAnimationFrame(this.animate.bind(this));
   }

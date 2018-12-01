@@ -21,7 +21,7 @@ class SpaceObject {
     }
 
     this._position = options.position || [0, 0, 0];
-    this._scale = options.scale || [50, 50, 50];
+    this._scale = options.scale || [50, 50, 1];
 
     this._orbitEllipse = null;
     this._showOrbitEllipse = null;
@@ -49,8 +49,8 @@ class SpaceObject {
       blending: THREE.AdditiveBlending,
       color: 0xffffff,
     }));
-    sprite.scale.set(this._scale);
-    sprite.position.set(this._position);
+    sprite.scale.set.apply(this, this._scale);
+    sprite.position.set.apply(this, this._position);
 
     this._object3js = sprite;
     if (this._container) {

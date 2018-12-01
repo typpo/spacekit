@@ -1,0 +1,6 @@
+
+class Skybox {
+  constructor(url) {
+
+  }
+}

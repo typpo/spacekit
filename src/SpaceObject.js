@@ -72,6 +72,11 @@ class SpaceObject {
     const position = this.getPosition(this._container.getJed());
     sprite.position.set(position[0], position[1], position[2]);
 
+
+    if (this.isStaticObject()) {
+      sprite.matrixAutoUpdate  = false;
+    }
+
     return sprite;
 
   /*
@@ -90,9 +95,10 @@ class SpaceObject {
   }
 
   createOrbit() {
-    if (!this._options.ephem) {
+    if (this.isStaticObject()) {
       return;
     }
+
     if (this._orbit) {
       return;
     }
@@ -127,6 +133,10 @@ class SpaceObject {
 
   getId() {
     return this._id;
+  }
+
+  isStaticObject() {
+    return !this._options.ephem;
   }
 }
 

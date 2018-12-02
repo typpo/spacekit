@@ -20,13 +20,19 @@ class Container {
 
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
-    this._camera.position.set(0, 0, 10);
+    this._camera.position.set(0, -10, 5);
+    window.cam = this._camera;
 
     // Controls
     this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
 
     // Scene
     this._scene = new THREE.Scene();
+
+    // Helper
+    if (this._options.debug && this._options.debug.showAxesHelper) {
+      this._scene.add(new THREE.AxesHelper(5));
+    }
   }
 
   animate() {

@@ -132,4 +132,18 @@ const SpaceObjectPresets = {
       period: 365.256,
     })
   },
+  MARS: {
+    ephem: new Ephem({
+      ma: 19.39019754 * Math.PI / 180,
+      epoch: 2451545.0,
+      a: 1.52371034,
+      e: 0.09339410,
+      i: 1.84969142 * Math.PI / 180,
+      w_bar: -23.94362959 * Math.PI / 180,
+      w: -73.5031685 * Math.PI / 180,
+      L: -4.55343205 * Math.PI / 180,
+      om: 49.55953891 * Math.PI / 180,
+      period: 686.980
+    })
+  },
 };

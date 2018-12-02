@@ -54,9 +54,9 @@ class Skybox {
 		});
 
     const sky = new THREE.Mesh(geometry, material);
-    sky.rotation.x = 1/2 * Math.PI;
+    sky.rotation.x = 0;
     sky.rotation.y = 0;
-    sky.rotation.z = 3/2 * Math.PI;
+    sky.rotation.z = 0;
 
     sky.material.side = THREE.DoubleSide;
     this._mesh = sky;

@@ -1,5 +1,3 @@
-// TODO Include presets for all the planets and the sun
-
 EPHEM_VALID_ATTRS = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity

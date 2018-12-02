@@ -13,6 +13,8 @@ class Container {
     this._camera = null;
     this._cameraControls = null;
 
+    this._subscribedObjects = {};
+
     this.init();
     this.animate();
   }
@@ -38,9 +40,13 @@ class Container {
   }
 
   animate() {
+    window.requestAnimationFrame(this.animate.bind(this));
+
+    this._jed += 1;
+
+    this.update();
     this._cameraControls.update();
     this._renderer.render(this._scene, this._camera);
-    window.requestAnimationFrame(this.animate.bind(this));
   }
 
   initRenderer() {
@@ -55,14 +61,40 @@ class Container {
     this._renderer = renderer;
   }
 
-  addObject(obj) {
+  addObject(obj, noUpdate=false) {
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
+
+    if (!noUpdate) {
+      // Call for updates as time passes.
+      this._subscribedObjects[obj.getId()] = obj;
+    }
+  }
+
+  removeObject(obj) {
+    // TODO(ian): test this and avoid memory leaks...
+    obj.get3jsObjects().map((x) => {
+      this._scene.remove(x);
+    });
+
+    delete this._subscribedObjects[obj.getId()];
+  }
+
+  update() {
+    for (let objId in this._subscribedObjects) {
+      if (this._subscribedObjects.hasOwnProperty(objId)) {
+        this._subscribedObjects[objId].update(this._jed);
+      }
+    }
   }
 
   getJed() {
     return this._jed;
+  }
+
+  setJed(val) {
+    this._jed = val;
   }
 
   getContext() {

@@ -3,6 +3,7 @@ class Skybox {
   constructor(options, contextOrContainer) {
     // TODO(ian): Support for actual box instead of sphere...
     this._options = options;
+    this._id = `__skybox_${new Date().getTime()}`;
 
     //if (contextOrContainer instanceOf Container) {
     if (true) {
@@ -62,7 +63,7 @@ class Skybox {
     this._mesh = sky;
 
     if (this._container) {
-      this._container.addObject(this);
+      this._container.addObject(this, true /* noUpdate */);
     }
   }
 
@@ -72,6 +73,10 @@ class Skybox {
 
   get3jsObjects() {
     return [this._mesh];
+  }
+
+  getId() {
+    return this._id;
   }
 }
 

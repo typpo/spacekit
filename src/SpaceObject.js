@@ -100,8 +100,11 @@ class SpaceObject {
     return new Orbit(this._options.ephem, this._options.orbit);
   }
 
-  update(epoch) {
-    this._object3js.position = coordsToPixel(getPosition(epoch));
+  update(jed) {
+    if (this._object3js) {
+      const newpos = this.getPosition(jed);
+      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+    }
   }
 
   get3jsObjects() {
@@ -121,6 +124,10 @@ class SpaceObject {
 
   hasTextureUrl() {
     return !!this._options.textureUrl;
+  }
+
+  getId() {
+    return this._id;
   }
 }
 

@@ -1,9 +1,5 @@
 // TODO Include presets for all the planets and the sun
 
-const SpaceObjectDefaultOptions = {
-  ephem: null,
-};
-
 class SpaceObject {
   constructor(id, options, contextOrContainer) {
     this._id = id;
@@ -23,7 +19,7 @@ class SpaceObject {
     this._position = options.position || [0, 0, 0];
     this._scale = options.scale || [50, 50, 1];
 
-    this._orbitEllipse = null;
+    this._orbit = this.createOrbit();
     this._showOrbitEllipse = null;
 
     if (!this.init()) {
@@ -37,9 +33,9 @@ class SpaceObject {
       return false;
     }
 
-    const spriteMap = new THREE.TextureLoader().load(this.getFullTextureUrl());
+    const texture = new THREE.TextureLoader().load(this.getFullTextureUrl());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: spriteMap,
+      map: texture,
       blending: THREE.AdditiveBlending,
       color: 0xffffff,
     }));
@@ -47,9 +43,22 @@ class SpaceObject {
     sprite.position.set.apply(this, this._position);
 
     this._object3js = sprite;
+
+  /*
+    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
+    light.position.set.apply(this, this._position);
+
+    const lensflare = new THREE.Lensflare();
+    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new
+                                                    THREE.Color(0xffffff),
+                                                    THREE.AdditiveBlending));
+
+    light.add(lensflare);
+    this._object3js = light;
+   */
+
     if (this._container) {
       this._container.addObject(this);
-      window.foo = spriteMap;
     }
     return true;
   }
@@ -69,11 +78,21 @@ class SpaceObject {
     return this._position;
   }
 
-  getOrbitEllipse() {
-    if (!this._orbitEllipse) {
-      // ...
+  createOrbit() {
+    if (!this._options.ephem) {
+      return;
     }
-    return this._orbitEllipse;
+    if (this._orbit) {
+      return;
+    }
+
+    const orbit = new Orbit(this._options.ephem);
+    this._orbit = orbit;
+
+    if (this._container) {
+      // TODO(ian): Probably shouldn't automatically add here...
+      this._container.addObject(this);
+    }
   }
 
   update(epoch) {
@@ -86,8 +105,8 @@ class SpaceObject {
   get3jsObjects() {
     const ret = [];
     ret.push(this._object3js);
-    if (this._showOrbitEllipse) {
-      ret.push(this.getOrbitEllipse());
+    if (this._orbit) {
+      ret.push(this._orbit.getEllipse());
     }
     return ret;
   }
@@ -96,5 +115,21 @@ class SpaceObject {
 const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/sunsprite.png',
+    position: [0, 0, 0],
+  },
+  EARTH: {
+    ephem: new Ephem({
+      // TODO(ian): Make it so I don't have to convert everything to radians.
+      ma: -2.47311027 * Math.PI / 180,
+      epoch: 2451545.0,
+      a: 1.00000261,
+      e: 0.01671123,
+      i: 0.00001531 * Math.PI / 180,
+      w_bar: 102.93768193 * Math.PI / 180,
+      w: 102.93768193 * Math.PI / 180,
+      L: 100.46457166 * Math.PI / 180,
+      om: 0,
+      period: 365.256,
+    })
   },
 };

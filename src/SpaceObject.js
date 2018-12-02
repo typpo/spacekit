@@ -71,7 +71,6 @@ class SpaceObject {
     sprite.scale.set.apply(this, this._scale);
     const position = this.getPosition(this._container.getJed());
     sprite.position.set(position[0], position[1], position[2]);
-    console.log(this._id, 'position', position)
 
     return sprite;
 
@@ -137,8 +136,9 @@ const SpaceObjectPresets = {
     position: [0, 0, 0],
   },
   EARTH: {
+    textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
     orbit: {
-      color: 0x0000ff,
+      color: 0x009ACD,
     },
     ephem: new Ephem({
       // TODO(ian): Make it so I don't have to convert everything to radians.
@@ -155,9 +155,9 @@ const SpaceObjectPresets = {
     })
   },
   MARS: {
-    textureUrl: '{{assets}}/sprites/sunsprite.png',
+    textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
     orbit: {
-      color: 0xff0000,
+      color: 0xA63A3A,
     },
     ephem: new Ephem({
       ma: 19.39019754 * Math.PI / 180,

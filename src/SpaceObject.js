@@ -86,7 +86,7 @@ class SpaceObject {
       return;
     }
 
-    const orbit = new Orbit(this._options.ephem);
+    const orbit = new Orbit(this._options.ephem, this._options.orbit);
     this._orbit = orbit;
 
     if (this._container) {
@@ -118,6 +118,9 @@ const SpaceObjectPresets = {
     position: [0, 0, 0],
   },
   EARTH: {
+    orbit: {
+      color: 0x0000ff,
+    },
     ephem: new Ephem({
       // TODO(ian): Make it so I don't have to convert everything to radians.
       ma: -2.47311027 * Math.PI / 180,
@@ -133,6 +136,9 @@ const SpaceObjectPresets = {
     })
   },
   MARS: {
+    orbit: {
+      color: 0xff0000,
+    },
     ephem: new Ephem({
       ma: 19.39019754 * Math.PI / 180,
       epoch: 2451545.0,

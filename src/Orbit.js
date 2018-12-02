@@ -104,7 +104,7 @@ class Orbit {
 			var pointGeometry = this.getOrbitPoints();
 			return new THREE.Line(pointGeometry,
                             new THREE.LineDashedMaterial({
-                              color: 0xffffff,
+                              color: this._options.color,
                               linewidth: 1,
                               dashSize: 2,
                               gapSize: 0.5,

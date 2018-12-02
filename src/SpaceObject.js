@@ -19,20 +19,49 @@ class SpaceObject {
     this._position = options.position || [0, 0, 0];
     this._scale = options.scale || [50, 50, 1];
 
-    this._orbit = this.createOrbit();
-    this._showOrbitEllipse = null;
-
     if (!this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
     }
   }
 
   init() {
-    if (!this._options.textureUrl) {
-      console.warn(`SpaceObject ${this._id}: textureUrl is a required option`);
-      return false;
+    // Orbit is initialized before sprite because sprite may be positioned
+    // according to orbit.
+    this._orbit = this.createOrbit();
+    this._object3js = this.createSprite();
+
+    // Add it all to visualization.
+    if (this._container) {
+      this._container.addObject(this);
+    }
+    return true;
+  }
+
+  setPosition(x, y, z) {
+    this._position[0] = x;
+    this._position[1] = y;
+    this._position[2] = z;
+  }
+
+  getPosition(jed) {
+    const pos = this._position;
+    if (!this._orbit) {
+      // Default implementation, a static object.
+      return pos;
     }
 
+    const posModified = this._orbit.getPositionAtTime(jed);
+    return [
+      pos[0] + posModified[0],
+      pos[1] + posModified[1],
+      pos[2] + posModified[2],
+    ];
+  }
+
+  createSprite() {
+    if (!this.hasTextureUrl()) {
+      return null;
+    }
     const texture = new THREE.TextureLoader().load(this.getFullTextureUrl());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture,
@@ -40,9 +69,11 @@ class SpaceObject {
       color: 0xffffff,
     }));
     sprite.scale.set.apply(this, this._scale);
-    sprite.position.set.apply(this, this._position);
+    const position = this.getPosition(this._container.getJed());
+    sprite.position.set(position[0], position[1], position[2]);
+    console.log(this._id, 'position', position)
 
-    this._object3js = sprite;
+    return sprite;
 
   /*
     const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
@@ -54,28 +85,9 @@ class SpaceObject {
                                                     THREE.AdditiveBlending));
 
     light.add(lensflare);
-    this._object3js = light;
+    return light;
    */
 
-    if (this._container) {
-      this._container.addObject(this);
-    }
-    return true;
-  }
-
-  getFullTextureUrl() {
-    return this._options.textureUrl.replace('{{assets}}', this._context.options.assetPath);
-  }
-
-  setPosition(x, y, z) {
-    this._position[0] = x;
-    this._position[1] = y;
-    this._position[2] = z;
-  }
-
-  getPosition(epoch) {
-    // Default implementation
-    return this._position;
   }
 
   createOrbit() {
@@ -85,30 +97,30 @@ class SpaceObject {
     if (this._orbit) {
       return;
     }
-
-    const orbit = new Orbit(this._options.ephem, this._options.orbit);
-    this._orbit = orbit;
-
-    if (this._container) {
-      // TODO(ian): Probably shouldn't automatically add here...
-      this._container.addObject(this);
-    }
+    return new Orbit(this._options.ephem, this._options.orbit);
   }
 
   update(epoch) {
     this._object3js.position = coordsToPixel(getPosition(epoch));
-    if (this._showOrbitEllipse) {
-      // ...
-    }
   }
 
   get3jsObjects() {
     const ret = [];
-    ret.push(this._object3js);
+    if (this._object3js) {
+      ret.push(this._object3js);
+    }
     if (this._orbit) {
       ret.push(this._orbit.getEllipse());
     }
     return ret;
+  }
+
+  getFullTextureUrl() {
+    return this._options.textureUrl.replace('{{assets}}', this._context.options.assetPath);
+  }
+
+  hasTextureUrl() {
+    return !!this._options.textureUrl;
   }
 }
 
@@ -136,6 +148,7 @@ const SpaceObjectPresets = {
     })
   },
   MARS: {
+    textureUrl: '{{assets}}/sprites/sunsprite.png',
     orbit: {
       color: 0xff0000,
     },

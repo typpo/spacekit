@@ -5,6 +5,8 @@ class Container {
     this._containerElt = containerElt;
     this._options = options || {};
 
+    this._jed = this._options.jed || 0;
+
     this._scene = null;
     this._renderer = null;
 
@@ -57,6 +59,10 @@ class Container {
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
+  }
+
+  getJed() {
+    return this._jed;
   }
 
   getContext() {

@@ -81,6 +81,14 @@ class Container {
     delete this._subscribedObjects[obj.getId()];
   }
 
+  createObject(...args) {
+    return new SpaceObject(...args, this);
+  }
+
+  createSkybox(...args) {
+    return new Skybox(...args, this);
+  }
+
   update() {
     for (let objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {

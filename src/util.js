@@ -8,3 +8,7 @@ function coordsToPixel(xyz) {
     xyz[2] * COORD_TO_PIXEL_RATIO
   ];
 }
+
+function getFullTextureUrl(template, assetPath) {
+  return template.replace('{{assets}}', assetPath);
+}

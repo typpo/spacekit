@@ -14,6 +14,7 @@ class Container {
     this._cameraControls = null;
 
     this._subscribedObjects = {};
+    this._particles = null;
 
     this.init();
     this.animate();
@@ -21,6 +22,12 @@ class Container {
 
   init() {
     this.initRenderer();
+
+    // Our stuff
+    this._particles = new SpaceParticles({
+      textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+      jed: this._jed,
+    }, this.getContext());
 
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();

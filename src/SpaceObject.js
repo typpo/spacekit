@@ -62,7 +62,9 @@ class SpaceObject {
     if (!this.hasTextureUrl()) {
       return null;
     }
-    const texture = new THREE.TextureLoader().load(this.getFullTextureUrl());
+    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+                                             this._context.options.assetPath);
+    const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture,
       blending: THREE.AdditiveBlending,
@@ -121,10 +123,6 @@ class SpaceObject {
       ret.push(this._orbit.getEllipse());
     }
     return ret;
-  }
-
-  getFullTextureUrl() {
-    return this._options.textureUrl.replace('{{assets}}', this._context.options.assetPath);
   }
 
   hasTextureUrl() {

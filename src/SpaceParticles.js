@@ -23,17 +23,17 @@ class SpaceParticles {
     };
 
     this._attributes = {
-      size: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      color: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      size: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      color: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
 
-      a: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      e: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      i: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      om: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      ma: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      n: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      w: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
-      epoch: new BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      a: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      e: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      i: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      om: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      ma: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      n: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      w: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
+      epoch: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT)),
     };
 
     const geometry = new THREE.BufferGeometry();

@@ -2,6 +2,7 @@ class Camera {
   // Simple wrapper for Three.js camera
 
   constructor(context) {
+    // TODO(ian): Accept either context or container
     this._context = context;
 
     this.init();

@@ -23,11 +23,8 @@ class Container {
   init() {
     this.initRenderer();
 
-    // Our stuff
-    this._particles = new SpaceParticles({
-      textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
-      jed: this._jed,
-    }, this.getContext());
+    // Scene
+    this._scene = new THREE.Scene();
 
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
@@ -37,13 +34,17 @@ class Container {
     // Controls
     this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
 
-    // Scene
-    this._scene = new THREE.Scene();
-
     // Helper
     if (this._options.debug && this._options.debug.showAxesHelper) {
       this._scene.add(new THREE.AxesHelper(5));
     }
+
+    // Orbit particle system must be initialized after scene is created.
+    this._particles = new SpaceParticles({
+      textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+      jed: this._jed,
+    }, this);
+    this._particles.addParticle(SpaceObjectPresets.JUPITER.ephem);
   }
 
   animate() {
@@ -60,7 +61,7 @@ class Container {
     const renderer = new THREE.WebGLRenderer({
       antialias: true
     });
-    renderer.setClearColor(0x000000, 1);
+    renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize(this._containerElt.offsetWidth, this._containerElt.offsetHeight);
 
     this._containerElt.appendChild(renderer.domElement);
@@ -70,6 +71,7 @@ class Container {
 
   addObject(obj, noUpdate=false) {
     obj.get3jsObjects().map((x) => {
+      console.log('adding', x)
       this._scene.add(x);
     });
 

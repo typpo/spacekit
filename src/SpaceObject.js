@@ -177,7 +177,25 @@ const SpaceObjectPresets = {
       w: -73.5031685 * Math.PI / 180,
       L: -4.55343205 * Math.PI / 180,
       om: 49.55953891 * Math.PI / 180,
-      period: 686.980
+      period: 686.980,
+    })
+  },
+  JUPITER: {
+    textureUrl: '{{assets}}/sprites/particle2.png',
+    orbit: {
+      color: 0xFFB90F,
+    },
+    ephem: new Ephem({
+			ma: 19.66796068 * Math.PI / 180,
+			epoch: 2451545.0,
+			a: 5.20288700,
+			e: 0.04838624,
+			i: 1.30439695 * Math.PI / 180,
+			w_bar: 14.72847983 * Math.PI / 180,
+			w: -85.74542926 * Math.PI / 180,
+			L: 34.39644051 * Math.PI / 180,
+			om: 100.47390909 * Math.PI / 180,
+			period: 4332.589,
     })
   },
 };

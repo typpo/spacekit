@@ -3,6 +3,7 @@ class Skybox {
   constructor(options, contextOrContainer) {
     // TODO(ian): Support for actual box instead of sphere...
     this._options = options;
+    this._id = `__skybox_${new Date().getTime()}`;
 
     //if (contextOrContainer instanceOf Container) {
     if (true) {
@@ -54,15 +55,23 @@ class Skybox {
 		});
 
     const sky = new THREE.Mesh(geometry, material);
-    sky.rotation.x = 1/2 * Math.PI;
-    sky.rotation.y = 0;
-    sky.rotation.z = 3/2 * Math.PI;
 
-    sky.material.side = THREE.DoubleSide;
+    // See this thread on orientation of milky way:
+    // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
+    sky.rotation.x = 0;
+    sky.rotation.y = -1/12 * Math.PI;
+    sky.rotation.z = 8/5 * Math.PI;
+
+    // We're on the inside of the skybox, so invert it to correct it.
+    sky.scale.set(-1, 1, 1);
+
+    window.sky = sky;
+
+    sky.material.side = THREE.BackSide;
     this._mesh = sky;
 
     if (this._container) {
-      this._container.addObject(this);
+      this._container.addObject(this, true /* noUpdate */);
     }
   }
 
@@ -73,10 +82,14 @@ class Skybox {
   get3jsObjects() {
     return [this._mesh];
   }
+
+  getId() {
+    return this._id;
+  }
 }
 
 const SkyboxPresets = {
-  ESO_MILKYWAY: {
+  ESO_GIGAGALAXY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
   },
   NASA_TYCHO: {

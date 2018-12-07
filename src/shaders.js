@@ -24,16 +24,16 @@ const ORBIT_SHADER_VERTEX = `
     attribute float a;
     attribute float e;
     attribute float i;
-    attribute float o;
+    attribute float om;
     attribute float ma;
     attribute float n;
-    attribute float w;
+    attribute float w_bar;
     attribute float epoch;
 
     vec3 getAstroPos() {
       float i_rad = i;
-      float o_rad = o;
-      float p_rad = w;
+      float o_rad = om;
+      float p_rad = w_bar;
       float ma_rad = ma;
       float n_rad = n;
 

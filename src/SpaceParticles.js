@@ -60,7 +60,7 @@ class SpaceParticles {
       om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-      w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
@@ -91,7 +91,7 @@ class SpaceParticles {
     const offset = this._particleCount++;
 
     attributes.size.set([options.size || 50], offset);
-    const color = new THREE.Color(options.color || 0xff0000)
+    const color = new THREE.Color(options.color || 0xffffff)
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 
     attributes.a.set([ephem.get('a')], offset);
@@ -100,7 +100,7 @@ class SpaceParticles {
     attributes.om.set([ephem.get('om', 'rad')], offset);
     attributes.ma.set([ephem.get('ma', 'rad')], offset);
     attributes.n.set([ephem.get('n', 'rad')], offset);
-    attributes.w.set([ephem.get('w', 'rad')], offset);
+    attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
     attributes.epoch.set([ephem.get('epoch')], offset);
 
     // TODO(ian): Set the update range

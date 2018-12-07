@@ -31,7 +31,9 @@ class SpaceObject {
 
     // Don't create a sprite - do it on the GPU instead.
     //this._object3js = this.createSprite();
-    this._context.objects.particles.addParticle(this._options.ephem);
+    this._context.objects.particles.addParticle(this._options.ephem, {
+      color: this._options.theme.color,
+    });
 
     // Add it all to visualization.
     if (this._container) {
@@ -107,7 +109,9 @@ class SpaceObject {
     if (this._orbit) {
       return;
     }
-    return new Orbit(this._options.ephem, this._options.orbit);
+    return new Orbit(this._options.ephem, {
+      color: this._options.theme.color,
+    });
   }
 
   update(jed) {
@@ -148,7 +152,7 @@ const SpaceObjectPresets = {
   },
   EARTH: {
     textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
-    orbit: {
+    theme: {
       color: 0x009ACD,
     },
     ephem: new Ephem({
@@ -167,7 +171,7 @@ const SpaceObjectPresets = {
   },
   MARS: {
     textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
-    orbit: {
+    theme: {
       color: 0xA63A3A,
     },
     ephem: new Ephem({
@@ -185,7 +189,7 @@ const SpaceObjectPresets = {
   },
   JUPITER: {
     textureUrl: '{{assets}}/sprites/particle2.png',
-    orbit: {
+    theme: {
       color: 0xFFB90F,
     },
     ephem: new Ephem({

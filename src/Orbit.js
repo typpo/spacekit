@@ -53,10 +53,11 @@ class Orbit {
   }
 
   getPositionAtTime(jed) {
-    const eph = this._ephem;
     const pi = Math.PI;
     const sin = Math.sin;
     const cos = Math.cos;
+
+    const eph = this._ephem;
 
     // Note: logic below must match the vertex shader.
     // This position calculation is used to create orbital ellipses.

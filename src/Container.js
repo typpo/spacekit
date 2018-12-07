@@ -44,7 +44,7 @@ class Container {
       textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
       jed: this._jed,
     }, this);
-    this._particles.addParticle(SpaceObjectPresets.JUPITER.ephem);
+    this._particles.addParticle(SpaceObjectPresets.EARTH.ephem);
   }
 
   animate() {
@@ -71,7 +71,6 @@ class Container {
 
   addObject(obj, noUpdate=false) {
     obj.get3jsObjects().map((x) => {
-      console.log('adding', x);
       this._scene.add(x);
     });
 

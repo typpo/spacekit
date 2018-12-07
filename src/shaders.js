@@ -3,13 +3,13 @@ const ORBIT_SHADER_FRAGMENT = `
     uniform sampler2D texture;
 
     void main() {
-      gl_FragColor = vec4(
-        vColor, 1.0) * texture2D(texture,
-        vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
-      );
+      //gl_FragColor = vec4(
+      //  vColor, 1.0) * texture2D(texture,
+      //  vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
+      //);
 
-      //gl_FragColor = vec4(vColor, 1.0);
-      //gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+      gl_FragColor = vec4(vColor, 1.0);
+      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
     }
 `;
 
@@ -35,9 +35,6 @@ const ORBIT_SHADER_VERTEX = `
       float o_rad = o;
       float p_rad = w;
       float ma_rad = ma;
-
-      // Compute mean motion from period.
-      float period = sqrt(a * a * a) * 365.25;
       float n_rad = n;
 
       float d = jed - epoch;
@@ -61,7 +58,7 @@ const ORBIT_SHADER_VERTEX = `
       float E = E0;
       float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
 
-      // Compute radius vector, in AU.
+      // Compute radius vector.
       float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.

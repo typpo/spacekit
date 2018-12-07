@@ -28,7 +28,10 @@ class SpaceObject {
     // Orbit is initialized before sprite because sprite may be positioned
     // according to orbit.
     this._orbit = this.createOrbit();
-    this._object3js = this.createSprite();
+
+    // Don't create a sprite - do it on the GPU instead.
+    //this._object3js = this.createSprite();
+    this._context.objects.particles.addParticle(this._options.ephem);
 
     // Add it all to visualization.
     if (this._container) {

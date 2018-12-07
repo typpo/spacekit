@@ -44,7 +44,6 @@ class Container {
       textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
       jed: this._jed,
     }, this);
-    this._particles.addParticle(SpaceObjectPresets.EARTH.ephem);
   }
 
   animate() {
@@ -116,6 +115,9 @@ class Container {
   getContext() {
     return {
       options: this._options,
+      objects: {
+        particles: this._particles,
+      },
       container: {
         width: this._containerElt.offsetWidth,
         height: this._containerElt.offsetHeight,

@@ -1,4 +1,4 @@
-const MAX_PARTICLE_COUNT = 1;
+const DEFAULT_PARTICLE_COUNT = 1024;
 
 class SpaceParticles {
   constructor(options, contextOrContainer) {
@@ -21,6 +21,9 @@ class SpaceParticles {
     // happens lazily when the first data point is added in order to prevent
     // WebGL render warnings.
     this._addedToScene = false;
+
+    // Number of particles in the scene.
+    this._particleCount = 0;
 
     this._attributes = null;
     this._uniforms = null;
@@ -45,26 +48,27 @@ class SpaceParticles {
       texture: { value: defaultMapTexture },
     };
 
+    const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
     this._attributes = {
-      size: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      position: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT * 3), 3),
-      fuzzColor: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT * 3), 3),
+      size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
+      fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
 
-      a: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      e: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      i: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      om: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      ma: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      n: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      w: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      epoch: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
+      a: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      e: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      i: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
-    this._geometry = new THREE.BufferGeometry();
+    const geometry = new THREE.BufferGeometry();
     Object.keys(this._attributes).forEach(attributeName => {
       const attribute = this._attributes[attributeName];
       //attribute.setDynamic(true);
-      this._geometry.addAttribute(attributeName, attribute);
+      geometry.addAttribute(attributeName, attribute);
     });
 
     const shader = new THREE.ShaderMaterial({
@@ -76,25 +80,30 @@ class SpaceParticles {
       transparent: true,
     });
 
+
     this._shaderMaterial = shader;
+    this._geometry = geometry;
+    this._particleSystem = new THREE.Points(geometry, shader);
   }
 
   addParticle(ephem, options={}) {
     const attributes = this._attributes;
+    const offset = this._particleCount++;
 
-    attributes.size.set([options.size || 50]);
+    attributes.size.set([options.size || 50], offset);
     const color = new THREE.Color(options.color || 0xff0000)
-    attributes.fuzzColor.set([color.r, color.g, color.b]);
+    attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 
-    attributes.a.set([ephem.get('a')]);
-    attributes.e.set([ephem.get('e')]);
-    attributes.i.set([ephem.get('i', 'rad')]);
-    attributes.om.set([ephem.get('om', 'rad')]);
-    attributes.ma.set([ephem.get('ma', 'rad')]);
-    attributes.n.set([ephem.get('n', 'rad')]);
-    attributes.w.set([ephem.get('w', 'rad')]);
-    attributes.epoch.set([ephem.get('epoch')]);
+    attributes.a.set([ephem.get('a')], offset);
+    attributes.e.set([ephem.get('e')], offset);
+    attributes.i.set([ephem.get('i', 'rad')], offset);
+    attributes.om.set([ephem.get('om', 'rad')], offset);
+    attributes.ma.set([ephem.get('ma', 'rad')], offset);
+    attributes.n.set([ephem.get('n', 'rad')], offset);
+    attributes.w.set([ephem.get('w', 'rad')], offset);
+    attributes.epoch.set([ephem.get('epoch')], offset);
 
+    // TODO(ian): Set the update range
     for (let attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
         attributes[attributeKey].needsUpdate = true;
@@ -105,8 +114,6 @@ class SpaceParticles {
     if (!this._addedToScene && this._container) {
       // This happens lazily when the first data point is added in order to
       // prevent WebGL render warnings.
-      console.log(this._shaderMaterial)
-      this._particleSystem = new THREE.Points(this._geometry, this._shaderMaterial);
       this._container.addObject(this);
       this._addedToScene = true;
     }

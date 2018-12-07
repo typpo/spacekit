@@ -1,22 +1,25 @@
 const ORBIT_SHADER_FRAGMENT = `
     varying vec3 vColor;
-    uniform sampler2D defaultMap;
+    uniform sampler2D texture;
 
     void main() {
-      gl_FragColor = vec4(
-        vColor, 1.0) * texture2D(defaultMap,
-        vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
-      );
+      //gl_FragColor = vec4(
+      //  vColor, 1.0) * texture2D(texture,
+      //  vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
+      //);
+
+			gl_FragColor = vec4(vColor, 1.0);
+			gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
     }
 `;
 
 const ORBIT_SHADER_VERTEX = `
-    attribute vec3 color;
+    uniform float jed;
+
+    attribute vec3 fuzzColor;
     varying vec3 vColor;
 
     attribute float size;
-
-    uniform float jed;
 
     attribute float a;
     attribute float e;
@@ -65,13 +68,11 @@ const ORBIT_SHADER_VERTEX = `
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
       float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
       float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
-      //return vec3(X, Y, Z);
-
-      return vec3(3., 3., 3.);
+      return vec3(X, Y, Z);
     }
 
     void main() {
-      vColor = color;
+      vColor = fuzzColor;
 
       if (size < .1) {
         gl_PointSize = 1.;
@@ -79,8 +80,10 @@ const ORBIT_SHADER_VERTEX = `
         gl_PointSize = size;
       }
 
-      vec3 newpos = getAstroPos();
-      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      //vec3 newpos = getAstroPos();
+      vec3 newpos = vec3(3., 3., 3.);
+      //vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mvPosition;
     }
 `;

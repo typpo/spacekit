@@ -71,7 +71,7 @@ class Container {
 
   addObject(obj, noUpdate=false) {
     obj.get3jsObjects().map((x) => {
-      console.log('adding', x)
+      console.log('adding', x);
       this._scene.add(x);
     });
 

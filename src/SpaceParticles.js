@@ -24,6 +24,7 @@ class SpaceParticles {
 
     this._attributes = null;
     this._uniforms = null;
+    this._geometry = null;
     this._shaderMaterial = null;
     this._particleSystem = null;
 
@@ -41,12 +42,12 @@ class SpaceParticles {
 
     this._uniforms = {
       jed: { value: this._options.jed || 0 },
-      defaultMap: { value: defaultMapTexture },
+      texture: { value: defaultMapTexture },
     };
 
     this._attributes = {
       size: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
-      color: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT * 3), 3),
+      fuzzColor: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT * 3), 3),
 
       a: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
       e: new THREE.BufferAttribute(new Float32Array(MAX_PARTICLE_COUNT), 1),
@@ -59,25 +60,27 @@ class SpaceParticles {
     };
     window.attrs = this._attributes;
 
-    const geometry = new THREE.BufferGeometry();
+    this._geometry = new THREE.BufferGeometry();
     Object.keys(this._attributes).forEach(attributeName => {
       const attribute = this._attributes[attributeName];
-      attribute.setDynamic(true);
-      //attribute.array[0] = 0;
-      geometry.addAttribute(attributeName, attribute);
+      //attribute.setDynamic(true);
+      this._geometry.addAttribute(attributeName, attribute);
     });
 
     const shader = new THREE.ShaderMaterial({
       uniforms: this._uniforms,
       vertexShader: ORBIT_SHADER_VERTEX,
       fragmentShader: ORBIT_SHADER_FRAGMENT,
+
+      depthTest: false,
+      //vertexColors: THREE.VertexColors,
+      transparent: true,
+      side: THREE.DoubleSide,
     });
-    shader.depthTest = false;
-    shader.vertexColor = true;
-    shader.transparent = true;
+    /*
     shader.defaultAttributeValues = {
       size: [1],
-      color: [1],
+      color: [1, 1, 1],
 
       a: [1],
       e: [1],
@@ -88,9 +91,9 @@ class SpaceParticles {
       w: [1],
       epoch: [1],
     };
+   */
 
     this._shaderMaterial = shader;
-    this._particleSystem = new THREE.Points(geometry, shader);
   }
 
   addParticle(ephem, options={}) {
@@ -98,7 +101,7 @@ class SpaceParticles {
 
     attributes.size.set([options.size || 50]);
     const color = new THREE.Color(options.color || 0xff0000)
-    attributes.color.set([color.r, color.g, color.b]);
+    attributes.fuzzColor.set([color.r, color.g, color.b]);
 
     attributes.a.set([ephem.get('a')]);
     attributes.e.set([ephem.get('e')]);
@@ -108,18 +111,21 @@ class SpaceParticles {
     attributes.n.set([ephem.get('n', 'rad')]);
     attributes.w.set([ephem.get('w', 'rad')]);
     attributes.epoch.set([ephem.get('epoch')]);
-    console.log(attributes)
 
     for (let attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
-        const attribute = attributes[attributeKey];
-        attribute.needsUpdate = true;
+        // attribute.setDynamic(true);
+        attributes[attributeKey].needsUpdate = true;
       }
     }
 
     this._shaderMaterial.needsUpdate = true;
 
     if (!this._addedToScene && this._container) {
+      // This happens lazily when the first data point is added in order to
+      // prevent WebGL render warnings.
+      console.log(this._shaderMaterial)
+      this._particleSystem = new THREE.Points(this._geometry, this._shaderMaterial);
       this._container.addObject(this);
       this._addedToScene = true;
     }
@@ -127,6 +133,7 @@ class SpaceParticles {
 
   update(jed) {
     this._uniforms.jed.value = jed;
+    this._uniforms.jed.needsUpdate = true;
   }
 
   get3jsObjects() {

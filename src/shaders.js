@@ -80,10 +80,8 @@ const ORBIT_SHADER_VERTEX = `
         gl_PointSize = size;
       }
 
-      //vec3 newpos = getAstroPos();
-      vec3 newpos = vec3(3., 3., 3.);
-      //vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vec3 newpos = getAstroPos();
+      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
     }
 `;

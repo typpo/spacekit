@@ -1,6 +1,6 @@
 // Create the visualization and put it in our div.
 const viz = new Container(document.getElementById('main-container'), {
-  assetPath: '../src/assets',
+  assetPath: '../../src/assets',
   jed: 2458454.5,
   debug: {
     showAxesHelper: true,

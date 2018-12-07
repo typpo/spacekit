@@ -3,13 +3,13 @@ const ORBIT_SHADER_FRAGMENT = `
     uniform sampler2D texture;
 
     void main() {
-      //gl_FragColor = vec4(
-      //  vColor, 1.0) * texture2D(texture,
-      //  vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
-      //);
+      gl_FragColor = vec4(
+        vColor, 1.0) * texture2D(texture,
+        vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
+      );
 
-			gl_FragColor = vec4(vColor, 1.0);
-			gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+      //gl_FragColor = vec4(vColor, 1.0);
+      //gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
     }
 `;
 

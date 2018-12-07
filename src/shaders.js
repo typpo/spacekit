@@ -71,7 +71,6 @@ const ORBIT_SHADER_VERTEX = `
     void main() {
       vColor = fuzzColor;
 
-
       vec3 newpos = getAstroPos();
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;

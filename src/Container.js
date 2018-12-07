@@ -41,7 +41,7 @@ class Container {
 
     // Orbit particle system must be initialized after scene is created.
     this._particles = new SpaceParticles({
-      textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+      textureUrl: '{{assets}}/sprites/smallparticle.png',
       jed: this._jed,
       maxNumParticles: this._options.maxNumParticles,
     }, this);

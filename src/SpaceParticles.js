@@ -40,8 +40,9 @@ class SpaceParticles {
 
   createParticleSystem() {
     const fullTextureUrl = getFullTextureUrl(
-      this._options.textureUrl || DEFAULT_TEXTURE_URL,
-      this._context.options.assetPath);
+      this._options.textureUrl,
+      this._context.options.assetPath,
+    );
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
@@ -91,7 +92,7 @@ class SpaceParticles {
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
-    attributes.size.set([options.size || 50], offset);
+    attributes.size.set([options.particleSize || 15], offset);
     const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 

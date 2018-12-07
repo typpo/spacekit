@@ -33,6 +33,7 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
 
   viz.createObject(`perseids_${idx}`, {
     hideOrbit: true,
+    particleSize: 5,
     ephem: ephem,
   });
 });

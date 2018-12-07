@@ -12,5 +12,5 @@ function coordsToPixel(xyz) {
 DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
 
 function getFullTextureUrl(template, assetPath) {
-  return template.replace('{{assets}}', assetPath);
+  return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
 }

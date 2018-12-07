@@ -23,7 +23,11 @@ class Skybox {
 
   init() {
     const geometry = new THREE.SphereBufferGeometry(4000, 64, 64);
-    const texture = new THREE.TextureLoader().load(this.getFullTextureUrl());
+
+    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+                                             this._context.options.assetPath)
+    const texture = new THREE.TextureLoader().load(fullTextureUrl);
+
     const uniforms = {
       texture: {
         type: 't', value: texture,
@@ -73,10 +77,6 @@ class Skybox {
     if (this._container) {
       this._container.addObject(this, true /* noUpdate */);
     }
-  }
-
-  getFullTextureUrl() {
-    return this._options.textureUrl.replace('{{assets}}', this._context.options.assetPath);
   }
 
   get3jsObjects() {

@@ -38,6 +38,7 @@ class SpaceObject {
 
       // Don't create a sprite - do it on the GPU instead.
       this._context.objects.particles.addParticle(this._options.ephem, {
+        particleSize: this._options.particleSize,
         color: this.getColor(),
       });
     }
@@ -72,8 +73,9 @@ class SpaceObject {
 
   createSprite() {
     const fullTextureUrl = getFullTextureUrl(
-      this._options.textureUrl || DEFAULT_TEXTURE_URL,
-      this._context.options.assetPath);
+      this._options.textureUrl,
+      this._context.options.assetPath,
+    );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture,

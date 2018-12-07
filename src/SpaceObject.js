@@ -25,15 +25,20 @@ class SpaceObject {
   }
 
   init() {
-    // Orbit is initialized before sprite because sprite may be positioned
-    // according to orbit.
-    this._orbit = this.createOrbit();
 
-    // Don't create a sprite - do it on the GPU instead.
-    // this._object3js = this.createSprite();
-    this._context.objects.particles.addParticle(this._options.ephem, {
-      color: this._options.theme.color,
-    });
+    if (this.isStaticObject()) {
+      // Create a stationary sprite.
+      this._object3js = this.createSprite();
+    } else {
+      // Orbit is initialized before sprite because sprite may be positioned
+      // according to orbit.
+      this._orbit = this.createOrbit();
+
+      // Don't create a sprite - do it on the GPU instead.
+      this._context.objects.particles.addParticle(this._options.ephem, {
+        color: this._options.theme.color,
+      });
+    }
 
     // Add it all to visualization.
     if (this._container) {
@@ -101,10 +106,6 @@ class SpaceObject {
   }
 
   createOrbit() {
-    if (this.isStaticObject()) {
-      return;
-    }
-
     if (this._orbit) {
       return;
     }

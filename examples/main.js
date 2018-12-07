@@ -16,3 +16,4 @@ const sun = viz.createObject('sun', SpaceObjectPresets.SUN);
 // Then add some planets
 const earth = viz.createObject('earth', SpaceObjectPresets.EARTH);
 const mars = viz.createObject('mars', SpaceObjectPresets.MARS);
+const jupiter = viz.createObject('jupiter', SpaceObjectPresets.JUPITER);

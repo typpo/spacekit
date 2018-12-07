@@ -82,4 +82,3 @@ const ORBIT_SHADER_VERTEX = `
       gl_Position = projectionMatrix * mvPosition;
     }
 `;
-

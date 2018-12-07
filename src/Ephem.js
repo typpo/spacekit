@@ -21,7 +21,7 @@ class Ephem {
   constructor(initialValues) {
     this._attrs = {};
 
-    for (let attr in initialValues) {
+    for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
         this.set(attr, initialValues[attr]);
       }
@@ -29,7 +29,7 @@ class Ephem {
     this.fill();
   }
 
-  set(attr, val, units='rad') {
+  set(attr, val, units = 'rad') {
     if (!EPHEM_VALID_ATTRS.has(attr)) {
       console.warn(`Invalid ephem attr: ${attr}`);
       return false;
@@ -43,7 +43,7 @@ class Ephem {
     return true;
   }
 
-  get(attr, units='rad') {
+  get(attr, units = 'rad') {
     if (units === 'deg') {
       return this._attrs[attr] * 180 / Math.PI;
     }
@@ -56,7 +56,7 @@ class Ephem {
     const wBar = this.get('w_bar');
     const om = this.get('om');
     if (w && om && !wBar) {
-      this.set('w_bar',  w + om);
+      this.set('w_bar', w + om);
     } else if (wBar && om && !w) {
       this.set('w', wBar - om);
     } else if (w && wBar && !om) {

@@ -5,7 +5,7 @@ class Skybox {
     this._options = options;
     this._id = `__skybox_${new Date().getTime()}`;
 
-    //if (contextOrContainer instanceOf Container) {
+    // if (contextOrContainer instanceOf Container) {
     if (true) {
       // User passed in Container
       this._container = contextOrContainer;
@@ -27,12 +27,12 @@ class Skybox {
     const uniforms = {
       texture: {
         type: 't', value: texture,
-      }
+      },
     };
 
-		const material = new THREE.ShaderMaterial({
-			uniforms,
-			vertexShader: `
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: `
 				varying vec2 vUV;
 				varying float vDensity;
 				varying float vDiff;
@@ -43,7 +43,7 @@ class Skybox {
 					gl_Position = projectionMatrix * modelViewMatrix * pos;
 				}
 			`,
-			fragmentShader: `
+      fragmentShader: `
 				uniform sampler2D texture;
 				varying vec2 vUV;
 
@@ -52,15 +52,15 @@ class Skybox {
 					gl_FragColor = vec4(sample.xyz, sample.w);
 				}
 			`,
-		});
+    });
 
     const sky = new THREE.Mesh(geometry, material);
 
     // See this thread on orientation of milky way:
     // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
     sky.rotation.x = 0;
-    sky.rotation.y = -1/12 * Math.PI;
-    sky.rotation.z = 8/5 * Math.PI;
+    sky.rotation.y = -1 / 12 * Math.PI;
+    sky.rotation.z = 8 / 5 * Math.PI;
 
     // We're on the inside of the skybox, so invert it to correct it.
     sky.scale.set(-1, 1, 1);

@@ -58,9 +58,9 @@ class Container {
 
   initRenderer() {
     const renderer = new THREE.WebGLRenderer({
-      antialias: true
+      antialias: true,
     });
-    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(this._containerElt.offsetWidth, this._containerElt.offsetHeight);
 
     this._containerElt.appendChild(renderer.domElement);
@@ -68,7 +68,7 @@ class Container {
     this._renderer = renderer;
   }
 
-  addObject(obj, noUpdate=false) {
+  addObject(obj, noUpdate = false) {
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
@@ -97,7 +97,7 @@ class Container {
   }
 
   update() {
-    for (let objId in this._subscribedObjects) {
+    for (const objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {
         this._subscribedObjects[objId].update(this._jed);
       }

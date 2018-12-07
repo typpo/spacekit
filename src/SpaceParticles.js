@@ -40,7 +40,7 @@ class SpaceParticles {
 
   createParticleSystem() {
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-                                             this._context.options.assetPath);
+      this._context.options.assetPath);
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
@@ -65,9 +65,9 @@ class SpaceParticles {
     };
 
     const geometry = new THREE.BufferGeometry();
-    Object.keys(this._attributes).forEach(attributeName => {
+    Object.keys(this._attributes).forEach((attributeName) => {
       const attribute = this._attributes[attributeName];
-      //attribute.setDynamic(true);
+      // attribute.setDynamic(true);
       geometry.addAttribute(attributeName, attribute);
     });
 
@@ -86,12 +86,12 @@ class SpaceParticles {
     this._particleSystem = new THREE.Points(geometry, shader);
   }
 
-  addParticle(ephem, options={}) {
+  addParticle(ephem, options = {}) {
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
     attributes.size.set([options.size || 50], offset);
-    const color = new THREE.Color(options.color || 0xffffff)
+    const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 
     attributes.a.set([ephem.get('a')], offset);
@@ -104,7 +104,7 @@ class SpaceParticles {
     attributes.epoch.set([ephem.get('epoch')], offset);
 
     // TODO(ian): Set the update range
-    for (let attributeKey in attributes) {
+    for (const attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
         attributes[attributeKey].needsUpdate = true;
       }

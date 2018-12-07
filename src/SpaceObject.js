@@ -5,7 +5,7 @@ class SpaceObject {
     this._id = id;
     this._options = options || {};
 
-    //if (contextOrContainer instanceOf Container) {
+    // if (contextOrContainer instanceOf Container) {
     if (true) {
       // User passed in Container
       this._container = contextOrContainer;
@@ -30,7 +30,7 @@ class SpaceObject {
     this._orbit = this.createOrbit();
 
     // Don't create a sprite - do it on the GPU instead.
-    //this._object3js = this.createSprite();
+    // this._object3js = this.createSprite();
     this._context.objects.particles.addParticle(this._options.ephem, {
       color: this._options.theme.color,
     });
@@ -68,7 +68,7 @@ class SpaceObject {
       return null;
     }
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-                                             this._context.options.assetPath);
+      this._context.options.assetPath);
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture,
@@ -81,12 +81,12 @@ class SpaceObject {
 
 
     if (this.isStaticObject()) {
-      sprite.matrixAutoUpdate  = false;
+      sprite.matrixAutoUpdate = false;
     }
 
     return sprite;
 
-  /*
+    /*
     const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
     light.position.set.apply(this, this._position);
 
@@ -98,7 +98,6 @@ class SpaceObject {
     light.add(lensflare);
     return light;
    */
-
   }
 
   createOrbit() {
@@ -167,7 +166,7 @@ const SpaceObjectPresets = {
       L: 100.46457166 * Math.PI / 180,
       om: 0,
       period: 365.256,
-    })
+    }),
   },
   MARS: {
     textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
@@ -185,7 +184,7 @@ const SpaceObjectPresets = {
       L: -4.55343205 * Math.PI / 180,
       om: 49.55953891 * Math.PI / 180,
       period: 686.980,
-    })
+    }),
   },
   JUPITER: {
     textureUrl: '{{assets}}/sprites/particle2.png',
@@ -203,6 +202,6 @@ const SpaceObjectPresets = {
       L: 34.39644051 * Math.PI / 180,
       om: 100.47390909 * Math.PI / 180,
       period: 4332.589,
-    })
+    }),
   },
 };

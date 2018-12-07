@@ -71,14 +71,10 @@ const ORBIT_SHADER_VERTEX = `
     void main() {
       vColor = fuzzColor;
 
-      if (size < .1) {
-        gl_PointSize = 1.;
-      } else {
-        gl_PointSize = size;
-      }
 
       vec3 newpos = getAstroPos();
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
+      gl_PointSize = size;
     }
 `;

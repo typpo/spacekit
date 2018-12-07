@@ -1,13 +1,14 @@
 EPHEM_VALID_ATTRS = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity
-  'i', // Eccentricity
+  'i', // Inclination
 
   'epoch',
   'period',
 
   'ma', // Mean anomaly
-  'n', // Mean motion?
+  'n', // Mean motion
+  'L', // Mean longitude
 
   'om', // Longitude of Ascending Node
   'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
@@ -52,24 +53,28 @@ class Ephem {
 
   fill() {
     // Longitude/Argument of Perihelion and Long. of Ascending Node
-    const w = this.get('w');
-    const wBar = this.get('w_bar');
-    const om = this.get('om');
+    let w = this.get('w');
+    let wBar = this.get('w_bar');
+    let om = this.get('om');
     if (w && om && !wBar) {
-      this.set('w_bar', w + om);
+      wBar = w + om;
+      this.set('w_bar', wBar);
     } else if (wBar && om && !w) {
-      this.set('w', wBar - om);
+      w = wBar - om;
+      this.set('w', w);
     } else if (w && wBar && !om) {
-      this.set('om', wBar - w);
+      om = wBar - w;
+      this.set('om', om);
     }
 
     // Mean motion / period
     const a = this.get('a');
-    const period = this.get('period');
     const n = this.get('n');
+    let period = this.get('period');
 
     if (!period && a) {
-      this.set('period', Math.sqrt(Math.pow(a, 3)) * 365.25);
+      period = Math.sqrt(a * a * a) * 365.25;
+      this.set('period', period);
     }
 
     if (period && !n) {
@@ -78,5 +83,13 @@ class Ephem {
     } else if (n && !period) {
       this.set('period', 2.0 * Math.PI / n);
     }
+
+    // Mean longitude
+    const ma = this.get('ma');
+    let L = this.get('L');
+    if (!L && om && w && ma) {
+      L = om + w + ma;
+    }
+    //  TODO(ian): Handle no mean anomaly, no om
   }
 }

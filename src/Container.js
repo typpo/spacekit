@@ -43,6 +43,7 @@ class Container {
     this._particles = new SpaceParticles({
       textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
       jed: this._jed,
+      maxNumParticles: this._options.maxNumParticles,
     }, this);
   }
 

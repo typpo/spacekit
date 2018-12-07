@@ -39,7 +39,8 @@ class SpaceParticles {
   }
 
   createParticleSystem() {
-    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+    const fullTextureUrl = getFullTextureUrl(
+      this._options.textureUrl || DEFAULT_TEXTURE_URL,
       this._context.options.assetPath);
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 

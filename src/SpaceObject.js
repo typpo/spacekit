@@ -30,13 +30,15 @@ class SpaceObject {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
     } else {
-      // Orbit is initialized before sprite because sprite may be positioned
-      // according to orbit.
-      this._orbit = this.createOrbit();
+      if (!this._options.hideOrbit) {
+        // Orbit is initialized before sprite because sprite may be positioned
+        // according to orbit.
+        this._orbit = this.createOrbit();
+      }
 
       // Don't create a sprite - do it on the GPU instead.
       this._context.objects.particles.addParticle(this._options.ephem, {
-        color: this._options.theme.color,
+        color: this.getColor(),
       });
     }
 
@@ -69,10 +71,8 @@ class SpaceObject {
   }
 
   createSprite() {
-    if (!this.hasTextureUrl()) {
-      return null;
-    }
-    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+    const fullTextureUrl = getFullTextureUrl(
+      this._options.textureUrl || DEFAULT_TEXTURE_URL,
       this._context.options.assetPath);
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -110,7 +110,7 @@ class SpaceObject {
       return;
     }
     return new Orbit(this._options.ephem, {
-      color: this._options.theme.color,
+      color: this.getColor(),
     });
   }
 
@@ -132,8 +132,11 @@ class SpaceObject {
     return ret;
   }
 
-  hasTextureUrl() {
-    return !!this._options.textureUrl;
+  getColor() {
+    if (this._options.theme) {
+      return this._options.theme.color || 0xffffff;
+    }
+    return 0xffffff;
   }
 
   getId() {

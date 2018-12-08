@@ -26,7 +26,6 @@ viz.createObject('neptune', SpaceObjectPresets.NEPTUNE);
 
 // Add spacex's tesla roadster
 // Data from https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND=-143205&CENTER=%27500@10%27&MAKE_EPHEM=YES&TABLE_TYPE=ELEMENTS&START_TIME=2018-05-01&STOP_TIME=%272018-05-01+00:00:01%27&OUT_UNITS=AU-D&REF_PLANE=ECLIPTIC&REF_SYSTEM=J2000&TP_TYPE=ABSOLUTE&ELEM_LABELS=YES&CSV_FORMAT=NO&OBJ_DATA=YES
-// Glossary https://www.nablazerolabs.com/starman/20180207/
 
 const roadster = viz.createObject('spaceman', {
   ephem: new Ephem({

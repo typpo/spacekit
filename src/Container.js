@@ -33,6 +33,8 @@ class Container {
 
     // Controls
     this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
+    this._cameraControls.userPanSpeed = 20;
+    this._cameraControls.rotateSpeed = 2;
 
     // Helper
     if (this._options.debug && this._options.debug.showAxesHelper) {

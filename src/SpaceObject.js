@@ -17,7 +17,7 @@ class SpaceObject {
     }
 
     this._position = options.position || [0, 0, 0];
-    this._scale = options.scale || [50, 50, 1];
+    this._scale = options.scale || [1, 1, 1];
 
     if (!this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);

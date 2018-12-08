@@ -47,7 +47,6 @@ class Orbit {
 
     const points = new THREE.Geometry();
     points.vertices = pts;
-    // points.computeLineDistances(); // Required for dotted lines.
 
     return points;
   }

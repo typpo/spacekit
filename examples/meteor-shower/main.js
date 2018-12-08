@@ -2,7 +2,7 @@
 const viz = new Container(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   jed: 2458454.5,
-  maxNumParticles: 2**16,
+  maxNumParticles: 2 ** 16,
   debug: {
     showAxesHelper: true,
   },
@@ -15,9 +15,14 @@ const skybox = viz.createSkybox(SkyboxPresets.NASA_TYCHO);
 const sun = viz.createObject('sun', SpaceObjectPresets.SUN);
 
 // Then add some planets
-const earth = viz.createObject('earth', SpaceObjectPresets.EARTH);
-const mars = viz.createObject('mars', SpaceObjectPresets.MARS);
-const jupiter = viz.createObject('jupiter', SpaceObjectPresets.JUPITER);
+viz.createObject('mercury', SpaceObjectPresets.MERCURY);
+viz.createObject('venus', SpaceObjectPresets.VENUS);
+viz.createObject('earth', SpaceObjectPresets.EARTH);
+viz.createObject('mars', SpaceObjectPresets.MARS);
+viz.createObject('jupiter', SpaceObjectPresets.JUPITER);
+viz.createObject('saturn', SpaceObjectPresets.SATURN);
+viz.createObject('uranus', SpaceObjectPresets.URANUS);
+viz.createObject('neptune', SpaceObjectPresets.NEPTUNE);
 
 // And a meteor shower!
 window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
@@ -34,6 +39,6 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
   viz.createObject(`perseids_${idx}`, {
     hideOrbit: true,
     particleSize: 5,
-    ephem: ephem,
+    ephem,
   });
 });

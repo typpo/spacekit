@@ -93,6 +93,12 @@ class Container {
     return new SpaceObject(...args, this);
   }
 
+  createObjects(prefix, objects) {
+    objects.forEach((obj, idx) => {
+
+    });
+  }
+
   createSkybox(...args) {
     return new Skybox(...args, this);
   }

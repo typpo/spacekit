@@ -25,7 +25,6 @@ class SpaceObject {
   }
 
   init() {
-
     if (this.isStaticObject()) {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
@@ -150,30 +149,67 @@ class SpaceObject {
   }
 }
 
+const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
+
 const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/sunsprite.png',
     position: [0, 0, 0],
   },
+  MERCURY: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x913CEE,
+    },
+    ephem: EphemPresets.MERCURY,
+  },
+  VENUS: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xFF7733,
+    },
+    ephem: EphemPresets.VENUS,
+  },
   EARTH: {
-    textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
       color: 0x009ACD,
     },
     ephem: EphemPresets.EARTH,
   },
   MARS: {
-    textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
       color: 0xA63A3A,
     },
     ephem: EphemPresets.MARS,
   },
   JUPITER: {
-    textureUrl: '{{assets}}/sprites/particle2.png',
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
       color: 0xFFB90F,
     },
     ephem: EphemPresets.JUPITER,
+  },
+  SATURN: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x336633,
+    },
+    ephem: EphemPresets.SATURN,
+  },
+  URANUS: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x0099FF,
+    },
+    ephem: EphemPresets.URANUS,
+  },
+  NEPTUNE: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x3333FF,
+    },
+    ephem: EphemPresets.NEPTUNE,
   },
 };

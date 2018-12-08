@@ -8,12 +8,17 @@ const viz = new Container(document.getElementById('main-container'), {
 });
 
 // Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createSkybox(SkyboxPresets.NASA_TYCHO);
+viz.createSkybox(SkyboxPresets.NASA_TYCHO);
 
 // Create our first object - the sun - using a preset space object.
-const sun = viz.createObject('sun', SpaceObjectPresets.SUN);
+viz.createObject('sun', SpaceObjectPresets.SUN);
 
 // Then add some planets
-const earth = viz.createObject('earth', SpaceObjectPresets.EARTH);
-const mars = viz.createObject('mars', SpaceObjectPresets.MARS);
-const jupiter = viz.createObject('jupiter', SpaceObjectPresets.JUPITER);
+viz.createObject('mercury', SpaceObjectPresets.MERCURY);
+viz.createObject('venus', SpaceObjectPresets.VENUS);
+viz.createObject('earth', SpaceObjectPresets.EARTH);
+viz.createObject('mars', SpaceObjectPresets.MARS);
+viz.createObject('jupiter', SpaceObjectPresets.JUPITER);
+viz.createObject('saturn', SpaceObjectPresets.SATURN);
+viz.createObject('uranus', SpaceObjectPresets.URANUS);
+viz.createObject('neptune', SpaceObjectPresets.NEPTUNE);

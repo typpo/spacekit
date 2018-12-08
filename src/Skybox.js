@@ -25,7 +25,7 @@ class Skybox {
     const geometry = new THREE.SphereBufferGeometry(4000, 64, 64);
 
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-                                             this._context.options.assetPath)
+      this._context.options.assetPath);
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
     const uniforms = {

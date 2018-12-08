@@ -160,54 +160,20 @@ const SpaceObjectPresets = {
     theme: {
       color: 0x009ACD,
     },
-    ephem: new Ephem({
-      // TODO(ian): Make it so I don't have to convert everything to radians.
-      ma: -2.47311027 * Math.PI / 180,
-      epoch: 2451545.0,
-      a: 1.00000261,
-      e: 0.01671123,
-      i: 0.00001531 * Math.PI / 180,
-      w_bar: 102.93768193 * Math.PI / 180,
-      w: 102.93768193 * Math.PI / 180,
-      L: 100.46457166 * Math.PI / 180,
-      om: 0,
-      period: 365.256,
-    }),
+    ephem: EphemPresets.EARTH,
   },
   MARS: {
     textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
     theme: {
       color: 0xA63A3A,
     },
-    ephem: new Ephem({
-      ma: 19.39019754 * Math.PI / 180,
-      epoch: 2451545.0,
-      a: 1.52371034,
-      e: 0.09339410,
-      i: 1.84969142 * Math.PI / 180,
-      w_bar: -23.94362959 * Math.PI / 180,
-      w: -73.5031685 * Math.PI / 180,
-      L: -4.55343205 * Math.PI / 180,
-      om: 49.55953891 * Math.PI / 180,
-      period: 686.980,
-    }),
+    ephem: EphemPresets.MARS,
   },
   JUPITER: {
     textureUrl: '{{assets}}/sprites/particle2.png',
     theme: {
       color: 0xFFB90F,
     },
-    ephem: new Ephem({
-      ma: 19.66796068 * Math.PI / 180,
-      epoch: 2451545.0,
-      a: 5.20288700,
-      e: 0.04838624,
-      i: 1.30439695 * Math.PI / 180,
-      w_bar: 14.72847983 * Math.PI / 180,
-      w: -85.74542926 * Math.PI / 180,
-      L: 34.39644051 * Math.PI / 180,
-      om: 100.47390909 * Math.PI / 180,
-      period: 4332.589,
-    }),
+    ephem: EphemPresets.JUPITER,
   },
 };

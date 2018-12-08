@@ -104,11 +104,8 @@ class Orbit {
   getEllipse() {
     const pointGeometry = this.getOrbitPoints();
     return new THREE.Line(pointGeometry,
-      new THREE.LineDashedMaterial({
+      new THREE.LineBasicMaterial({
         color: this._options.color,
-        linewidth: 1,
-        dashSize: 2,
-        gapSize: 0.5,
       }), THREE.LineStrip);
   }
 }

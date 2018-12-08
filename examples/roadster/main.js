@@ -4,6 +4,7 @@ const viz = new Container(document.getElementById('main-container'), {
   jed: 2458461.459,
   debug: {
     showAxesHelper: true,
+    showStats: true,
   },
 });
 

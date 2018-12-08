@@ -16,6 +16,11 @@ class Container {
     this._subscribedObjects = {};
     this._particles = null;
 
+    // stats.js panel
+    this._stats = null;
+    this._fps = 1;
+    this._lastRenderedTime = Date.now();
+
     this.init();
     this.animate();
   }
@@ -37,8 +42,16 @@ class Container {
     this._cameraControls.rotateSpeed = 2;
 
     // Helper
-    if (this._options.debug && this._options.debug.showAxesHelper) {
-      this._scene.add(new THREE.AxesHelper(5));
+    if (this._options.debug) {
+      if (this._options.debug.showAxesHelper) {
+        this._scene.add(new THREE.AxesHelper(5));
+      }
+      if (this._options.debug.showStats) {
+        this._stats = new Stats();
+        this._stats.showPanel(0);
+        window.sssss = this._stats;
+        this._containerElt.appendChild(this._stats.dom);
+      }
     }
 
     // Orbit particle system must be initialized after scene is created.
@@ -52,11 +65,28 @@ class Container {
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
 
-    this._jed += this._options.jedDelta || 1;
+    if (this._stats) {
+      this._stats.begin();
+    }
+
+    if (this._options.jedDelta) {
+      this._jed += this._options.jedDelta;
+    } else {
+      // N jed per second
+      this._jed += (this._options.jedPerSecond || 10) / this._fps;
+    }
 
     this.update();
     this._cameraControls.update();
     this._renderer.render(this._scene, this._camera);
+
+    const timeDelta = (Date.now() - this._lastRenderedTime) / 1000;
+    this._lastRenderedTime = Date.now();
+    this._fps = (1 / timeDelta) || 1;
+
+    if (this._stats) {
+      this._stats.end();
+    }
   }
 
   initRenderer() {

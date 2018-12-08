@@ -52,7 +52,7 @@ class Container {
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
 
-    this._jed += 1;
+    //this._jed += 1;
 
     this.update();
     this._cameraControls.update();

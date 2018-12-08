@@ -13,18 +13,23 @@ EPHEM_VALID_ATTRS = new Set([
   'om', // Longitude of Ascending Node
   'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
   'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+]);
 
+// Which of these are angular measurements.
+const ANGLE_UNITS = new Set([
+  'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
 ]);
 
 class Ephem {
   // Note that Ephem always takes values in RADIANS, not degrees
 
-  constructor(initialValues) {
+  constructor(initialValues, degOrRad = 'rad') {
     this._attrs = {};
 
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
-        this.set(attr, initialValues[attr]);
+        const units = ANGLE_UNITS.has(attr) ? degOrRad : null;
+        this.set(attr, initialValues[attr], units);
       }
     }
     this.fill();
@@ -96,97 +101,75 @@ class Ephem {
 
 const EphemPresets = {
   MERCURY: new Ephem({
-    ma: 174.79252722 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 0.38709927,
-    e: 0.20563593,
-    i: 7.00497902 * Math.PI / 180,
-    w_bar: 77.45779628 * Math.PI / 180,
-    w: 29.12703035 * Math.PI / 180,
-    L: 252.25032350 * Math.PI / 180,
-    om: 48.33076593 * Math.PI / 180,
-    period: 87.969,
-  }),
+    epoch: 2458426.500000000,
+    a: 3.870968969437096E-01,
+    e: 2.056515875393916E-01,
+    i: 7.003891682749818E+00,
+    om: 4.830774804443502E+01,
+    w: 2.917940253442659E+01,
+    ma: 2.561909752092730E+02,
+  }, 'deg'),
   VENUS: new Ephem({
-    ma: 50.37663232 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 0.72333566,
-    e: 0.00677672,
-    i: 3.39467605 * Math.PI / 180,
-    w_bar: 131.60246718 * Math.PI / 180,
-    w: 54.92262463 * Math.PI / 180,
-    L: 181.97909950 * Math.PI / 180,
-    om: 76.67984255 * Math.PI / 180,
-    period: 224.701,
-  }),
+    epoch: 2458158.5,
+    a: 0.723330322769284,
+    e: 0.0068019089280646,
+    i: 3.39448880350495,
+    om: 76.6283945443639,
+    w: 54.7479347468155,
+    ma: 205.951622809866,
+  }, 'deg'),
   EARTH: new Ephem({
-    // TODO(ian): Make it so I don't have to convert everything to radians.
-    ma: -2.47311027 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 1.00000261,
-    e: 0.01671123,
-    i: 0.00001531 * Math.PI / 180,
-    w_bar: 102.93768193 * Math.PI / 180,
-    w: 102.93768193 * Math.PI / 180,
-    L: 100.46457166 * Math.PI / 180,
-    om: 0,
-    period: 365.256,
-  }),
+    epoch: 2458158.5,
+    a: 1.00018124620021,
+    e: 0.0170294002582618,
+    i: 0.00305619282011758,
+    om: 170.257153523923,
+    w: 292.047407867444,
+    ma: 37.6233515502107,
+  }, 'deg'),
   MARS: new Ephem({
-    ma: 19.39019754 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 1.52371034,
-    e: 0.09339410,
-    i: 1.84969142 * Math.PI / 180,
-    w_bar: -23.94362959 * Math.PI / 180,
-    w: -73.5031685 * Math.PI / 180,
-    L: -4.55343205 * Math.PI / 180,
-    om: 49.55953891 * Math.PI / 180,
-    period: 686.980,
-  }),
+    epoch: 2458158.5,
+    a: 1.52377511445157,
+    e: 0.0933879643016512,
+    i: 1.84829721005382,
+    om: 49.5084724581293,
+    w: 286.599882025617,
+    ma: 235.827701941868,
+  }, 'deg'),
   JUPITER: new Ephem({
-    ma: 19.66796068 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 5.20288700,
-    e: 0.04838624,
-    i: 1.30439695 * Math.PI / 180,
-    w_bar: 14.72847983 * Math.PI / 180,
-    w: -85.74542926 * Math.PI / 180,
-    L: 34.39644051 * Math.PI / 180,
-    om: 100.47390909 * Math.PI / 180,
-    period: 4332.589,
-  }),
+    epoch: 2458158.5,
+    a: 5.20281940398345,
+    e: 0.048786890578606,
+    i: 1.30373102346039,
+    om: 100.513619104295,
+    w: 273.637938450013,
+    ma: 207.130930305131,
+  }, 'deg'),
   SATURN: new Ephem({
-    ma: 145.143217 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 9.53707032,
-    e: 0.05415060,
-    i: 2.48446 * Math.PI / 180,
-    w_bar: 92.43194 * Math.PI / 180,
-    L: 49.94432 * Math.PI / 180,
-    om: 113.71504 * Math.PI / 180,
-    period: 10759.22,
-  }),
+    epoch: 2458158.5,
+    a: 9.57711316383313,
+    e: 0.0510164856005507,
+    i: 2.48500215402577,
+    om: 113.608367654034,
+    w: 340.065550585899,
+    ma: 177.741612368432,
+  }, 'deg'),
   URANUS: new Ephem({
-    ma: 207.0243 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 19.19126393,
-    e: 0.04716771,
-    i: 0.76986 * Math.PI / 180,
-    w_bar: 170.96424 * Math.PI / 180,
-    L: 313.23218 * Math.PI / 180,
-    om: 74.22988 * Math.PI / 180,
-    period: 30685.4,
-  }),
+    epoch: 2458158.5,
+    a: 19.1335328814279,
+    e: 0.0491802721925962,
+    i: 0.772728704931158,
+    om: 73.9200295471449,
+    w: 99.5614367595071,
+    ma: 214.010064939569,
+  }, 'deg'),
   NEPTUNE: new Ephem({
-    ma: 289.8025 * Math.PI / 180,
-    epoch: 2451545.0,
-    a: 30.06896348,
-    e: 0.00858587,
-    i: 1.76917 * Math.PI / 180,
-    w_bar: 44.97135 * Math.PI / 180,
-    L: 304.88003 * Math.PI / 180,
-    om: 131.72169 * Math.PI / 180,
-    period: 60189,
-  }),
+    epoch: 2458158.5,
+    a: 30.0610495838975,
+    e: 0.00680342377434227,
+    i: 1.76597143552021,
+    om: 131.693387158015,
+    w: 267.299086015533,
+    ma: 304.566722809717,
+  }, 'deg'),
 };

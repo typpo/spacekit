@@ -1,5 +1,5 @@
 // Create the visualization and put it in our div.
-const viz = new Container(document.getElementById('main-container'), {
+const viz = new Spacekit.Container(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   jed: 2458454.5,
   maxNumParticles: 2 ** 16,
@@ -9,24 +9,24 @@ const viz = new Container(document.getElementById('main-container'), {
 });
 
 // Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createSkybox(SkyboxPresets.NASA_TYCHO);
+const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 
 // Create our first object - the sun - using a preset space object.
-const sun = viz.createObject('sun', SpaceObjectPresets.SUN);
+const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
 
 // Then add some planets
-viz.createObject('mercury', SpaceObjectPresets.MERCURY);
-viz.createObject('venus', SpaceObjectPresets.VENUS);
-viz.createObject('earth', SpaceObjectPresets.EARTH);
-viz.createObject('mars', SpaceObjectPresets.MARS);
-viz.createObject('jupiter', SpaceObjectPresets.JUPITER);
-viz.createObject('saturn', SpaceObjectPresets.SATURN);
-viz.createObject('uranus', SpaceObjectPresets.URANUS);
-viz.createObject('neptune', SpaceObjectPresets.NEPTUNE);
+viz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);
+viz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);
+viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
+viz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);
+viz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);
+viz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);
+viz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);
+viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 
 // And a meteor shower!
 window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
-  const ephem = new Ephem({
+  const ephem = new Spacekit.Ephem({
     a: rawEphem.a,
     e: rawEphem.e,
     i: rawEphem.i * Math.PI / 180,

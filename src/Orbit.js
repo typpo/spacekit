@@ -1,5 +1,5 @@
 
-class Orbit {
+export class Orbit {
   constructor(ephem, options) {
     this._ephem = ephem;
     this._options = options || {};

@@ -1,4 +1,9 @@
-class Container {
+import { Camera } from './Camera';
+import { Skybox } from './Skybox';
+import { SpaceObject } from './SpaceObject';
+import { SpaceParticles } from './SpaceParticles';
+
+export class Container {
   // Wraps scene and controls and skybox in an animated container
 
   constructor(containerElt, options) {

@@ -1,4 +1,4 @@
-const ORBIT_SHADER_FRAGMENT = `
+export const ORBIT_SHADER_FRAGMENT = `
     varying vec3 vColor;
     uniform sampler2D texture;
 
@@ -13,7 +13,7 @@ const ORBIT_SHADER_FRAGMENT = `
     }
 `;
 
-const ORBIT_SHADER_VERTEX = `
+export const ORBIT_SHADER_VERTEX = `
     uniform float jed;
 
     attribute vec3 fuzzColor;

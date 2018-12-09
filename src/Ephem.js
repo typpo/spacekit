@@ -1,4 +1,4 @@
-EPHEM_VALID_ATTRS = new Set([
+const EPHEM_VALID_ATTRS = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity
   'i', // Inclination
@@ -20,7 +20,7 @@ const ANGLE_UNITS = new Set([
   'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
 ]);
 
-class Ephem {
+export class Ephem {
   // Note that Ephem always takes values in RADIANS, not degrees
 
   constructor(initialValues, degOrRad = 'rad') {
@@ -99,7 +99,7 @@ class Ephem {
   }
 }
 
-const EphemPresets = {
+export const EphemPresets = {
   MERCURY: new Ephem({
     epoch: 2458426.500000000,
     a: 3.870968969437096E-01,

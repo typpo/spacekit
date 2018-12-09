@@ -1,6 +1,10 @@
+import { getFullTextureUrl } from './util';
+
+import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
+
 const DEFAULT_PARTICLE_COUNT = 1024;
 
-class SpaceParticles {
+export class SpaceParticles {
   constructor(options, contextOrContainer) {
     this._options = options;
 

@@ -1,4 +1,4 @@
-class Camera {
+export class Camera {
   // Simple wrapper for Three.js camera
 
   constructor(context) {

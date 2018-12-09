@@ -1,5 +1,6 @@
+import { getFullTextureUrl } from './util';
 
-class Skybox {
+export class Skybox {
   constructor(options, contextOrContainer) {
     // TODO(ian): Support for actual box instead of sphere...
     this._options = options;
@@ -88,7 +89,7 @@ class Skybox {
   }
 }
 
-const SkyboxPresets = {
+export const SkyboxPresets = {
   ESO_GIGAGALAXY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
   },

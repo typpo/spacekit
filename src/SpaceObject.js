@@ -1,6 +1,10 @@
+import { EphemPresets, Ephem } from './Ephem';
+import { Orbit } from './Orbit';
+import { getFullTextureUrl } from './util';
+
 // TODO Include presets for all the planets and the sun
 
-class SpaceObject {
+export class SpaceObject {
   constructor(id, options, contextOrContainer) {
     this._id = id;
     this._options = options || {};
@@ -151,7 +155,7 @@ class SpaceObject {
 
 const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 
-const SpaceObjectPresets = {
+export const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/sunsprite.png',
     position: [0, 0, 0],

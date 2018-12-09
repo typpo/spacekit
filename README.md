@@ -8,18 +8,21 @@ The intent of this library is to generalize my work on [Asterank](http://www.ast
 
 # Dependencies
 
-Production: 
+Production:
 
   - THREE.js
   - THREE.js TrackballControls
-  
+  - Stats.js (optional)
+
 Additional development dependencies:
 
   - Python
-  
+
 # Running an Example
 
 Running `./server.sh` will start a basic Python webserver.  http://localhost:8000/examples/simple.html will load a simple example.
+
+If you're making changes to the code and working with an example (or anything that uses the `build/` outputs), run `yarn build` or `yarn build:watch` to continuously update the bundle.
 
 # Usage
 
@@ -27,19 +30,19 @@ See the examples directory for full usage examples.  For now, here's some exampl
 
 ```
 // Create the visualization and put it in our div.
-const viz = new Container(document.getElementById('main-container'), {
+const viz = new Spacekit.Container(document.getElementById('main-container'), {
   assetPath: '../src/assets',
 });
 
 // Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createSkybox(SkyboxPresets.NASA_TYCHO);
+const skybox = viz.createSkybox Spacekit.SkyboxPresets.NASA_TYCHO);
 
 // Create our first object - the sun - using a preset space object.
-const sun = viz.createObject('sun', SpaceObjectPresets.SUN);
+const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
 
 // Then add some planets
-const earth = viz.createObject('earth', SpaceObjectPresets.EARTH);
-const mars = viz.createObject('mars', SpaceObjectPresets.MARS);
+const earth = viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
+const mars = viz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);
 ```
 
 ![example](https://imgur.com/8ldI8wel.jpg)

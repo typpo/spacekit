@@ -5,6 +5,7 @@ const viz = new Spacekit.Container(document.getElementById('main-container'), {
   maxNumParticles: 2 ** 16,
   debug: {
     showAxesHelper: true,
+    showStats: true,
   },
 });
 

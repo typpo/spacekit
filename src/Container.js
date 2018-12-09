@@ -78,7 +78,7 @@ export class Container {
       this._jed += this._options.jedDelta;
     } else {
       // N jed per second
-      this._jed += (this._options.jedPerSecond || 10) / this._fps;
+      this._jed += (this._options.jedPerSecond || 100) / this._fps;
     }
 
     this.update();

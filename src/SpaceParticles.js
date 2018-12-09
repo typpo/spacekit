@@ -66,8 +66,23 @@ export class SpaceParticles {
       om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+
+      e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
     const geometry = new THREE.BufferGeometry();
@@ -106,8 +121,33 @@ export class SpaceParticles {
     attributes.om.set([ephem.get('om', 'rad')], offset);
     attributes.ma.set([ephem.get('ma', 'rad')], offset);
     attributes.n.set([ephem.get('n', 'rad')], offset);
+    attributes.w.set([ephem.get('w', 'rad')], offset);
     attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
     attributes.epoch.set([ephem.get('epoch')], offset);
+
+    attributes.e2.set([ephem.get('e')**2], offset);
+    attributes.sinOm.set([Math.sin(ephem.get('om', 'rad'))], offset);
+    attributes.cosOm.set([Math.cos(ephem.get('om', 'rad'))], offset);
+    attributes.sinW.set([Math.sin(ephem.get('w', 'rad'))], offset);
+    attributes.cosW.set([Math.cos(ephem.get('w', 'rad'))], offset);
+    attributes.sinI.set([Math.sin(ephem.get('i', 'rad'))], offset);
+    attributes.cosI.set([Math.cos(ephem.get('i', 'rad'))], offset);
+
+    /*
+      e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+     */
 
     // TODO(ian): Set the update range
     for (const attributeKey in attributes) {
@@ -127,7 +167,6 @@ export class SpaceParticles {
 
   update(jed) {
     this._uniforms.jed.value = jed;
-    this._uniforms.jed.needsUpdate = true;
   }
 
   get3jsObjects() {

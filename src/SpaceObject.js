@@ -32,11 +32,20 @@ export class SpaceObject {
     if (this.isStaticObject()) {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
+      if (this._container) {
+        // Add it all to visualization.
+        this._container.addObject(this, true /* noUpdate */);
+      }
     } else {
       if (!this._options.hideOrbit) {
         // Orbit is initialized before sprite because sprite may be positioned
         // according to orbit.
         this._orbit = this.createOrbit();
+
+        if (this._container) {
+          // Add it all to visualization.
+          this._container.addObject(this, true /* noUpdate */);
+        }
       }
 
       // Don't create a sprite - do it on the GPU instead.
@@ -44,11 +53,6 @@ export class SpaceObject {
         particleSize: this._options.particleSize,
         color: this.getColor(),
       });
-    }
-
-    // Add it all to visualization.
-    if (this._container) {
-      this._container.addObject(this);
     }
     return true;
   }

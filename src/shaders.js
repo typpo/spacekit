@@ -27,8 +27,16 @@ export const ORBIT_SHADER_VERTEX = `
     attribute float om;
     attribute float ma;
     attribute float n;
+    attribute float w;
     attribute float w_bar;
     attribute float epoch;
+
+    attribute float sinOm;
+    attribute float cosOm;
+    attribute float sinW;
+    attribute float cosW;
+    attribute float sinI;
+    attribute float cosI;
 
     vec3 getAstroPos() {
       float i_rad = i;
@@ -68,10 +76,38 @@ export const ORBIT_SHADER_VERTEX = `
       return vec3(X, Y, Z);
     }
 
+    vec3 getAstroPosFast() {
+      float M1 = ma + (jed - epoch) * n;
+      float theta = M1 + 2. * e * sin(M1);
+
+      float cosT = cos(theta);
+
+      float r = a * (1. - e * e) / (1. + e * cosT);
+      float v0 = r * cosT;
+      float v1 = r * sin(theta);
+
+      /*
+      float sinO = sin(om);
+      float cosO = cos(om);
+      float sinW = sin(w);
+      float cosW = cos(w);
+      float sinI = sin(i);
+      float cosI = cos(i);
+      */
+
+      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
+      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
+      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
+
+      return vec3(X, Y, Z);
+    }
+
     void main() {
       vColor = fuzzColor;
 
-      vec3 newpos = getAstroPos();
+      //vec3 newpos = getAstroPosFast();
+      //vec3 newpos = getAstroPos();
+      vec3 newpos = vec3(3., 3., 3.);
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;

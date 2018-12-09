@@ -434,11 +434,20 @@ var Spacekit = (function (exports) {
       if (this.isStaticObject()) {
         // Create a stationary sprite.
         this._object3js = this.createSprite();
+        if (this._container) {
+          // Add it all to visualization.
+          this._container.addObject(this, true /* noUpdate */);
+        }
       } else {
         if (!this._options.hideOrbit) {
           // Orbit is initialized before sprite because sprite may be positioned
           // according to orbit.
           this._orbit = this.createOrbit();
+
+          if (this._container) {
+            // Add it all to visualization.
+            this._container.addObject(this, true /* noUpdate */);
+          }
         }
 
         // Don't create a sprite - do it on the GPU instead.
@@ -446,11 +455,6 @@ var Spacekit = (function (exports) {
           particleSize: this._options.particleSize,
           color: this.getColor(),
         });
-      }
-
-      // Add it all to visualization.
-      if (this._container) {
-        this._container.addObject(this);
       }
       return true;
     }
@@ -649,8 +653,16 @@ var Spacekit = (function (exports) {
     attribute float om;
     attribute float ma;
     attribute float n;
+    attribute float w;
     attribute float w_bar;
     attribute float epoch;
+
+    attribute float sinOm;
+    attribute float cosOm;
+    attribute float sinW;
+    attribute float cosW;
+    attribute float sinI;
+    attribute float cosI;
 
     vec3 getAstroPos() {
       float i_rad = i;
@@ -690,10 +702,38 @@ var Spacekit = (function (exports) {
       return vec3(X, Y, Z);
     }
 
+    vec3 getAstroPosFast() {
+      float M1 = ma + (jed - epoch) * n;
+      float theta = M1 + 2. * e * sin(M1);
+
+      float cosT = cos(theta);
+
+      float r = a * (1. - e * e) / (1. + e * cosT);
+      float v0 = r * cosT;
+      float v1 = r * sin(theta);
+
+      /*
+      float sinO = sin(om);
+      float cosO = cos(om);
+      float sinW = sin(w);
+      float cosW = cos(w);
+      float sinI = sin(i);
+      float cosI = cos(i);
+      */
+
+      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
+      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
+      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
+
+      return vec3(X, Y, Z);
+    }
+
     void main() {
       vColor = fuzzColor;
 
-      vec3 newpos = getAstroPos();
+      //vec3 newpos = getAstroPosFast();
+      //vec3 newpos = getAstroPos();
+      vec3 newpos = vec3(3., 3., 3.);
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;
@@ -760,8 +800,23 @@ var Spacekit = (function (exports) {
         om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+
+        e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       };
 
       const geometry = new THREE.BufferGeometry();
@@ -800,8 +855,33 @@ var Spacekit = (function (exports) {
       attributes.om.set([ephem.get('om', 'rad')], offset);
       attributes.ma.set([ephem.get('ma', 'rad')], offset);
       attributes.n.set([ephem.get('n', 'rad')], offset);
+      attributes.w.set([ephem.get('w', 'rad')], offset);
       attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
       attributes.epoch.set([ephem.get('epoch')], offset);
+
+      attributes.e2.set([ephem.get('e')**2], offset);
+      attributes.sinOm.set([Math.sin(ephem.get('om', 'rad'))], offset);
+      attributes.cosOm.set([Math.cos(ephem.get('om', 'rad'))], offset);
+      attributes.sinW.set([Math.sin(ephem.get('w', 'rad'))], offset);
+      attributes.cosW.set([Math.cos(ephem.get('w', 'rad'))], offset);
+      attributes.sinI.set([Math.sin(ephem.get('i', 'rad'))], offset);
+      attributes.cosI.set([Math.cos(ephem.get('i', 'rad'))], offset);
+
+      /*
+        e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+       */
 
       // TODO(ian): Set the update range
       for (const attributeKey in attributes) {
@@ -821,7 +901,6 @@ var Spacekit = (function (exports) {
 
     update(jed) {
       this._uniforms.jed.value = jed;
-      this._uniforms.jed.needsUpdate = true;
     }
 
     get3jsObjects() {
@@ -910,7 +989,7 @@ var Spacekit = (function (exports) {
         this._jed += this._options.jedDelta;
       } else {
         // N jed per second
-        this._jed += (this._options.jedPerSecond || 10) / this._fps;
+        this._jed += (this._options.jedPerSecond || 100) / this._fps;
       }
 
       this.update();

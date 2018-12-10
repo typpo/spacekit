@@ -47,40 +47,15 @@ var Spacekit = (function (exports) {
     }
 
     init() {
-      const geometry = new THREE.SphereBufferGeometry(4000, 64, 64);
+      const geometry = new THREE.SphereBufferGeometry(4000);
 
       const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
         this._context.options.assetPath);
       const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
-      const uniforms = {
-        texture: {
-          type: 't', value: texture,
-        },
-      };
-
-      const material = new THREE.ShaderMaterial({
-        uniforms,
-        vertexShader: `
-				varying vec2 vUV;
-				varying float vDensity;
-				varying float vDiff;
-
-				void main() {
-					vUV = uv;
-					vec4 pos = vec4(position, 1.0);
-					gl_Position = projectionMatrix * modelViewMatrix * pos;
-				}
-			`,
-        fragmentShader: `
-				uniform sampler2D texture;
-				varying vec2 vUV;
-
-				void main() {
-					vec4 sample = texture2D(texture, vUV);
-					gl_FragColor = vec4(sample.xyz, sample.w);
-				}
-			`,
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide,
       });
 
       const sky = new THREE.Mesh(geometry, material);
@@ -94,9 +69,6 @@ var Spacekit = (function (exports) {
       // We're on the inside of the skybox, so invert it to correct it.
       sky.scale.set(-1, 1, 1);
 
-      window.sky = sky;
-
-      sky.material.side = THREE.BackSide;
       this._mesh = sky;
 
       if (this._container) {
@@ -732,8 +704,7 @@ var Spacekit = (function (exports) {
       vColor = fuzzColor;
 
       //vec3 newpos = getAstroPosFast();
-      //vec3 newpos = getAstroPos();
-      vec3 newpos = vec3(3., 3., 3.);
+      vec3 newpos = getAstroPos();
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;

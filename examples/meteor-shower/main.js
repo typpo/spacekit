@@ -4,7 +4,7 @@ const viz = new Spacekit.Container(document.getElementById('main-container'), {
   jed: 2458454.5,
   maxNumParticles: 2 ** 16,
   debug: {
-    showAxesHelper: true,
+    //showAxesHelper: true,
     showStats: true,
   },
 });

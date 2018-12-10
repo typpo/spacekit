@@ -380,8 +380,6 @@ var Spacekit = (function (exports) {
     }
   }
 
-  // TODO Include presets for all the planets and the sun
-
   class SpaceObject {
     constructor(id, options, contextOrContainer) {
       this._id = id;
@@ -601,11 +599,6 @@ var Spacekit = (function (exports) {
     uniform sampler2D texture;
 
     void main() {
-      //gl_FragColor = vec4(
-      //  vColor, 1.0) * texture2D(texture,
-      //  vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
-      //);
-
       gl_FragColor = vec4(vColor, 1.0);
       gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
     }
@@ -628,13 +621,6 @@ var Spacekit = (function (exports) {
     attribute float w;
     attribute float w_bar;
     attribute float epoch;
-
-    attribute float sinOm;
-    attribute float cosOm;
-    attribute float sinW;
-    attribute float cosW;
-    attribute float sinI;
-    attribute float cosI;
 
     vec3 getAstroPos() {
       float i_rad = i;
@@ -684,14 +670,12 @@ var Spacekit = (function (exports) {
       float v0 = r * cosT;
       float v1 = r * sin(theta);
 
-      /*
-      float sinO = sin(om);
-      float cosO = cos(om);
+      float sinOm = sin(om);
+      float cosOm = cos(om);
       float sinW = sin(w);
       float cosW = cos(w);
       float sinI = sin(i);
       float cosI = cos(i);
-      */
 
       float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
       float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
@@ -774,20 +758,6 @@ var Spacekit = (function (exports) {
         w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-
-        e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       };
 
       const geometry = new THREE.BufferGeometry();
@@ -829,30 +799,6 @@ var Spacekit = (function (exports) {
       attributes.w.set([ephem.get('w', 'rad')], offset);
       attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
       attributes.epoch.set([ephem.get('epoch')], offset);
-
-      attributes.e2.set([ephem.get('e')**2], offset);
-      attributes.sinOm.set([Math.sin(ephem.get('om', 'rad'))], offset);
-      attributes.cosOm.set([Math.cos(ephem.get('om', 'rad'))], offset);
-      attributes.sinW.set([Math.sin(ephem.get('w', 'rad'))], offset);
-      attributes.cosW.set([Math.cos(ephem.get('w', 'rad'))], offset);
-      attributes.sinI.set([Math.sin(ephem.get('i', 'rad'))], offset);
-      attributes.cosI.set([Math.cos(ephem.get('i', 'rad'))], offset);
-
-      /*
-        e2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosOm: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosW: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        sinI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        cosI: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        x1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        x2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        y1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        y2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        z1: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        z2: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-       */
 
       // TODO(ian): Set the update range
       for (const attributeKey in attributes) {

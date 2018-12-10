@@ -3,11 +3,6 @@ export const ORBIT_SHADER_FRAGMENT = `
     uniform sampler2D texture;
 
     void main() {
-      //gl_FragColor = vec4(
-      //  vColor, 1.0) * texture2D(texture,
-      //  vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)
-      //);
-
       gl_FragColor = vec4(vColor, 1.0);
       gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
     }
@@ -30,13 +25,6 @@ export const ORBIT_SHADER_VERTEX = `
     attribute float w;
     attribute float w_bar;
     attribute float epoch;
-
-    attribute float sinOm;
-    attribute float cosOm;
-    attribute float sinW;
-    attribute float cosW;
-    attribute float sinI;
-    attribute float cosI;
 
     vec3 getAstroPos() {
       float i_rad = i;
@@ -86,14 +74,12 @@ export const ORBIT_SHADER_VERTEX = `
       float v0 = r * cosT;
       float v1 = r * sin(theta);
 
-      /*
-      float sinO = sin(om);
-      float cosO = cos(om);
+      float sinOm = sin(om);
+      float cosOm = cos(om);
       float sinW = sin(w);
       float cosW = cos(w);
       float sinI = sin(i);
       float cosI = cos(i);
-      */
 
       float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
       float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);

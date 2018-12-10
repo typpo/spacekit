@@ -2,8 +2,6 @@ import { EphemPresets, Ephem } from './Ephem';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 
-// TODO Include presets for all the planets and the sun
-
 export class SpaceObject {
   constructor(id, options, contextOrContainer) {
     this._id = id;

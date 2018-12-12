@@ -285,16 +285,9 @@ var Spacekit = (function (exports) {
       }
 
       const eph = this._ephem;
-      let numSegments;
-      if (eph.get('a') > 10) {
-        numSegments = 10000;
-      } else if (eph.get('e') > 0.2) {
-        numSegments = 1200;
-      } else {
-        numSegments = 300;
-      }
 
       const period = eph.get('period');
+      const numSegments = period / 10;
       const step = period / numSegments;
 
       const pts = [];

@@ -118,6 +118,7 @@ export class SpaceObject {
     }
     return new Orbit(this._options.ephem, {
       color: this.getColor(),
+      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,
     });
   }
 
@@ -135,6 +136,9 @@ export class SpaceObject {
     }
     if (this._orbit) {
       ret.push(this._orbit.getEllipse());
+      if (this._options.ecliptic && this._options.ecliptic.displayLines) {
+        ret.push(this._orbit.getLinesToEcliptic());
+      }
     }
     return ret;
   }

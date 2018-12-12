@@ -3,16 +3,17 @@ export class Orbit {
   constructor(ephem, options) {
     this._ephem = ephem;
     this._options = options || {};
+
+    // Cached orbital points.
+    this._points = null;
   }
 
   getOrbitPoints() {
-    // TODO(ian): Use an ellipse instead of this.
+    if (this._points) {
+      return this._points;
+    }
 
     const eph = this._ephem;
-
-    const period = eph.get('period');
-    const limit = period + 1;
-
     let numSegments;
     if (eph.get('a') > 10) {
       numSegments = 10000;
@@ -22,12 +23,12 @@ export class Orbit {
       numSegments = 300;
     }
 
-    const delta = Math.ceil(limit / numSegments);
+    const period = eph.get('period');
+    const step = period / numSegments;
 
     const pts = [];
-    let time = 0;
     let prevPos;
-    for (let i = 0; i <= numSegments; i++, time += delta) {
+    for (let time = 0; time < period; time += step) {
       const pos = this.getPositionAtTime(time);
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
         console.error('NaN position value - you may have bad data in the following ephemeris:');
@@ -44,11 +45,12 @@ export class Orbit {
       prevPos = pos;
       pts.push(vector);
     }
+    pts.push(pts[0]);
 
-    const points = new THREE.Geometry();
-    points.vertices = pts;
+    this._points = new THREE.Geometry();
+    this._points.vertices = pts;
 
-    return points;
+    return this._points;
   }
 
   getPositionAtTime(jed) {
@@ -106,5 +108,23 @@ export class Orbit {
       new THREE.LineBasicMaterial({
         color: this._options.color,
       }), THREE.LineStrip);
+  }
+
+  getLinesToEcliptic() {
+    const points = this.getOrbitPoints();
+    const geometry = new THREE.Geometry();
+
+    points.vertices.forEach(vertex=> {
+      geometry.vertices.push(vertex);
+      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+    });
+
+    return new THREE.LineSegments(
+      geometry,
+      new THREE.LineBasicMaterial({
+        color: this._options.eclipticLineColor || 0x333333,
+      }),
+      THREE.LineStrip
+    );
   }
 }

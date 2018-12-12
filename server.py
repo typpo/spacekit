@@ -4,7 +4,7 @@ try:
     from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
     import sys
     def test (*args):
-        test_orig(*args, port=int(sys.argv[1]) if len(sys.argv) > 1 else 8000)
+        test_orig(*args, port=int(sys.argv[1]) if len(sys.argv) > 1 else 8001)
 except ImportError: # Python 2
     from BaseHTTPServer import HTTPServer, test
     from SimpleHTTPServer import SimpleHTTPRequestHandler

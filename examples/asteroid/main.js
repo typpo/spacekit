@@ -8,6 +8,22 @@ const viz = new Spacekit.Container(document.getElementById('main-container'), {
   },
 });
 
+document.getElementById('btn-start').onclick = function() {
+  viz.start();
+};
+document.getElementById('btn-stop').onclick = function() {
+  viz.stop();
+};
+document.getElementById('btn-set-time').onclick = function() {
+  viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
+};
+
+const dateElt = document.getElementById('current-date');
+viz.onTick = function() {
+  const d = viz.getDate();
+  dateElt.innerHTML = d.toLocaleDateString();
+};
+
 // Create a skybox using NASA TYCHO artwork.
 viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 

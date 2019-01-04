@@ -1,3 +1,5 @@
+import julian from 'julian';
+
 import { Camera } from './Camera';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
@@ -11,6 +13,8 @@ export class Container {
     this._options = options || {};
 
     this._jed = this._options.jed || 0;
+    this._isPaused = options.startPaused || false;
+    this.onTick = null;
 
     this._scene = null;
     this._renderer = null;
@@ -69,6 +73,9 @@ export class Container {
 
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
+    if (this._isPaused) {
+      return;
+    }
 
     if (this._stats) {
       this._stats.begin();
@@ -88,6 +95,10 @@ export class Container {
     const timeDelta = (Date.now() - this._lastRenderedTime) / 1000;
     this._lastRenderedTime = Date.now();
     this._fps = (1 / timeDelta) || 1;
+
+    if (this.onTick) {
+      this.onTick();
+    }
 
     if (this._stats) {
       this._stats.end();
@@ -148,12 +159,28 @@ export class Container {
     }
   }
 
+  start() {
+    this._isPaused = false;
+  }
+
+  stop() {
+    this._isPaused = true;
+  }
+
   getJed() {
     return this._jed;
   }
 
   setJed(val) {
     this._jed = val;
+  }
+
+  getDate() {
+    return julian.toDate(this._jed);
+  }
+
+  setDate(date) {
+    this.setJed(julian.toJulianDay(date));
   }
 
   getContext() {

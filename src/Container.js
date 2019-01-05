@@ -13,6 +13,8 @@ export class Container {
     this._options = options || {};
 
     this._jed = this._options.jed || 0;
+    this._jedDelta = this._options.jedDelta;
+    this._jedPerSecond = this._options.jedPerSecond || 100;
     this._isPaused = options.startPaused || false;
     this.onTick = null;
 
@@ -81,11 +83,11 @@ export class Container {
       this._stats.begin();
     }
 
-    if (this._options.jedDelta) {
-      this._jed += this._options.jedDelta;
+    if (this._jedDelta) {
+      this._jed += this._jedDelta;
     } else {
       // N jed per second
-      this._jed += (this._options.jedPerSecond || 100) / this._fps;
+      this._jed += (this._jedPerSecond) / this._fps;
     }
 
     this.update();
@@ -160,6 +162,7 @@ export class Container {
   }
 
   start() {
+    this._lastRenderedTime = Date.now();
     this._isPaused = false;
   }
 
@@ -181,6 +184,32 @@ export class Container {
 
   setDate(date) {
     this.setJed(julian.toJulianDay(date));
+  }
+
+  setJedDelta(delta) {
+    this._jedDelta = delta;
+  }
+
+  getJedDelta() {
+    if (!this._jedDelta) {
+      return this._jedPerSecond / this._fps;
+    }
+    return this._jedDelta;
+  }
+
+  setJedPerSecond(x) {
+    // Delta overrides jed per second, so unset it.
+    this._jedDelta = undefined;
+
+    this._jedPerSecond = x;
+  }
+
+  getJedPerSecond() {
+    if (this._jedDelta) {
+      // Jed per second can vary
+      return undefined;
+    }
+    return this._jedPerSecond;
   }
 
   getContext() {

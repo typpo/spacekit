@@ -18,6 +18,18 @@ document.getElementById('btn-set-time').onclick = function() {
   viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
 };
 
+document.getElementById('btn-set-jed-per-second').onclick = function() {
+  viz.setJedPerSecond(parseInt(prompt('Enter a date (YYYY-mm-dd)'), 10));
+};
+
+document.getElementById('btn-faster').onclick = function() {
+  viz.setJedDelta(viz.getJedDelta() * 1.5);
+};
+
+document.getElementById('btn-slower').onclick = function() {
+  viz.setJedDelta(viz.getJedDelta() * 0.5);
+};
+
 const dateElt = document.getElementById('current-date');
 viz.onTick = function() {
   const d = viz.getDate();

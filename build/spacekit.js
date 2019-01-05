@@ -886,7 +886,7 @@ var Spacekit = (function (exports) {
       this._containerElt = containerElt;
       this._options = options || {};
 
-      this._jed = this._options.jed || 0;
+      this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;
       this._jedDelta = this._options.jedDelta;
       this._jedPerSecond = this._options.jedPerSecond || 100;
       this._isPaused = options.startPaused || false;

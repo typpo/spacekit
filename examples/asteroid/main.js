@@ -42,31 +42,30 @@ viz.createObject('aci', {
 
 // Set up event listeners
 
-document.getElementById('btn-start').onclick = function() {
+document.getElementById('btn-start').onclick = function () {
   viz.start();
 };
-document.getElementById('btn-stop').onclick = function() {
+document.getElementById('btn-stop').onclick = function () {
   viz.stop();
 };
-document.getElementById('btn-set-time').onclick = function() {
+document.getElementById('btn-set-time').onclick = function () {
   viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
 };
 
-document.getElementById('btn-set-jed-per-second').onclick = function() {
+document.getElementById('btn-set-jed-per-second').onclick = function () {
   viz.setJedPerSecond(parseInt(prompt('Enter jed per second'), 10));
 };
 
-document.getElementById('btn-faster').onclick = function() {
+document.getElementById('btn-faster').onclick = function () {
   viz.setJedDelta(viz.getJedDelta() * 1.5);
 };
 
-document.getElementById('btn-slower').onclick = function() {
+document.getElementById('btn-slower').onclick = function () {
   viz.setJedDelta(viz.getJedDelta() * 0.5);
 };
 
 const dateElt = document.getElementById('current-date');
-viz.onTick = function() {
+viz.onTick = function () {
   const d = viz.getDate();
   dateElt.innerHTML = d.toLocaleDateString();
 };
-

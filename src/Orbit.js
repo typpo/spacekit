@@ -107,7 +107,7 @@ export class Orbit {
     const points = this.getOrbitPoints();
     const geometry = new THREE.Geometry();
 
-    points.vertices.forEach(vertex=> {
+    points.vertices.forEach((vertex) => {
       geometry.vertices.push(vertex);
       geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });
@@ -117,7 +117,7 @@ export class Orbit {
       new THREE.LineBasicMaterial({
         color: this._options.eclipticLineColor || 0x333333,
       }),
-      THREE.LineStrip
+      THREE.LineStrip,
     );
   }
 }

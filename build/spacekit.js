@@ -424,6 +424,17 @@ var Spacekit = (function (exports) {
     }
   }
 
+  function toScreenXY(position, camera, canvas) {
+    const pos = new THREE.Vector3(position[0], position[1], position[2]);
+    const projScreenMat = new THREE.Matrix4();
+    projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    pos.applyMatrix4(projScreenMat);
+    return {
+      x: (pos.x + 1) * canvas.clientWidth / 2,
+      y: (-pos.y + 1) * canvas.clientHeight / 2,
+    };
+  }
+
   class SpaceObject {
     constructor(id, options, contextOrContainer) {
       this._id = id;
@@ -436,6 +447,7 @@ var Spacekit = (function (exports) {
         this._context = contextOrContainer.getContext();
       }
 
+      this._label = null;
       this._position = options.position || [0, 0, 0];
       this._scale = options.scale || [1, 1, 1];
 
@@ -445,12 +457,15 @@ var Spacekit = (function (exports) {
     }
 
     init() {
+      if (this._options.labelText) {
+        this.createLabel();
+      }
       if (this.isStaticObject()) {
         // Create a stationary sprite.
         this._object3js = this.createSprite();
         if (this._container) {
           // Add it all to visualization.
-          this._container.addObject(this, true /* noUpdate */);
+          this._container.addObject(this, false /* noUpdate */);
         }
       } else {
         if (!this._options.hideOrbit) {
@@ -460,7 +475,7 @@ var Spacekit = (function (exports) {
 
           if (this._container) {
             // Add it all to visualization.
-            this._container.addObject(this, true /* noUpdate */);
+            this._container.addObject(this, false /* noUpdate */);
           }
         }
 
@@ -471,6 +486,20 @@ var Spacekit = (function (exports) {
         });
       }
       return true;
+    }
+
+    createLabel() {
+      const text = document.createElement('div');
+      text.className = 'object-label';
+      text.innerHTML = `<div>${this._options.labelText}</div>`;
+      text.style.fontFamily = 'Arial';
+      text.style.fontSize = '12px';
+      text.style.color = '#fff';
+      text.style.position = 'absolute';
+      text.style.marginLeft = '1.5em';
+
+      this._container.getContainerElement().appendChild(text);
+      this._label = text;
     }
 
     setPosition(x, y, z) {
@@ -541,9 +570,29 @@ var Spacekit = (function (exports) {
     }
 
     update(jed) {
+      let newpos;
       if (this._object3js) {
-        const newpos = this.getPosition(jed);
+        newpos = this.getPosition(jed);
         this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+      }
+      if (this._label) {
+        if (!newpos) {
+          newpos = this.getPosition(jed);
+        }
+        const label = this._label;
+        const containerElt = this._container.getContainerElement();
+        const pos = toScreenXY(newpos, this._container.getCamera(), containerElt);
+        const loc = {
+          left: pos.x - 30, top: pos.y - 8, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+        };
+        if (loc.left > 0 && loc.right < containerElt.clientWidth &&
+            loc.top > 0 && loc.bottom < containerElt.clientHeight) {
+          label.style.left = `${loc.left}px`;
+          label.style.top = `${loc.top}px`;
+          label.style.visibility = 'visible';
+        } else {
+          label.style.visibility = 'hidden';
+        }
       }
     }
 
@@ -1097,6 +1146,14 @@ var Spacekit = (function (exports) {
           height: this._containerElt.offsetHeight,
         },
       };
+    }
+
+    getContainerElement() {
+      return this._containerElt;
+    }
+
+    getCamera() {
+      return this._camera;
     }
   }
 

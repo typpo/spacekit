@@ -224,4 +224,12 @@ export class Container {
       },
     };
   }
+
+  getContainerElement() {
+    return this._containerElt;
+  }
+
+  getCamera() {
+    return this._camera;
+  }
 }

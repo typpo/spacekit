@@ -8,10 +8,14 @@ export default {
       format: 'iife',
       name: 'Spacekit',
       file: 'build/spacekit.js',
+      globals: {
+        three: 'THREE',
+      },
     },
   ],
   plugins: [
     resolve(),
     commonjs(),
   ],
+  external: ['three'],
 };

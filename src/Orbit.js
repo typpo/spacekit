@@ -6,6 +6,9 @@ export class Orbit {
 
     // Cached orbital points.
     this._points = null;
+
+    // Cached ellipse.
+    this._ellipse = null;
   }
 
   getOrbitPoints() {
@@ -96,11 +99,14 @@ export class Orbit {
   }
 
   getEllipse() {
-    const pointGeometry = this.getOrbitPoints();
-    return new THREE.Line(pointGeometry,
-      new THREE.LineBasicMaterial({
-        color: this._options.color,
-      }), THREE.LineStrip);
+    if (!this._ellipse) {
+      const pointGeometry = this.getOrbitPoints();
+      this._ellipse = new THREE.Line(pointGeometry,
+        new THREE.LineBasicMaterial({
+          color: this._options.color,
+        }), THREE.LineStrip);
+    }
+    return this._ellipse;
   }
 
   getLinesToEcliptic() {
@@ -119,5 +125,13 @@ export class Orbit {
       }),
       THREE.LineStrip,
     );
+  }
+
+  getHexColor() {
+    return this._ellipse.material.color.getHex();
+  }
+
+  setHexColor(hexVal) {
+    return this._ellipse.material.color = new THREE.Color(hexVal);
   }
 }

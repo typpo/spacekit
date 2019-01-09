@@ -308,6 +308,9 @@ var Spacekit = (function (exports) {
 
       // Cached orbital points.
       this._points = null;
+
+      // Cached ellipse.
+      this._ellipse = null;
     }
 
     getOrbitPoints() {
@@ -398,11 +401,14 @@ var Spacekit = (function (exports) {
     }
 
     getEllipse() {
-      const pointGeometry = this.getOrbitPoints();
-      return new THREE.Line(pointGeometry,
-        new THREE.LineBasicMaterial({
-          color: this._options.color,
-        }), THREE.LineStrip);
+      if (!this._ellipse) {
+        const pointGeometry = this.getOrbitPoints();
+        this._ellipse = new THREE.Line(pointGeometry,
+          new THREE.LineBasicMaterial({
+            color: this._options.color,
+          }), THREE.LineStrip);
+      }
+      return this._ellipse;
     }
 
     getLinesToEcliptic() {
@@ -421,6 +427,14 @@ var Spacekit = (function (exports) {
         }),
         THREE.LineStrip,
       );
+    }
+
+    getHexColor() {
+      return this._ellipse.material.color.getHex();
+    }
+
+    setHexColor(hexVal) {
+      return this._ellipse.material.color = new THREE.Color(hexVal);
     }
   }
 
@@ -620,6 +634,10 @@ var Spacekit = (function (exports) {
         return this._options.theme.color || 0xffffff;
       }
       return 0xffffff;
+    }
+
+    getOrbit() {
+      return this._orbit;
     }
 
     getId() {

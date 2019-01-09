@@ -204,6 +204,10 @@ export class SpaceObject {
     return 0xffffff;
   }
 
+  getOrbit() {
+    return this._orbit;
+  }
+
   getId() {
     return this._id;
   }

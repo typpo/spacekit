@@ -34,7 +34,7 @@ const ephem = new Spacekit.Ephem({
   ma: 229.14238,
 }, 'deg');
 
-viz.createObject('Asteroid Aci', {
+const asteroid = viz.createObject('Asteroid Aci', {
   ephem,
   ecliptic: {
     displayLines: true,
@@ -72,3 +72,15 @@ viz.onTick = function () {
   const d = viz.getDate();
   dateElt.innerHTML = d.toLocaleDateString();
 };
+
+// Have some fun
+
+let count = 0;
+setInterval(() => {
+  if (count % 2 == 0) {
+    asteroid.getOrbit().setHexColor(0x00ff00);
+  } else {
+    asteroid.getOrbit().setHexColor(0xff0000);
+  }
+  count++;
+}, 1000);

@@ -881,6 +881,7 @@ var Spacekit = (function (exports) {
       };
 
       const geometry = new THREE.BufferGeometry();
+      geometry.setDrawRange(0, 0);
       Object.keys(this._attributes).forEach((attributeName) => {
         const attribute = this._attributes[attributeName];
         // attribute.setDynamic(true);
@@ -927,6 +928,8 @@ var Spacekit = (function (exports) {
         }
       }
       this._shaderMaterial.needsUpdate = true;
+      this._geometry.setDrawRange(0, this._particleCount);
+      this._geometry.needsUpdate = true;
 
       if (!this._addedToScene && this._container) {
         // This happens lazily when the first data point is added in order to

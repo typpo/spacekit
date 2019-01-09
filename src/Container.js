@@ -30,7 +30,7 @@ export class Container {
     // stats.js panel
     this._stats = null;
     this._fps = 1;
-    this._lastRenderedTime = Date.now();
+    this._lastUpdatedTime = Date.now();
 
     this.init();
     this.animate();
@@ -75,28 +75,27 @@ export class Container {
 
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
-    if (this._isPaused) {
-      return;
-    }
 
     if (this._stats) {
       this._stats.begin();
     }
 
-    if (this._jedDelta) {
-      this._jed += this._jedDelta;
-    } else {
-      // N jed per second
-      this._jed += (this._jedPerSecond) / this._fps;
+    if (!this._isPaused) {
+      if (this._jedDelta) {
+        this._jed += this._jedDelta;
+      } else {
+        // N jed per second
+        this._jed += (this._jedPerSecond) / this._fps;
+      }
+
+      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
+      this._lastUpdatedTime = Date.now();
+      this._fps = (1 / timeDelta) || 1;
     }
 
     this.update();
     this._cameraControls.update();
     this._renderer.render(this._scene, this._camera);
-
-    const timeDelta = (Date.now() - this._lastRenderedTime) / 1000;
-    this._lastRenderedTime = Date.now();
-    this._fps = (1 / timeDelta) || 1;
 
     if (this.onTick) {
       this.onTick();
@@ -162,7 +161,7 @@ export class Container {
   }
 
   start() {
-    this._lastRenderedTime = Date.now();
+    this._lastUpdatedTime = Date.now();
     this._isPaused = false;
   }
 

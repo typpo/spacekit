@@ -81,8 +81,8 @@ export class SpaceObject {
     text.style.marginLeft = '1.5em';
 
     text.style.backgroundColor = '#0009';
-    text.style.borderRadius = '8px';
-    text.style.padding = '1px 5px';
+    text.style.borderRadius = '4px';
+    text.style.padding = '0px 1px';
     text.style.border = '1px solid #5f5f5f';
 
     this._container.getContainerElement().appendChild(text);
@@ -170,7 +170,7 @@ export class SpaceObject {
       const containerElt = this._container.getContainerElement();
       const pos = toScreenXY(newpos, this._container.getCamera(), containerElt);
       const loc = {
-        left: pos.x - 30, top: pos.y - 18, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
       };
       if (loc.left > 0 && loc.right < containerElt.clientWidth &&
           loc.top > 0 && loc.bottom < containerElt.clientHeight) {

@@ -72,13 +72,18 @@ export class SpaceObject {
 
   createLabel() {
     const text = document.createElement('div');
-    text.className = 'object-label';
+    text.className = 'spacekit__object-label';
     text.innerHTML = `<div>${this._options.labelText}</div>`;
     text.style.fontFamily = 'Arial';
     text.style.fontSize = '12px';
     text.style.color = '#fff';
     text.style.position = 'absolute';
     text.style.marginLeft = '1.5em';
+
+    text.style.backgroundColor = '#0009';
+    text.style.borderRadius = '8px';
+    text.style.padding = '1px 5px';
+    text.style.border = '1px solid #5f5f5f';
 
     this._container.getContainerElement().appendChild(text);
     this._label = text;
@@ -165,7 +170,7 @@ export class SpaceObject {
       const containerElt = this._container.getContainerElement();
       const pos = toScreenXY(newpos, this._container.getCamera(), containerElt);
       const loc = {
-        left: pos.x - 30, top: pos.y - 8, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+        left: pos.x - 30, top: pos.y - 18, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
       };
       if (loc.left > 0 && loc.right < containerElt.clientWidth &&
           loc.top > 0 && loc.bottom < containerElt.clientHeight) {

@@ -149,7 +149,8 @@ export class Container {
   }
 
   createSkybox(...args) {
-    return new Skybox(...args, this);
+    //return new Skybox(...args, this);
+    this._scene.background = new Skybox(...args, this).getTexture();
   }
 
   update() {

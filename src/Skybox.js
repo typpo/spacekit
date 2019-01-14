@@ -18,8 +18,29 @@ export class Skybox {
     }
 
     this._mesh = null;
+    this._texture = null;
 
-    this.init();
+    //this.init();
+    this.testInit();
+  }
+
+  testInit() {
+    const fullTextureUrl = getFullTextureUrl('{{assets}}/skybox/nasa_tycho/',
+      this._context.options.assetPath);
+
+    var loader = new THREE.CubeTextureLoader();
+    loader.setPath(fullTextureUrl);
+
+    var textureCube = loader.load( [
+      'px.png', 'nx.png',
+      'py.png', 'ny.png',
+      'pz.png', 'nz.png'
+    ] );
+
+    textureCube.rotation = Math.PI/2;
+
+    var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
+    this._texture = textureCube;
   }
 
   init() {
@@ -46,6 +67,7 @@ export class Skybox {
     sky.scale.set(-1, 1, 1);
 
     this._mesh = sky;
+    this._texture = texture;
 
     if (this._container) {
       this._container.addObject(this, true /* noUpdate */);
@@ -54,6 +76,10 @@ export class Skybox {
 
   get3jsObjects() {
     return [this._mesh];
+  }
+
+  getTexture() {
+    return this._texture;
   }
 
   getId() {

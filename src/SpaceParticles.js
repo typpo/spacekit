@@ -5,23 +5,23 @@ import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
 const DEFAULT_PARTICLE_COUNT = 1024;
 
 export class SpaceParticles {
-  constructor(options, contextOrContainer) {
+  constructor(options, contextOrSimulation) {
     this._options = options;
 
     this._id = `SpaceParticles__${SpaceParticles.instanceCount}`;
 
     // TODO(ian): Add to ctx
     if (true) {
-      // User passed in Container
-      this._container = contextOrContainer;
-      this._context = contextOrContainer.getContext();
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
     } else {
       // User just passed in options
-      this._container = null;
-      this._context = contextOrContainer;
+      this._simulation = null;
+      this._context = contextOrSimulation;
     }
 
-    // Whether Points object has been added to the Container/Scene. This
+    // Whether Points object has been added to the Simulation/Scene. This
     // happens lazily when the first data point is added in order to prevent
     // WebGL render warnings.
     this._addedToScene = false;
@@ -122,10 +122,10 @@ export class SpaceParticles {
     this._geometry.setDrawRange(0, this._particleCount);
     this._geometry.needsUpdate = true;
 
-    if (!this._addedToScene && this._container) {
+    if (!this._addedToScene && this._simulation) {
       // This happens lazily when the first data point is added in order to
       // prevent WebGL render warnings.
-      this._container.addObject(this);
+      this._simulation.addObject(this);
       this._addedToScene = true;
     }
   }

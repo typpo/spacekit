@@ -1,20 +1,20 @@
 import { getFullTextureUrl } from './util';
 
 export class Skybox {
-  constructor(options, contextOrContainer) {
+  constructor(options, contextOrSimulation) {
     // TODO(ian): Support for actual box instead of sphere...
     this._options = options;
     this._id = `__skybox_${new Date().getTime()}`;
 
-    // if (contextOrContainer instanceOf Container) {
+    // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
-      // User passed in Container
-      this._container = contextOrContainer;
-      this._context = contextOrContainer.getContext();
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
     } else {
       // User just passed in options
-      this._container = null;
-      this._context = contextOrContainer;
+      this._simulation = null;
+      this._context = contextOrSimulation;
     }
 
     this._mesh = null;
@@ -47,8 +47,8 @@ export class Skybox {
 
     this._mesh = sky;
 
-    if (this._container) {
-      this._container.addObject(this, true /* noUpdate */);
+    if (this._simulation) {
+      this._simulation.addObject(this, true /* noUpdate */);
     }
   }
 

@@ -14,19 +14,19 @@ function toScreenXY(position, camera, canvas) {
 }
 
 export class SpaceObject {
-  constructor(id, options, contextOrContainer) {
+  constructor(id, options, contextOrSimulation) {
     this._id = id;
     this._options = options || {};
 
-    // if (contextOrContainer instanceOf Container) {
+    // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
-      // User passed in Container
-      this._container = contextOrContainer;
-      this._context = contextOrContainer.getContext();
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
     } else {
       // User just passed in options
-      this._container = null;
-      this._context = contextOrContainer;
+      this._simulation = null;
+      this._context = contextOrSimulation;
     }
 
     this._label = null;
@@ -45,9 +45,9 @@ export class SpaceObject {
     if (this.isStaticObject()) {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
-      if (this._container) {
+      if (this._simulation) {
         // Add it all to visualization.
-        this._container.addObject(this, false /* noUpdate */);
+        this._simulation.addObject(this, false /* noUpdate */);
       }
     } else {
       if (!this._options.hideOrbit) {
@@ -55,9 +55,9 @@ export class SpaceObject {
         // according to orbit.
         this._orbit = this.createOrbit();
 
-        if (this._container) {
+        if (this._simulation) {
           // Add it all to visualization.
-          this._container.addObject(this, false /* noUpdate */);
+          this._simulation.addObject(this, false /* noUpdate */);
         }
       }
 
@@ -85,7 +85,7 @@ export class SpaceObject {
     text.style.padding = '0px 1px';
     text.style.border = '1px solid #5f5f5f';
 
-    this._container.getContainerElement().appendChild(text);
+    this._simulation.getSimulationElement().appendChild(text);
     this._label = text;
   }
 
@@ -122,7 +122,7 @@ export class SpaceObject {
       color: 0xffffff,
     }));
     sprite.scale.set.apply(this, this._scale);
-    const position = this.getPosition(this._container.getJed());
+    const position = this.getPosition(this._simulation.getJed());
     sprite.position.set(position[0], position[1], position[2]);
 
 
@@ -167,13 +167,13 @@ export class SpaceObject {
         newpos = this.getPosition(jed);
       }
       const label = this._label;
-      const containerElt = this._container.getContainerElement();
-      const pos = toScreenXY(newpos, this._container.getCamera(), containerElt);
+      const SimulationElt = this._simulation.getSimulationElement();
+      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);
       const loc = {
         left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
       };
-      if (loc.left > 0 && loc.right < containerElt.clientWidth &&
-          loc.top > 0 && loc.bottom < containerElt.clientHeight) {
+      if (loc.left > 0 && loc.right < SimulationElt.clientWidth &&
+          loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {
         label.style.left = `${loc.left}px`;
         label.style.top = `${loc.top}px`;
         label.style.visibility = 'visible';

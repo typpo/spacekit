@@ -1,37 +1,6 @@
 var Spacekit = (function (exports) {
   'use strict';
 
-  var julian = convert;
-  var toDate = convertToDate;
-
-  var toJulianDay_1 = toJulianDay;
-  var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
-  var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
-
-  var DAY = 86400000;
-  var HALF_DAY = DAY / 2;
-  var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
-  var UNIX_EPOCH_JULIAN_DAY = 2440587;
-
-  function convert(date) {
-    return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
-  }
-  function convertToDate(julian) {
-    return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
-  }
-  function toJulianDay(date) {
-    return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
-  }
-  function toMillisecondsInJulianDay(date) {
-    return (+date + HALF_DAY) % DAY;
-  }
-  function fromJulianDayAndMilliseconds(day, ms) {
-    return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
-  }julian.toDate = toDate;
-  julian.toJulianDay = toJulianDay_1;
-  julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
-  julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
-
   class Camera {
     // Simple wrapper for Three.js camera
 
@@ -52,78 +21,6 @@ var Spacekit = (function (exports) {
       return this._camera;
     }
   }
-
-  const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
-
-  function getFullTextureUrl(template, assetPath) {
-    return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
-  }
-
-  class Skybox {
-    constructor(options, contextOrContainer) {
-      // TODO(ian): Support for actual box instead of sphere...
-      this._options = options;
-      this._id = `__skybox_${new Date().getTime()}`;
-
-      // if (contextOrContainer instanceOf Container) {
-      {
-        // User passed in Container
-        this._container = contextOrContainer;
-        this._context = contextOrContainer.getContext();
-      }
-
-      this._mesh = null;
-
-      this.init();
-    }
-
-    init() {
-      const geometry = new THREE.SphereBufferGeometry(4000);
-
-      const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-        this._context.options.assetPath);
-      const texture = new THREE.TextureLoader().load(fullTextureUrl);
-
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.BackSide,
-      });
-
-      const sky = new THREE.Mesh(geometry, material);
-
-      // See this thread on orientation of milky way:
-      // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
-      sky.rotation.x = 0;
-      sky.rotation.y = -1 / 12 * Math.PI;
-      sky.rotation.z = 8 / 5 * Math.PI;
-
-      // We're on the inside of the skybox, so invert it to correct it.
-      sky.scale.set(-1, 1, 1);
-
-      this._mesh = sky;
-
-      if (this._container) {
-        this._container.addObject(this, true /* noUpdate */);
-      }
-    }
-
-    get3jsObjects() {
-      return [this._mesh];
-    }
-
-    getId() {
-      return this._id;
-    }
-  }
-
-  const SkyboxPresets = {
-    ESO_GIGAGALAXY: {
-      textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
-    },
-    NASA_TYCHO: {
-      textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
-    },
-  };
 
   const EPHEM_VALID_ATTRS = new Set([
     'a', // Semi-major axis
@@ -446,6 +343,109 @@ var Spacekit = (function (exports) {
     }
   }
 
+  var julian = convert;
+  var toDate = convertToDate;
+
+  var toJulianDay_1 = toJulianDay;
+  var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
+  var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
+
+  var DAY = 86400000;
+  var HALF_DAY = DAY / 2;
+  var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
+  var UNIX_EPOCH_JULIAN_DAY = 2440587;
+
+  function convert(date) {
+    return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
+  }
+  function convertToDate(julian) {
+    return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
+  }
+  function toJulianDay(date) {
+    return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
+  }
+  function toMillisecondsInJulianDay(date) {
+    return (+date + HALF_DAY) % DAY;
+  }
+  function fromJulianDayAndMilliseconds(day, ms) {
+    return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
+  }julian.toDate = toDate;
+  julian.toJulianDay = toJulianDay_1;
+  julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
+  julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
+
+  const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
+
+  function getFullTextureUrl(template, assetPath) {
+    return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
+  }
+
+  class Skybox {
+    constructor(options, contextOrSimulation) {
+      // TODO(ian): Support for actual box instead of sphere...
+      this._options = options;
+      this._id = `__skybox_${new Date().getTime()}`;
+
+      // if (contextOrSimulation instanceOf Simulation) {
+      {
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
+      }
+
+      this._mesh = null;
+
+      this.init();
+    }
+
+    init() {
+      const geometry = new THREE.SphereBufferGeometry(4000);
+
+      const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+        this._context.options.assetPath);
+      const texture = new THREE.TextureLoader().load(fullTextureUrl);
+
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide,
+      });
+
+      const sky = new THREE.Mesh(geometry, material);
+
+      // See this thread on orientation of milky way:
+      // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
+      sky.rotation.x = 0;
+      sky.rotation.y = -1 / 12 * Math.PI;
+      sky.rotation.z = 8 / 5 * Math.PI;
+
+      // We're on the inside of the skybox, so invert it to correct it.
+      sky.scale.set(-1, 1, 1);
+
+      this._mesh = sky;
+
+      if (this._simulation) {
+        this._simulation.addObject(this, true /* noUpdate */);
+      }
+    }
+
+    get3jsObjects() {
+      return [this._mesh];
+    }
+
+    getId() {
+      return this._id;
+    }
+  }
+
+  const SkyboxPresets = {
+    ESO_GIGAGALAXY: {
+      textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+    },
+    NASA_TYCHO: {
+      textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
+    },
+  };
+
   function toScreenXY(position, camera, canvas) {
     const pos = new THREE.Vector3(position[0], position[1], position[2]);
     const projScreenMat = new THREE.Matrix4();
@@ -458,15 +458,15 @@ var Spacekit = (function (exports) {
   }
 
   class SpaceObject {
-    constructor(id, options, contextOrContainer) {
+    constructor(id, options, contextOrSimulation) {
       this._id = id;
       this._options = options || {};
 
-      // if (contextOrContainer instanceOf Container) {
+      // if (contextOrSimulation instanceOf Simulation) {
       {
-        // User passed in Container
-        this._container = contextOrContainer;
-        this._context = contextOrContainer.getContext();
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
       }
 
       this._label = null;
@@ -485,9 +485,9 @@ var Spacekit = (function (exports) {
       if (this.isStaticObject()) {
         // Create a stationary sprite.
         this._object3js = this.createSprite();
-        if (this._container) {
+        if (this._simulation) {
           // Add it all to visualization.
-          this._container.addObject(this, false /* noUpdate */);
+          this._simulation.addObject(this, false /* noUpdate */);
         }
       } else {
         if (!this._options.hideOrbit) {
@@ -495,9 +495,9 @@ var Spacekit = (function (exports) {
           // according to orbit.
           this._orbit = this.createOrbit();
 
-          if (this._container) {
+          if (this._simulation) {
             // Add it all to visualization.
-            this._container.addObject(this, false /* noUpdate */);
+            this._simulation.addObject(this, false /* noUpdate */);
           }
         }
 
@@ -525,7 +525,7 @@ var Spacekit = (function (exports) {
       text.style.padding = '0px 1px';
       text.style.border = '1px solid #5f5f5f';
 
-      this._container.getContainerElement().appendChild(text);
+      this._simulation.getSimulationElement().appendChild(text);
       this._label = text;
     }
 
@@ -562,7 +562,7 @@ var Spacekit = (function (exports) {
         color: 0xffffff,
       }));
       sprite.scale.set.apply(this, this._scale);
-      const position = this.getPosition(this._container.getJed());
+      const position = this.getPosition(this._simulation.getJed());
       sprite.position.set(position[0], position[1], position[2]);
 
 
@@ -607,13 +607,13 @@ var Spacekit = (function (exports) {
           newpos = this.getPosition(jed);
         }
         const label = this._label;
-        const containerElt = this._container.getContainerElement();
-        const pos = toScreenXY(newpos, this._container.getCamera(), containerElt);
+        const SimulationElt = this._simulation.getSimulationElement();
+        const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);
         const loc = {
           left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
         };
-        if (loc.left > 0 && loc.right < containerElt.clientWidth &&
-            loc.top > 0 && loc.bottom < containerElt.clientHeight) {
+        if (loc.left > 0 && loc.right < SimulationElt.clientWidth &&
+            loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {
           label.style.left = `${loc.left}px`;
           label.style.top = `${loc.top}px`;
           label.style.visibility = 'visible';
@@ -826,19 +826,19 @@ var Spacekit = (function (exports) {
   const DEFAULT_PARTICLE_COUNT = 1024;
 
   class SpaceParticles {
-    constructor(options, contextOrContainer) {
+    constructor(options, contextOrSimulation) {
       this._options = options;
 
       this._id = `SpaceParticles__${SpaceParticles.instanceCount}`;
 
       // TODO(ian): Add to ctx
       {
-        // User passed in Container
-        this._container = contextOrContainer;
-        this._context = contextOrContainer.getContext();
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
       }
 
-      // Whether Points object has been added to the Container/Scene. This
+      // Whether Points object has been added to the Simulation/Scene. This
       // happens lazily when the first data point is added in order to prevent
       // WebGL render warnings.
       this._addedToScene = false;
@@ -939,10 +939,10 @@ var Spacekit = (function (exports) {
       this._geometry.setDrawRange(0, this._particleCount);
       this._geometry.needsUpdate = true;
 
-      if (!this._addedToScene && this._container) {
+      if (!this._addedToScene && this._simulation) {
         // This happens lazily when the first data point is added in order to
         // prevent WebGL render warnings.
-        this._container.addObject(this);
+        this._simulation.addObject(this);
         this._addedToScene = true;
       }
     }
@@ -962,11 +962,11 @@ var Spacekit = (function (exports) {
 
   SpaceParticles.instanceCount = 0;
 
-  class Container {
-    // Wraps scene and controls and skybox in an animated container
+  class Simulation {
+    // Wraps scene and controls and skybox in an animated Simulation
 
-    constructor(containerElt, options) {
-      this._containerElt = containerElt;
+    constructor(simulationElt, options) {
+      this._simulationElt = simulationElt;
       this._options = options || {};
 
       this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;
@@ -1005,7 +1005,7 @@ var Spacekit = (function (exports) {
       window.cam = this._camera;
 
       // Controls
-      this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
+      this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
       this._cameraControls.userPanSpeed = 20;
       this._cameraControls.rotateSpeed = 2;
 
@@ -1018,7 +1018,7 @@ var Spacekit = (function (exports) {
           this._stats = new Stats();
           this._stats.showPanel(0);
           window.sssss = this._stats;
-          this._containerElt.appendChild(this._stats.dom);
+          this._simulationElt.appendChild(this._stats.dom);
         }
       }
 
@@ -1068,9 +1068,9 @@ var Spacekit = (function (exports) {
         antialias: true,
       });
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(this._containerElt.offsetWidth, this._containerElt.offsetHeight);
+      renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
 
-      this._containerElt.appendChild(renderer.domElement);
+      this._simulationElt.appendChild(renderer.domElement);
 
       this._renderer = renderer;
     }
@@ -1175,14 +1175,14 @@ var Spacekit = (function (exports) {
           particles: this._particles,
         },
         container: {
-          width: this._containerElt.offsetWidth,
-          height: this._containerElt.offsetHeight,
+          width: this._simulationElt.offsetWidth,
+          height: this._simulationElt.offsetHeight,
         },
       };
     }
 
-    getContainerElement() {
-      return this._containerElt;
+    getSimulationElement() {
+      return this._simulationElt;
     }
 
     getCamera() {
@@ -1190,16 +1190,16 @@ var Spacekit = (function (exports) {
     }
   }
 
-  exports.Container = Container;
+  exports.Camera = Camera;
   exports.Ephem = Ephem;
   exports.EphemPresets = EphemPresets;
   exports.Orbit = Orbit;
+  exports.Simulation = Simulation;
+  exports.Skybox = Skybox;
+  exports.SkyboxPresets = SkyboxPresets;
   exports.SpaceObject = SpaceObject;
   exports.SpaceObjectPresets = SpaceObjectPresets;
   exports.SpaceParticles = SpaceParticles;
-  exports.Skybox = Skybox;
-  exports.SkyboxPresets = SkyboxPresets;
-  exports.Camera = Camera;
 
   return exports;
 

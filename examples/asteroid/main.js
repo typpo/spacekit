@@ -1,5 +1,5 @@
 // Create the visualization and put it in our div.
-const viz = new Spacekit.Container(document.getElementById('main-container'), {
+const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   jed: 2458461.459,
   debug: {

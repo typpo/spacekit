@@ -5,11 +5,11 @@ import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SpaceParticles } from './SpaceParticles';
 
-export class Container {
-  // Wraps scene and controls and skybox in an animated container
+export class Simulation {
+  // Wraps scene and controls and skybox in an animated Simulation
 
-  constructor(containerElt, options) {
-    this._containerElt = containerElt;
+  constructor(simulationElt, options) {
+    this._simulationElt = simulationElt;
     this._options = options || {};
 
     this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;
@@ -48,7 +48,7 @@ export class Container {
     window.cam = this._camera;
 
     // Controls
-    this._cameraControls = new THREE.TrackballControls(this._camera, this._containerElt);
+    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
 
@@ -61,7 +61,7 @@ export class Container {
         this._stats = new Stats();
         this._stats.showPanel(0);
         window.sssss = this._stats;
-        this._containerElt.appendChild(this._stats.dom);
+        this._simulationElt.appendChild(this._stats.dom);
       }
     }
 
@@ -111,9 +111,9 @@ export class Container {
       antialias: true,
     });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(this._containerElt.offsetWidth, this._containerElt.offsetHeight);
+    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
 
-    this._containerElt.appendChild(renderer.domElement);
+    this._simulationElt.appendChild(renderer.domElement);
 
     this._renderer = renderer;
   }
@@ -218,14 +218,14 @@ export class Container {
         particles: this._particles,
       },
       container: {
-        width: this._containerElt.offsetWidth,
-        height: this._containerElt.offsetHeight,
+        width: this._simulationElt.offsetWidth,
+        height: this._simulationElt.offsetHeight,
       },
     };
   }
 
-  getContainerElement() {
-    return this._containerElt;
+  getSimulationElement() {
+    return this._simulationElt;
   }
 
   getCamera() {

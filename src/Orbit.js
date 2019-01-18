@@ -134,4 +134,12 @@ export class Orbit {
   setHexColor(hexVal) {
     return this._ellipse.material.color = new THREE.Color(hexVal);
   }
+
+  getVisibility() {
+    return this._ellipse.visible = false;
+  }
+
+  setVisibility(val) {
+    return this._ellipse.visible = val;
+  }
 }

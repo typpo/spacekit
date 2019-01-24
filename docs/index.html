@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">Home | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="spacekit">spacekit</h1><p>&#x1F6A8; <strong>This library is a work in progress and is not ready for usage!</strong> &#x1F6A8;</p>
+<p>A Javascript library for 3D space visualizations - Earth/moon system, solar system, and beyond...</p>
+<p>The intent of this library is to generalize my work on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth#240">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
+<h1 id="dependencies">Dependencies</h1><p>Production:</p>
+<ul>
+<li>THREE.js</li>
+<li>THREE.js TrackballControls</li>
+<li>Stats.js (optional)</li>
+</ul>
+<p>Additional development dependencies:</p>
+<ul>
+<li>Python</li>
+</ul>
+<h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  <a href="http://localhost:8000/examples/simple.html">http://localhost:8000/examples/simple.html</a> will load a simple example.</p>
+<p>If you&apos;re making changes to the code and working with an example (or anything that uses the <code>build/</code> outputs), run <code>yarn build</code> or <code>yarn build:watch</code> to continuously update the bundle.</p>
+<h1 id="usage">Usage</h1><p>See the examples directory for full usage examples.  For now, here&apos;s some example code that will build an interactive visualization of the sun, Earth, and Mars:</p>
+<pre><code><code class="source-code prettyprint">// Create the visualization and put it in our div.
+const viz = new Spacekit.Simulation(document.getElementById(&apos;main-container&apos;), {
+  assetPath: &apos;../src/assets&apos;,
+});
+
+// Create a skybox using NASA TYCHO artwork.
+const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+
+// Create our first object - the sun - using a preset space object.
+const sun = viz.createObject(&apos;sun&apos;, Spacekit.SpaceObjectPresets.SUN);
+
+// Then add some planets
+const earth = viz.createObject(&apos;earth&apos;, Spacekit.SpaceObjectPresets.EARTH);
+const mars = viz.createObject(&apos;mars&apos;, Spacekit.SpaceObjectPresets.MARS);</code>
+</code></pre><p><img src="https://imgur.com/8ldI8wel.jpg" alt="example"></p>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

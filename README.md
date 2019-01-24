@@ -30,12 +30,12 @@ See the examples directory for full usage examples.  For now, here's some exampl
 
 ```
 // Create the visualization and put it in our div.
-const viz = new Spacekit.Container(document.getElementById('main-container'), {
+const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../src/assets',
 });
 
 // Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createSkybox Spacekit.SkyboxPresets.NASA_TYCHO);
+const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 
 // Create our first object - the sun - using a preset space object.
 const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);

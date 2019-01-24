@@ -1,3 +1,5 @@
+// TODO(ian): Allow multiple valid attrs for a single quantity and map them
+// internally to a single canonical attribute.
 const EPHEM_VALID_ATTRS = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity
@@ -20,21 +22,42 @@ const ANGLE_UNITS = new Set([
   'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
 ]);
 
+/**
+ * A class representing Kepler ephemerides.
+   * @param {Object} initialValues A dictionary of initial values.
+   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
+ * @example
+ * const NEPTUNE = new Ephem({
+ *   epoch: 2458426.500000000,
+ *   a: 3.009622263428050E+01,
+ *   e: 7.362571187193770E-03,
+ *   i: 1.774569249829094E+00,
+ *   om: 1.318695882492132E+02,
+ *   w: 2.586226409499831E+02,
+ *   ma: 3.152804988924479E+02,
+ * }, 'deg'),
+ */
 export class Ephem {
-  // Note that Ephem always takes values in RADIANS, not degrees
-
-  constructor(initialValues, degOrRad = 'rad') {
+  /**
+   */
+  constructor(initialValues, units = 'rad') {
     this._attrs = {};
 
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
-        const units = ANGLE_UNITS.has(attr) ? degOrRad : null;
+        const units = ANGLE_UNITS.has(attr) ? units : null;
         this.set(attr, initialValues[attr], units);
       }
     }
     this.fill();
   }
 
+  /**
+   * Sets an ephemerides attribute.
+   * @param {String} attr The name of the attribute (e.g. 'a')
+   * @param {Number} val The value of the attribute (e.g. 0.5)
+   * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
+   */
   set(attr, val, units = 'rad') {
     if (!EPHEM_VALID_ATTRS.has(attr)) {
       console.warn(`Invalid ephem attr: ${attr}`);
@@ -49,6 +72,12 @@ export class Ephem {
     return true;
   }
 
+  /**
+   * Gets an ephemerides attribute.
+   * @param {String} attr The name of the attribute (e.g. 'a')
+   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
+   * input is ignored for values that are not angle measurements.
+   */
   get(attr, units = 'rad') {
     if (units === 'deg') {
       return this._attrs[attr] * 180 / Math.PI;
@@ -56,6 +85,11 @@ export class Ephem {
     return this._attrs[attr];
   }
 
+  /**
+   * @private
+   * Infers values of some ephemerides attributes if the required information
+   * is available.
+   */
   fill() {
     // Longitude/Argument of Perihelion and Long. of Ascending Node
     let w = this.get('w');
@@ -99,6 +133,13 @@ export class Ephem {
   }
 }
 
+/**
+ * A dictionary containing ephemerides of planets and other well-known objects.
+ * @example
+ * const planet1 = viz.createObject('planet1', {
+ *   ephem: EphemPresets.MERCURY,
+ * });
+ */
 export const EphemPresets = {
   MERCURY: new Ephem({
     epoch: 2458426.500000000,

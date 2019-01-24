@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Skybox.js | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Skybox.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { getFullTextureUrl } from &apos;./util&apos;;
+
+export class Skybox {
+  constructor(options, contextOrSimulation) {
+    // TODO(ian): Support for actual box instead of sphere...
+    this._options = options;
+    this._id = `__skybox_${new Date().getTime()}`;
+
+    // if (contextOrSimulation instanceOf Simulation) {
+    if (true) {
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
+    } else {
+      // User just passed in options
+      this._simulation = null;
+      this._context = contextOrSimulation;
+    }
+
+    this._mesh = null;
+
+    this.init();
+  }
+
+  init() {
+    const geometry = new THREE.SphereBufferGeometry(4000);
+
+    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+      this._context.options.assetPath);
+    const texture = new THREE.TextureLoader().load(fullTextureUrl);
+
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.BackSide,
+    });
+
+    const sky = new THREE.Mesh(geometry, material);
+
+    // See this thread on orientation of milky way:
+    // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
+    sky.rotation.x = 0;
+    sky.rotation.y = -1 / 12 * Math.PI;
+    sky.rotation.z = 8 / 5 * Math.PI;
+
+    // We&apos;re on the inside of the skybox, so invert it to correct it.
+    sky.scale.set(-1, 1, 1);
+
+    this._mesh = sky;
+
+    if (this._simulation) {
+      this._simulation.addObject(this, true /* noUpdate */);
+    }
+  }
+
+  get3jsObjects() {
+    return [this._mesh];
+  }
+
+  getId() {
+    return this._id;
+  }
+}
+
+export const SkyboxPresets = {
+  ESO_GIGAGALAXY: {
+    textureUrl: &apos;{{assets}}/skybox/eso_milkyway.jpg&apos;,
+  },
+  NASA_TYCHO: {
+    textureUrl: &apos;{{assets}}/skybox/nasa_tycho.jpg&apos;,
+  },
+};
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

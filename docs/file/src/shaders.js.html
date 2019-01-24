@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/shaders.js | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/shaders.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">export const ORBIT_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    uniform sampler2D texture;
+
+    void main() {
+      gl_FragColor = vec4(vColor, 1.0);
+      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+    }
+`;
+
+export const ORBIT_SHADER_VERTEX = `
+    uniform float jed;
+
+    attribute vec3 fuzzColor;
+    varying vec3 vColor;
+
+    attribute float size;
+
+    attribute float a;
+    attribute float e;
+    attribute float i;
+    attribute float om;
+    attribute float ma;
+    attribute float n;
+    attribute float w;
+    attribute float w_bar;
+    attribute float epoch;
+
+    vec3 getAstroPos() {
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = w_bar;
+      float ma_rad = ma;
+      float n_rad = n;
+
+      float d = jed - epoch;
+      float M = ma_rad + n_rad * d;
+
+      // Estimate eccentric and true anom using iterative approximation (this
+      // is normally an intergral).
+      float E0 = M;
+      float E1 = M + e * sin(E0);
+      float lastdiff = abs(E1-E0);
+      E0 = E1;
+      for (int foo=0; foo &lt; 25; foo++) {
+        E1 = M + e * sin(E0);
+        lastdiff = abs(E1-E0);
+        E0 = E1;
+        if (lastdiff &lt; 0.0000001) {
+          break;
+        }
+      }
+
+      float E = E0;
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
+
+      // Compute radius vector.
+      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
+
+      // Compute heliocentric coords.
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getAstroPosFast() {
+      float M1 = ma + (jed - epoch) * n;
+      float theta = M1 + 2. * e * sin(M1);
+
+      float cosT = cos(theta);
+
+      float r = a * (1. - e * e) / (1. + e * cosT);
+      float v0 = r * cosT;
+      float v1 = r * sin(theta);
+
+      float sinOm = sin(om);
+      float cosOm = cos(om);
+      float sinW = sin(w);
+      float cosW = cos(w);
+      float sinI = sin(i);
+      float cosI = cos(i);
+
+      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
+      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
+      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
+
+      return vec3(X, Y, Z);
+    }
+
+    void main() {
+      vColor = fuzzColor;
+
+      //vec3 newpos = getAstroPosFast();
+      vec3 newpos = getAstroPos();
+      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      gl_PointSize = size;
+    }
+`;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

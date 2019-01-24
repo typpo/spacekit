@@ -1,0 +1,190 @@
+{
+  "coverage": "6.81%",
+  "expectCount": 132,
+  "actualCount": 9,
+  "files": {
+    "src/Camera.js": {
+      "expectCount": 6,
+      "actualCount": 2,
+      "undocumentLines": [
+        6,
+        8,
+        13,
+        19
+      ]
+    },
+    "src/Ephem.js": {
+      "expectCount": 9,
+      "actualCount": 6,
+      "undocumentLines": [
+        3,
+        21,
+        44
+      ]
+    },
+    "src/Orbit.js": {
+      "expectCount": 14,
+      "actualCount": 1,
+      "undocumentLines": [
+        7,
+        8,
+        9,
+        12,
+        15,
+        18,
+        56,
+        105,
+        116,
+        134,
+        138,
+        142,
+        146
+      ]
+    },
+    "src/Simulation.js": {
+      "expectCount": 40,
+      "actualCount": 0,
+      "undocumentLines": [
+        8,
+        11,
+        12,
+        13,
+        15,
+        16,
+        17,
+        18,
+        19,
+        21,
+        22,
+        24,
+        25,
+        27,
+        28,
+        31,
+        32,
+        33,
+        39,
+        76,
+        109,
+        121,
+        132,
+        141,
+        145,
+        151,
+        155,
+        163,
+        168,
+        172,
+        176,
+        180,
+        184,
+        188,
+        192,
+        199,
+        206,
+        214,
+        227,
+        231
+      ]
+    },
+    "src/Skybox.js": {
+      "expectCount": 11,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        4,
+        6,
+        7,
+        12,
+        13,
+        20,
+        25,
+        55,
+        59,
+        64
+      ]
+    },
+    "src/SpaceObject.js": {
+      "expectCount": 26,
+      "actualCount": 0,
+      "undocumentLines": [
+        5,
+        16,
+        17,
+        18,
+        19,
+        24,
+        25,
+        32,
+        33,
+        34,
+        41,
+        47,
+        56,
+        73,
+        92,
+        98,
+        113,
+        149,
+        159,
+        186,
+        200,
+        207,
+        211,
+        215,
+        220,
+        222
+      ]
+    },
+    "src/SpaceParticles.js": {
+      "expectCount": 20,
+      "actualCount": 0,
+      "undocumentLines": [
+        5,
+        7,
+        8,
+        9,
+        11,
+        16,
+        17,
+        27,
+        30,
+        32,
+        33,
+        34,
+        35,
+        36,
+        41,
+        45,
+        97,
+        133,
+        137,
+        141
+      ]
+    },
+    "src/shaders.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        1,
+        11
+      ]
+    },
+    "src/threeUtil.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        2,
+        5
+      ]
+    },
+    "src/util.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        1,
+        3
+      ]
+    }
+  }
+}

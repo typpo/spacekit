@@ -1,6 +1,8 @@
+/**
+ * A simple wrapper for Three.js camera.
+ * @param {Object} context The simulation context
+ */
 export class Camera {
-  // Simple wrapper for Three.js camera
-
   constructor(context) {
     // TODO(ian): Accept either context or container
     this._context = context;
@@ -17,6 +19,9 @@ export class Camera {
     this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 1, 5000);
   }
 
+  /**
+   * @returns {Object} The THREE.js camera object.
+   */
   get3jsCamera() {
     return this._camera;
   }

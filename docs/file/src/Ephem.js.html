@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Ephem.js | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Ephem.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">// TODO(ian): Allow multiple valid attrs for a single quantity and map them
+// internally to a single canonical attribute.
+const EPHEM_VALID_ATTRS = new Set([
+  &apos;a&apos;, // Semi-major axis
+  &apos;e&apos;, // Eccentricity
+  &apos;i&apos;, // Inclination
+
+  &apos;epoch&apos;,
+  &apos;period&apos;,
+
+  &apos;ma&apos;, // Mean anomaly
+  &apos;n&apos;, // Mean motion
+  &apos;L&apos;, // Mean longitude
+
+  &apos;om&apos;, // Longitude of Ascending Node
+  &apos;w&apos;, // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
+  &apos;w_bar&apos;, // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+]);
+
+// Which of these are angular measurements.
+const ANGLE_UNITS = new Set([
+  &apos;i&apos;, &apos;ma&apos;, &apos;n&apos;, &apos;L&apos;, &apos;om&apos;, &apos;w&apos;, &apos;w_bar&apos;,
+]);
+
+/**
+ * A class representing Kepler ephemerides.
+   * @param {Object} initialValues A dictionary of initial values.
+   * @param {&apos;deg&apos;|&apos;rad&apos;} units The unit of angles in the list of initial values.
+ * @example
+ * const NEPTUNE = new Ephem({
+ *   epoch: 2458426.500000000,
+ *   a: 3.009622263428050E+01,
+ *   e: 7.362571187193770E-03,
+ *   i: 1.774569249829094E+00,
+ *   om: 1.318695882492132E+02,
+ *   w: 2.586226409499831E+02,
+ *   ma: 3.152804988924479E+02,
+ * }, &apos;deg&apos;),
+ */
+export class Ephem {
+  /**
+   */
+  constructor(initialValues, units = &apos;rad&apos;) {
+    this._attrs = {};
+
+    for (const attr in initialValues) {
+      if (initialValues.hasOwnProperty(attr)) {
+        const units = ANGLE_UNITS.has(attr) ? units : null;
+        this.set(attr, initialValues[attr], units);
+      }
+    }
+    this.fill();
+  }
+
+  /**
+   * Sets an ephemerides attribute.
+   * @param {String} attr The name of the attribute (e.g. &apos;a&apos;)
+   * @param {Number} val The value of the attribute (e.g. 0.5)
+   * @param {&apos;deg&apos;|&apos;rad&apos;} units The unit of angle provided, if applicable.
+   */
+  set(attr, val, units = &apos;rad&apos;) {
+    if (!EPHEM_VALID_ATTRS.has(attr)) {
+      console.warn(`Invalid ephem attr: ${attr}`);
+      return false;
+    }
+
+    if (units === &apos;deg&apos;) {
+      this._attrs[attr] = val * Math.PI / 180;
+    } else {
+      this._attrs[attr] = val;
+    }
+    return true;
+  }
+
+  /**
+   * Gets an ephemerides attribute.
+   * @param {String} attr The name of the attribute (e.g. &apos;a&apos;)
+   * @param {&apos;deg&apos;|&apos;rad&apos;} units The unit of angle desired, if applicable. This
+   * input is ignored for values that are not angle measurements.
+   */
+  get(attr, units = &apos;rad&apos;) {
+    if (units === &apos;deg&apos;) {
+      return this._attrs[attr] * 180 / Math.PI;
+    }
+    return this._attrs[attr];
+  }
+
+  /**
+   * @private
+   * Infers values of some ephemerides attributes if the required information
+   * is available.
+   */
+  fill() {
+    // Longitude/Argument of Perihelion and Long. of Ascending Node
+    let w = this.get(&apos;w&apos;);
+    let wBar = this.get(&apos;w_bar&apos;);
+    let om = this.get(&apos;om&apos;);
+    if (w &amp;&amp; om &amp;&amp; !wBar) {
+      wBar = w + om;
+      this.set(&apos;w_bar&apos;, wBar);
+    } else if (wBar &amp;&amp; om &amp;&amp; !w) {
+      w = wBar - om;
+      this.set(&apos;w&apos;, w);
+    } else if (w &amp;&amp; wBar &amp;&amp; !om) {
+      om = wBar - w;
+      this.set(&apos;om&apos;, om);
+    }
+
+    // Mean motion / period
+    const a = this.get(&apos;a&apos;);
+    const n = this.get(&apos;n&apos;);
+    let period = this.get(&apos;period&apos;);
+
+    if (!period &amp;&amp; a) {
+      period = Math.sqrt(a * a * a) * 365.25;
+      this.set(&apos;period&apos;, period);
+    }
+
+    if (period &amp;&amp; !n) {
+      // Set radians
+      this.set(&apos;n&apos;, 2.0 * Math.PI / period);
+    } else if (n &amp;&amp; !period) {
+      this.set(&apos;period&apos;, 2.0 * Math.PI / n);
+    }
+
+    // Mean longitude
+    const ma = this.get(&apos;ma&apos;);
+    let L = this.get(&apos;L&apos;);
+    if (!L &amp;&amp; om &amp;&amp; w &amp;&amp; ma) {
+      L = om + w + ma;
+    }
+    //  TODO(ian): Handle no mean anomaly, no om
+  }
+}
+
+/**
+ * A dictionary containing ephemerides of planets and other well-known objects.
+ * @example
+ * const planet1 = viz.createObject(&apos;planet1&apos;, {
+ *   ephem: EphemPresets.MERCURY,
+ * });
+ */
+export const EphemPresets = {
+  MERCURY: new Ephem({
+    epoch: 2458426.500000000,
+    a: 3.870968969437096E-01,
+    e: 2.056515875393916E-01,
+    i: 7.003891682749818E+00,
+    om: 4.830774804443502E+01,
+    w: 2.917940253442659E+01,
+    ma: 2.561909752092730E+02,
+  }, &apos;deg&apos;),
+  VENUS: new Ephem({
+    epoch: 2458426.500000000,
+    a: 7.233458663591554E-01,
+    e: 6.762510759617694E-03,
+    i: 3.394567787211735E+00,
+    om: 7.662534150657346E+01,
+    w: 5.474567447560867E+01,
+    ma: 2.756687596099721E+02,
+  }, &apos;deg&apos;),
+  EARTH: new Ephem({
+    epoch: 2458426.500000000,
+    a: 1.000618919441359E+00,
+    e: 1.676780871638673E-02,
+    i: 3.679932353783076E-03,
+    om: 1.888900932218542E+02,
+    w: 2.718307282052625E+02,
+    ma: 3.021792498388233E+02,
+  }, &apos;deg&apos;),
+  MARS: new Ephem({
+    epoch: 2458426.500000000,
+    a: 1.523714015371070E+00,
+    e: 9.336741335309606E-02,
+    i: 1.848141099825311E+00,
+    om: 4.950420572080223E+01,
+    w: 2.866965847685386E+02,
+    ma: 2.538237617924876E+01,
+  }, &apos;deg&apos;),
+  JUPITER: new Ephem({
+    epoch: 2458426.500000000,
+    a: 5.201803559110230E+00,
+    e: 4.899125582490060E-02,
+    i: 1.303560894624275E+00,
+    om: 1.005203828847816E+02,
+    w: 2.737363018454040E+02,
+    ma: 2.319395443894010E+02,
+  }, &apos;deg&apos;),
+  SATURN: new Ephem({
+    epoch: 2458426.500000000,
+    a: 9.577177295536776E+00,
+    e: 5.101889921719987E-02,
+    i: 2.482782449972317E+00,
+    om: 1.136154964073247E+02,
+    w: 3.394422648650336E+02,
+    ma: 1.870970898012944E+02,
+  }, &apos;deg&apos;),
+  URANUS: new Ephem({
+    epoch: 2458426.500000000,
+    a: 1.914496966635462E+01,
+    e: 4.832662948112808E-02,
+    i: 7.697511134483724E-01,
+    om: 7.414239045667875E+01,
+    w: 9.942704504702185E+01,
+    ma: 2.202603033874267E+02,
+  }, &apos;deg&apos;),
+  NEPTUNE: new Ephem({
+    epoch: 2458426.500000000,
+    a: 3.009622263428050E+01,
+    e: 7.362571187193770E-03,
+    i: 1.774569249829094E+00,
+    om: 1.318695882492132E+02,
+    w: 2.586226409499831E+02,
+    ma: 3.152804988924479E+02,
+  }, &apos;deg&apos;),
+};
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

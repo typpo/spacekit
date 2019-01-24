@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/SpaceObject.js | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/SpaceObject.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { EphemPresets, Ephem } from &apos;./Ephem&apos;;
+import { Orbit } from &apos;./Orbit&apos;;
+import { getFullTextureUrl } from &apos;./util&apos;;
+
+function toScreenXY(position, camera, canvas) {
+  const pos = new THREE.Vector3(position[0], position[1], position[2]);
+  const projScreenMat = new THREE.Matrix4();
+  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  pos.applyMatrix4(projScreenMat);
+  return {
+    x: (pos.x + 1) * canvas.clientWidth / 2,
+    y: (-pos.y + 1) * canvas.clientHeight / 2,
+  };
+}
+
+export class SpaceObject {
+  constructor(id, options, contextOrSimulation) {
+    this._id = id;
+    this._options = options || {};
+
+    // if (contextOrSimulation instanceOf Simulation) {
+    if (true) {
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
+    } else {
+      // User just passed in options
+      this._simulation = null;
+      this._context = contextOrSimulation;
+    }
+
+    this._label = null;
+    this._position = options.position || [0, 0, 0];
+    this._scale = options.scale || [1, 1, 1];
+
+    if (!this.init()) {
+      console.warn(`SpaceObject ${id}: failed to initialize`);
+    }
+  }
+
+  init() {
+    if (this._options.labelText) {
+      this.createLabel();
+    }
+    if (this.isStaticObject()) {
+      // Create a stationary sprite.
+      this._object3js = this.createSprite();
+      if (this._simulation) {
+        // Add it all to visualization.
+        this._simulation.addObject(this, false /* noUpdate */);
+      }
+    } else {
+      if (!this._options.hideOrbit) {
+        // Orbit is initialized before sprite because sprite may be positioned
+        // according to orbit.
+        this._orbit = this.createOrbit();
+
+        if (this._simulation) {
+          // Add it all to visualization.
+          this._simulation.addObject(this, false /* noUpdate */);
+        }
+      }
+
+      // Don&apos;t create a sprite - do it on the GPU instead.
+      this._context.objects.particles.addParticle(this._options.ephem, {
+        particleSize: this._options.particleSize,
+        color: this.getColor(),
+      });
+    }
+    return true;
+  }
+
+  createLabel() {
+    const text = document.createElement(&apos;div&apos;);
+    text.className = &apos;spacekit__object-label&apos;;
+    text.innerHTML = `&lt;div&gt;${this._options.labelText}&lt;/div&gt;`;
+    text.style.fontFamily = &apos;Arial&apos;;
+    text.style.fontSize = &apos;12px&apos;;
+    text.style.color = &apos;#fff&apos;;
+    text.style.position = &apos;absolute&apos;;
+    text.style.marginLeft = &apos;1.5em&apos;;
+
+    text.style.backgroundColor = &apos;#0009&apos;;
+    text.style.borderRadius = &apos;4px&apos;;
+    text.style.padding = &apos;0px 1px&apos;;
+    text.style.border = &apos;1px solid #5f5f5f&apos;;
+
+    this._simulation.getSimulationElement().appendChild(text);
+    this._label = text;
+  }
+
+  setPosition(x, y, z) {
+    this._position[0] = x;
+    this._position[1] = y;
+    this._position[2] = z;
+  }
+
+  getPosition(jed) {
+    const pos = this._position;
+    if (!this._orbit) {
+      // Default implementation, a static object.
+      return pos;
+    }
+
+    const posModified = this._orbit.getPositionAtTime(jed);
+    return [
+      pos[0] + posModified[0],
+      pos[1] + posModified[1],
+      pos[2] + posModified[2],
+    ];
+  }
+
+  createSprite() {
+    const fullTextureUrl = getFullTextureUrl(
+      this._options.textureUrl,
+      this._context.options.assetPath,
+    );
+    const texture = new THREE.TextureLoader().load(fullTextureUrl);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texture,
+      blending: THREE.AdditiveBlending,
+      color: 0xffffff,
+    }));
+    sprite.scale.set.apply(this, this._scale);
+    const position = this.getPosition(this._simulation.getJed());
+    sprite.position.set(position[0], position[1], position[2]);
+
+
+    if (this.isStaticObject()) {
+      sprite.matrixAutoUpdate = false;
+    }
+
+    return sprite;
+
+    /*
+    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
+    light.position.set.apply(this, this._position);
+
+    const lensflare = new THREE.Lensflare();
+    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new
+                                                    THREE.Color(0xffffff),
+                                                    THREE.AdditiveBlending));
+
+    light.add(lensflare);
+    return light;
+   */
+  }
+
+  createOrbit() {
+    if (this._orbit) {
+      return;
+    }
+    return new Orbit(this._options.ephem, {
+      color: this.getColor(),
+      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,
+    });
+  }
+
+  update(jed) {
+    let newpos;
+    if (this._object3js) {
+      newpos = this.getPosition(jed);
+      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+    }
+    if (this._label) {
+      if (!newpos) {
+        newpos = this.getPosition(jed);
+      }
+      const label = this._label;
+      const SimulationElt = this._simulation.getSimulationElement();
+      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);
+      const loc = {
+        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+      };
+      if (loc.left &gt; 0 &amp;&amp; loc.right &lt; SimulationElt.clientWidth &amp;&amp;
+          loc.top &gt; 0 &amp;&amp; loc.bottom &lt; SimulationElt.clientHeight) {
+        label.style.left = `${loc.left}px`;
+        label.style.top = `${loc.top}px`;
+        label.style.visibility = &apos;visible&apos;;
+      } else {
+        label.style.visibility = &apos;hidden&apos;;
+      }
+    }
+  }
+
+  get3jsObjects() {
+    const ret = [];
+    if (this._object3js) {
+      ret.push(this._object3js);
+    }
+    if (this._orbit) {
+      ret.push(this._orbit.getEllipse());
+      if (this._options.ecliptic &amp;&amp; this._options.ecliptic.displayLines) {
+        ret.push(this._orbit.getLinesToEcliptic());
+      }
+    }
+    return ret;
+  }
+
+  getColor() {
+    if (this._options.theme) {
+      return this._options.theme.color || 0xffffff;
+    }
+    return 0xffffff;
+  }
+
+  getOrbit() {
+    return this._orbit;
+  }
+
+  getId() {
+    return this._id;
+  }
+
+  isStaticObject() {
+    return !this._options.ephem;
+  }
+}
+
+const DEFAULT_PLANET_TEXTURE_URL = &apos;{{assets}}/sprites/smallparticle.png&apos;;
+
+export const SpaceObjectPresets = {
+  SUN: {
+    textureUrl: &apos;{{assets}}/sprites/sunsprite.png&apos;,
+    position: [0, 0, 0],
+  },
+  MERCURY: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x913CEE,
+    },
+    ephem: EphemPresets.MERCURY,
+  },
+  VENUS: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xFF7733,
+    },
+    ephem: EphemPresets.VENUS,
+  },
+  EARTH: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x009ACD,
+    },
+    ephem: EphemPresets.EARTH,
+  },
+  MARS: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xA63A3A,
+    },
+    ephem: EphemPresets.MARS,
+  },
+  JUPITER: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xFFB90F,
+    },
+    ephem: EphemPresets.JUPITER,
+  },
+  SATURN: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x336633,
+    },
+    ephem: EphemPresets.SATURN,
+  },
+  URANUS: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x0099FF,
+    },
+    ephem: EphemPresets.URANUS,
+  },
+  NEPTUNE: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0x3333FF,
+    },
+    ephem: EphemPresets.NEPTUNE,
+  },
+};
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

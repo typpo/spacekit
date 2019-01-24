@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Orbit.js | spacekit</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Orbit.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * A class that builds a visual representation of a Kepler orbit.
+ * @param {Ephem} ephem The ephemerides that define this orbit.
+ * @param {Object} options Various options.
+ */
+export class Orbit {
+  constructor(ephem, options) {
+    this._ephem = ephem;
+    this._options = options || {};
+
+    // Cached orbital points.
+    this._points = null;
+
+    // Cached ellipse.
+    this._ellipse = null;
+  }
+
+  getOrbitPoints() {
+    if (this._points) {
+      return this._points;
+    }
+
+    const eph = this._ephem;
+
+    const period = eph.get(&apos;period&apos;);
+    const numSegments = Math.max(period / 10, 50);
+    const step = period / numSegments;
+
+    const pts = [];
+    let prevPos;
+    for (let time = 0; time &lt; period; time += step) {
+      const pos = this.getPositionAtTime(time);
+      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
+        console.error(&apos;NaN position value - you may have bad data in the following ephemeris:&apos;);
+        console.error(eph);
+      }
+      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
+      if (prevPos &amp;&amp; Math.abs(prevPos[0] - pos[0])
+                     + Math.abs(prevPos[1] - pos[1])
+                     + Math.abs(prevPos[2] - pos[2]) &gt; 120) {
+        // Don&apos;t render bogus or very large ellipses.
+        points.vertices = [];
+        return points;
+      }
+      prevPos = pos;
+      pts.push(vector);
+    }
+    pts.push(pts[0]);
+
+    this._points = new THREE.Geometry();
+    this._points.vertices = pts;
+
+    return this._points;
+  }
+
+  getPositionAtTime(jed) {
+    const pi = Math.PI;
+    const sin = Math.sin;
+    const cos = Math.cos;
+
+    const eph = this._ephem;
+
+    // Note: logic below must match the vertex shader.
+    // This position calculation is used to create orbital ellipses.
+    const e = eph.get(&apos;e&apos;);
+    const a = eph.get(&apos;a&apos;);
+    const i = eph.get(&apos;i&apos;, &apos;rad&apos;);
+
+    // longitude of ascending node
+    const o = eph.get(&apos;om&apos;, &apos;rad&apos;);
+
+    // LONGITUDE of perihelion
+    const p = eph.get(&apos;w_bar&apos;, &apos;rad&apos;);
+
+    const ma = eph.get(&apos;ma&apos;, &apos;rad&apos;);
+    let M;
+
+    // Calculate mean anomaly at jed
+    const n = eph.get(&apos;n&apos;, &apos;rad&apos;);
+    const epoch = eph.get(&apos;epoch&apos;);
+    const d = jed - epoch;
+    M = ma + n * d;
+
+    // Estimate eccentric and true anom using iterative approx
+    let E0 = M;
+    let lastdiff;
+    do {
+      const E1 = M + e * sin(E0);
+      lastdiff = Math.abs(E1 - E0);
+      E0 = E1;
+    } while (lastdiff &gt; 0.0000001);
+    const E = E0;
+    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+
+    // Radius vector, in AU
+    const r = a * (1 - e * e) / (1 + e * cos(v));
+
+    // Heliocentric coords
+    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
+    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
+    const Z = r * (sin(v + p - o) * sin(i));
+    return [X, Y, Z];
+  }
+
+  getEllipse() {
+    if (!this._ellipse) {
+      const pointGeometry = this.getOrbitPoints();
+      this._ellipse = new THREE.Line(pointGeometry,
+        new THREE.LineBasicMaterial({
+          color: this._options.color,
+        }), THREE.LineStrip);
+    }
+    return this._ellipse;
+  }
+
+  getLinesToEcliptic() {
+    const points = this.getOrbitPoints();
+    const geometry = new THREE.Geometry();
+
+    points.vertices.forEach((vertex) =&gt; {
+      geometry.vertices.push(vertex);
+      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+    });
+
+    return new THREE.LineSegments(
+      geometry,
+      new THREE.LineBasicMaterial({
+        color: this._options.eclipticLineColor || 0x333333,
+      }),
+      THREE.LineStrip,
+    );
+  }
+
+  getHexColor() {
+    return this._ellipse.material.color.getHex();
+  }
+
+  setHexColor(hexVal) {
+    return this._ellipse.material.color = new THREE.Color(hexVal);
+  }
+
+  getVisibility() {
+    return this._ellipse.visible = false;
+  }
+
+  setVisibility(val) {
+    return this._ellipse.visible = val;
+  }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -1,4 +1,8 @@
-
+/**
+ * A class that builds a visual representation of a Kepler orbit.
+ * @param {Ephem} ephem The ephemerides that define this orbit.
+ * @param {Object} options Various options.
+ */
 export class Orbit {
   constructor(ephem, options) {
     this._ephem = ephem;

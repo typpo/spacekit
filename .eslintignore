@@ -1,2 +1,4 @@
 src/lib
-node_modules
+build/
+docs/
+node_modules/

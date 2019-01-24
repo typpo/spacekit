@@ -172,8 +172,8 @@ export class SpaceObject {
       const loc = {
         left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
       };
-      if (loc.left > 0 && loc.right < SimulationElt.clientWidth &&
-          loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {
+      if (loc.left > 0 && loc.right < SimulationElt.clientWidth
+          && loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {
         label.style.left = `${loc.left}px`;
         label.style.top = `${loc.top}px`;
         label.style.visibility = 'visible';

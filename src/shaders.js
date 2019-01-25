@@ -1,3 +1,6 @@
+/**
+ * @ignore
+ */
 export const ORBIT_SHADER_FRAGMENT = `
     varying vec3 vColor;
     uniform sampler2D texture;
@@ -8,6 +11,9 @@ export const ORBIT_SHADER_FRAGMENT = `
     }
 `;
 
+/**
+ * @ignore
+ */
 export const ORBIT_SHADER_VERTEX = `
     uniform float jed;
 

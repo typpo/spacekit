@@ -1,6 +1,16 @@
 import { getFullTextureUrl } from './util';
 
+/**
+ * A class that adds a skybox (technically a skysphere) to a visualization.
+ */
 export class Skybox {
+  /**
+   * @param {Object} options Options
+   * @param {String} options.textureUrl Texture to use
+   * @param {String} options.assetPath Base path to assets
+   * @param {Object} contextOrSimulation Simulation context or simulation
+   * object
+   */
   constructor(options, contextOrSimulation) {
     // TODO(ian): Support for actual box instead of sphere...
     this._options = options;
@@ -22,6 +32,9 @@ export class Skybox {
     this.init();
   }
 
+  /**
+   * @private
+   */
   init() {
     const geometry = new THREE.SphereBufferGeometry(4000);
 
@@ -52,15 +65,29 @@ export class Skybox {
     }
   }
 
+  /**
+   * A list of THREE.js objects that are used to compose the skybox.
+   * @return {THREE.Object} Skybox mesh
+   */
   get3jsObjects() {
     return [this._mesh];
   }
 
+  /**
+   * Get the unique ID of this object.
+   * @return {String} id
+   */
   getId() {
     return this._id;
   }
 }
 
+/**
+ * Preset skybox objects that you can use to add a skybox to your
+ * visualization.
+ * @example
+ * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+ */
 export const SkyboxPresets = {
   ESO_GIGAGALAXY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',

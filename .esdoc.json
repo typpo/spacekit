@@ -2,5 +2,12 @@
   "source": "./src",
   "destination": "./docs",
   "excludes": ["lib/"],
-  "plugins": [{"name": "esdoc-standard-plugin"}]
+  "plugins": [
+    {
+      "name": "esdoc-standard-plugin",
+      "option": {
+        "accessor": {"access": ["public", "protected"], "autoPrivate": true}
+      }
+    }
+  ]
 }

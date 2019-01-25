@@ -6,12 +6,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "spacekit/src/util.js~default_texture_url",
-    "variable/index.html#static-variable-DEFAULT_TEXTURE_URL",
-    "<span>DEFAULT_TEXTURE_URL</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
-    "variable"
-  ],
-  [
     "spacekit/src/ephem.js~ephem",
     "class/src/Ephem.js~Ephem.html",
     "<span>Ephem</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",
@@ -21,18 +15,6 @@ window.esdocSearchIndex = [
     "spacekit/src/ephem.js~ephempresets",
     "variable/index.html#static-variable-EphemPresets",
     "<span>EphemPresets</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",
-    "variable"
-  ],
-  [
-    "spacekit/src/shaders.js~orbit_shader_fragment",
-    "variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT",
-    "<span>ORBIT_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
-    "variable"
-  ],
-  [
-    "spacekit/src/shaders.js~orbit_shader_vertex",
-    "variable/index.html#static-variable-ORBIT_SHADER_VERTEX",
-    "<span>ORBIT_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
     "variable"
   ],
   [
@@ -76,12 +58,6 @@ window.esdocSearchIndex = [
     "class/src/SpaceParticles.js~SpaceParticles.html",
     "<span>SpaceParticles</span> <span class=\"search-result-import-path\">spacekit/src/SpaceParticles.js</span>",
     "class"
-  ],
-  [
-    "spacekit/src/util.js~getfulltextureurl",
-    "function/index.html#static-function-getFullTextureUrl",
-    "<span>getFullTextureUrl</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
-    "function"
   ],
   [
     "src/.external-ecmascript.js~array",
@@ -372,18 +348,6 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/camera.js~camera#_camera",
-    "class/src/Camera.js~Camera.html#instance-member-_camera",
-    "src/Camera.js~Camera#_camera",
-    "member"
-  ],
-  [
-    "src/camera.js~camera#_context",
-    "class/src/Camera.js~Camera.html#instance-member-_context",
-    "src/Camera.js~Camera#_context",
-    "member"
-  ],
-  [
     "src/camera.js~camera#constructor",
     "class/src/Camera.js~Camera.html#instance-constructor-constructor",
     "src/Camera.js~Camera#constructor",
@@ -408,21 +372,9 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/ephem.js~ephem#_attrs",
-    "class/src/Ephem.js~Ephem.html#instance-member-_attrs",
-    "src/Ephem.js~Ephem#_attrs",
-    "member"
-  ],
-  [
     "src/ephem.js~ephem#constructor",
     "class/src/Ephem.js~Ephem.html#instance-constructor-constructor",
     "src/Ephem.js~Ephem#constructor",
-    "method"
-  ],
-  [
-    "src/ephem.js~ephem#fill",
-    "class/src/Ephem.js~Ephem.html#instance-method-fill",
-    "src/Ephem.js~Ephem#fill",
     "method"
   ],
   [
@@ -442,30 +394,6 @@ window.esdocSearchIndex = [
     "file/src/Orbit.js.html",
     "src/Orbit.js",
     "file"
-  ],
-  [
-    "src/orbit.js~orbit#_ellipse",
-    "class/src/Orbit.js~Orbit.html#instance-member-_ellipse",
-    "src/Orbit.js~Orbit#_ellipse",
-    "member"
-  ],
-  [
-    "src/orbit.js~orbit#_ephem",
-    "class/src/Orbit.js~Orbit.html#instance-member-_ephem",
-    "src/Orbit.js~Orbit#_ephem",
-    "member"
-  ],
-  [
-    "src/orbit.js~orbit#_options",
-    "class/src/Orbit.js~Orbit.html#instance-member-_options",
-    "src/Orbit.js~Orbit#_options",
-    "member"
-  ],
-  [
-    "src/orbit.js~orbit#_points",
-    "class/src/Orbit.js~Orbit.html#instance-member-_points",
-    "src/Orbit.js~Orbit#_points",
-    "member"
   ],
   [
     "src/orbit.js~orbit#constructor",
@@ -489,12 +417,6 @@ window.esdocSearchIndex = [
     "src/orbit.js~orbit#getlinestoecliptic",
     "class/src/Orbit.js~Orbit.html#instance-method-getLinesToEcliptic",
     "src/Orbit.js~Orbit#getLinesToEcliptic",
-    "method"
-  ],
-  [
-    "src/orbit.js~orbit#getorbitpoints",
-    "class/src/Orbit.js~Orbit.html#instance-method-getOrbitPoints",
-    "src/Orbit.js~Orbit#getOrbitPoints",
     "method"
   ],
   [
@@ -528,105 +450,9 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/simulation.js~simulation#_camera",
-    "class/src/Simulation.js~Simulation.html#instance-member-_camera",
-    "src/Simulation.js~Simulation#_camera",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_cameracontrols",
-    "class/src/Simulation.js~Simulation.html#instance-member-_cameraControls",
-    "src/Simulation.js~Simulation#_cameraControls",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_fps",
-    "class/src/Simulation.js~Simulation.html#instance-member-_fps",
-    "src/Simulation.js~Simulation#_fps",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_ispaused",
-    "class/src/Simulation.js~Simulation.html#instance-member-_isPaused",
-    "src/Simulation.js~Simulation#_isPaused",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_jed",
-    "class/src/Simulation.js~Simulation.html#instance-member-_jed",
-    "src/Simulation.js~Simulation#_jed",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_jeddelta",
-    "class/src/Simulation.js~Simulation.html#instance-member-_jedDelta",
-    "src/Simulation.js~Simulation#_jedDelta",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_jedpersecond",
-    "class/src/Simulation.js~Simulation.html#instance-member-_jedPerSecond",
-    "src/Simulation.js~Simulation#_jedPerSecond",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_lastupdatedtime",
-    "class/src/Simulation.js~Simulation.html#instance-member-_lastUpdatedTime",
-    "src/Simulation.js~Simulation#_lastUpdatedTime",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_options",
-    "class/src/Simulation.js~Simulation.html#instance-member-_options",
-    "src/Simulation.js~Simulation#_options",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_particles",
-    "class/src/Simulation.js~Simulation.html#instance-member-_particles",
-    "src/Simulation.js~Simulation#_particles",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_renderer",
-    "class/src/Simulation.js~Simulation.html#instance-member-_renderer",
-    "src/Simulation.js~Simulation#_renderer",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_scene",
-    "class/src/Simulation.js~Simulation.html#instance-member-_scene",
-    "src/Simulation.js~Simulation#_scene",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_simulationelt",
-    "class/src/Simulation.js~Simulation.html#instance-member-_simulationElt",
-    "src/Simulation.js~Simulation#_simulationElt",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_stats",
-    "class/src/Simulation.js~Simulation.html#instance-member-_stats",
-    "src/Simulation.js~Simulation#_stats",
-    "member"
-  ],
-  [
-    "src/simulation.js~simulation#_subscribedobjects",
-    "class/src/Simulation.js~Simulation.html#instance-member-_subscribedObjects",
-    "src/Simulation.js~Simulation#_subscribedObjects",
-    "member"
-  ],
-  [
     "src/simulation.js~simulation#addobject",
     "class/src/Simulation.js~Simulation.html#instance-method-addObject",
     "src/Simulation.js~Simulation#addObject",
-    "method"
-  ],
-  [
-    "src/simulation.js~simulation#animate",
-    "class/src/Simulation.js~Simulation.html#instance-method-animate",
-    "src/Simulation.js~Simulation#animate",
     "method"
   ],
   [
@@ -639,12 +465,6 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#createobject",
     "class/src/Simulation.js~Simulation.html#instance-method-createObject",
     "src/Simulation.js~Simulation#createObject",
-    "method"
-  ],
-  [
-    "src/simulation.js~simulation#createobjects",
-    "class/src/Simulation.js~Simulation.html#instance-method-createObjects",
-    "src/Simulation.js~Simulation#createObjects",
     "method"
   ],
   [
@@ -696,18 +516,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/simulation.js~simulation#init",
-    "class/src/Simulation.js~Simulation.html#instance-method-init",
-    "src/Simulation.js~Simulation#init",
-    "method"
-  ],
-  [
-    "src/simulation.js~simulation#initrenderer",
-    "class/src/Simulation.js~Simulation.html#instance-method-initRenderer",
-    "src/Simulation.js~Simulation#initRenderer",
-    "method"
-  ],
-  [
     "src/simulation.js~simulation#ontick",
     "class/src/Simulation.js~Simulation.html#instance-member-onTick",
     "src/Simulation.js~Simulation#onTick",
@@ -756,46 +564,10 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/simulation.js~simulation#update",
-    "class/src/Simulation.js~Simulation.html#instance-method-update",
-    "src/Simulation.js~Simulation#update",
-    "method"
-  ],
-  [
     "src/skybox.js",
     "file/src/Skybox.js.html",
     "src/Skybox.js",
     "file"
-  ],
-  [
-    "src/skybox.js~skybox#_context",
-    "class/src/Skybox.js~Skybox.html#instance-member-_context",
-    "src/Skybox.js~Skybox#_context",
-    "member"
-  ],
-  [
-    "src/skybox.js~skybox#_id",
-    "class/src/Skybox.js~Skybox.html#instance-member-_id",
-    "src/Skybox.js~Skybox#_id",
-    "member"
-  ],
-  [
-    "src/skybox.js~skybox#_mesh",
-    "class/src/Skybox.js~Skybox.html#instance-member-_mesh",
-    "src/Skybox.js~Skybox#_mesh",
-    "member"
-  ],
-  [
-    "src/skybox.js~skybox#_options",
-    "class/src/Skybox.js~Skybox.html#instance-member-_options",
-    "src/Skybox.js~Skybox#_options",
-    "member"
-  ],
-  [
-    "src/skybox.js~skybox#_simulation",
-    "class/src/Skybox.js~Skybox.html#instance-member-_simulation",
-    "src/Skybox.js~Skybox#_simulation",
-    "member"
   ],
   [
     "src/skybox.js~skybox#constructor",
@@ -816,93 +588,15 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/skybox.js~skybox#init",
-    "class/src/Skybox.js~Skybox.html#instance-method-init",
-    "src/Skybox.js~Skybox#init",
-    "method"
-  ],
-  [
     "src/spaceobject.js",
     "file/src/SpaceObject.js.html",
     "src/SpaceObject.js",
     "file"
   ],
   [
-    "src/spaceobject.js~spaceobject#_context",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_context",
-    "src/SpaceObject.js~SpaceObject#_context",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_id",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_id",
-    "src/SpaceObject.js~SpaceObject#_id",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_label",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_label",
-    "src/SpaceObject.js~SpaceObject#_label",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_object3js",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_object3js",
-    "src/SpaceObject.js~SpaceObject#_object3js",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_options",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_options",
-    "src/SpaceObject.js~SpaceObject#_options",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_orbit",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_orbit",
-    "src/SpaceObject.js~SpaceObject#_orbit",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_position",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_position",
-    "src/SpaceObject.js~SpaceObject#_position",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_scale",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_scale",
-    "src/SpaceObject.js~SpaceObject#_scale",
-    "member"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#_simulation",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-member-_simulation",
-    "src/SpaceObject.js~SpaceObject#_simulation",
-    "member"
-  ],
-  [
     "src/spaceobject.js~spaceobject#constructor",
     "class/src/SpaceObject.js~SpaceObject.html#instance-constructor-constructor",
     "src/SpaceObject.js~SpaceObject#constructor",
-    "method"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#createlabel",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-method-createLabel",
-    "src/SpaceObject.js~SpaceObject#createLabel",
-    "method"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#createorbit",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-method-createOrbit",
-    "src/SpaceObject.js~SpaceObject#createOrbit",
-    "method"
-  ],
-  [
-    "src/spaceobject.js~spaceobject#createsprite",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-method-createSprite",
-    "src/SpaceObject.js~SpaceObject#createSprite",
     "method"
   ],
   [
@@ -936,12 +630,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/spaceobject.js~spaceobject#init",
-    "class/src/SpaceObject.js~SpaceObject.html#instance-method-init",
-    "src/SpaceObject.js~SpaceObject#init",
-    "method"
-  ],
-  [
     "src/spaceobject.js~spaceobject#isstaticobject",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-isStaticObject",
     "src/SpaceObject.js~SpaceObject#isStaticObject",
@@ -966,72 +654,6 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/spaceparticles.js~spaceparticles#_addedtoscene",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_addedToScene",
-    "src/SpaceParticles.js~SpaceParticles#_addedToScene",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_attributes",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_attributes",
-    "src/SpaceParticles.js~SpaceParticles#_attributes",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_context",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_context",
-    "src/SpaceParticles.js~SpaceParticles#_context",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_geometry",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_geometry",
-    "src/SpaceParticles.js~SpaceParticles#_geometry",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_id",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_id",
-    "src/SpaceParticles.js~SpaceParticles#_id",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_options",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_options",
-    "src/SpaceParticles.js~SpaceParticles#_options",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_particlecount",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_particleCount",
-    "src/SpaceParticles.js~SpaceParticles#_particleCount",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_particlesystem",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_particleSystem",
-    "src/SpaceParticles.js~SpaceParticles#_particleSystem",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_shadermaterial",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_shaderMaterial",
-    "src/SpaceParticles.js~SpaceParticles#_shaderMaterial",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_simulation",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_simulation",
-    "src/SpaceParticles.js~SpaceParticles#_simulation",
-    "member"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#_uniforms",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-member-_uniforms",
-    "src/SpaceParticles.js~SpaceParticles#_uniforms",
-    "member"
-  ],
-  [
     "src/spaceparticles.js~spaceparticles#addparticle",
     "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-addParticle",
     "src/SpaceParticles.js~SpaceParticles#addParticle",
@@ -1044,12 +666,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/spaceparticles.js~spaceparticles#createparticlesystem",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-createParticleSystem",
-    "src/SpaceParticles.js~SpaceParticles#createParticleSystem",
-    "method"
-  ],
-  [
     "src/spaceparticles.js~spaceparticles#get3jsobjects",
     "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-get3jsObjects",
     "src/SpaceParticles.js~SpaceParticles#get3jsObjects",
@@ -1059,12 +675,6 @@ window.esdocSearchIndex = [
     "src/spaceparticles.js~spaceparticles#getid",
     "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-getId",
     "src/SpaceParticles.js~SpaceParticles#getId",
-    "method"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#init",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-init",
-    "src/SpaceParticles.js~SpaceParticles#init",
     "method"
   ],
   [
@@ -1089,12 +699,6 @@ window.esdocSearchIndex = [
     "src/threeutil.js",
     "file/src/threeUtil.js.html",
     "src/threeUtil.js",
-    "file"
-  ],
-  [
-    "src/util.js",
-    "file/src/util.js.html",
-    "src/util.js",
     "file"
   ]
 ]

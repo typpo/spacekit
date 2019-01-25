@@ -1,10 +1,10 @@
 # spacekit
 
-🚨 **This library is a work in progress and is not ready for usage!** 🚨
+🚨 **This library is a work in progress and the API is subject to change!** 🚨
 
 A Javascript library for 3D space visualizations - Earth/moon system, solar system, and beyond...
 
-The intent of this library is to generalize my work on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth#240), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.
+The intent of this library is to generalize my work on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.
 
 # Dependencies
 

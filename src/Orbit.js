@@ -1,20 +1,44 @@
 /**
  * A class that builds a visual representation of a Kepler orbit.
- * @param {Ephem} ephem The ephemerides that define this orbit.
- * @param {Object} options Various options.
  */
 export class Orbit {
+  /**
+   * @param {Ephem} ephem The ephemerides that define this orbit.
+   * @param {Object} options
+   * @param {Object} options.color The color of the orbital ellipse.
+   * @param {Object} options.eclipticLineColor The color of lines drawn
+   * perpendicular to the ecliptic in order to illustrate depth (defaults to
+   * 0x333333).
+   */
   constructor(ephem, options) {
+    /**
+     * Ephem object
+     * @type {Ephem}
+     */
     this._ephem = ephem;
+
+    /**
+     * Options (see class definition for details)
+     */
     this._options = options || {};
 
-    // Cached orbital points.
+    /**
+     * Cached orbital points.
+     * @type {Array.<THREE.Vector3>}
+     */
     this._points = null;
 
-    // Cached ellipse.
+    /**
+     * Cached ellipse.
+     * @type {THREE.Line}
+     */
     this._ellipse = null;
   }
 
+  /**
+   * @private
+   * @return {Array.<THREE.Vector3>} List of points
+   */
   getOrbitPoints() {
     if (this._points) {
       return this._points;
@@ -53,6 +77,11 @@ export class Orbit {
     return this._points;
   }
 
+  /**
+   * Get heliocentric position of object at a given JED.
+   * @param {Number} jed Date value in JED.
+   * @return {Array.<Number>} [X, Y, Z] coordinates
+   */
   getPositionAtTime(jed) {
     const pi = Math.PI;
     const sin = Math.sin;
@@ -102,6 +131,9 @@ export class Orbit {
     return [X, Y, Z];
   }
 
+  /**
+   * @return {THREE.Line} The ellipse object that represents this orbit.
+   */
   getEllipse() {
     if (!this._ellipse) {
       const pointGeometry = this.getOrbitPoints();
@@ -113,6 +145,13 @@ export class Orbit {
     return this._ellipse;
   }
 
+  /**
+   * A geometry containing line segments that run between the orbit ellipse and
+   * the ecliptic plane of the solar system. This is a useful visual effect
+   * that makes it easy to tell when an orbit goes below or above the ecliptic
+   * plane.
+   * @return {THREE.Geometry} A geometry with many line segments.
+   */
   getLinesToEcliptic() {
     const points = this.getOrbitPoints();
     const geometry = new THREE.Geometry();
@@ -131,18 +170,35 @@ export class Orbit {
     );
   }
 
+  /**
+   * Get the color of this orbit.
+   * @return {Number} The hexadecimal color of the orbital ellipse.
+   */
   getHexColor() {
     return this._ellipse.material.color.getHex();
   }
 
+  /**
+   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
+   */
   setHexColor(hexVal) {
     return this._ellipse.material.color = new THREE.Color(hexVal);
   }
 
+  /**
+   * Get the visibility of this orbit.
+   * @return {boolean} Whether the orbital ellipse is visible. Note that
+   * although the ellipse may not be visible, it is still present in the
+   * underlying Scene and Simultation.
+   */
   getVisibility() {
-    return this._ellipse.visible = false;
+    return this._ellipse.visible;
   }
 
+  /**
+   * Change the visibility of this orbit.
+   * @param {boolean} val Whether to show the orbital ellipse.
+   */
   setVisibility(val) {
     return this._ellipse.visible = val;
   }

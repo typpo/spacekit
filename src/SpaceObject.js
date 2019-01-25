@@ -2,6 +2,10 @@ import { EphemPresets, Ephem } from './Ephem';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 
+/**
+ * @private
+ * Converts (X, Y, Z) position in visualization to pixel coordinates.
+ */
 function toScreenXY(position, camera, canvas) {
   const pos = new THREE.Vector3(position[0], position[1], position[2]);
   const projScreenMat = new THREE.Matrix4();
@@ -13,7 +17,45 @@ function toScreenXY(position, camera, canvas) {
   };
 }
 
+/**
+ * An object that can be added to a visualization.
+ * @example
+ * const myObject = viz.addObject('planet1', {
+ *   position: [0, 0, 0],
+ *   scale: [1, 1, 1],
+ *   labelText: 'My object',
+ *   hideOrbit: false,
+ *   ephem: {
+ *     textureUrl: '/path/to/spriteTexture.png',
+ *     assetPath: '/base/assets',
+ *   },
+ *   ecliptic: {
+ *     lineColor: 0xCCCCCC,
+ *     displayLines: false,
+ *   },
+ *   theme: {
+ *     color: 0xFFFFFF,
+ *   },
+ * });
+ */
 export class SpaceObject {
+  /**
+   * @param {String} id Unique id of this object
+   * @param {Object} options Options container
+   * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]
+   * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]
+   * @param {String} options.labelText Text label to display above object (set undefined for no label)
+   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
+   * @param {Ephem} options.ephem Ephemerides for this orbit
+   * @param {String} options.textureUrl Texture for sprite
+   * @param {String} options.assetPath Base path for texture urls
+   * @param {Object} options.ecliptic Contains settings related to ecliptic
+   * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
+   * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
+   * @param {Object} options.theme Contains settings related to appearance of orbit
+   * @param {Number} options.theme.color Hex color of the orbit
+   * @param {Object} contextOrSimulation Simulation context or simulation object
+   */
   constructor(id, options, contextOrSimulation) {
     this._id = id;
     this._options = options || {};
@@ -38,9 +80,15 @@ export class SpaceObject {
     }
   }
 
+  /**
+   * @private
+   * Initializes label and three.js objects
+   */
   init() {
     if (this._options.labelText) {
-      this.createLabel();
+      const labelElt = this.createLabel();
+      this._simulation.getSimulationElement().appendChild(labelElt);
+      this._label = labelElt;
     }
     if (this.isStaticObject()) {
       // Create a stationary sprite.
@@ -70,6 +118,11 @@ export class SpaceObject {
     return true;
   }
 
+  /**
+   * @private
+   * Builds the label div and adds it to the visualization
+   * @return {HTMLElement} A div that contains the label for this object
+   */
   createLabel() {
     const text = document.createElement('div');
     text.className = 'spacekit__object-label';
@@ -85,31 +138,14 @@ export class SpaceObject {
     text.style.padding = '0px 1px';
     text.style.border = '1px solid #5f5f5f';
 
-    this._simulation.getSimulationElement().appendChild(text);
-    this._label = text;
+    return text;
   }
 
-  setPosition(x, y, z) {
-    this._position[0] = x;
-    this._position[1] = y;
-    this._position[2] = z;
-  }
-
-  getPosition(jed) {
-    const pos = this._position;
-    if (!this._orbit) {
-      // Default implementation, a static object.
-      return pos;
-    }
-
-    const posModified = this._orbit.getPositionAtTime(jed);
-    return [
-      pos[0] + posModified[0],
-      pos[1] + posModified[1],
-      pos[2] + posModified[2],
-    ];
-  }
-
+  /**
+   * @private
+   * Builds the sprite for this object
+   * @return {THREE.Sprite} A sprite object
+   */
   createSprite() {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
@@ -146,9 +182,14 @@ export class SpaceObject {
    */
   }
 
+  /**
+   * @private
+   * Builds the {Orbit} for this object
+   * @return {Orbit} An orbit object
+   */
   createOrbit() {
     if (this._orbit) {
-      return;
+      return this._orbit;
     }
     return new Orbit(this._options.ephem, {
       color: this.getColor(),
@@ -156,6 +197,43 @@ export class SpaceObject {
     });
   }
 
+  /**
+   * Updates the position of this object. Applicable only if this object is a
+   * sprite and not a particle type.
+   * @param {Number} x X position
+   * @param {Number} y Y position
+   * @param {Number} z Z position
+   */
+  setPosition(x, y, z) {
+    this._position[0] = x;
+    this._position[1] = y;
+    this._position[2] = z;
+  }
+
+  /**
+   * Gets the visualization coordinates of this object at a given time.
+   * @param {Number} jed JED date
+   * @return {Array.<Number>} [X, Y,Z] coordinates
+   */
+  getPosition(jed) {
+    const pos = this._position;
+    if (!this._orbit) {
+      // Default implementation, a static object.
+      return pos;
+    }
+
+    const posModified = this._orbit.getPositionAtTime(jed);
+    return [
+      pos[0] + posModified[0],
+      pos[1] + posModified[1],
+      pos[2] + posModified[2],
+    ];
+  }
+
+  /**
+   * Updates the object and its label positions for a given time.
+   * @param {Number} jed JED date
+   */
   update(jed) {
     let newpos;
     if (this._object3js) {
@@ -183,6 +261,10 @@ export class SpaceObject {
     }
   }
 
+  /**
+   * Gets the THREE.js objects that represent this SpaceObject.
+   * @return {Array.<THREE.Object>} A list of THREE.js objects
+   */
   get3jsObjects() {
     const ret = [];
     if (this._object3js) {
@@ -197,6 +279,11 @@ export class SpaceObject {
     return ret;
   }
 
+  /**
+   * Gets the color of this object. Usually this corresponds to the color of
+   * the dot representing the object as well as its orbit.
+   * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF
+   */
   getColor() {
     if (this._options.theme) {
       return this._options.theme.color || 0xffffff;
@@ -204,14 +291,27 @@ export class SpaceObject {
     return 0xffffff;
   }
 
+  /**
+   * Gets the {Orbit} object for this SpaceObject.
+   * @return {Orbit} Orbit object
+   */
   getOrbit() {
     return this._orbit;
   }
 
+  /**
+   * Gets the unique ID of this object.
+   * @return {String} Unique ID
+   */
   getId() {
     return this._id;
   }
 
+  /**
+   * Determines whether object is static (can't change its position) or whether
+   * its position can be updated (ie, it has ephemeris)
+   * @return {boolean} Whether this object can change its position.
+   */
   isStaticObject() {
     return !this._options.ephem;
   }
@@ -219,6 +319,11 @@ export class SpaceObject {
 
 const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 
+/**
+ * Useful presets for creating SpaceObjects.
+ * @example
+ * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);
+ */
 export const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/sunsprite.png',

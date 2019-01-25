@@ -24,8 +24,6 @@ const ANGLE_UNITS = new Set([
 
 /**
  * A class representing Kepler ephemerides.
-   * @param {Object} initialValues A dictionary of initial values.
-   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
  * @example
  * const NEPTUNE = new Ephem({
  *   epoch: 2458426.500000000,
@@ -38,7 +36,22 @@ const ANGLE_UNITS = new Set([
  * }, 'deg'),
  */
 export class Ephem {
+
   /**
+   * @param {Object} initialValues A dictionary of initial values. Not all values
+   * are required as some may be inferred from others.
+   * @param {Object} initialValues.a Semimajor axis
+   * @param {Object} initialValues.e Eccentricity
+   * @param {Object} initialValues.i Inclination
+   * @param {Object} initialValues.epoch Epoch in JED
+   * @param {Object} initialValues.period Period in days
+   * @param {Object} initialValues.ma Mean anomaly
+   * @param {Object} initialValues.n Mean motion
+   * @param {Object} initialValues.L Mean longitude
+   * @param {Object} initialValues.om Longitude of Ascending Node
+   * @param {Object} initialValues.w Argument of Perihelion
+   * @param {Object} initialValues.w_bar Longitude of Perihelion
+   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
   constructor(initialValues, units = 'rad') {
     this._attrs = {};

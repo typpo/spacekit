@@ -5,9 +5,48 @@ import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SpaceParticles } from './SpaceParticles';
 
+/**
+ * The main entrypoint of a visualization.
+ *
+ * This class wraps a THREE.js scene, controls, skybox, etc in an animated
+ * Simulation.
+ *
+ * @example
+ * const sim = new Spacekit.Simulation('my-container', {
+ *  jed: 0.0,
+ *  jedDelta: 10.0,
+ *  jedPerSecond: 100.0,  // overrides jedDelta
+ *  startPaused: false,
+ *  maxNumParticles: 2**16,
+ *  debug: {
+ *    showAxesHelper: false,
+ *    showStats: false,
+ *  },
+ * });
+ */
 export class Simulation {
-  // Wraps scene and controls and skybox in an animated Simulation
-
+  /**
+   * @param {HTMLElement} simulationElt The container for this simulation.
+   * @param {Object} options for simulation
+   * @param {Number} options.jed The JED start date for this simulation.
+   * Defaults to 0
+   * @param {Number} options.jedDelta The number of JED to add every tick of
+   * the simulation.
+   * @param {Number} options.jedPerSecond The number of jed to add every
+   * second. Use this instead of `jedDelta` for constant motion that does not
+   * vary with framerate. Defaults to 100
+   * @param {boolean} options.startPaused Whether the simulation should start
+   * in a paused state.
+   * @param {Number} options.maxNumParticles The maximum number of particles in
+   * the visualization. Try choosing a number that is larger than your
+   * particles, but not too much larger. It's usually good enough to choose the
+   * next highest power of 2. If you're not showing many particles (tens of
+   * thousands+), you don't need to worry about this.
+   * @param {Object} options.debug Options dictating debug state.
+   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
+   * @param {boolean} options.debug.showStats Show FPS and other stats
+   * (requires stats.js).
+   */
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
@@ -36,6 +75,9 @@ export class Simulation {
     this.animate();
   }
 
+  /**
+   * @private
+   */
   init() {
     this.initRenderer();
 
@@ -73,6 +115,35 @@ export class Simulation {
     }, this);
   }
 
+  /**
+   * @private
+   */
+  initRenderer() {
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
+
+    this._simulationElt.appendChild(renderer.domElement);
+
+    this._renderer = renderer;
+  }
+
+  /**
+   * @private
+   */
+  update() {
+    for (const objId in this._subscribedObjects) {
+      if (this._subscribedObjects.hasOwnProperty(objId)) {
+        this._subscribedObjects[objId].update(this._jed);
+      }
+    }
+  }
+
+  /**
+   * @private
+   */
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
 
@@ -106,18 +177,6 @@ export class Simulation {
     }
   }
 
-  initRenderer() {
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-    });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
-
-    this._simulationElt.appendChild(renderer.domElement);
-
-    this._renderer = renderer;
-  }
-
   addObject(obj, noUpdate = false) {
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
@@ -142,22 +201,8 @@ export class Simulation {
     return new SpaceObject(...args, this);
   }
 
-  createObjects(prefix, objects) {
-    objects.forEach((obj, idx) => {
-
-    });
-  }
-
   createSkybox(...args) {
     return new Skybox(...args, this);
-  }
-
-  update() {
-    for (const objId in this._subscribedObjects) {
-      if (this._subscribedObjects.hasOwnProperty(objId)) {
-        this._subscribedObjects[objId].update(this._jed);
-      }
-    }
   }
 
   start() {

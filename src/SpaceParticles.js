@@ -4,6 +4,11 @@ import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
 
 const DEFAULT_PARTICLE_COUNT = 1024;
 
+/**
+ * An efficient way to render many objects in space with Kepler orbits.
+ * Primarily used by Simulation to render all non-static objects.
+ * @see Simulation
+ */
 export class SpaceParticles {
   constructor(options, contextOrSimulation) {
     this._options = options;
@@ -38,10 +43,16 @@ export class SpaceParticles {
     this.init();
   }
 
+  /**
+   * @private
+   */
   init() {
     this.createParticleSystem();
   }
 
+  /**
+   * @private
+   */
   createParticleSystem() {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,

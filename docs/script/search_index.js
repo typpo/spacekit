@@ -6,12 +6,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "spacekit/src/util.js~default_texture_url",
-    "variable/index.html#static-variable-DEFAULT_TEXTURE_URL",
-    "<span>DEFAULT_TEXTURE_URL</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
-    "variable"
-  ],
-  [
     "spacekit/src/ephem.js~ephem",
     "class/src/Ephem.js~Ephem.html",
     "<span>Ephem</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",

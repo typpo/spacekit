@@ -1,7 +1,7 @@
 {
-  "coverage": "48.06%",
+  "coverage": "48.83%",
   "expectCount": 129,
-  "actualCount": 62,
+  "actualCount": 63,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -30,39 +30,39 @@
       "expectCount": 39,
       "actualCount": 6,
       "undocumentLines": [
-        51,
-        52,
         54,
         55,
-        56,
         57,
         58,
+        59,
         60,
         61,
         63,
         64,
         66,
         67,
+        69,
         70,
-        71,
-        72,
-        180,
-        191,
-        200,
-        204,
-        208,
-        213,
-        217,
-        221,
-        225,
-        229,
-        233,
-        237,
-        244,
-        251,
-        259,
-        272,
-        276
+        73,
+        74,
+        75,
+        183,
+        194,
+        203,
+        207,
+        211,
+        216,
+        220,
+        224,
+        228,
+        232,
+        236,
+        240,
+        247,
+        254,
+        262,
+        275,
+        279
       ]
     },
     "src/Skybox.js": {
@@ -117,10 +117,8 @@
     },
     "src/util.js": {
       "expectCount": 2,
-      "actualCount": 1,
-      "undocumentLines": [
-        1
-      ]
+      "actualCount": 2,
+      "undocumentLines": []
     }
   }
 }

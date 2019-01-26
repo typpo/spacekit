@@ -504,6 +504,9 @@ var Spacekit = (function (exports) {
   julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
   julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
 
+  /**
+   * @ignore
+   */
   const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
 
   /**

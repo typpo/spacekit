@@ -40,19 +40,18 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber27">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber28">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber27">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber28">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -86,6 +85,7 @@ Simulation.</p>
   <div class="example-doc" data-ice="exampleDoc">
       
       <pre class="prettyprint source-code"><code data-ice="exampleCode">const sim = new Spacekit.Simulation(&apos;my-container&apos;, {
+ startDate: Date.now(),
  jed: 0.0,
  jedDelta: 10.0,
  jedPerSecond: 100.0,  // overrides jedDelta
@@ -678,7 +678,7 @@ Simulation.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber50">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber53">source</a></span></span>
     </span>
   </h3>
 
@@ -712,10 +712,18 @@ Simulation.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.startDate</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>The start date and time for this
+simulation.</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
       <td data-ice="name" class="code" data-depth="1">options.jed</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The JED start date for this simulation.
+      <td data-ice="description"><p>The JED date of this simulation.
 Defaults to 0</p>
 </td>
     </tr>
@@ -814,7 +822,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber58">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber61">source</a></span></span>
     </span>
   </h3>
 
@@ -860,7 +868,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber180">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber183">source</a></span></span>
     </span>
   </h3>
 
@@ -926,7 +934,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber200">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber203">source</a></span></span>
     </span>
   </h3>
 
@@ -997,7 +1005,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber204">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber207">source</a></span></span>
     </span>
   </h3>
 
@@ -1068,7 +1076,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber276">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber279">source</a></span></span>
     </span>
   </h3>
 
@@ -1123,7 +1131,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber259">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber262">source</a></span></span>
     </span>
   </h3>
 
@@ -1178,7 +1186,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber225">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber228">source</a></span></span>
     </span>
   </h3>
 
@@ -1233,7 +1241,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber217">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber220">source</a></span></span>
     </span>
   </h3>
 
@@ -1288,7 +1296,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber237">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber240">source</a></span></span>
     </span>
   </h3>
 
@@ -1343,7 +1351,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber251">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber254">source</a></span></span>
     </span>
   </h3>
 
@@ -1398,7 +1406,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber272">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber275">source</a></span></span>
     </span>
   </h3>
 
@@ -1453,7 +1461,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber191">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber194">source</a></span></span>
     </span>
   </h3>
 
@@ -1512,7 +1520,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber229">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber232">source</a></span></span>
     </span>
   </h3>
 
@@ -1571,7 +1579,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber221">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber224">source</a></span></span>
     </span>
   </h3>
 
@@ -1630,7 +1638,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber233">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber236">source</a></span></span>
     </span>
   </h3>
 
@@ -1689,7 +1697,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber244">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber247">source</a></span></span>
     </span>
   </h3>
 
@@ -1748,7 +1756,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber208">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber211">source</a></span></span>
     </span>
   </h3>
 
@@ -1791,7 +1799,7 @@ thousands+), you don&apos;t need to worry about this.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber213">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber216">source</a></span></span>
     </span>
   </h3>
 

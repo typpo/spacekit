@@ -1,3 +1,6 @@
+/**
+ * @ignore
+ */
 export const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
 
 /**

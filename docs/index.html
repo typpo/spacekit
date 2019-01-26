@@ -40,28 +40,24 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
 </ul>
 </div>
 </nav>
 
-<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="spacekit">spacekit</h1><p>&#x1F6A8; <strong>This library is a work in progress and the API is subject to change!</strong> &#x1F6A8;</p>
-<p>A Javascript library for 3D space visualizations - Earth/moon system, solar system, and beyond...</p>
-<p>The intent of this library is to generalize my work on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
-<h1 id="dependencies">Dependencies</h1><p>Production:</p>
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="spacekit">spacekit</h1><p>Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.</p>
+<p>This library generalizes work that is currently used on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
+<p>&#x1F6A8; <strong>This library is a work in progress and the API is subject to change!</strong> &#x1F6A8;</p>
+<h1 id="dependencies">Dependencies</h1><p>You&apos;ll need to include the following dependencies in production:</p>
 <ul>
 <li>THREE.js</li>
 <li>THREE.js TrackballControls</li>
 <li>Stats.js (optional)</li>
 </ul>
-<p>Additional development dependencies:</p>
-<ul>
-<li>Python</li>
-</ul>
-<h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  <a href="http://localhost:8000/examples/simple.html">http://localhost:8000/examples/simple.html</a> will load a simple example.</p>
-<p>If you&apos;re making changes to the code and working with an example (or anything that uses the <code>build/</code> outputs), run <code>yarn build</code> or <code>yarn build:watch</code> to continuously update the bundle.</p>
-<h1 id="usage">Usage</h1><p>See the examples directory for full usage examples.  For now, here&apos;s some example code that will build an interactive visualization of the sun, Earth, and Mars:</p>
-<pre><code><code class="source-code prettyprint">// Create the visualization and put it in our div.
+<p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
+<h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/simple.html">http://localhost:8001/examples/simple.html</a> to load a simple example.</p>
+<p>If you&apos;re making changes to the code, run <code>yarn build</code> to update the build outputs.  <code>yarn build:watch</code> will continuously watch for your changes and update the build.</p>
+<h1 id="usage">Usage</h1><p>See the <a href="https://github.com/typpo/spacekit/tree/master/examples">examples</a> directory for full usage examples.  For now, here&apos;s some example code that will build an interactive visualization of a couple planets:</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById(&apos;main-container&apos;), {
   assetPath: &apos;../src/assets&apos;,
 });
@@ -73,9 +69,16 @@ const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 const sun = viz.createObject(&apos;sun&apos;, Spacekit.SpaceObjectPresets.SUN);
 
 // Then add some planets
-const earth = viz.createObject(&apos;earth&apos;, Spacekit.SpaceObjectPresets.EARTH);
-const mars = viz.createObject(&apos;mars&apos;, Spacekit.SpaceObjectPresets.MARS);</code>
-</code></pre><p><img src="https://imgur.com/8ldI8wel.jpg" alt="example"></p>
+viz.createObject(&apos;mercury&apos;, Spacekit.SpaceObjectPresets.MERCURY);
+viz.createObject(&apos;venus&apos;, Spacekit.SpaceObjectPresets.VENUS);
+viz.createObject(&apos;earth&apos;, Spacekit.SpaceObjectPresets.EARTH);
+viz.createObject(&apos;mars&apos;, Spacekit.SpaceObjectPresets.MARS);
+viz.createObject(&apos;jupiter&apos;, Spacekit.SpaceObjectPresets.JUPITER);
+viz.createObject(&apos;saturn&apos;, Spacekit.SpaceObjectPresets.SATURN);
+viz.createObject(&apos;uranus&apos;, Spacekit.SpaceObjectPresets.URANUS);
+viz.createObject(&apos;neptune&apos;, Spacekit.SpaceObjectPresets.NEPTUNE);</code>
+</code></pre>
+<p><img src="https://i.imgur.com/WseTJidl.jpg" alt="example"></p>
 </div>
 </div>
 

@@ -1,32 +1,30 @@
 # spacekit
 
+Welcome to spacekit!  This is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.
+
+This library generalizes work that is currently used on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.
+
 🚨 **This library is a work in progress and the API is subject to change!** 🚨
-
-A Javascript library for 3D space visualizations - Earth/moon system, solar system, and beyond...
-
-The intent of this library is to generalize my work on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.
 
 # Dependencies
 
-Production:
+You'll need to include the following dependencies in production:
 
   - THREE.js
   - THREE.js TrackballControls
   - Stats.js (optional)
 
-Additional development dependencies:
-
-  - Python
+If you want to contribute to this project, you will also need to install Python (2.7 or 3).
 
 # Running an Example
 
-Running `./server.sh` will start a basic Python webserver.  http://localhost:8000/examples/simple.html will load a simple example.
+Running `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/simple.html to load a simple example.
 
-If you're making changes to the code and working with an example (or anything that uses the `build/` outputs), run `yarn build` or `yarn build:watch` to continuously update the bundle.
+If you're making changes to the code, run `yarn build` to update the build outputs.  `yarn build:watch` will continuously watch for your changes and update the build.
 
 # Usage
 
-See the examples directory for full usage examples.  For now, here's some example code that will build an interactive visualization of the sun, Earth, and Mars:
+See the [examples](https://github.com/typpo/spacekit/tree/master/examples) directory for full usage examples.  For now, here's some example code that will build an interactive visualization of a couple planets:
 
 ```
 // Create the visualization and put it in our div.
@@ -41,8 +39,14 @@ const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
 
 // Then add some planets
-const earth = viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
-const mars = viz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);
+viz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);
+viz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);
+viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
+viz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);
+viz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);
+viz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);
+viz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);
+viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 ```
 
-![example](https://imgur.com/8ldI8wel.jpg)
+![example](https://i.imgur.com/WseTJidl.jpg)

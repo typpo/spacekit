@@ -58,8 +58,8 @@ export class Ephem {
 
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
-        const units = ANGLE_UNITS.has(attr) ? units : null;
-        this.set(attr, initialValues[attr], units);
+        const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
+        this.set(attr, initialValues[attr], actualUnits);
       }
     }
     this.fill();

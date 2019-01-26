@@ -13,6 +13,7 @@ import { SpaceParticles } from './SpaceParticles';
  *
  * @example
  * const sim = new Spacekit.Simulation('my-container', {
+ *  startDate: Date.now(),
  *  jed: 0.0,
  *  jedDelta: 10.0,
  *  jedPerSecond: 100.0,  // overrides jedDelta
@@ -28,7 +29,9 @@ export class Simulation {
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
-   * @param {Number} options.jed The JED start date for this simulation.
+   * @param {Date} options.startDate The start date and time for this
+   * simulation.
+   * @param {Number} options.jed The JED date of this simulation.
    * Defaults to 0
    * @param {Number} options.jedDelta The number of JED to add every tick of
    * the simulation.

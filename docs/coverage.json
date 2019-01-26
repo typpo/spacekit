@@ -1,7 +1,7 @@
 {
-  "coverage": "43.41%",
+  "coverage": "48.06%",
   "expectCount": 129,
-  "actualCount": 56,
+  "actualCount": 62,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -94,25 +94,20 @@
     },
     "src/SpaceParticles.js": {
       "expectCount": 20,
-      "actualCount": 3,
+      "actualCount": 8,
       "undocumentLines": [
         5,
-        13,
-        14,
-        16,
-        21,
         22,
-        32,
-        35,
-        37,
-        38,
-        39,
+        24,
+        29,
+        30,
         40,
-        41,
-        108,
-        144,
-        148,
-        152
+        43,
+        45,
+        46,
+        47,
+        48,
+        49
       ]
     },
     "src/shaders.js": {
@@ -120,12 +115,11 @@
       "actualCount": 2,
       "undocumentLines": []
     },
-    "src/threeUtil.js": {
+    "src/util.js": {
       "expectCount": 2,
-      "actualCount": 0,
+      "actualCount": 1,
       "undocumentLines": [
-        2,
-        5
+        1
       ]
     }
   }

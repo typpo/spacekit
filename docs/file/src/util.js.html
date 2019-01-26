@@ -40,8 +40,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_FRAGMENT">ORBIT_SHADER_FRAGMENT</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ORBIT_SHADER_VERTEX">ORBIT_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
 </ul>
 </div>
@@ -50,6 +48,14 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/util.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">export const DEFAULT_TEXTURE_URL = &apos;{{assets}}/sprites/fuzzyparticle.png&apos;;
 
+/**
+ * Returns the complete URL to a texture given a basepath and a template url.
+ * @param {String} template URL containing optional template parameters
+ * @param {String} assetPath Base path for assets.
+ * @example
+ * getFullTextureUrl(&apos;{{assets}}/images/mysprite.png&apos;, &apos;/path/to/assets&apos;)
+ * =&gt; &apos;/path/to/assets/images/mysprite.png&apos;
+ */
 export function getFullTextureUrl(template, assetPath) {
   return (template || DEFAULT_TEXTURE_URL).replace(&apos;{{assets}}&apos;, assetPath);
 }

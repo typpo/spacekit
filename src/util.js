@@ -7,6 +7,7 @@ export const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
  * @example
  * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
  * => '/path/to/assets/images/mysprite.png'
+ */
 export function getFullTextureUrl(template, assetPath) {
   return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
 }

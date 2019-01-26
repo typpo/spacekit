@@ -36,9 +36,11 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-DEFAULT_TEXTURE_URL">DEFAULT_TEXTURE_URL</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -104,7 +106,7 @@ Primarily used by Simulation to render all non-static objects.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">()</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, contextOrSimulation: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
         </p>
       </div>
       <div>
@@ -140,13 +142,14 @@ Primarily used by Simulation to render all non-static objects.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-addParticle">addParticle</a></span></span><span class="code" data-ice="signature">(ephem: <span>*</span>, options: {})</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-addParticle">addParticle</a></span></span><span class="code" data-ice="signature">(ephem: <span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Add a particle to this particle system.</p>
+</div>
       </div>
     </td>
     <td>
@@ -168,13 +171,14 @@ Primarily used by Simulation to render all non-static objects.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-get3jsObjects">get3jsObjects</a></span></span><span class="code" data-ice="signature">(): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-get3jsObjects">get3jsObjects</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span>THREE.Object</span>&gt;</span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Get THREE.js objects that comprise this point cloud</p>
+</div>
       </div>
     </td>
     <td>
@@ -196,13 +200,14 @@ Primarily used by Simulation to render all non-static objects.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-getId">getId</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-getId">getId</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Get unique id for this object.</p>
+</div>
       </div>
     </td>
     <td>
@@ -224,13 +229,14 @@ Primarily used by Simulation to render all non-static objects.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-update">update</a></span></span><span class="code" data-ice="signature">(jed: <span>*</span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html#instance-method-update">update</a></span></span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Update the position for all particles</p>
+</div>
       </div>
     </td>
     <td>
@@ -256,11 +262,11 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     
     
-    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">()</span>
+    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, contextOrSimulation: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber13">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber21">source</a></span></span>
     </span>
   </h3>
 
@@ -271,7 +277,59 @@ Primarily used by Simulation to render all non-static objects.</p>
 
   
 
-  <div data-ice="properties">
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">options</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Options container</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.textureUrl</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Template url for sprite</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.assetPath</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Base path for assets</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.jed</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>JED date value</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.maxNumParticles</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Maximum number of particles to display. Defaults to 1024</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">contextOrSimulation</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Simulation context or object</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
 </div>
 
   
@@ -303,18 +361,19 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     
     
-    <span class="code" data-ice="name">addParticle</span><span class="code" data-ice="signature">(ephem: <span>*</span>, options: {})</span>
+    <span class="code" data-ice="name">addParticle</span><span class="code" data-ice="signature">(ephem: <span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber108">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber123">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Add a particle to this particle system.</p>
+</div>
 
   
 
@@ -328,16 +387,31 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">ephem</td>
-      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="type" class="code"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>Kepler ephemeris</p>
+</td>
     </tr>
 <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">options</td>
-      <td data-ice="type" class="code">{}</td>
-      <td data-ice="appendix"><ul><li>optional</li>
-<li>default: {}</li></ul></td>
-      <td data-ice="description"></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Options container</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.particleSize</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Size of particles</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">options.color</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Color of particles</p>
+</td>
     </tr>
 </tbody>
   </table>
@@ -369,18 +443,19 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     
     
-    <span class="code" data-ice="name">get3jsObjects</span><span class="code" data-ice="signature">(): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+    <span class="code" data-ice="name">get3jsObjects</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span>THREE.Object</span>&gt;</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber148">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber171">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Get THREE.js objects that comprise this point cloud</p>
+</div>
 
   
 
@@ -392,8 +467,9 @@ Primarily used by Simulation to render all non-static objects.</p>
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></td>
-          
+          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span>THREE.Object</span>&gt;</td>
+          <td class="return-desc" data-ice="returnDescription"><p>List of objects to add to THREE.js scene</p>
+</td>
         </tr>
       </tbody>
     </table>
@@ -424,18 +500,19 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     
     
-    <span class="code" data-ice="name">getId</span><span class="code" data-ice="signature">(): <span>*</span></span>
+    <span class="code" data-ice="name">getId</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber152">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber179">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Get unique id for this object.</p>
+</div>
 
   
 
@@ -447,8 +524,9 @@ Primarily used by Simulation to render all non-static objects.</p>
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span>*</span></td>
-          
+          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>Unique id</p>
+</td>
         </tr>
       </tbody>
     </table>
@@ -479,18 +557,19 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     
     
-    <span class="code" data-ice="name">update</span><span class="code" data-ice="signature">(jed: <span>*</span>)</span>
+    <span class="code" data-ice="name">update</span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber144">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceParticles.js.html#lineNumber163">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Update the position for all particles</p>
+</div>
 
   
 
@@ -504,9 +583,10 @@ Primarily used by Simulation to render all non-static objects.</p>
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">jed</td>
-      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>JED date</p>
+</td>
     </tr>
 </tbody>
   </table>

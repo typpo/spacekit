@@ -10,6 +10,14 @@ const DEFAULT_PARTICLE_COUNT = 1024;
  * @see Simulation
  */
 export class SpaceParticles {
+  /**
+   * @param {Object} options Options container
+   * @param {Object} options.textureUrl Template url for sprite
+   * @param {Object} options.assetPath Base path for assets
+   * @param {Number} options.jed JED date value
+   * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
+   * @param {Object} contextOrSimulation Simulation context or object
+   */
   constructor(options, contextOrSimulation) {
     this._options = options;
 
@@ -105,6 +113,13 @@ export class SpaceParticles {
     this._particleSystem = new THREE.Points(geometry, shader);
   }
 
+  /**
+   * Add a particle to this particle system.
+   * @param {Ephem} ephem Kepler ephemeris
+   * @param {Object} options Options container
+   * @param {Number} options.particleSize Size of particles
+   * @param {Number} options.color Color of particles
+   */
   addParticle(ephem, options = {}) {
     const attributes = this._attributes;
     const offset = this._particleCount++;
@@ -141,14 +156,26 @@ export class SpaceParticles {
     }
   }
 
+  /**
+   * Update the position for all particles
+   * @param {Number} jed JED date
+   */
   update(jed) {
     this._uniforms.jed.value = jed;
   }
 
+  /**
+   * Get THREE.js objects that comprise this point cloud
+   * @return {Array.<THREE.Object>} List of objects to add to THREE.js scene
+   */
   get3jsObjects() {
     return [this._particleSystem];
   }
 
+  /**
+   * Get unique id for this object.
+   * @return {String} Unique id
+   */
   getId() {
     return this._id;
   }

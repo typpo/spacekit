@@ -1,6 +1,6 @@
 # spacekit
 
-Welcome to spacekit!  This is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.
+Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.
 
 This library generalizes work that is currently used on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.
 
@@ -26,7 +26,7 @@ If you're making changes to the code, run `yarn build` to update the build outpu
 
 See the [examples](https://github.com/typpo/spacekit/tree/master/examples) directory for full usage examples.  For now, here's some example code that will build an interactive visualization of a couple planets:
 
-```
+```javascript
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../src/assets',

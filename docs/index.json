@@ -1063,7 +1063,7 @@
     "__docId__": 65,
     "kind": "file",
     "name": "src/Orbit.js",
-    "content": "/**\n * A class that builds a visual representation of a Kepler orbit.\n */\nexport class Orbit {\n  /**\n   * @param {Ephem} ephem The ephemerides that define this orbit.\n   * @param {Object} options\n   * @param {Object} options.color The color of the orbital ellipse.\n   * @param {Object} options.eclipticLineColor The color of lines drawn\n   * perpendicular to the ecliptic in order to illustrate depth (defaults to\n   * 0x333333).\n   */\n  constructor(ephem, options) {\n    /**\n     * Ephem object\n     * @type {Ephem}\n     */\n    this._ephem = ephem;\n\n    /**\n     * Options (see class definition for details)\n     */\n    this._options = options || {};\n\n    /**\n     * Cached orbital points.\n     * @type {Array.<THREE.Vector3>}\n     */\n    this._points = null;\n\n    /**\n     * Cached ellipse.\n     * @type {THREE.Line}\n     */\n    this._ellipse = null;\n  }\n\n  /**\n   * @private\n   * @return {Array.<THREE.Vector3>} List of points\n   */\n  getOrbitPoints() {\n    if (this._points) {\n      return this._points;\n    }\n\n    const eph = this._ephem;\n\n    const period = eph.get('period');\n    const numSegments = Math.max(period / 10, 50);\n    const step = period / numSegments;\n\n    const pts = [];\n    let prevPos;\n    for (let time = 0; time < period; time += step) {\n      const pos = this.getPositionAtTime(time);\n      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {\n        console.error('NaN position value - you may have bad data in the following ephemeris:');\n        console.error(eph);\n      }\n      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);\n      if (prevPos && Math.abs(prevPos[0] - pos[0])\n                     + Math.abs(prevPos[1] - pos[1])\n                     + Math.abs(prevPos[2] - pos[2]) > 120) {\n        // Don't render bogus or very large ellipses.\n        points.vertices = [];\n        return points;\n      }\n      prevPos = pos;\n      pts.push(vector);\n    }\n    pts.push(pts[0]);\n\n    this._points = new THREE.Geometry();\n    this._points.vertices = pts;\n\n    return this._points;\n  }\n\n  /**\n   * Get heliocentric position of object at a given JED.\n   * @param {Number} jed Date value in JED.\n   * @return {Array.<Number>} [X, Y, Z] coordinates\n   */\n  getPositionAtTime(jed) {\n    const pi = Math.PI;\n    const sin = Math.sin;\n    const cos = Math.cos;\n\n    const eph = this._ephem;\n\n    // Note: logic below must match the vertex shader.\n    // This position calculation is used to create orbital ellipses.\n    const e = eph.get('e');\n    const a = eph.get('a');\n    const i = eph.get('i', 'rad');\n\n    // longitude of ascending node\n    const o = eph.get('om', 'rad');\n\n    // LONGITUDE of perihelion\n    const p = eph.get('w_bar', 'rad');\n\n    const ma = eph.get('ma', 'rad');\n    let M;\n\n    // Calculate mean anomaly at jed\n    const n = eph.get('n', 'rad');\n    const epoch = eph.get('epoch');\n    const d = jed - epoch;\n    M = ma + n * d;\n\n    // Estimate eccentric and true anom using iterative approx\n    let E0 = M;\n    let lastdiff;\n    do {\n      const E1 = M + e * sin(E0);\n      lastdiff = Math.abs(E1 - E0);\n      E0 = E1;\n    } while (lastdiff > 0.0000001);\n    const E = E0;\n    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));\n\n    // Radius vector, in AU\n    const r = a * (1 - e * e) / (1 + e * cos(v));\n\n    // Heliocentric coords\n    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));\n    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));\n    const Z = r * (sin(v + p - o) * sin(i));\n    return [X, Y, Z];\n  }\n\n  /**\n   * @return {THREE.Line} The ellipse object that represents this orbit.\n   */\n  getEllipse() {\n    if (!this._ellipse) {\n      const pointGeometry = this.getOrbitPoints();\n      this._ellipse = new THREE.Line(pointGeometry,\n        new THREE.LineBasicMaterial({\n          color: this._options.color,\n        }), THREE.LineStrip);\n    }\n    return this._ellipse;\n  }\n\n  /**\n   * A geometry containing line segments that run between the orbit ellipse and\n   * the ecliptic plane of the solar system. This is a useful visual effect\n   * that makes it easy to tell when an orbit goes below or above the ecliptic\n   * plane.\n   * @return {THREE.Geometry} A geometry with many line segments.\n   */\n  getLinesToEcliptic() {\n    const points = this.getOrbitPoints();\n    const geometry = new THREE.Geometry();\n\n    points.vertices.forEach((vertex) => {\n      geometry.vertices.push(vertex);\n      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));\n    });\n\n    return new THREE.LineSegments(\n      geometry,\n      new THREE.LineBasicMaterial({\n        color: this._options.eclipticLineColor || 0x333333,\n      }),\n      THREE.LineStrip,\n    );\n  }\n\n  /**\n   * Get the color of this orbit.\n   * @return {Number} The hexadecimal color of the orbital ellipse.\n   */\n  getHexColor() {\n    return this._ellipse.material.color.getHex();\n  }\n\n  /**\n   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.\n   */\n  setHexColor(hexVal) {\n    return this._ellipse.material.color = new THREE.Color(hexVal);\n  }\n\n  /**\n   * Get the visibility of this orbit.\n   * @return {boolean} Whether the orbital ellipse is visible. Note that\n   * although the ellipse may not be visible, it is still present in the\n   * underlying Scene and Simultation.\n   */\n  getVisibility() {\n    return this._ellipse.visible;\n  }\n\n  /**\n   * Change the visibility of this orbit.\n   * @param {boolean} val Whether to show the orbital ellipse.\n   */\n  setVisibility(val) {\n    return this._ellipse.visible = val;\n  }\n}\n",
+    "content": "/**\n * A class that builds a visual representation of a Kepler orbit.\n * @example\n * const orbit = new Spacekit.Orbit({\n *   ephem: new Spacekit.Ephem({...}),\n *   options: {\n *     color: 0xFFFFFF,\n *     eclipticLineColor: 0xCCCCCC,\n *   },\n * });\n */\nexport class Orbit {\n  /**\n   * @param {Ephem} ephem The ephemerides that define this orbit.\n   * @param {Object} options\n   * @param {Object} options.color The color of the orbital ellipse.\n   * @param {Object} options.eclipticLineColor The color of lines drawn\n   * perpendicular to the ecliptic in order to illustrate depth (defaults to\n   * 0x333333).\n   */\n  constructor(ephem, options) {\n    /**\n     * Ephem object\n     * @type {Ephem}\n     */\n    this._ephem = ephem;\n\n    /**\n     * Options (see class definition for details)\n     */\n    this._options = options || {};\n\n    /**\n     * Cached orbital points.\n     * @type {Array.<THREE.Vector3>}\n     */\n    this._points = null;\n\n    /**\n     * Cached ellipse.\n     * @type {THREE.Line}\n     */\n    this._ellipse = null;\n  }\n\n  /**\n   * @private\n   * @return {Array.<THREE.Vector3>} List of points\n   */\n  getOrbitPoints() {\n    if (this._points) {\n      return this._points;\n    }\n\n    const eph = this._ephem;\n\n    const period = eph.get('period');\n    const numSegments = Math.max(period / 10, 50);\n    const step = period / numSegments;\n\n    const pts = [];\n    let prevPos;\n    for (let time = 0; time < period; time += step) {\n      const pos = this.getPositionAtTime(time);\n      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {\n        console.error('NaN position value - you may have bad data in the following ephemeris:');\n        console.error(eph);\n      }\n      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);\n      if (prevPos && Math.abs(prevPos[0] - pos[0])\n                     + Math.abs(prevPos[1] - pos[1])\n                     + Math.abs(prevPos[2] - pos[2]) > 120) {\n        // Don't render bogus or very large ellipses.\n        points.vertices = [];\n        return points;\n      }\n      prevPos = pos;\n      pts.push(vector);\n    }\n    pts.push(pts[0]);\n\n    this._points = new THREE.Geometry();\n    this._points.vertices = pts;\n\n    return this._points;\n  }\n\n  /**\n   * Get heliocentric position of object at a given JED.\n   * @param {Number} jed Date value in JED.\n   * @return {Array.<Number>} [X, Y, Z] coordinates\n   */\n  getPositionAtTime(jed) {\n    const pi = Math.PI;\n    const sin = Math.sin;\n    const cos = Math.cos;\n\n    const eph = this._ephem;\n\n    // Note: logic below must match the vertex shader.\n    // This position calculation is used to create orbital ellipses.\n    const e = eph.get('e');\n    const a = eph.get('a');\n    const i = eph.get('i', 'rad');\n\n    // longitude of ascending node\n    const o = eph.get('om', 'rad');\n\n    // LONGITUDE of perihelion\n    const p = eph.get('w_bar', 'rad');\n\n    const ma = eph.get('ma', 'rad');\n    let M;\n\n    // Calculate mean anomaly at jed\n    const n = eph.get('n', 'rad');\n    const epoch = eph.get('epoch');\n    const d = jed - epoch;\n    M = ma + n * d;\n\n    // Estimate eccentric and true anom using iterative approx\n    let E0 = M;\n    let lastdiff;\n    do {\n      const E1 = M + e * sin(E0);\n      lastdiff = Math.abs(E1 - E0);\n      E0 = E1;\n    } while (lastdiff > 0.0000001);\n    const E = E0;\n    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));\n\n    // Radius vector, in AU\n    const r = a * (1 - e * e) / (1 + e * cos(v));\n\n    // Heliocentric coords\n    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));\n    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));\n    const Z = r * (sin(v + p - o) * sin(i));\n    return [X, Y, Z];\n  }\n\n  /**\n   * @return {THREE.Line} The ellipse object that represents this orbit.\n   */\n  getEllipse() {\n    if (!this._ellipse) {\n      const pointGeometry = this.getOrbitPoints();\n      this._ellipse = new THREE.Line(pointGeometry,\n        new THREE.LineBasicMaterial({\n          color: this._options.color,\n        }), THREE.LineStrip);\n    }\n    return this._ellipse;\n  }\n\n  /**\n   * A geometry containing line segments that run between the orbit ellipse and\n   * the ecliptic plane of the solar system. This is a useful visual effect\n   * that makes it easy to tell when an orbit goes below or above the ecliptic\n   * plane.\n   * @return {THREE.Geometry} A geometry with many line segments.\n   */\n  getLinesToEcliptic() {\n    const points = this.getOrbitPoints();\n    const geometry = new THREE.Geometry();\n\n    points.vertices.forEach((vertex) => {\n      geometry.vertices.push(vertex);\n      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));\n    });\n\n    return new THREE.LineSegments(\n      geometry,\n      new THREE.LineBasicMaterial({\n        color: this._options.eclipticLineColor || 0x333333,\n      }),\n      THREE.LineStrip,\n    );\n  }\n\n  /**\n   * Get the color of this orbit.\n   * @return {Number} The hexadecimal color of the orbital ellipse.\n   */\n  getHexColor() {\n    return this._ellipse.material.color.getHex();\n  }\n\n  /**\n   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.\n   */\n  setHexColor(hexVal) {\n    return this._ellipse.material.color = new THREE.Color(hexVal);\n  }\n\n  /**\n   * Get the visibility of this orbit.\n   * @return {boolean} Whether the orbital ellipse is visible. Note that\n   * although the ellipse may not be visible, it is still present in the\n   * underlying Scene and Simultation.\n   */\n  getVisibility() {\n    return this._ellipse.visible;\n  }\n\n  /**\n   * Change the visibility of this orbit.\n   * @param {boolean} val Whether to show the orbital ellipse.\n   */\n  setVisibility(val) {\n    return this._ellipse.visible = val;\n  }\n}\n",
     "static": true,
     "longname": "/home/ian/code/spacekit/src/Orbit.js",
     "access": "public",
@@ -1082,7 +1082,10 @@
     "importPath": "spacekit/src/Orbit.js",
     "importStyle": "{Orbit}",
     "description": "A class that builds a visual representation of a Kepler orbit.",
-    "lineNumber": 4,
+    "examples": [
+      "const orbit = new Spacekit.Orbit({\n  ephem: new Spacekit.Ephem({...}),\n  options: {\n    color: 0xFFFFFF,\n    eclipticLineColor: 0xCCCCCC,\n  },\n});"
+    ],
+    "lineNumber": 12,
     "interface": false
   },
   {
@@ -1096,7 +1099,7 @@
     "longname": "src/Orbit.js~Orbit#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 13,
+    "lineNumber": 21,
     "params": [
       {
         "nullable": null,
@@ -1149,7 +1152,7 @@
     "longname": "src/Orbit.js~Orbit#_ephem",
     "access": "private",
     "description": "Ephem object",
-    "lineNumber": 18,
+    "lineNumber": 26,
     "type": {
       "nullable": null,
       "types": [
@@ -1169,7 +1172,7 @@
     "longname": "src/Orbit.js~Orbit#_options",
     "access": "private",
     "description": "Options (see class definition for details)",
-    "lineNumber": 23,
+    "lineNumber": 31,
     "ignore": true,
     "type": {
       "types": [
@@ -1186,7 +1189,7 @@
     "longname": "src/Orbit.js~Orbit#_points",
     "access": "private",
     "description": "Cached orbital points.",
-    "lineNumber": 29,
+    "lineNumber": 37,
     "type": {
       "nullable": null,
       "types": [
@@ -1206,7 +1209,7 @@
     "longname": "src/Orbit.js~Orbit#_ellipse",
     "access": "private",
     "description": "Cached ellipse.",
-    "lineNumber": 35,
+    "lineNumber": 43,
     "type": {
       "nullable": null,
       "types": [
@@ -1228,7 +1231,7 @@
     "longname": "src/Orbit.js~Orbit#getOrbitPoints",
     "access": "private",
     "description": "",
-    "lineNumber": 42,
+    "lineNumber": 50,
     "return": {
       "nullable": null,
       "types": [
@@ -1251,7 +1254,7 @@
     "longname": "src/Orbit.js~Orbit#getPositionAtTime",
     "access": "public",
     "description": "Get heliocentric position of object at a given JED.",
-    "lineNumber": 85,
+    "lineNumber": 93,
     "params": [
       {
         "nullable": null,
@@ -1284,7 +1287,7 @@
     "longname": "src/Orbit.js~Orbit#getEllipse",
     "access": "public",
     "description": "",
-    "lineNumber": 137,
+    "lineNumber": 145,
     "return": {
       "nullable": null,
       "types": [
@@ -1306,7 +1309,7 @@
     "longname": "src/Orbit.js~Orbit#getLinesToEcliptic",
     "access": "public",
     "description": "A geometry containing line segments that run between the orbit ellipse and\nthe ecliptic plane of the solar system. This is a useful visual effect\nthat makes it easy to tell when an orbit goes below or above the ecliptic\nplane.",
-    "lineNumber": 155,
+    "lineNumber": 163,
     "return": {
       "nullable": null,
       "types": [
@@ -1328,7 +1331,7 @@
     "longname": "src/Orbit.js~Orbit#getHexColor",
     "access": "public",
     "description": "Get the color of this orbit.",
-    "lineNumber": 177,
+    "lineNumber": 185,
     "return": {
       "nullable": null,
       "types": [
@@ -1350,7 +1353,7 @@
     "longname": "src/Orbit.js~Orbit#setHexColor",
     "access": "public",
     "description": "",
-    "lineNumber": 184,
+    "lineNumber": 192,
     "params": [
       {
         "nullable": null,
@@ -1380,7 +1383,7 @@
     "longname": "src/Orbit.js~Orbit#getVisibility",
     "access": "public",
     "description": "Get the visibility of this orbit.",
-    "lineNumber": 194,
+    "lineNumber": 202,
     "return": {
       "nullable": null,
       "types": [
@@ -1402,7 +1405,7 @@
     "longname": "src/Orbit.js~Orbit#setVisibility",
     "access": "public",
     "description": "Change the visibility of this orbit.",
-    "lineNumber": 202,
+    "lineNumber": 210,
     "params": [
       {
         "nullable": null,
@@ -2548,7 +2551,7 @@
     "__docId__": 154,
     "kind": "file",
     "name": "src/SpaceObject.js",
-    "content": "import { EphemPresets, Ephem } from './Ephem';\nimport { Orbit } from './Orbit';\nimport { getFullTextureUrl } from './util';\n\n/**\n * @private\n * Converts (X, Y, Z) position in visualization to pixel coordinates.\n */\nfunction toScreenXY(position, camera, canvas) {\n  const pos = new THREE.Vector3(position[0], position[1], position[2]);\n  const projScreenMat = new THREE.Matrix4();\n  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);\n  pos.applyMatrix4(projScreenMat);\n  return {\n    x: (pos.x + 1) * canvas.clientWidth / 2,\n    y: (-pos.y + 1) * canvas.clientHeight / 2,\n  };\n}\n\n/**\n * An object that can be added to a visualization.\n * @example\n * const myObject = viz.addObject('planet1', {\n *   position: [0, 0, 0],\n *   scale: [1, 1, 1],\n *   labelText: 'My object',\n *   hideOrbit: false,\n *   ephem: {\n *     textureUrl: '/path/to/spriteTexture.png',\n *     assetPath: '/base/assets',\n *   },\n *   ecliptic: {\n *     lineColor: 0xCCCCCC,\n *     displayLines: false,\n *   },\n *   theme: {\n *     color: 0xFFFFFF,\n *   },\n * });\n */\nexport class SpaceObject {\n  /**\n   * @param {String} id Unique id of this object\n   * @param {Object} options Options container\n   * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]\n   * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]\n   * @param {String} options.labelText Text label to display above object (set undefined for no label)\n   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.\n   * @param {Ephem} options.ephem Ephemerides for this orbit\n   * @param {String} options.textureUrl Texture for sprite\n   * @param {String} options.assetPath Base path for texture urls\n   * @param {Object} options.ecliptic Contains settings related to ecliptic\n   * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit\n   * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.\n   * @param {Object} options.theme Contains settings related to appearance of orbit\n   * @param {Number} options.theme.color Hex color of the orbit\n   * @param {Object} contextOrSimulation Simulation context or simulation object\n   */\n  constructor(id, options, contextOrSimulation) {\n    this._id = id;\n    this._options = options || {};\n\n    // if (contextOrSimulation instanceOf Simulation) {\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    this._label = null;\n    this._position = options.position || [0, 0, 0];\n    this._scale = options.scale || [1, 1, 1];\n\n    if (!this.init()) {\n      console.warn(`SpaceObject ${id}: failed to initialize`);\n    }\n  }\n\n  /**\n   * @private\n   * Initializes label and three.js objects\n   */\n  init() {\n    if (this._options.labelText) {\n      const labelElt = this.createLabel();\n      this._simulation.getSimulationElement().appendChild(labelElt);\n      this._label = labelElt;\n    }\n    if (this.isStaticObject()) {\n      // Create a stationary sprite.\n      this._object3js = this.createSprite();\n      if (this._simulation) {\n        // Add it all to visualization.\n        this._simulation.addObject(this, false /* noUpdate */);\n      }\n    } else {\n      if (!this._options.hideOrbit) {\n        // Orbit is initialized before sprite because sprite may be positioned\n        // according to orbit.\n        this._orbit = this.createOrbit();\n\n        if (this._simulation) {\n          // Add it all to visualization.\n          this._simulation.addObject(this, false /* noUpdate */);\n        }\n      }\n\n      // Don't create a sprite - do it on the GPU instead.\n      this._context.objects.particles.addParticle(this._options.ephem, {\n        particleSize: this._options.particleSize,\n        color: this.getColor(),\n      });\n    }\n    return true;\n  }\n\n  /**\n   * @private\n   * Builds the label div and adds it to the visualization\n   * @return {HTMLElement} A div that contains the label for this object\n   */\n  createLabel() {\n    const text = document.createElement('div');\n    text.className = 'spacekit__object-label';\n    text.innerHTML = `<div>${this._options.labelText}</div>`;\n    text.style.fontFamily = 'Arial';\n    text.style.fontSize = '12px';\n    text.style.color = '#fff';\n    text.style.position = 'absolute';\n    text.style.marginLeft = '1.5em';\n\n    text.style.backgroundColor = '#0009';\n    text.style.borderRadius = '4px';\n    text.style.padding = '0px 1px';\n    text.style.border = '1px solid #5f5f5f';\n\n    return text;\n  }\n\n  /**\n   * @private\n   * Builds the sprite for this object\n   * @return {THREE.Sprite} A sprite object\n   */\n  createSprite() {\n    const fullTextureUrl = getFullTextureUrl(\n      this._options.textureUrl,\n      this._context.options.assetPath,\n    );\n    const texture = new THREE.TextureLoader().load(fullTextureUrl);\n    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({\n      map: texture,\n      blending: THREE.AdditiveBlending,\n      color: 0xffffff,\n    }));\n    sprite.scale.set.apply(this, this._scale);\n    const position = this.getPosition(this._simulation.getJed());\n    sprite.position.set(position[0], position[1], position[2]);\n\n\n    if (this.isStaticObject()) {\n      sprite.matrixAutoUpdate = false;\n    }\n\n    return sprite;\n\n    /*\n    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );\n    light.position.set.apply(this, this._position);\n\n    const lensflare = new THREE.Lensflare();\n    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new\n                                                    THREE.Color(0xffffff),\n                                                    THREE.AdditiveBlending));\n\n    light.add(lensflare);\n    return light;\n   */\n  }\n\n  /**\n   * @private\n   * Builds the {Orbit} for this object\n   * @return {Orbit} An orbit object\n   */\n  createOrbit() {\n    if (this._orbit) {\n      return this._orbit;\n    }\n    return new Orbit(this._options.ephem, {\n      color: this.getColor(),\n      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,\n    });\n  }\n\n  /**\n   * Updates the position of this object. Applicable only if this object is a\n   * sprite and not a particle type.\n   * @param {Number} x X position\n   * @param {Number} y Y position\n   * @param {Number} z Z position\n   */\n  setPosition(x, y, z) {\n    this._position[0] = x;\n    this._position[1] = y;\n    this._position[2] = z;\n  }\n\n  /**\n   * Gets the visualization coordinates of this object at a given time.\n   * @param {Number} jed JED date\n   * @return {Array.<Number>} [X, Y,Z] coordinates\n   */\n  getPosition(jed) {\n    const pos = this._position;\n    if (!this._orbit) {\n      // Default implementation, a static object.\n      return pos;\n    }\n\n    const posModified = this._orbit.getPositionAtTime(jed);\n    return [\n      pos[0] + posModified[0],\n      pos[1] + posModified[1],\n      pos[2] + posModified[2],\n    ];\n  }\n\n  /**\n   * Updates the object and its label positions for a given time.\n   * @param {Number} jed JED date\n   */\n  update(jed) {\n    let newpos;\n    if (this._object3js) {\n      newpos = this.getPosition(jed);\n      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);\n    }\n    if (this._label) {\n      if (!newpos) {\n        newpos = this.getPosition(jed);\n      }\n      const label = this._label;\n      const SimulationElt = this._simulation.getSimulationElement();\n      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);\n      const loc = {\n        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,\n      };\n      if (loc.left > 0 && loc.right < SimulationElt.clientWidth\n          && loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {\n        label.style.left = `${loc.left}px`;\n        label.style.top = `${loc.top}px`;\n        label.style.visibility = 'visible';\n      } else {\n        label.style.visibility = 'hidden';\n      }\n    }\n  }\n\n  /**\n   * Gets the THREE.js objects that represent this SpaceObject.\n   * @return {Array.<THREE.Object>} A list of THREE.js objects\n   */\n  get3jsObjects() {\n    const ret = [];\n    if (this._object3js) {\n      ret.push(this._object3js);\n    }\n    if (this._orbit) {\n      ret.push(this._orbit.getEllipse());\n      if (this._options.ecliptic && this._options.ecliptic.displayLines) {\n        ret.push(this._orbit.getLinesToEcliptic());\n      }\n    }\n    return ret;\n  }\n\n  /**\n   * Gets the color of this object. Usually this corresponds to the color of\n   * the dot representing the object as well as its orbit.\n   * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF\n   */\n  getColor() {\n    if (this._options.theme) {\n      return this._options.theme.color || 0xffffff;\n    }\n    return 0xffffff;\n  }\n\n  /**\n   * Gets the {Orbit} object for this SpaceObject.\n   * @return {Orbit} Orbit object\n   */\n  getOrbit() {\n    return this._orbit;\n  }\n\n  /**\n   * Gets the unique ID of this object.\n   * @return {String} Unique ID\n   */\n  getId() {\n    return this._id;\n  }\n\n  /**\n   * Determines whether object is static (can't change its position) or whether\n   * its position can be updated (ie, it has ephemeris)\n   * @return {boolean} Whether this object can change its position.\n   */\n  isStaticObject() {\n    return !this._options.ephem;\n  }\n}\n\nconst DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';\n\n/**\n * Useful presets for creating SpaceObjects.\n * @example\n * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);\n */\nexport const SpaceObjectPresets = {\n  SUN: {\n    textureUrl: '{{assets}}/sprites/sunsprite.png',\n    position: [0, 0, 0],\n  },\n  MERCURY: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x913CEE,\n    },\n    ephem: EphemPresets.MERCURY,\n  },\n  VENUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFF7733,\n    },\n    ephem: EphemPresets.VENUS,\n  },\n  EARTH: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x009ACD,\n    },\n    ephem: EphemPresets.EARTH,\n  },\n  MARS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xA63A3A,\n    },\n    ephem: EphemPresets.MARS,\n  },\n  JUPITER: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFFB90F,\n    },\n    ephem: EphemPresets.JUPITER,\n  },\n  SATURN: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x336633,\n    },\n    ephem: EphemPresets.SATURN,\n  },\n  URANUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x0099FF,\n    },\n    ephem: EphemPresets.URANUS,\n  },\n  NEPTUNE: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x3333FF,\n    },\n    ephem: EphemPresets.NEPTUNE,\n  },\n};\n",
+    "content": "import { EphemPresets, Ephem } from './Ephem';\nimport { Orbit } from './Orbit';\nimport { getFullTextureUrl } from './util';\n\n/**\n * @private\n * Converts (X, Y, Z) position in visualization to pixel coordinates.\n */\nfunction toScreenXY(position, camera, canvas) {\n  const pos = new THREE.Vector3(position[0], position[1], position[2]);\n  const projScreenMat = new THREE.Matrix4();\n  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);\n  pos.applyMatrix4(projScreenMat);\n  return {\n    x: (pos.x + 1) * canvas.clientWidth / 2,\n    y: (-pos.y + 1) * canvas.clientHeight / 2,\n  };\n}\n\n/**\n * An object that can be added to a visualization.\n * @example\n * const myObject = viz.addObject('planet1', {\n *   position: [0, 0, 0],\n *   scale: [1, 1, 1],\n *   labelText: 'My object',\n *   hideOrbit: false,\n *   ephem: new Spacekit.Ephem({...}),\n *   textureUrl: '/path/to/spriteTexture.png',\n *   assetPath: '/base/assets',\n *   ecliptic: {\n *     lineColor: 0xCCCCCC,\n *     displayLines: false,\n *   },\n *   theme: {\n *     color: 0xFFFFFF,\n *   },\n * });\n */\nexport class SpaceObject {\n  /**\n   * @param {String} id Unique id of this object\n   * @param {Object} options Options container\n   * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]\n   * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]\n   * @param {String} options.labelText Text label to display above object (set undefined for no label)\n   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.\n   * @param {Ephem} options.ephem Ephemerides for this orbit\n   * @param {String} options.textureUrl Texture for sprite\n   * @param {String} options.assetPath Base path for texture urls\n   * @param {Object} options.ecliptic Contains settings related to ecliptic\n   * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit\n   * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.\n   * @param {Object} options.theme Contains settings related to appearance of orbit\n   * @param {Number} options.theme.color Hex color of the orbit\n   * @param {Object} contextOrSimulation Simulation context or simulation object\n   */\n  constructor(id, options, contextOrSimulation) {\n    this._id = id;\n    this._options = options || {};\n\n    // if (contextOrSimulation instanceOf Simulation) {\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    this._label = null;\n    this._position = options.position || [0, 0, 0];\n    this._scale = options.scale || [1, 1, 1];\n\n    if (!this.init()) {\n      console.warn(`SpaceObject ${id}: failed to initialize`);\n    }\n  }\n\n  /**\n   * @private\n   * Initializes label and three.js objects\n   */\n  init() {\n    if (this._options.labelText) {\n      const labelElt = this.createLabel();\n      this._simulation.getSimulationElement().appendChild(labelElt);\n      this._label = labelElt;\n    }\n    if (this.isStaticObject()) {\n      // Create a stationary sprite.\n      this._object3js = this.createSprite();\n      if (this._simulation) {\n        // Add it all to visualization.\n        this._simulation.addObject(this, false /* noUpdate */);\n      }\n    } else {\n      if (!this._options.hideOrbit) {\n        // Orbit is initialized before sprite because sprite may be positioned\n        // according to orbit.\n        this._orbit = this.createOrbit();\n\n        if (this._simulation) {\n          // Add it all to visualization.\n          this._simulation.addObject(this, false /* noUpdate */);\n        }\n      }\n\n      // Don't create a sprite - do it on the GPU instead.\n      this._context.objects.particles.addParticle(this._options.ephem, {\n        particleSize: this._options.particleSize,\n        color: this.getColor(),\n      });\n    }\n    return true;\n  }\n\n  /**\n   * @private\n   * Builds the label div and adds it to the visualization\n   * @return {HTMLElement} A div that contains the label for this object\n   */\n  createLabel() {\n    const text = document.createElement('div');\n    text.className = 'spacekit__object-label';\n    text.innerHTML = `<div>${this._options.labelText}</div>`;\n    text.style.fontFamily = 'Arial';\n    text.style.fontSize = '12px';\n    text.style.color = '#fff';\n    text.style.position = 'absolute';\n    text.style.marginLeft = '1.5em';\n\n    text.style.backgroundColor = '#0009';\n    text.style.borderRadius = '4px';\n    text.style.padding = '0px 1px';\n    text.style.border = '1px solid #5f5f5f';\n\n    return text;\n  }\n\n  /**\n   * @private\n   * Builds the sprite for this object\n   * @return {THREE.Sprite} A sprite object\n   */\n  createSprite() {\n    const fullTextureUrl = getFullTextureUrl(\n      this._options.textureUrl,\n      this._context.options.assetPath,\n    );\n    const texture = new THREE.TextureLoader().load(fullTextureUrl);\n    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({\n      map: texture,\n      blending: THREE.AdditiveBlending,\n      color: 0xffffff,\n    }));\n    sprite.scale.set.apply(this, this._scale);\n    const position = this.getPosition(this._simulation.getJed());\n    sprite.position.set(position[0], position[1], position[2]);\n\n\n    if (this.isStaticObject()) {\n      sprite.matrixAutoUpdate = false;\n    }\n\n    return sprite;\n\n    /*\n    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );\n    light.position.set.apply(this, this._position);\n\n    const lensflare = new THREE.Lensflare();\n    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new\n                                                    THREE.Color(0xffffff),\n                                                    THREE.AdditiveBlending));\n\n    light.add(lensflare);\n    return light;\n   */\n  }\n\n  /**\n   * @private\n   * Builds the {Orbit} for this object\n   * @return {Orbit} An orbit object\n   */\n  createOrbit() {\n    if (this._orbit) {\n      return this._orbit;\n    }\n    return new Orbit(this._options.ephem, {\n      color: this.getColor(),\n      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,\n    });\n  }\n\n  /**\n   * Updates the position of this object. Applicable only if this object is a\n   * sprite and not a particle type.\n   * @param {Number} x X position\n   * @param {Number} y Y position\n   * @param {Number} z Z position\n   */\n  setPosition(x, y, z) {\n    this._position[0] = x;\n    this._position[1] = y;\n    this._position[2] = z;\n  }\n\n  /**\n   * Gets the visualization coordinates of this object at a given time.\n   * @param {Number} jed JED date\n   * @return {Array.<Number>} [X, Y,Z] coordinates\n   */\n  getPosition(jed) {\n    const pos = this._position;\n    if (!this._orbit) {\n      // Default implementation, a static object.\n      return pos;\n    }\n\n    const posModified = this._orbit.getPositionAtTime(jed);\n    return [\n      pos[0] + posModified[0],\n      pos[1] + posModified[1],\n      pos[2] + posModified[2],\n    ];\n  }\n\n  /**\n   * Updates the object and its label positions for a given time.\n   * @param {Number} jed JED date\n   */\n  update(jed) {\n    let newpos;\n    if (this._object3js) {\n      newpos = this.getPosition(jed);\n      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);\n    }\n    if (this._label) {\n      if (!newpos) {\n        newpos = this.getPosition(jed);\n      }\n      const label = this._label;\n      const SimulationElt = this._simulation.getSimulationElement();\n      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);\n      const loc = {\n        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,\n      };\n      if (loc.left > 0 && loc.right < SimulationElt.clientWidth\n          && loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {\n        label.style.left = `${loc.left}px`;\n        label.style.top = `${loc.top}px`;\n        label.style.visibility = 'visible';\n      } else {\n        label.style.visibility = 'hidden';\n      }\n    }\n  }\n\n  /**\n   * Gets the THREE.js objects that represent this SpaceObject.\n   * @return {Array.<THREE.Object>} A list of THREE.js objects\n   */\n  get3jsObjects() {\n    const ret = [];\n    if (this._object3js) {\n      ret.push(this._object3js);\n    }\n    if (this._orbit) {\n      ret.push(this._orbit.getEllipse());\n      if (this._options.ecliptic && this._options.ecliptic.displayLines) {\n        ret.push(this._orbit.getLinesToEcliptic());\n      }\n    }\n    return ret;\n  }\n\n  /**\n   * Gets the color of this object. Usually this corresponds to the color of\n   * the dot representing the object as well as its orbit.\n   * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF\n   */\n  getColor() {\n    if (this._options.theme) {\n      return this._options.theme.color || 0xffffff;\n    }\n    return 0xffffff;\n  }\n\n  /**\n   * Gets the {Orbit} object for this SpaceObject.\n   * @return {Orbit} Orbit object\n   */\n  getOrbit() {\n    return this._orbit;\n  }\n\n  /**\n   * Gets the unique ID of this object.\n   * @return {String} Unique ID\n   */\n  getId() {\n    return this._id;\n  }\n\n  /**\n   * Determines whether object is static (can't change its position) or whether\n   * its position can be updated (ie, it has ephemeris)\n   * @return {boolean} Whether this object can change its position.\n   */\n  isStaticObject() {\n    return !this._options.ephem;\n  }\n}\n\nconst DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';\n\n/**\n * Useful presets for creating SpaceObjects.\n * @example\n * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);\n */\nexport const SpaceObjectPresets = {\n  SUN: {\n    textureUrl: '{{assets}}/sprites/sunsprite.png',\n    position: [0, 0, 0],\n  },\n  MERCURY: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x913CEE,\n    },\n    ephem: EphemPresets.MERCURY,\n  },\n  VENUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFF7733,\n    },\n    ephem: EphemPresets.VENUS,\n  },\n  EARTH: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x009ACD,\n    },\n    ephem: EphemPresets.EARTH,\n  },\n  MARS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xA63A3A,\n    },\n    ephem: EphemPresets.MARS,\n  },\n  JUPITER: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFFB90F,\n    },\n    ephem: EphemPresets.JUPITER,\n  },\n  SATURN: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x336633,\n    },\n    ephem: EphemPresets.SATURN,\n  },\n  URANUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x0099FF,\n    },\n    ephem: EphemPresets.URANUS,\n  },\n  NEPTUNE: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x3333FF,\n    },\n    ephem: EphemPresets.NEPTUNE,\n  },\n};\n",
     "static": true,
     "longname": "/home/ian/code/spacekit/src/SpaceObject.js",
     "access": "public",
@@ -2610,9 +2613,9 @@
     "importStyle": "{SpaceObject}",
     "description": "An object that can be added to a visualization.",
     "examples": [
-      "const myObject = viz.addObject('planet1', {\n  position: [0, 0, 0],\n  scale: [1, 1, 1],\n  labelText: 'My object',\n  hideOrbit: false,\n  ephem: {\n    textureUrl: '/path/to/spriteTexture.png',\n    assetPath: '/base/assets',\n  },\n  ecliptic: {\n    lineColor: 0xCCCCCC,\n    displayLines: false,\n  },\n  theme: {\n    color: 0xFFFFFF,\n  },\n});"
+      "const myObject = viz.addObject('planet1', {\n  position: [0, 0, 0],\n  scale: [1, 1, 1],\n  labelText: 'My object',\n  hideOrbit: false,\n  ephem: new Spacekit.Ephem({...}),\n  textureUrl: '/path/to/spriteTexture.png',\n  assetPath: '/base/assets',\n  ecliptic: {\n    lineColor: 0xCCCCCC,\n    displayLines: false,\n  },\n  theme: {\n    color: 0xFFFFFF,\n  },\n});"
     ],
-    "lineNumber": 41,
+    "lineNumber": 40,
     "interface": false
   },
   {
@@ -2626,7 +2629,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 59,
+    "lineNumber": 58,
     "params": [
       {
         "nullable": null,
@@ -2789,7 +2792,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_id",
     "access": "private",
     "description": null,
-    "lineNumber": 60,
+    "lineNumber": 59,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2807,7 +2810,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_options",
     "access": "private",
     "description": null,
-    "lineNumber": 61,
+    "lineNumber": 60,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2825,7 +2828,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_simulation",
     "access": "private",
     "description": null,
-    "lineNumber": 66,
+    "lineNumber": 65,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2843,7 +2846,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_context",
     "access": "private",
     "description": null,
-    "lineNumber": 67,
+    "lineNumber": 66,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2861,7 +2864,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_label",
     "access": "private",
     "description": null,
-    "lineNumber": 74,
+    "lineNumber": 73,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2879,7 +2882,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_position",
     "access": "private",
     "description": null,
-    "lineNumber": 75,
+    "lineNumber": 74,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2897,7 +2900,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_scale",
     "access": "private",
     "description": null,
-    "lineNumber": 76,
+    "lineNumber": 75,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2917,7 +2920,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#init",
     "access": "private",
     "description": "",
-    "lineNumber": 87,
+    "lineNumber": 86,
     "ignore": true,
     "params": [],
     "return": {
@@ -2935,7 +2938,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_object3js",
     "access": "private",
     "description": null,
-    "lineNumber": 95,
+    "lineNumber": 94,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2953,7 +2956,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_orbit",
     "access": "private",
     "description": null,
-    "lineNumber": 104,
+    "lineNumber": 103,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2973,7 +2976,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createLabel",
     "access": "private",
     "description": "",
-    "lineNumber": 126,
+    "lineNumber": 125,
     "return": {
       "nullable": null,
       "types": [
@@ -2996,7 +2999,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createSprite",
     "access": "private",
     "description": "",
-    "lineNumber": 149,
+    "lineNumber": 148,
     "return": {
       "nullable": null,
       "types": [
@@ -3019,7 +3022,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createOrbit",
     "access": "private",
     "description": "",
-    "lineNumber": 190,
+    "lineNumber": 189,
     "return": {
       "nullable": null,
       "types": [
@@ -3042,7 +3045,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#setPosition",
     "access": "public",
     "description": "Updates the position of this object. Applicable only if this object is a\nsprite and not a particle type.",
-    "lineNumber": 207,
+    "lineNumber": 206,
     "params": [
       {
         "nullable": null,
@@ -3088,7 +3091,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getPosition",
     "access": "public",
     "description": "Gets the visualization coordinates of this object at a given time.",
-    "lineNumber": 218,
+    "lineNumber": 217,
     "params": [
       {
         "nullable": null,
@@ -3121,7 +3124,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#update",
     "access": "public",
     "description": "Updates the object and its label positions for a given time.",
-    "lineNumber": 237,
+    "lineNumber": 236,
     "params": [
       {
         "nullable": null,
@@ -3147,7 +3150,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#get3jsObjects",
     "access": "public",
     "description": "Gets the THREE.js objects that represent this SpaceObject.",
-    "lineNumber": 268,
+    "lineNumber": 267,
     "return": {
       "nullable": null,
       "types": [
@@ -3169,7 +3172,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getColor",
     "access": "public",
     "description": "Gets the color of this object. Usually this corresponds to the color of\nthe dot representing the object as well as its orbit.",
-    "lineNumber": 287,
+    "lineNumber": 286,
     "return": {
       "nullable": null,
       "types": [
@@ -3191,7 +3194,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getOrbit",
     "access": "public",
     "description": "Gets the {Orbit} object for this SpaceObject.",
-    "lineNumber": 298,
+    "lineNumber": 297,
     "return": {
       "nullable": null,
       "types": [
@@ -3213,7 +3216,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getId",
     "access": "public",
     "description": "Gets the unique ID of this object.",
-    "lineNumber": 306,
+    "lineNumber": 305,
     "return": {
       "nullable": null,
       "types": [
@@ -3235,7 +3238,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#isStaticObject",
     "access": "public",
     "description": "Determines whether object is static (can't change its position) or whether\nits position can be updated (ie, it has ephemeris)",
-    "lineNumber": 315,
+    "lineNumber": 314,
     "return": {
       "nullable": null,
       "types": [
@@ -3258,7 +3261,7 @@
     "importPath": "spacekit/src/SpaceObject.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 320,
+    "lineNumber": 319,
     "undocument": true,
     "type": {
       "types": [
@@ -3282,7 +3285,7 @@
     "examples": [
       "const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);"
     ],
-    "lineNumber": 327,
+    "lineNumber": 326,
     "type": {
       "types": [
         "{\"SUN\": *, \"MERCURY\": *, \"VENUS\": *, \"EARTH\": *, \"MARS\": *, \"JUPITER\": *, \"SATURN\": *, \"URANUS\": *, \"NEPTUNE\": *}"

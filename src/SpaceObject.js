@@ -25,10 +25,9 @@ function toScreenXY(position, camera, canvas) {
  *   scale: [1, 1, 1],
  *   labelText: 'My object',
  *   hideOrbit: false,
- *   ephem: {
- *     textureUrl: '/path/to/spriteTexture.png',
- *     assetPath: '/base/assets',
- *   },
+ *   ephem: new Spacekit.Ephem({...}),
+ *   textureUrl: '/path/to/spriteTexture.png',
+ *   assetPath: '/base/assets',
  *   ecliptic: {
  *     lineColor: 0xCCCCCC,
  *     displayLines: false,

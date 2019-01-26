@@ -80,16 +80,16 @@
       "expectCount": 26,
       "actualCount": 16,
       "undocumentLines": [
+        59,
         60,
-        61,
+        65,
         66,
-        67,
+        73,
         74,
         75,
-        76,
-        95,
-        104,
-        320
+        94,
+        103,
+        319
       ]
     },
     "src/SpaceParticles.js": {

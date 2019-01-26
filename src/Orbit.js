@@ -1,5 +1,13 @@
 /**
  * A class that builds a visual representation of a Kepler orbit.
+ * @example
+ * const orbit = new Spacekit.Orbit({
+ *   ephem: new Spacekit.Ephem({...}),
+ *   options: {
+ *     color: 0xFFFFFF,
+ *     eclipticLineColor: 0xCCCCCC,
+ *   },
+ * });
  */
 export class Orbit {
   /**

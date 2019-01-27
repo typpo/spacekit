@@ -1428,7 +1428,7 @@
     "__docId__": 82,
     "kind": "file",
     "name": "src/Simulation.js",
-    "content": "import julian from 'julian';\n\nimport { Camera } from './Camera';\nimport { Skybox } from './Skybox';\nimport { SpaceObject } from './SpaceObject';\nimport { SpaceParticles } from './SpaceParticles';\n\n/**\n * The main entrypoint of a visualization.\n *\n * This class wraps a THREE.js scene, controls, skybox, etc in an animated\n * Simulation.\n *\n * @example\n * const sim = new Spacekit.Simulation('my-container', {\n *  startDate: Date.now(),\n *  jed: 0.0,\n *  jedDelta: 10.0,\n *  jedPerSecond: 100.0,  // overrides jedDelta\n *  startPaused: false,\n *  maxNumParticles: 2**16,\n *  debug: {\n *    showAxesHelper: false,\n *    showStats: false,\n *  },\n * });\n */\nexport class Simulation {\n  /**\n   * @param {HTMLElement} simulationElt The container for this simulation.\n   * @param {Object} options for simulation\n   * @param {Date} options.startDate The start date and time for this\n   * simulation.\n   * @param {Number} options.jed The JED date of this simulation.\n   * Defaults to 0\n   * @param {Number} options.jedDelta The number of JED to add every tick of\n   * the simulation.\n   * @param {Number} options.jedPerSecond The number of jed to add every\n   * second. Use this instead of `jedDelta` for constant motion that does not\n   * vary with framerate. Defaults to 100\n   * @param {boolean} options.startPaused Whether the simulation should start\n   * in a paused state.\n   * @param {Number} options.maxNumParticles The maximum number of particles in\n   * the visualization. Try choosing a number that is larger than your\n   * particles, but not too much larger. It's usually good enough to choose the\n   * next highest power of 2. If you're not showing many particles (tens of\n   * thousands+), you don't need to worry about this.\n   * @param {Object} options.debug Options dictating debug state.\n   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes\n   * @param {boolean} options.debug.showStats Show FPS and other stats\n   * (requires stats.js).\n   */\n  constructor(simulationElt, options) {\n    this._simulationElt = simulationElt;\n    this._options = options || {};\n\n    this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;\n    this._jedDelta = this._options.jedDelta;\n    this._jedPerSecond = this._options.jedPerSecond || 100;\n    this._isPaused = options.startPaused || false;\n    this.onTick = null;\n\n    this._scene = null;\n    this._renderer = null;\n\n    this._camera = null;\n    this._cameraControls = null;\n\n    this._subscribedObjects = {};\n    this._particles = null;\n\n    // stats.js panel\n    this._stats = null;\n    this._fps = 1;\n    this._lastUpdatedTime = Date.now();\n\n    this.init();\n    this.animate();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    this.initRenderer();\n\n    // Scene\n    this._scene = new THREE.Scene();\n\n    // Camera\n    this._camera = new Camera(this.getContext()).get3jsCamera();\n    this._camera.position.set(0, -10, 5);\n    window.cam = this._camera;\n\n    // Controls\n    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);\n    this._cameraControls.userPanSpeed = 20;\n    this._cameraControls.rotateSpeed = 2;\n\n    // Helper\n    if (this._options.debug) {\n      if (this._options.debug.showAxesHelper) {\n        this._scene.add(new THREE.AxesHelper(5));\n      }\n      if (this._options.debug.showStats) {\n        this._stats = new Stats();\n        this._stats.showPanel(0);\n        window.sssss = this._stats;\n        this._simulationElt.appendChild(this._stats.dom);\n      }\n    }\n\n    // Orbit particle system must be initialized after scene is created.\n    this._particles = new SpaceParticles({\n      textureUrl: '{{assets}}/sprites/smallparticle.png',\n      jed: this._jed,\n      maxNumParticles: this._options.maxNumParticles,\n    }, this);\n  }\n\n  /**\n   * @private\n   */\n  initRenderer() {\n    const renderer = new THREE.WebGLRenderer({\n      antialias: true,\n    });\n    renderer.setPixelRatio(window.devicePixelRatio);\n    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);\n\n    this._simulationElt.appendChild(renderer.domElement);\n\n    this._renderer = renderer;\n  }\n\n  /**\n   * @private\n   */\n  update() {\n    for (const objId in this._subscribedObjects) {\n      if (this._subscribedObjects.hasOwnProperty(objId)) {\n        this._subscribedObjects[objId].update(this._jed);\n      }\n    }\n  }\n\n  /**\n   * @private\n   */\n  animate() {\n    window.requestAnimationFrame(this.animate.bind(this));\n\n    if (this._stats) {\n      this._stats.begin();\n    }\n\n    if (!this._isPaused) {\n      if (this._jedDelta) {\n        this._jed += this._jedDelta;\n      } else {\n        // N jed per second\n        this._jed += (this._jedPerSecond) / this._fps;\n      }\n\n      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;\n      this._lastUpdatedTime = Date.now();\n      this._fps = (1 / timeDelta) || 1;\n    }\n\n    this.update();\n    this._cameraControls.update();\n    this._renderer.render(this._scene, this._camera);\n\n    if (this.onTick) {\n      this.onTick();\n    }\n\n    if (this._stats) {\n      this._stats.end();\n    }\n  }\n\n  addObject(obj, noUpdate = false) {\n    obj.get3jsObjects().map((x) => {\n      this._scene.add(x);\n    });\n\n    if (!noUpdate) {\n      // Call for updates as time passes.\n      this._subscribedObjects[obj.getId()] = obj;\n    }\n  }\n\n  removeObject(obj) {\n    // TODO(ian): test this and avoid memory leaks...\n    obj.get3jsObjects().map((x) => {\n      this._scene.remove(x);\n    });\n\n    delete this._subscribedObjects[obj.getId()];\n  }\n\n  createObject(...args) {\n    return new SpaceObject(...args, this);\n  }\n\n  createSkybox(...args) {\n    return new Skybox(...args, this);\n  }\n\n  start() {\n    this._lastUpdatedTime = Date.now();\n    this._isPaused = false;\n  }\n\n  stop() {\n    this._isPaused = true;\n  }\n\n  getJed() {\n    return this._jed;\n  }\n\n  setJed(val) {\n    this._jed = val;\n  }\n\n  getDate() {\n    return julian.toDate(this._jed);\n  }\n\n  setDate(date) {\n    this.setJed(julian.toJulianDay(date));\n  }\n\n  setJedDelta(delta) {\n    this._jedDelta = delta;\n  }\n\n  getJedDelta() {\n    if (!this._jedDelta) {\n      return this._jedPerSecond / this._fps;\n    }\n    return this._jedDelta;\n  }\n\n  setJedPerSecond(x) {\n    // Delta overrides jed per second, so unset it.\n    this._jedDelta = undefined;\n\n    this._jedPerSecond = x;\n  }\n\n  getJedPerSecond() {\n    if (this._jedDelta) {\n      // Jed per second can vary\n      return undefined;\n    }\n    return this._jedPerSecond;\n  }\n\n  getContext() {\n    return {\n      options: this._options,\n      objects: {\n        particles: this._particles,\n      },\n      container: {\n        width: this._simulationElt.offsetWidth,\n        height: this._simulationElt.offsetHeight,\n      },\n    };\n  }\n\n  getSimulationElement() {\n    return this._simulationElt;\n  }\n\n  getCamera() {\n    return this._camera;\n  }\n}\n",
+    "content": "import julian from 'julian';\n\nimport { Camera } from './Camera';\nimport { Skybox } from './Skybox';\nimport { SpaceObject } from './SpaceObject';\nimport { SpaceParticles } from './SpaceParticles';\n\n/**\n * The main entrypoint of a visualization.\n *\n * This class wraps a THREE.js scene, controls, skybox, etc in an animated\n * Simulation.\n *\n * @example\n * const sim = new Spacekit.Simulation('my-container', {\n *  startDate: Date.now(),\n *  jed: 0.0,\n *  jedDelta: 10.0,\n *  jedPerSecond: 100.0,  // overrides jedDelta\n *  startPaused: false,\n *  maxNumParticles: 2**16,\n *  debug: {\n *    showAxesHelper: false,\n *    showStats: false,\n *  },\n * });\n */\nexport class Simulation {\n  /**\n   * @param {HTMLElement} simulationElt The container for this simulation.\n   * @param {Object} options for simulation\n   * @param {Date} options.startDate The start date and time for this\n   * simulation.\n   * @param {Number} options.jed The JED date of this simulation.\n   * Defaults to 0\n   * @param {Number} options.jedDelta The number of JED to add every tick of\n   * the simulation.\n   * @param {Number} options.jedPerSecond The number of jed to add every\n   * second. Use this instead of `jedDelta` for constant motion that does not\n   * vary with framerate. Defaults to 100\n   * @param {boolean} options.startPaused Whether the simulation should start\n   * in a paused state.\n   * @param {Number} options.maxNumParticles The maximum number of particles in\n   * the visualization. Try choosing a number that is larger than your\n   * particles, but not too much larger. It's usually good enough to choose the\n   * next highest power of 2. If you're not showing many particles (tens of\n   * thousands+), you don't need to worry about this.\n   * @param {Object} options.debug Options dictating debug state.\n   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes\n   * @param {boolean} options.debug.showStats Show FPS and other stats\n   * (requires stats.js).\n   */\n  constructor(simulationElt, options) {\n    this._simulationElt = simulationElt;\n    this._options = options || {};\n\n    this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;\n    this._jedDelta = this._options.jedDelta;\n    this._jedPerSecond = this._options.jedPerSecond || 100;\n    this._isPaused = options.startPaused || false;\n    this.onTick = null;\n\n    this._scene = null;\n    this._renderer = null;\n\n    this._camera = null;\n    this._cameraControls = null;\n\n    this._subscribedObjects = {};\n    this._particles = null;\n\n    // stats.js panel\n    this._stats = null;\n    this._fps = 1;\n    this._lastUpdatedTime = Date.now();\n\n    this.init();\n    this.animate();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    this.initRenderer();\n\n    // Scene\n    this._scene = new THREE.Scene();\n\n    // Camera\n    this._camera = new Camera(this.getContext()).get3jsCamera();\n    this._camera.position.set(0, -10, 5);\n    window.cam = this._camera;\n\n    // Controls\n    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);\n    this._cameraControls.userPanSpeed = 20;\n    this._cameraControls.rotateSpeed = 2;\n\n    // Helper\n    if (this._options.debug) {\n      if (this._options.debug.showAxesHelper) {\n        this._scene.add(new THREE.AxesHelper(5));\n      }\n      if (this._options.debug.showStats) {\n        this._stats = new Stats();\n        this._stats.showPanel(0);\n        window.sssss = this._stats;\n        this._simulationElt.appendChild(this._stats.dom);\n      }\n    }\n\n    // Orbit particle system must be initialized after scene is created.\n    this._particles = new SpaceParticles({\n      textureUrl: '{{assets}}/sprites/smallparticle.png',\n      jed: this._jed,\n      maxNumParticles: this._options.maxNumParticles,\n    }, this);\n  }\n\n  /**\n   * @private\n   */\n  initRenderer() {\n    const renderer = new THREE.WebGLRenderer({\n      antialias: true,\n    });\n    renderer.setPixelRatio(window.devicePixelRatio);\n    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);\n\n    this._simulationElt.appendChild(renderer.domElement);\n\n    this._renderer = renderer;\n  }\n\n  /**\n   * @private\n   */\n  update() {\n    for (const objId in this._subscribedObjects) {\n      if (this._subscribedObjects.hasOwnProperty(objId)) {\n        this._subscribedObjects[objId].update(this._jed);\n      }\n    }\n  }\n\n  /**\n   * @private\n   */\n  animate() {\n    window.requestAnimationFrame(this.animate.bind(this));\n\n    if (this._stats) {\n      this._stats.begin();\n    }\n\n    if (!this._isPaused) {\n      if (this._jedDelta) {\n        this._jed += this._jedDelta;\n      } else {\n        // N jed per second\n        this._jed += (this._jedPerSecond) / this._fps;\n      }\n\n      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;\n      this._lastUpdatedTime = Date.now();\n      this._fps = (1 / timeDelta) || 1;\n    }\n\n    this.update();\n    this._cameraControls.update();\n    this._renderer.render(this._scene, this._camera);\n\n    if (this.onTick) {\n      this.onTick();\n    }\n\n    if (this._stats) {\n      this._stats.end();\n    }\n  }\n\n  /**\n   * Add a spacekit object (usually a SpaceObject) to the visualization.\n   * @see SpaceObject\n   * @param {Object} obj Object to add to visualization\n   * @param {boolean} noUpdate Set to true if object does not need to be\n   * animated.\n   */\n  addObject(obj, noUpdate = false) {\n    obj.get3jsObjects().map((x) => {\n      this._scene.add(x);\n    });\n\n    if (!noUpdate) {\n      // Call for updates as time passes.\n      this._subscribedObjects[obj.getId()] = obj;\n    }\n  }\n\n  /**\n   * Removes an object from the visualization.\n   * @param {Object} obj Object to remove\n   */\n  removeObject(obj) {\n    // TODO(ian): test this and avoid memory leaks...\n    obj.get3jsObjects().map((x) => {\n      this._scene.remove(x);\n    });\n\n    delete this._subscribedObjects[obj.getId()];\n  }\n\n  /**\n   * Shortcut for creating a new SpaceObject belonging to this visualization.\n   * Takes any SpaceObject arguments.\n   * @see SpaceObject\n   */\n  createObject(...args) {\n    return new SpaceObject(...args, this);\n  }\n\n  /**\n   * Shortcut for creating a new Skybox belonging to this visualization. Takes\n   * any Skybox arguments.\n   * @see Skybox\n   */\n  createSkybox(...args) {\n    return new Skybox(...args, this);\n  }\n\n  /**\n   * Start time\n   */\n  start() {\n    this._lastUpdatedTime = Date.now();\n    this._isPaused = false;\n  }\n\n  /**\n   * Stop time\n   */\n  stop() {\n    this._isPaused = true;\n  }\n\n  /**\n   * Gets the current JED date of the simulation\n   * @return {Number} JED date\n   */\n  getJed() {\n    return this._jed;\n  }\n\n  /**\n   * Sets the JED date of the simulation.\n   * @param {Number} val JED date\n   */\n  setJed(val) {\n    this._jed = val;\n  }\n\n  /**\n   * Get a date object representing current date and time of the simulation.\n   * @return {Date} Date of simulation\n   */\n  getDate() {\n    return julian.toDate(this._jed);\n  }\n\n  /**\n   * Set the date and time of the simulation.\n   * @param {Date} date Date of simulation\n   */\n  setDate(date) {\n    this.setJed(julian.toJulianDay(date));\n  }\n\n  /**\n   * Get the JED per frame of the visualization.\n   */\n  getJedDelta() {\n    if (!this._jedDelta) {\n      return this._jedPerSecond / this._fps;\n    }\n    return this._jedDelta;\n  }\n\n  /**\n   * Set the JED per frame of the visualization. This will override any\n   * existing \"JED per second\" setting.\n   * @param {Number} delta JED per frame\n   */\n  setJedDelta(delta) {\n    this._jedDelta = delta;\n  }\n\n  /**\n   * Get the JED change per second of the visualization.\n   * @return {Number} JED per second\n   */\n  getJedPerSecond() {\n    if (this._jedDelta) {\n      // Jed per second can vary\n      return undefined;\n    }\n    return this._jedPerSecond;\n  }\n\n  /**\n   * Set the JED change per second of the visualization.\n   * @return {Number} x JED per second\n   */\n  setJedPerSecond(x) {\n    // Delta overrides jed per second, so unset it.\n    this._jedDelta = undefined;\n\n    this._jedPerSecond = x;\n  }\n\n  /**\n   * Get an object that contains useful context for this visualization\n   * @return {Object} Context object\n   */\n  getContext() {\n    return {\n      options: this._options,\n      objects: {\n        particles: this._particles,\n      },\n      container: {\n        width: this._simulationElt.offsetWidth,\n        height: this._simulationElt.offsetHeight,\n      },\n    };\n  }\n\n  /**\n   * Get the element containing this simulation\n   * @return {HTMLElement} The html container of this simulation\n   */\n  getSimulationElement() {\n    return this._simulationElt;\n  }\n\n  /**\n   * Get the three.js camera\n   * @return {THREE.Camera} The THREE.js camera object\n   */\n  getCamera() {\n    return this._camera;\n  }\n}\n",
     "static": true,
     "longname": "/home/ian/code/spacekit/src/Simulation.js",
     "access": "public",
@@ -1939,24 +1939,31 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#addObject",
     "access": "public",
-    "description": null,
-    "lineNumber": 183,
-    "undocument": true,
+    "description": "Add a spacekit object (usually a SpaceObject) to the visualization.",
+    "see": [
+      "SpaceObject"
+    ],
+    "lineNumber": 190,
     "params": [
       {
-        "name": "obj",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "obj",
+        "description": "Object to add to visualization"
       },
       {
-        "name": "noUpdate",
-        "optional": true,
+        "nullable": null,
         "types": [
           "boolean"
         ],
-        "defaultRaw": false,
-        "defaultValue": "false"
+        "spread": false,
+        "optional": false,
+        "name": "noUpdate",
+        "description": "Set to true if object does not need to be\nanimated."
       }
     ],
     "return": null
@@ -1971,15 +1978,18 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#removeObject",
     "access": "public",
-    "description": null,
-    "lineNumber": 194,
-    "undocument": true,
+    "description": "Removes an object from the visualization.",
+    "lineNumber": 205,
     "params": [
       {
-        "name": "obj",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "obj",
+        "description": "Object to remove"
       }
     ],
     "return": null
@@ -1994,9 +2004,11 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#createObject",
     "access": "public",
-    "description": null,
-    "lineNumber": 203,
-    "undocument": true,
+    "description": "Shortcut for creating a new SpaceObject belonging to this visualization.\nTakes any SpaceObject arguments.",
+    "see": [
+      "SpaceObject"
+    ],
+    "lineNumber": 219,
     "params": [
       {
         "name": "args",
@@ -2022,9 +2034,11 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#createSkybox",
     "access": "public",
-    "description": null,
-    "lineNumber": 207,
-    "undocument": true,
+    "description": "Shortcut for creating a new Skybox belonging to this visualization. Takes\nany Skybox arguments.",
+    "see": [
+      "Skybox"
+    ],
+    "lineNumber": 228,
     "params": [
       {
         "name": "args",
@@ -2050,9 +2064,8 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#start",
     "access": "public",
-    "description": null,
-    "lineNumber": 211,
-    "undocument": true,
+    "description": "Start time",
+    "lineNumber": 235,
     "params": [],
     "return": null
   },
@@ -2066,9 +2079,8 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#stop",
     "access": "public",
-    "description": null,
-    "lineNumber": 216,
-    "undocument": true,
+    "description": "Stop time",
+    "lineNumber": 243,
     "params": [],
     "return": null
   },
@@ -2082,15 +2094,17 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getJed",
     "access": "public",
-    "description": null,
-    "lineNumber": 220,
-    "undocument": true,
-    "params": [],
+    "description": "Gets the current JED date of the simulation",
+    "lineNumber": 251,
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
-    }
+        "Number"
+      ],
+      "spread": false,
+      "description": "JED date"
+    },
+    "params": []
   },
   {
     "__docId__": 125,
@@ -2102,15 +2116,18 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#setJed",
     "access": "public",
-    "description": null,
-    "lineNumber": 224,
-    "undocument": true,
+    "description": "Sets the JED date of the simulation.",
+    "lineNumber": 259,
     "params": [
       {
-        "name": "val",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "val",
+        "description": "JED date"
       }
     ],
     "return": null
@@ -2125,15 +2142,17 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getDate",
     "access": "public",
-    "description": null,
-    "lineNumber": 228,
-    "undocument": true,
-    "params": [],
+    "description": "Get a date object representing current date and time of the simulation.",
+    "lineNumber": 267,
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
-    }
+        "Date"
+      ],
+      "spread": false,
+      "description": "Date of simulation"
+    },
+    "params": []
   },
   {
     "__docId__": 128,
@@ -2145,44 +2164,24 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#setDate",
     "access": "public",
-    "description": null,
-    "lineNumber": 232,
-    "undocument": true,
+    "description": "Set the date and time of the simulation.",
+    "lineNumber": 275,
     "params": [
       {
-        "name": "date",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "Date"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "date",
+        "description": "Date of simulation"
       }
     ],
     "return": null
   },
   {
     "__docId__": 129,
-    "kind": "method",
-    "name": "setJedDelta",
-    "memberof": "src/Simulation.js~Simulation",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/Simulation.js~Simulation#setJedDelta",
-    "access": "public",
-    "description": null,
-    "lineNumber": 236,
-    "undocument": true,
-    "params": [
-      {
-        "name": "delta",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": null
-  },
-  {
-    "__docId__": 131,
     "kind": "method",
     "name": "getJedDelta",
     "memberof": "src/Simulation.js~Simulation",
@@ -2191,9 +2190,8 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getJedDelta",
     "access": "public",
-    "description": null,
-    "lineNumber": 240,
-    "undocument": true,
+    "description": "Get the JED per frame of the visualization.",
+    "lineNumber": 282,
     "params": [],
     "return": {
       "types": [
@@ -2202,30 +2200,33 @@
     }
   },
   {
-    "__docId__": 132,
+    "__docId__": 130,
     "kind": "method",
-    "name": "setJedPerSecond",
+    "name": "setJedDelta",
     "memberof": "src/Simulation.js~Simulation",
     "generator": false,
     "async": false,
     "static": false,
-    "longname": "src/Simulation.js~Simulation#setJedPerSecond",
+    "longname": "src/Simulation.js~Simulation#setJedDelta",
     "access": "public",
-    "description": null,
-    "lineNumber": 247,
-    "undocument": true,
+    "description": "Set the JED per frame of the visualization. This will override any\nexisting \"JED per second\" setting.",
+    "lineNumber": 294,
     "params": [
       {
-        "name": "x",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "delta",
+        "description": "JED per frame"
       }
     ],
     "return": null
   },
   {
-    "__docId__": 135,
+    "__docId__": 132,
     "kind": "method",
     "name": "getJedPerSecond",
     "memberof": "src/Simulation.js~Simulation",
@@ -2234,15 +2235,46 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getJedPerSecond",
     "access": "public",
-    "description": null,
-    "lineNumber": 254,
-    "undocument": true,
-    "params": [],
+    "description": "Get the JED change per second of the visualization.",
+    "lineNumber": 302,
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
-    }
+        "Number"
+      ],
+      "spread": false,
+      "description": "JED per second"
+    },
+    "params": []
+  },
+  {
+    "__docId__": 133,
+    "kind": "method",
+    "name": "setJedPerSecond",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#setJedPerSecond",
+    "access": "public",
+    "description": "Set the JED change per second of the visualization.",
+    "lineNumber": 314,
+    "return": {
+      "nullable": null,
+      "types": [
+        "Number"
+      ],
+      "spread": false,
+      "description": "x JED per second"
+    },
+    "params": [
+      {
+        "name": "x",
+        "types": [
+          "*"
+        ]
+      }
+    ]
   },
   {
     "__docId__": 136,
@@ -2254,15 +2286,17 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getContext",
     "access": "public",
-    "description": null,
-    "lineNumber": 262,
-    "undocument": true,
-    "params": [],
+    "description": "Get an object that contains useful context for this visualization",
+    "lineNumber": 325,
     "return": {
+      "nullable": null,
       "types": [
-        "{\"options\": *, \"objects\": *, \"container\": *}"
-      ]
-    }
+        "Object"
+      ],
+      "spread": false,
+      "description": "Context object"
+    },
+    "params": []
   },
   {
     "__docId__": 137,
@@ -2274,15 +2308,17 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getSimulationElement",
     "access": "public",
-    "description": null,
-    "lineNumber": 275,
-    "undocument": true,
-    "params": [],
+    "description": "Get the element containing this simulation",
+    "lineNumber": 342,
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
-    }
+        "HTMLElement"
+      ],
+      "spread": false,
+      "description": "The html container of this simulation"
+    },
+    "params": []
   },
   {
     "__docId__": 138,
@@ -2294,15 +2330,17 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#getCamera",
     "access": "public",
-    "description": null,
-    "lineNumber": 279,
-    "undocument": true,
-    "params": [],
+    "description": "Get the three.js camera",
+    "lineNumber": 350,
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
-    }
+        "THREE.Camera"
+      ],
+      "spread": false,
+      "description": "The THREE.js camera object"
+    },
+    "params": []
   },
   {
     "__docId__": 139,

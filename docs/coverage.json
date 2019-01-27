@@ -1,7 +1,7 @@
 {
-  "coverage": "48.83%",
+  "coverage": "62.01%",
   "expectCount": 129,
-  "actualCount": 63,
+  "actualCount": 80,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -28,7 +28,7 @@
     },
     "src/Simulation.js": {
       "expectCount": 39,
-      "actualCount": 6,
+      "actualCount": 23,
       "undocumentLines": [
         54,
         55,
@@ -45,24 +45,7 @@
         70,
         73,
         74,
-        75,
-        183,
-        194,
-        203,
-        207,
-        211,
-        216,
-        220,
-        224,
-        228,
-        232,
-        236,
-        240,
-        247,
-        254,
-        262,
-        275,
-        279
+        75
       ]
     },
     "src/Skybox.js": {

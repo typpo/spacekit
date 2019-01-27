@@ -1453,6 +1453,13 @@ var Spacekit = (function (exports) {
       }
     }
 
+    /**
+     * Add a spacekit object (usually a SpaceObject) to the visualization.
+     * @see SpaceObject
+     * @param {Object} obj Object to add to visualization
+     * @param {boolean} noUpdate Set to true if object does not need to be
+     * animated.
+     */
     addObject(obj, noUpdate = false) {
       obj.get3jsObjects().map((x) => {
         this._scene.add(x);
@@ -1464,6 +1471,10 @@ var Spacekit = (function (exports) {
       }
     }
 
+    /**
+     * Removes an object from the visualization.
+     * @param {Object} obj Object to remove
+     */
     removeObject(obj) {
       // TODO(ian): test this and avoid memory leaks...
       obj.get3jsObjects().map((x) => {
@@ -1473,43 +1484,74 @@ var Spacekit = (function (exports) {
       delete this._subscribedObjects[obj.getId()];
     }
 
+    /**
+     * Shortcut for creating a new SpaceObject belonging to this visualization.
+     * Takes any SpaceObject arguments.
+     * @see SpaceObject
+     */
     createObject(...args) {
       return new SpaceObject(...args, this);
     }
 
+    /**
+     * Shortcut for creating a new Skybox belonging to this visualization. Takes
+     * any Skybox arguments.
+     * @see Skybox
+     */
     createSkybox(...args) {
       return new Skybox(...args, this);
     }
 
+    /**
+     * Start time
+     */
     start() {
       this._lastUpdatedTime = Date.now();
       this._isPaused = false;
     }
 
+    /**
+     * Stop time
+     */
     stop() {
       this._isPaused = true;
     }
 
+    /**
+     * Gets the current JED date of the simulation
+     * @return {Number} JED date
+     */
     getJed() {
       return this._jed;
     }
 
+    /**
+     * Sets the JED date of the simulation.
+     * @param {Number} val JED date
+     */
     setJed(val) {
       this._jed = val;
     }
 
+    /**
+     * Get a date object representing current date and time of the simulation.
+     * @return {Date} Date of simulation
+     */
     getDate() {
       return julian.toDate(this._jed);
     }
 
+    /**
+     * Set the date and time of the simulation.
+     * @param {Date} date Date of simulation
+     */
     setDate(date) {
       this.setJed(julian.toJulianDay(date));
     }
 
-    setJedDelta(delta) {
-      this._jedDelta = delta;
-    }
-
+    /**
+     * Get the JED per frame of the visualization.
+     */
     getJedDelta() {
       if (!this._jedDelta) {
         return this._jedPerSecond / this._fps;
@@ -1517,13 +1559,19 @@ var Spacekit = (function (exports) {
       return this._jedDelta;
     }
 
-    setJedPerSecond(x) {
-      // Delta overrides jed per second, so unset it.
-      this._jedDelta = undefined;
-
-      this._jedPerSecond = x;
+    /**
+     * Set the JED per frame of the visualization. This will override any
+     * existing "JED per second" setting.
+     * @param {Number} delta JED per frame
+     */
+    setJedDelta(delta) {
+      this._jedDelta = delta;
     }
 
+    /**
+     * Get the JED change per second of the visualization.
+     * @return {Number} JED per second
+     */
     getJedPerSecond() {
       if (this._jedDelta) {
         // Jed per second can vary
@@ -1532,6 +1580,21 @@ var Spacekit = (function (exports) {
       return this._jedPerSecond;
     }
 
+    /**
+     * Set the JED change per second of the visualization.
+     * @return {Number} x JED per second
+     */
+    setJedPerSecond(x) {
+      // Delta overrides jed per second, so unset it.
+      this._jedDelta = undefined;
+
+      this._jedPerSecond = x;
+    }
+
+    /**
+     * Get an object that contains useful context for this visualization
+     * @return {Object} Context object
+     */
     getContext() {
       return {
         options: this._options,
@@ -1545,10 +1608,18 @@ var Spacekit = (function (exports) {
       };
     }
 
+    /**
+     * Get the element containing this simulation
+     * @return {HTMLElement} The html container of this simulation
+     */
     getSimulationElement() {
       return this._simulationElt;
     }
 
+    /**
+     * Get the three.js camera
+     * @return {THREE.Camera} The THREE.js camera object
+     */
     getCamera() {
       return this._camera;
     }

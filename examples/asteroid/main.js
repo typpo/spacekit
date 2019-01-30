@@ -1,6 +1,7 @@
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
+  startDate: Date.now(),
 });
 
 // Create a skybox using NASA TYCHO artwork.

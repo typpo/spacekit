@@ -63,6 +63,7 @@ export class Simulation {
     this._scene = null;
     this._renderer = null;
 
+    this._cameraDefaultPos = [0, -10, 5];
     this._camera = null;
     this._cameraControls = null;
 
@@ -89,7 +90,9 @@ export class Simulation {
 
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
-    this._camera.position.set(0, -10, 5);
+    this._camera.position.set(this._cameraDefaultPos[0],
+                              this._cameraDefaultPos[1],
+                              this._cameraDefaultPos[2]);
     window.cam = this._camera;
 
     // Controls
@@ -147,6 +150,17 @@ export class Simulation {
   /**
    * @private
    */
+  addCameraDrift() {
+    // Follow floating path around
+    var timer = 0.0001 * Date.now();
+    this._camera.position.x = this._cameraDefaultPos[0] + Math.sin(timer);
+    this._camera.position.z = this._cameraDefaultPos[2] + Math.sin(timer);
+
+  }
+
+  /**
+   * @private
+   */
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
 
@@ -167,8 +181,13 @@ export class Simulation {
       this._fps = (1 / timeDelta) || 1;
     }
 
+    // Update objects in this simulation
     this.update();
+    // Update camera drifting, if applicable
+    this.addCameraDrift();
+    // Handle trackball movements
     this._cameraControls.update();
+    // Update three.js scene
     this._renderer.render(this._scene, this._camera);
 
     if (this.onTick) {

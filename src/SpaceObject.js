@@ -4,6 +4,13 @@ import { getFullTextureUrl } from './util';
 
 /**
  * @private
+ * Minimum number of degrees per day an object must move in order for its
+ * position to be updated in the visualization.
+ */
+const MIN_DEG_MOVE_PER_DAY = 0.5;
+
+/**
+ * @private
  * Converts (X, Y, Z) position in visualization to pixel coordinates.
  */
 function toScreenXY(position, camera, canvas) {
@@ -71,8 +78,12 @@ export class SpaceObject {
     }
 
     this._label = null;
-    this._position = options.position || [0, 0, 0];
-    this._scale = options.scale || [1, 1, 1];
+    this._position = this._options.position || [0, 0, 0];
+    this._scale = this._options.scale || [1, 1, 1];
+
+    // Number of degrees moved per day. Used to limit the number of orbit
+    // updates for very slow moving objects.
+    this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
 
     if (!this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
@@ -197,6 +208,24 @@ export class SpaceObject {
   }
 
   /**
+   * @private
+   * Determines whether to update the position of an update. Don't update if JED
+   * threshold is less than a certain amount.
+   * TODO(ian): This should also be a function of zoom level, because as you get
+   * closer the chopiness gets more noticeable.
+   * @param {Number} beforeJed Current JED
+   * @param {Number} afterJed Next JED
+   * @return {boolean} Whether to update
+   */
+  shouldUpdateObjectPosition(afterJed) {
+    const degMove = this._degreesPerDay * (afterJed - this._lastJedUpdated);
+    if (degMove < MIN_DEG_MOVE_PER_DAY) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Updates the position of this object. Applicable only if this object is a
    * sprite and not a particle type.
    * @param {Number} x X position
@@ -234,12 +263,22 @@ export class SpaceObject {
    * @param {Number} jed JED date
    */
   update(jed) {
-    let newpos;
+    if (this.isStaticObject()) {
+      return;
+    }
+
+    let newpos = undefined;
     if (this._object3js) {
+      if (!this.shouldUpdateObjectPosition(jed)) {
+        return;
+      }
       newpos = this.getPosition(jed);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
     }
     if (this._label) {
+      if (!this.shouldUpdateObjectPosition(jed)) {
+        return;
+      }
       if (!newpos) {
         newpos = this.getPosition(jed);
       }
@@ -258,6 +297,7 @@ export class SpaceObject {
         label.style.visibility = 'hidden';
       }
     }
+    this._lastJedUpdated = jed;
   }
 
   /**

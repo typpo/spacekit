@@ -74,6 +74,9 @@ export class Simulation {
     this._subscribedObjects = {};
     this._particles = null;
 
+    this._renderEnabled = true;
+    this._boundAnimate = this.animate.bind(this);
+
     // stats.js panel
     this._stats = null;
     this._fps = 1;
@@ -173,7 +176,11 @@ export class Simulation {
    * @private
    */
   animate() {
-    window.requestAnimationFrame(this.animate.bind(this));
+    if (!this._renderEnabled) {
+      return;
+    }
+
+    window.requestAnimationFrame(this._boundAnimate);
 
     if (this._stats) {
       this._stats.begin();
@@ -259,6 +266,46 @@ export class Simulation {
    */
   createSkybox(...args) {
     return new Skybox(...args, this);
+  }
+
+  /**
+   * Installs a scroll handler that only renders the visualization while it is
+   * in the user's viewport.
+   *
+   * The scroll handler currently binds to the window object only.
+   */
+  renderOnlyInViewport() {
+    let previouslyInView = true;
+    const isInView = () => {
+      const rect = this._simulationElt.getBoundingClientRect();
+      const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+      const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+      const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0);
+      const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0);
+
+      return (vertInView && horInView);
+    }
+
+    window.addEventListener('scroll', () => {
+      const inView = isInView();
+      if (previouslyInView && !inView) {
+        // Went out of view
+        this._renderEnabled = false;
+        previouslyInView = false;
+      } else if (!previouslyInView && inView) {
+        // Came into view
+        this._renderEnabled = true;
+        window.requestAnimationFrame(this._boundAnimate);
+        previouslyInView = true;
+      }
+    });
+
+    if (!isInView()) {
+      // Initial state is render enabled, so disable it if currently out of
+      // view.
+      this._renderEnabled = false;
+      previouslyInView = false;
+    }
   }
 
   /**

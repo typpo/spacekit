@@ -1,0 +1,43 @@
+<html>
+<head>
+  <style>
+    body {
+      height: 500%;
+    }
+
+    #main-container {
+      width: 100%;
+      height: 50vh;
+    }
+
+    .sim-info {
+      position: fixed;
+      right: 0;
+      background-color:#ccc;
+      padding: 1em;
+    }
+  </style>
+<head>
+<body>
+<div class="sim-info">
+  Current Date:<span id="current-date">?</span>
+  <br>
+  <button id="btn-slower">Slower</button>
+  <button id="btn-faster">Faster</button>
+  <button id="btn-start">Start</button>
+  <button id="btn-stop">Stop</button>
+  <button id="btn-set-time">Set Time</button>
+  <button id="btn-set-jed-per-second">Set Jd/s</button>
+</div>
+<div id="main-container">
+</div>
+
+<script src="../../src/lib/three.r98.min.js"></script>
+<script src="../../src/lib/TrackballControls.js"></script>
+<script src="../../src/lib/stats.min.js"></script>
+
+<script src="../../build/spacekit.js"></script>
+
+<script src="main.js"></script>
+</body>
+</html>

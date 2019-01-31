@@ -534,6 +534,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#setcameradrift",
+    "class/src/Simulation.js~Simulation.html#instance-method-setCameraDrift",
+    "src/Simulation.js~Simulation#setCameraDrift",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#setdate",
     "class/src/Simulation.js~Simulation.html#instance-method-setDate",
     "src/Simulation.js~Simulation#setDate",

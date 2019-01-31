@@ -821,7 +821,6 @@ var Spacekit = (function (exports) {
      * threshold is less than a certain amount.
      * TODO(ian): This should also be a function of zoom level, because as you get
      * closer the chopiness gets more noticeable.
-     * @param {Number} beforeJed Current JED
      * @param {Number} afterJed Next JED
      * @return {boolean} Whether to update
      */
@@ -1694,6 +1693,14 @@ var Spacekit = (function (exports) {
      */
     getCamera() {
       return this._camera;
+    }
+
+    /**
+     * Enable or disable camera drift.
+     * @param {boolean} driftOn True if you want the camera to float around a bit
+     */
+    setCameraDrift(driftOn) {
+      this._enableCameraDrift = driftOn;
     }
   }
 

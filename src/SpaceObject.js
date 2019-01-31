@@ -213,7 +213,6 @@ export class SpaceObject {
    * threshold is less than a certain amount.
    * TODO(ian): This should also be a function of zoom level, because as you get
    * closer the chopiness gets more noticeable.
-   * @param {Number} beforeJed Current JED
    * @param {Number} afterJed Next JED
    * @return {boolean} Whether to update
    */

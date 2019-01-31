@@ -382,4 +382,12 @@ export class Simulation {
   getCamera() {
     return this._camera;
   }
+
+  /**
+   * Enable or disable camera drift.
+   * @param {boolean} driftOn True if you want the camera to float around a bit
+   */
+  setCameraDrift(driftOn) {
+    this._enableCameraDrift = driftOn;
+  }
 }

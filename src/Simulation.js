@@ -19,6 +19,7 @@ import { SpaceParticles } from './SpaceParticles';
  *  jedPerSecond: 100.0,  // overrides jedDelta
  *  startPaused: false,
  *  maxNumParticles: 2**16,
+ *  enableCameraDrift: true,
  *  debug: {
  *    showAxesHelper: false,
  *    showStats: false,
@@ -45,6 +46,8 @@ export class Simulation {
    * particles, but not too much larger. It's usually good enough to choose the
    * next highest power of 2. If you're not showing many particles (tens of
    * thousands+), you don't need to worry about this.
+   * @param {boolean} options.enableCameraDrift Set true to have the camera
+   * float around slightly
    * @param {Object} options.debug Options dictating debug state.
    * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
    * @param {boolean} options.debug.showStats Show FPS and other stats
@@ -63,6 +66,7 @@ export class Simulation {
     this._scene = null;
     this._renderer = null;
 
+    this._enableCameraDrift = options.enableCameraDrift || true;
     this._cameraDefaultPos = [0, -10, 5];
     this._camera = null;
     this._cameraControls = null;
@@ -99,6 +103,13 @@ export class Simulation {
     this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
+
+    // Events
+    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
+      // When user begins interacting with the visualization, disable camera
+      // drift.
+      this._enableCameraDrift = false;
+    };
 
     // Helper
     if (this._options.debug) {
@@ -150,10 +161,10 @@ export class Simulation {
   /**
    * @private
    */
-  addCameraDrift() {
+  doCameraDrift() {
     // Follow floating path around
-    var timer = 0.0001 * Date.now();
-    this._camera.position.x = this._cameraDefaultPos[0] + Math.sin(timer);
+    var timer = 0.00007 * Date.now();
+    this._camera.position.x = this._cameraDefaultPos[0] + Math.cos(timer);
     this._camera.position.z = this._cameraDefaultPos[2] + Math.sin(timer);
 
   }
@@ -184,7 +195,9 @@ export class Simulation {
     // Update objects in this simulation
     this.update();
     // Update camera drifting, if applicable
-    this.addCameraDrift();
+    if (this._enableCameraDrift) {
+      this.doCameraDrift();
+    }
     // Handle trackball movements
     this._cameraControls.update();
     // Update three.js scene

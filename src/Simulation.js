@@ -122,7 +122,6 @@ export class Simulation {
       if (this._options.debug.showStats) {
         this._stats = new Stats();
         this._stats.showPanel(0);
-        window.sssss = this._stats;
         this._simulationElt.appendChild(this._stats.dom);
       }
     }
@@ -168,8 +167,8 @@ export class Simulation {
     // Follow floating path around
     var timer = 0.0001 * Date.now();
     const pos = this._cameraDefaultPos;
-    this._camera.position.x = pos[0] + pos[0] * Math.cos(timer);
-    this._camera.position.z = pos[2] + pos[2] * Math.sin(timer);
+    this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1)/3;
+    this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1)/3;
 
   }
 

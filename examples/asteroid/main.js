@@ -15,7 +15,7 @@ viz.createObject('Sun', Spacekit.SpaceObjectPresets.SUN);
 viz.createObject('Mercury', Spacekit.SpaceObjectPresets.MERCURY);
 viz.createObject('Venus', Spacekit.SpaceObjectPresets.VENUS);
 viz.createObject('Earth', Spacekit.SpaceObjectPresets.EARTH);
-const mars = viz.createObject('Mars', Spacekit.SpaceObjectPresets.MARS);
+viz.createObject('Mars', Spacekit.SpaceObjectPresets.MARS);
 viz.createObject('Jupiter', Spacekit.SpaceObjectPresets.JUPITER);
 viz.createObject('Saturn', Spacekit.SpaceObjectPresets.SATURN);
 viz.createObject('Uranus', Spacekit.SpaceObjectPresets.URANUS);
@@ -41,7 +41,7 @@ const asteroid = viz.createObject('Asteroid Aci', {
 });
 
 // Set up viewport
-viz.zoomToFit(mars);
+viz.zoomToFit(asteroid);
 
 // Set up event listeners
 

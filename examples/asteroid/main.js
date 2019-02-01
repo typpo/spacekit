@@ -2,6 +2,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   startDate: Date.now(),
+  enableCameraDrift: true,
 });
 
 // Create a skybox using NASA TYCHO artwork.
@@ -14,7 +15,7 @@ viz.createObject('Sun', Spacekit.SpaceObjectPresets.SUN);
 viz.createObject('Mercury', Spacekit.SpaceObjectPresets.MERCURY);
 viz.createObject('Venus', Spacekit.SpaceObjectPresets.VENUS);
 viz.createObject('Earth', Spacekit.SpaceObjectPresets.EARTH);
-viz.createObject('Mars', Spacekit.SpaceObjectPresets.MARS);
+const mars = viz.createObject('Mars', Spacekit.SpaceObjectPresets.MARS);
 viz.createObject('Jupiter', Spacekit.SpaceObjectPresets.JUPITER);
 viz.createObject('Saturn', Spacekit.SpaceObjectPresets.SATURN);
 viz.createObject('Uranus', Spacekit.SpaceObjectPresets.URANUS);
@@ -38,6 +39,9 @@ const asteroid = viz.createObject('Asteroid Aci', {
   },
   labelText: 'My asteroid',
 });
+
+// Set up viewport
+viz.zoomToFit(mars);
 
 // Set up event listeners
 

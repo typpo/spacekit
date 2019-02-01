@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 1, 5000);
+      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 5000);
     }
 
     /**
@@ -1359,7 +1359,7 @@ var Spacekit = (function (exports) {
      * next highest power of 2. If you're not showing many particles (tens of
      * thousands+), you don't need to worry about this.
      * @param {boolean} options.enableCameraDrift Set true to have the camera
-     * float around slightly
+     * float around slightly. True by default.
      * @param {Object} options.debug Options dictating debug state.
      * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
      * @param {boolean} options.debug.showStats Show FPS and other stats
@@ -1378,7 +1378,7 @@ var Spacekit = (function (exports) {
       this._scene = null;
       this._renderer = null;
 
-      this._enableCameraDrift = options.enableCameraDrift || true;
+      this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;
       this._cameraDefaultPos = [0, -10, 5];
       this._camera = null;
       this._cameraControls = null;
@@ -1478,9 +1478,10 @@ var Spacekit = (function (exports) {
      */
     doCameraDrift() {
       // Follow floating path around
-      var timer = 0.00007 * Date.now();
-      this._camera.position.x = this._cameraDefaultPos[0] + Math.cos(timer);
-      this._camera.position.z = this._cameraDefaultPos[2] + Math.sin(timer);
+      var timer = 0.0001 * Date.now();
+      const pos = this._cameraDefaultPos;
+      this._camera.position.x = pos[0] + pos[0] * Math.cos(timer);
+      this._camera.position.z = pos[2] + pos[2] * Math.sin(timer);
 
     }
 
@@ -1621,7 +1622,44 @@ var Spacekit = (function (exports) {
     }
 
     /**
-     * Start time
+     * Adjust camera position so that the object fits within the viewport. If
+     * applicable, this function will fit around the object's orbit.
+     * @param {SpaceObject} spaceObj Object to fit within viewport.
+     * @param {Number} offset Add some extra room in the viewport. Increase to be
+     * further zoomed out, decrease to be closer. Default 3.0.
+     */
+    zoomToFit(spaceObj, offset = 3.0) {
+      const orbit = spaceObj.getOrbit();
+      const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
+      const camera = this._camera;
+      const boundingBox = new THREE.Box3();
+      boundingBox.setFromObject(obj);
+
+      const center = new THREE.Vector3();
+      boundingBox.getCenter(center);
+      const size = new THREE.Vector3();
+      boundingBox.getSize(size);
+
+      // Get the max side of the bounding box (fits to width OR height as needed)
+      const maxDim = Math.max( size.x, size.y, size.z );
+      const fov = camera.fov * ( Math.PI / 180 );
+      const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
+
+      const objectWorldPosition = new THREE.Vector3();
+      obj.getWorldPosition(objectWorldPosition);
+      const directionVector = camera.position.sub(objectWorldPosition); 	//Get vector from camera to object
+      const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
+
+      const newpos = unitDirectionVector.multiplyScalar(cameraZ);
+      camera.position.x = newpos.x;
+      camera.position.y = newpos.y;
+      camera.position.z = newpos.z;
+      camera.updateProjectionMatrix();
+      this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
+    }
+
+    /**
+     * Run the animation
      */
     start() {
       this._lastUpdatedTime = Date.now();
@@ -1629,7 +1667,7 @@ var Spacekit = (function (exports) {
     }
 
     /**
-     * Stop time
+     * Stop the animation
      */
     stop() {
       this._isPaused = true;

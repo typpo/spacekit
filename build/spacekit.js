@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 5000);
+      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 4000);
     }
 
     /**
@@ -622,6 +622,12 @@ var Spacekit = (function (exports) {
 
   /**
    * @private
+   * Number of milliseconds between label position updates.
+   */
+  const LABEL_UPDATE_MS = 200;
+
+  /**
+   * @private
    * Converts (X, Y, Z) position in visualization to pixel coordinates.
    */
   function toScreenXY(position, camera, canvas) {
@@ -685,6 +691,8 @@ var Spacekit = (function (exports) {
       }
 
       this._label = null;
+      this._lastLabelUpdate = 0;
+
       this._position = this._options.position || [0, 0, 0];
       this._scale = this._options.scale || [1, 1, 1];
 
@@ -694,6 +702,7 @@ var Spacekit = (function (exports) {
 
       if (!this.init()) {
         console.warn(`SpaceObject ${id}: failed to initialize`);
+        return;
       }
     }
 
@@ -702,11 +711,6 @@ var Spacekit = (function (exports) {
      * Initializes label and three.js objects
      */
     init() {
-      if (this._options.labelText) {
-        const labelElt = this.createLabel();
-        this._simulation.getSimulationElement().appendChild(labelElt);
-        this._label = labelElt;
-      }
       if (this.isStaticObject()) {
         // Create a stationary sprite.
         this._object3js = this.createSprite();
@@ -732,6 +736,11 @@ var Spacekit = (function (exports) {
           color: this.getColor(),
         });
       }
+      if (this._options.labelText) {
+        const labelElt = this.createLabel();
+        this._simulation.getSimulationElement().appendChild(labelElt);
+        this._label = labelElt;
+      }
       return true;
     }
 
@@ -756,6 +765,29 @@ var Spacekit = (function (exports) {
       text.style.border = '1px solid #5f5f5f';
 
       return text;
+    }
+
+    /**
+     * @private
+     * Updates the label's position
+     * @param {Array.Number} newpos Position of the label in the visualization's
+     * coordinate system
+     */
+    updateLabelPosition(newpos) {
+      const label = this._label;
+      const simulationElt = this._simulation.getSimulationElement();
+      const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+      const loc = {
+        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+      };
+      if (loc.left > 0 && loc.right < simulationElt.clientWidth
+          && loc.top > 0 && loc.bottom < simulationElt.clientHeight) {
+        label.style.left = `${loc.left}px`;
+        label.style.top = `${loc.top}px`;
+        label.style.visibility = 'visible';
+      } else {
+        label.style.visibility = 'hidden';
+      }
     }
 
     /**
@@ -874,34 +906,24 @@ var Spacekit = (function (exports) {
       }
 
       let newpos;
-      if (this._object3js) {
-        if (!this.shouldUpdateObjectPosition(jed)) {
-          return;
-        }
+      let shouldUpdateObjectPosition = false;
+      if (this._object3js || this._label) {
+        shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jed);
+      }
+      if (this._object3js && shouldUpdateObjectPosition) {
         newpos = this.getPosition(jed);
         this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
       }
-      if (this._label) {
-        if (!this.shouldUpdateObjectPosition(jed)) {
-          return;
-        }
+
+      // TODO(ian): Determine this based on orbit and camera position change.
+      const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+      if (this._label && shouldUpdateLabelPos) {
+        console.log('update');
         if (!newpos) {
           newpos = this.getPosition(jed);
         }
-        const label = this._label;
-        const SimulationElt = this._simulation.getSimulationElement();
-        const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);
-        const loc = {
-          left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
-        };
-        if (loc.left > 0 && loc.right < SimulationElt.clientWidth
-            && loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {
-          label.style.left = `${loc.left}px`;
-          label.style.top = `${loc.top}px`;
-          label.style.visibility = 'visible';
-        } else {
-          label.style.visibility = 'hidden';
-        }
+        this.updateLabelPosition(newpos);
+        this._lastLabelUpdate = +new Date();
       }
       this._lastJedUpdated = jed;
     }
@@ -1753,6 +1775,7 @@ var Spacekit = (function (exports) {
         options: this._options,
         objects: {
           particles: this._particles,
+          camera: this._camera,
         },
         container: {
           width: this._simulationElt.offsetWidth,

@@ -13,7 +13,7 @@ const MIN_DEG_MOVE_PER_DAY = 0.5;
  * @private
  * Number of milliseconds between label position updates.
  */
-const LABEL_UPDATE_MS = 200;
+const LABEL_UPDATE_MS = 100;
 
 /**
  * @private

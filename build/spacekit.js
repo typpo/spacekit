@@ -624,7 +624,7 @@ var Spacekit = (function (exports) {
    * @private
    * Number of milliseconds between label position updates.
    */
-  const LABEL_UPDATE_MS = 200;
+  const LABEL_UPDATE_MS = 100;
 
   /**
    * @private

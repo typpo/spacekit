@@ -36,7 +36,6 @@ const ANGLE_UNITS = new Set([
  * }, 'deg'),
  */
 export class Ephem {
-
   /**
    * @param {Object} initialValues A dictionary of initial values. Not all values
    * are required as some may be inferred from others.

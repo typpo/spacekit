@@ -67,7 +67,6 @@ var Spacekit = (function (exports) {
    * }, 'deg'),
    */
   class Ephem {
-
     /**
      * @param {Object} initialValues A dictionary of initial values. Not all values
      * are required as some may be inferred from others.
@@ -874,7 +873,7 @@ var Spacekit = (function (exports) {
         return;
       }
 
-      let newpos = undefined;
+      let newpos;
       if (this._object3js) {
         if (!this.shouldUpdateObjectPosition(jed)) {
           return;
@@ -1410,8 +1409,8 @@ var Spacekit = (function (exports) {
       // Camera
       this._camera = new Camera(this.getContext()).get3jsCamera();
       this._camera.position.set(this._cameraDefaultPos[0],
-                                this._cameraDefaultPos[1],
-                                this._cameraDefaultPos[2]);
+        this._cameraDefaultPos[1],
+        this._cameraDefaultPos[2]);
       window.cam = this._camera;
 
       // Controls
@@ -1477,11 +1476,10 @@ var Spacekit = (function (exports) {
      */
     doCameraDrift() {
       // Follow floating path around
-      var timer = 0.0001 * Date.now();
+      const timer = 0.0001 * Date.now();
       const pos = this._cameraDefaultPos;
-      this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1)/3;
-      this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1)/3;
-
+      this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1) / 3;
+      this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1) / 3;
     }
 
     /**
@@ -1640,13 +1638,13 @@ var Spacekit = (function (exports) {
       boundingBox.getSize(size);
 
       // Get the max side of the bounding box (fits to width OR height as needed)
-      const maxDim = Math.max( size.x, size.y, size.z );
-      const fov = camera.fov * ( Math.PI / 180 );
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
       const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
 
       const objectWorldPosition = new THREE.Vector3();
       obj.getWorldPosition(objectWorldPosition);
-      const directionVector = camera.position.sub(objectWorldPosition); 	//Get vector from camera to object
+      const directionVector = camera.position.sub(objectWorldPosition); 	// Get vector from camera to object
       const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
 
       const newpos = unitDirectionVector.multiplyScalar(cameraZ);

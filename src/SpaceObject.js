@@ -266,7 +266,7 @@ export class SpaceObject {
       return;
     }
 
-    let newpos = undefined;
+    let newpos;
     if (this._object3js) {
       if (!this.shouldUpdateObjectPosition(jed)) {
         return;

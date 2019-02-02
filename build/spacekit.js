@@ -918,7 +918,6 @@ var Spacekit = (function (exports) {
       // TODO(ian): Determine this based on orbit and camera position change.
       const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
       if (this._label && shouldUpdateLabelPos) {
-        console.log('update');
         if (!newpos) {
           newpos = this.getPosition(jed);
         }

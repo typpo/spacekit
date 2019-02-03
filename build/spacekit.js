@@ -1063,6 +1063,8 @@ var Spacekit = (function (exports) {
      * @param {String} options.shape.url Path to shapefile
      * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
      * @param {boolean} options.shape.enableRotation Show rotation of object
+     * @param {Number} options.shape.rotationSpeed Factor that determines
+     * rotation speed. Default 0.5
      * @see SpaceObject
      */
     constructor(id, options, contextOrSimulation) {
@@ -1115,9 +1117,10 @@ var Spacekit = (function (exports) {
     }
 
     update() {
-      if (this._obj && this._options.enableRotation) {
+      if (this._obj && this._options.shape.enableRotation) {
         // For now, just rotate on X axis.
-        this._obj.rotation.x += (0.2*(Math.PI / 180));
+        const speed = this._options.shape.rotationSpeed || 0.5;
+        this._obj.rotation.x += (speed * (Math.PI / 180));
         this._obj.rotation.x %= 360;
       }
     }

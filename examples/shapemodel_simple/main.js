@@ -14,5 +14,6 @@ viz.createAmbientLight();
 viz.createShape('myobj', {
   shape: {
     url: './1998_XO94.obj',
+    enableRotation: true,
   },
 });

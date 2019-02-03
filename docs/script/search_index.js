@@ -24,6 +24,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/shapeobject.js~shapeobject",
+    "class/src/ShapeObject.js~ShapeObject.html",
+    "<span>ShapeObject</span> <span class=\"search-result-import-path\">spacekit/src/ShapeObject.js</span>",
+    "class"
+  ],
+  [
     "spacekit/src/simulation.js~simulation",
     "class/src/Simulation.js~Simulation.html",
     "<span>Simulation</span> <span class=\"search-result-import-path\">spacekit/src/Simulation.js</span>",
@@ -450,6 +456,36 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/shapeobject.js",
+    "file/src/ShapeObject.js.html",
+    "src/ShapeObject.js",
+    "file"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#constructor",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-constructor-constructor",
+    "src/ShapeObject.js~ShapeObject#constructor",
+    "method"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#get3jsobjects",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-get3jsObjects",
+    "src/ShapeObject.js~ShapeObject#get3jsObjects",
+    "method"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#init",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-init",
+    "src/ShapeObject.js~ShapeObject#init",
+    "method"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#update",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-update",
+    "src/ShapeObject.js~ShapeObject#update",
+    "method"
+  ],
+  [
     "src/simulation.js",
     "file/src/Simulation.js.html",
     "src/Simulation.js",
@@ -468,9 +504,27 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#createambientlight",
+    "class/src/Simulation.js~Simulation.html#instance-method-createAmbientLight",
+    "src/Simulation.js~Simulation#createAmbientLight",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#createlight",
+    "class/src/Simulation.js~Simulation.html#instance-method-createLight",
+    "src/Simulation.js~Simulation#createLight",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#createobject",
     "class/src/Simulation.js~Simulation.html#instance-method-createObject",
     "src/Simulation.js~Simulation#createObject",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#createshape",
+    "class/src/Simulation.js~Simulation.html#instance-method-createShape",
+    "src/Simulation.js~Simulation#createShape",
     "method"
   ],
   [
@@ -534,6 +588,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#renderonlyinviewport",
+    "class/src/Simulation.js~Simulation.html#instance-method-renderOnlyInViewport",
+    "src/Simulation.js~Simulation#renderOnlyInViewport",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#setcameradrift",
     "class/src/Simulation.js~Simulation.html#instance-method-setCameraDrift",
     "src/Simulation.js~Simulation#setCameraDrift",
@@ -573,6 +633,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#stop",
     "class/src/Simulation.js~Simulation.html#instance-method-stop",
     "src/Simulation.js~Simulation#stop",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#zoomtofit",
+    "class/src/Simulation.js~Simulation.html#instance-method-zoomToFit",
+    "src/Simulation.js~Simulation#zoomToFit",
     "method"
   ],
   [
@@ -639,6 +705,12 @@ window.esdocSearchIndex = [
     "src/spaceobject.js~spaceobject#getposition",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-getPosition",
     "src/SpaceObject.js~SpaceObject#getPosition",
+    "method"
+  ],
+  [
+    "src/spaceobject.js~spaceobject#init",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-init",
+    "src/SpaceObject.js~SpaceObject#init",
     "method"
   ],
   [

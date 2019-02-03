@@ -32,6 +32,7 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/ShapeObject.js~ShapeObject.html">ShapeObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
@@ -49,6 +50,7 @@
 
 import { Camera } from &apos;./Camera&apos;;
 import { Skybox } from &apos;./Skybox&apos;;
+import { ShapeObject } from &apos;./ShapeObject&apos;;
 import { SpaceObject } from &apos;./SpaceObject&apos;;
 import { SpaceParticles } from &apos;./SpaceParticles&apos;;
 
@@ -94,7 +96,7 @@ export class Simulation {
    * next highest power of 2. If you&apos;re not showing many particles (tens of
    * thousands+), you don&apos;t need to worry about this.
    * @param {boolean} options.enableCameraDrift Set true to have the camera
-   * float around slightly
+   * float around slightly. True by default.
    * @param {Object} options.debug Options dictating debug state.
    * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
    * @param {boolean} options.debug.showStats Show FPS and other stats
@@ -113,13 +115,16 @@ export class Simulation {
     this._scene = null;
     this._renderer = null;
 
-    this._enableCameraDrift = options.enableCameraDrift || true;
+    this._enableCameraDrift = typeof options.enableCameraDrift !== &apos;undefined&apos; ? options.enableCameraDrift : true;
     this._cameraDefaultPos = [0, -10, 5];
     this._camera = null;
     this._cameraControls = null;
 
     this._subscribedObjects = {};
     this._particles = null;
+
+    this._renderEnabled = true;
+    this._boundAnimate = this.animate.bind(this);
 
     // stats.js panel
     this._stats = null;
@@ -142,8 +147,8 @@ export class Simulation {
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
     this._camera.position.set(this._cameraDefaultPos[0],
-                              this._cameraDefaultPos[1],
-                              this._cameraDefaultPos[2]);
+      this._cameraDefaultPos[1],
+      this._cameraDefaultPos[2]);
     window.cam = this._camera;
 
     // Controls
@@ -166,7 +171,6 @@ export class Simulation {
       if (this._options.debug.showStats) {
         this._stats = new Stats();
         this._stats.showPanel(0);
-        window.sssss = this._stats;
         this._simulationElt.appendChild(this._stats.dom);
       }
     }
@@ -210,17 +214,21 @@ export class Simulation {
    */
   doCameraDrift() {
     // Follow floating path around
-    var timer = 0.00007 * Date.now();
-    this._camera.position.x = this._cameraDefaultPos[0] + Math.cos(timer);
-    this._camera.position.z = this._cameraDefaultPos[2] + Math.sin(timer);
-
+    const timer = 0.0001 * Date.now();
+    const pos = this._cameraDefaultPos;
+    this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1) / 3;
+    this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1) / 3;
   }
 
   /**
    * @private
    */
   animate() {
-    window.requestAnimationFrame(this.animate.bind(this));
+    if (!this._renderEnabled) {
+      return;
+    }
+
+    window.requestAnimationFrame(this._boundAnimate);
 
     if (this._stats) {
       this._stats.begin();
@@ -300,6 +308,15 @@ export class Simulation {
   }
 
   /**
+   * Shortcut for creating a new ShapeObject belonging to this visualization.
+   * Takes any ShapeObject arguments.
+   * @see ShapeObject
+   */
+  createShape(...args) {
+    return new ShapeObject(...args, this);
+  }
+
+  /**
    * Shortcut for creating a new Skybox belonging to this visualization. Takes
    * any Skybox arguments.
    * @see Skybox
@@ -309,7 +326,113 @@ export class Simulation {
   }
 
   /**
-   * Start time
+   * Creates an ambient light source. This will dimly light everything in the
+   * visualization.
+   * @param {Number} color Color of light, default 0x333333
+   */
+  createAmbientLight(color = 0x333333) {
+    this._scene.add(new THREE.AmbientLight(color));
+  }
+
+  /**
+   * Creates a light source. This will make the shape of your objects visible
+   * and provide some contrast.
+   * @param {Array.&lt;Number&gt;} pos Position of light source. Defaults to moving
+   * with camera.
+   * @param {Number} color Color of light, default 0xCCCCCC
+   */
+  createLight(pos = undefined, color = 0xcccccc) {
+    const campos = this._camera.position;
+    const directionalLight = new THREE.DirectionalLight(color);
+    if (pos) {
+      directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+    } else {
+      this._cameraControls.addEventListener(&apos;change&apos;, () =&gt; {
+        directionalLight.position.copy(this._camera.position);
+      });
+    }
+    this._scene.add(directionalLight);
+  }
+
+  /**
+   * Installs a scroll handler that only renders the visualization while it is
+   * in the user&apos;s viewport.
+   *
+   * The scroll handler currently binds to the window object only.
+   */
+  renderOnlyInViewport() {
+    let previouslyInView = true;
+    const isInView = () =&gt; {
+      const rect = this._simulationElt.getBoundingClientRect();
+      const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+      const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+      const vertInView = (rect.top &lt;= windowHeight) &amp;&amp; ((rect.top + rect.height) &gt;= 0);
+      const horInView = (rect.left &lt;= windowWidth) &amp;&amp; ((rect.left + rect.width) &gt;= 0);
+
+      return (vertInView &amp;&amp; horInView);
+    };
+
+    window.addEventListener(&apos;scroll&apos;, () =&gt; {
+      const inView = isInView();
+      if (previouslyInView &amp;&amp; !inView) {
+        // Went out of view
+        this._renderEnabled = false;
+        previouslyInView = false;
+      } else if (!previouslyInView &amp;&amp; inView) {
+        // Came into view
+        this._renderEnabled = true;
+        window.requestAnimationFrame(this._boundAnimate);
+        previouslyInView = true;
+      }
+    });
+
+    if (!isInView()) {
+      // Initial state is render enabled, so disable it if currently out of
+      // view.
+      this._renderEnabled = false;
+      previouslyInView = false;
+    }
+  }
+
+  /**
+   * Adjust camera position so that the object fits within the viewport. If
+   * applicable, this function will fit around the object&apos;s orbit.
+   * @param {SpaceObject} spaceObj Object to fit within viewport.
+   * @param {Number} offset Add some extra room in the viewport. Increase to be
+   * further zoomed out, decrease to be closer. Default 3.0.
+   */
+  zoomToFit(spaceObj, offset = 3.0) {
+    const orbit = spaceObj.getOrbit();
+    const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
+    const camera = this._camera;
+    const boundingBox = new THREE.Box3();
+    boundingBox.setFromObject(obj);
+
+    const center = new THREE.Vector3();
+    boundingBox.getCenter(center);
+    const size = new THREE.Vector3();
+    boundingBox.getSize(size);
+
+    // Get the max side of the bounding box (fits to width OR height as needed)
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
+
+    const objectWorldPosition = new THREE.Vector3();
+    obj.getWorldPosition(objectWorldPosition);
+    const directionVector = camera.position.sub(objectWorldPosition); 	// Get vector from camera to object
+    const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
+
+    const newpos = unitDirectionVector.multiplyScalar(cameraZ);
+    camera.position.x = newpos.x;
+    camera.position.y = newpos.y;
+    camera.position.z = newpos.z;
+    camera.updateProjectionMatrix();
+    this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
+  }
+
+  /**
+   * Run the animation
    */
   start() {
     this._lastUpdatedTime = Date.now();
@@ -317,7 +440,7 @@ export class Simulation {
   }
 
   /**
-   * Stop time
+   * Stop the animation
    */
   stop() {
     this._isPaused = true;
@@ -406,6 +529,7 @@ export class Simulation {
       options: this._options,
       objects: {
         particles: this._particles,
+        camera: this._camera,
       },
       container: {
         width: this._simulationElt.offsetWidth,

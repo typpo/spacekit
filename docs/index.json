@@ -567,9 +567,9 @@
     "__docId__": 48,
     "kind": "file",
     "name": "src/Camera.js",
-    "content": "/**\n * A simple wrapper for Three.js camera.\n */\nexport class Camera {\n  /**\n   * @param {Object} context The simulation context\n   */\n  constructor(context) {\n    // TODO(ian): Accept either context or container\n    this._context = context;\n\n    this.init();\n  }\n\n  init() {\n    const containerWidth = this._context.container.width;\n    const containerHeight = this._context.container.height;\n\n    const cameraH\t= 3;\n    const cameraW\t= cameraH / containerHeight * containerWidth;\n    this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 1, 5000);\n  }\n\n  /**\n   * @returns {Object} The THREE.js camera object.\n   */\n  get3jsCamera() {\n    return this._camera;\n  }\n}\n",
+    "content": "/**\n * A simple wrapper for Three.js camera.\n */\nexport class Camera {\n  /**\n   * @param {Object} context The simulation context\n   */\n  constructor(context) {\n    // TODO(ian): Accept either context or container\n    this._context = context;\n\n    this.init();\n  }\n\n  init() {\n    const containerWidth = this._context.container.width;\n    const containerHeight = this._context.container.height;\n\n    const cameraH\t= 3;\n    const cameraW\t= cameraH / containerHeight * containerWidth;\n    this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 4000);\n  }\n\n  /**\n   * @returns {Object} The THREE.js camera object.\n   */\n  get3jsCamera() {\n    return this._camera;\n  }\n}\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/Camera.js",
+    "longname": "/Users/ian/code/spacekit/src/Camera.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
@@ -698,9 +698,9 @@
     "__docId__": 55,
     "kind": "file",
     "name": "src/Ephem.js",
-    "content": "// TODO(ian): Allow multiple valid attrs for a single quantity and map them\n// internally to a single canonical attribute.\nconst EPHEM_VALID_ATTRS = new Set([\n  'a', // Semi-major axis\n  'e', // Eccentricity\n  'i', // Inclination\n\n  'epoch',\n  'period',\n\n  'ma', // Mean anomaly\n  'n', // Mean motion\n  'L', // Mean longitude\n\n  'om', // Longitude of Ascending Node\n  'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node\n  'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion\n]);\n\n// Which of these are angular measurements.\nconst ANGLE_UNITS = new Set([\n  'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',\n]);\n\n/**\n * A class representing Kepler ephemerides.\n * @example\n * const NEPTUNE = new Ephem({\n *   epoch: 2458426.500000000,\n *   a: 3.009622263428050E+01,\n *   e: 7.362571187193770E-03,\n *   i: 1.774569249829094E+00,\n *   om: 1.318695882492132E+02,\n *   w: 2.586226409499831E+02,\n *   ma: 3.152804988924479E+02,\n * }, 'deg'),\n */\nexport class Ephem {\n\n  /**\n   * @param {Object} initialValues A dictionary of initial values. Not all values\n   * are required as some may be inferred from others.\n   * @param {Object} initialValues.a Semimajor axis\n   * @param {Object} initialValues.e Eccentricity\n   * @param {Object} initialValues.i Inclination\n   * @param {Object} initialValues.epoch Epoch in JED\n   * @param {Object} initialValues.period Period in days\n   * @param {Object} initialValues.ma Mean anomaly\n   * @param {Object} initialValues.n Mean motion\n   * @param {Object} initialValues.L Mean longitude\n   * @param {Object} initialValues.om Longitude of Ascending Node\n   * @param {Object} initialValues.w Argument of Perihelion\n   * @param {Object} initialValues.w_bar Longitude of Perihelion\n   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.\n   */\n  constructor(initialValues, units = 'rad') {\n    this._attrs = {};\n\n    for (const attr in initialValues) {\n      if (initialValues.hasOwnProperty(attr)) {\n        const actualUnits = ANGLE_UNITS.has(attr) ? units : null;\n        this.set(attr, initialValues[attr], actualUnits);\n      }\n    }\n    this.fill();\n  }\n\n  /**\n   * Sets an ephemerides attribute.\n   * @param {String} attr The name of the attribute (e.g. 'a')\n   * @param {Number} val The value of the attribute (e.g. 0.5)\n   * @param {'deg'|'rad'} units The unit of angle provided, if applicable.\n   */\n  set(attr, val, units = 'rad') {\n    if (!EPHEM_VALID_ATTRS.has(attr)) {\n      console.warn(`Invalid ephem attr: ${attr}`);\n      return false;\n    }\n\n    if (units === 'deg') {\n      this._attrs[attr] = val * Math.PI / 180;\n    } else {\n      this._attrs[attr] = val;\n    }\n    return true;\n  }\n\n  /**\n   * Gets an ephemerides attribute.\n   * @param {String} attr The name of the attribute (e.g. 'a')\n   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This\n   * input is ignored for values that are not angle measurements.\n   */\n  get(attr, units = 'rad') {\n    if (units === 'deg') {\n      return this._attrs[attr] * 180 / Math.PI;\n    }\n    return this._attrs[attr];\n  }\n\n  /**\n   * @private\n   * Infers values of some ephemerides attributes if the required information\n   * is available.\n   */\n  fill() {\n    // Longitude/Argument of Perihelion and Long. of Ascending Node\n    let w = this.get('w');\n    let wBar = this.get('w_bar');\n    let om = this.get('om');\n    if (w && om && !wBar) {\n      wBar = w + om;\n      this.set('w_bar', wBar);\n    } else if (wBar && om && !w) {\n      w = wBar - om;\n      this.set('w', w);\n    } else if (w && wBar && !om) {\n      om = wBar - w;\n      this.set('om', om);\n    }\n\n    // Mean motion / period\n    const a = this.get('a');\n    const n = this.get('n');\n    let period = this.get('period');\n\n    if (!period && a) {\n      period = Math.sqrt(a * a * a) * 365.25;\n      this.set('period', period);\n    }\n\n    if (period && !n) {\n      // Set radians\n      this.set('n', 2.0 * Math.PI / period);\n    } else if (n && !period) {\n      this.set('period', 2.0 * Math.PI / n);\n    }\n\n    // Mean longitude\n    const ma = this.get('ma');\n    let L = this.get('L');\n    if (!L && om && w && ma) {\n      L = om + w + ma;\n    }\n    //  TODO(ian): Handle no mean anomaly, no om\n  }\n}\n\n/**\n * A dictionary containing ephemerides of planets and other well-known objects.\n * @example\n * const planet1 = viz.createObject('planet1', {\n *   ephem: EphemPresets.MERCURY,\n * });\n */\nexport const EphemPresets = {\n  MERCURY: new Ephem({\n    epoch: 2458426.500000000,\n    a: 3.870968969437096E-01,\n    e: 2.056515875393916E-01,\n    i: 7.003891682749818E+00,\n    om: 4.830774804443502E+01,\n    w: 2.917940253442659E+01,\n    ma: 2.561909752092730E+02,\n  }, 'deg'),\n  VENUS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 7.233458663591554E-01,\n    e: 6.762510759617694E-03,\n    i: 3.394567787211735E+00,\n    om: 7.662534150657346E+01,\n    w: 5.474567447560867E+01,\n    ma: 2.756687596099721E+02,\n  }, 'deg'),\n  EARTH: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.000618919441359E+00,\n    e: 1.676780871638673E-02,\n    i: 3.679932353783076E-03,\n    om: 1.888900932218542E+02,\n    w: 2.718307282052625E+02,\n    ma: 3.021792498388233E+02,\n  }, 'deg'),\n  MARS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.523714015371070E+00,\n    e: 9.336741335309606E-02,\n    i: 1.848141099825311E+00,\n    om: 4.950420572080223E+01,\n    w: 2.866965847685386E+02,\n    ma: 2.538237617924876E+01,\n  }, 'deg'),\n  JUPITER: new Ephem({\n    epoch: 2458426.500000000,\n    a: 5.201803559110230E+00,\n    e: 4.899125582490060E-02,\n    i: 1.303560894624275E+00,\n    om: 1.005203828847816E+02,\n    w: 2.737363018454040E+02,\n    ma: 2.319395443894010E+02,\n  }, 'deg'),\n  SATURN: new Ephem({\n    epoch: 2458426.500000000,\n    a: 9.577177295536776E+00,\n    e: 5.101889921719987E-02,\n    i: 2.482782449972317E+00,\n    om: 1.136154964073247E+02,\n    w: 3.394422648650336E+02,\n    ma: 1.870970898012944E+02,\n  }, 'deg'),\n  URANUS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.914496966635462E+01,\n    e: 4.832662948112808E-02,\n    i: 7.697511134483724E-01,\n    om: 7.414239045667875E+01,\n    w: 9.942704504702185E+01,\n    ma: 2.202603033874267E+02,\n  }, 'deg'),\n  NEPTUNE: new Ephem({\n    epoch: 2458426.500000000,\n    a: 3.009622263428050E+01,\n    e: 7.362571187193770E-03,\n    i: 1.774569249829094E+00,\n    om: 1.318695882492132E+02,\n    w: 2.586226409499831E+02,\n    ma: 3.152804988924479E+02,\n  }, 'deg'),\n};\n",
+    "content": "// TODO(ian): Allow multiple valid attrs for a single quantity and map them\n// internally to a single canonical attribute.\nconst EPHEM_VALID_ATTRS = new Set([\n  'a', // Semi-major axis\n  'e', // Eccentricity\n  'i', // Inclination\n\n  'epoch',\n  'period',\n\n  'ma', // Mean anomaly\n  'n', // Mean motion\n  'L', // Mean longitude\n\n  'om', // Longitude of Ascending Node\n  'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node\n  'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion\n]);\n\n// Which of these are angular measurements.\nconst ANGLE_UNITS = new Set([\n  'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',\n]);\n\n/**\n * A class representing Kepler ephemerides.\n * @example\n * const NEPTUNE = new Ephem({\n *   epoch: 2458426.500000000,\n *   a: 3.009622263428050E+01,\n *   e: 7.362571187193770E-03,\n *   i: 1.774569249829094E+00,\n *   om: 1.318695882492132E+02,\n *   w: 2.586226409499831E+02,\n *   ma: 3.152804988924479E+02,\n * }, 'deg'),\n */\nexport class Ephem {\n  /**\n   * @param {Object} initialValues A dictionary of initial values. Not all values\n   * are required as some may be inferred from others.\n   * @param {Object} initialValues.a Semimajor axis\n   * @param {Object} initialValues.e Eccentricity\n   * @param {Object} initialValues.i Inclination\n   * @param {Object} initialValues.epoch Epoch in JED\n   * @param {Object} initialValues.period Period in days\n   * @param {Object} initialValues.ma Mean anomaly\n   * @param {Object} initialValues.n Mean motion\n   * @param {Object} initialValues.L Mean longitude\n   * @param {Object} initialValues.om Longitude of Ascending Node\n   * @param {Object} initialValues.w Argument of Perihelion\n   * @param {Object} initialValues.w_bar Longitude of Perihelion\n   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.\n   */\n  constructor(initialValues, units = 'rad') {\n    this._attrs = {};\n\n    for (const attr in initialValues) {\n      if (initialValues.hasOwnProperty(attr)) {\n        const actualUnits = ANGLE_UNITS.has(attr) ? units : null;\n        this.set(attr, initialValues[attr], actualUnits);\n      }\n    }\n    this.fill();\n  }\n\n  /**\n   * Sets an ephemerides attribute.\n   * @param {String} attr The name of the attribute (e.g. 'a')\n   * @param {Number} val The value of the attribute (e.g. 0.5)\n   * @param {'deg'|'rad'} units The unit of angle provided, if applicable.\n   */\n  set(attr, val, units = 'rad') {\n    if (!EPHEM_VALID_ATTRS.has(attr)) {\n      console.warn(`Invalid ephem attr: ${attr}`);\n      return false;\n    }\n\n    if (units === 'deg') {\n      this._attrs[attr] = val * Math.PI / 180;\n    } else {\n      this._attrs[attr] = val;\n    }\n    return true;\n  }\n\n  /**\n   * Gets an ephemerides attribute.\n   * @param {String} attr The name of the attribute (e.g. 'a')\n   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This\n   * input is ignored for values that are not angle measurements.\n   */\n  get(attr, units = 'rad') {\n    if (units === 'deg') {\n      return this._attrs[attr] * 180 / Math.PI;\n    }\n    return this._attrs[attr];\n  }\n\n  /**\n   * @private\n   * Infers values of some ephemerides attributes if the required information\n   * is available.\n   */\n  fill() {\n    // Longitude/Argument of Perihelion and Long. of Ascending Node\n    let w = this.get('w');\n    let wBar = this.get('w_bar');\n    let om = this.get('om');\n    if (w && om && !wBar) {\n      wBar = w + om;\n      this.set('w_bar', wBar);\n    } else if (wBar && om && !w) {\n      w = wBar - om;\n      this.set('w', w);\n    } else if (w && wBar && !om) {\n      om = wBar - w;\n      this.set('om', om);\n    }\n\n    // Mean motion / period\n    const a = this.get('a');\n    const n = this.get('n');\n    let period = this.get('period');\n\n    if (!period && a) {\n      period = Math.sqrt(a * a * a) * 365.25;\n      this.set('period', period);\n    }\n\n    if (period && !n) {\n      // Set radians\n      this.set('n', 2.0 * Math.PI / period);\n    } else if (n && !period) {\n      this.set('period', 2.0 * Math.PI / n);\n    }\n\n    // Mean longitude\n    const ma = this.get('ma');\n    let L = this.get('L');\n    if (!L && om && w && ma) {\n      L = om + w + ma;\n    }\n    //  TODO(ian): Handle no mean anomaly, no om\n  }\n}\n\n/**\n * A dictionary containing ephemerides of planets and other well-known objects.\n * @example\n * const planet1 = viz.createObject('planet1', {\n *   ephem: EphemPresets.MERCURY,\n * });\n */\nexport const EphemPresets = {\n  MERCURY: new Ephem({\n    epoch: 2458426.500000000,\n    a: 3.870968969437096E-01,\n    e: 2.056515875393916E-01,\n    i: 7.003891682749818E+00,\n    om: 4.830774804443502E+01,\n    w: 2.917940253442659E+01,\n    ma: 2.561909752092730E+02,\n  }, 'deg'),\n  VENUS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 7.233458663591554E-01,\n    e: 6.762510759617694E-03,\n    i: 3.394567787211735E+00,\n    om: 7.662534150657346E+01,\n    w: 5.474567447560867E+01,\n    ma: 2.756687596099721E+02,\n  }, 'deg'),\n  EARTH: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.000618919441359E+00,\n    e: 1.676780871638673E-02,\n    i: 3.679932353783076E-03,\n    om: 1.888900932218542E+02,\n    w: 2.718307282052625E+02,\n    ma: 3.021792498388233E+02,\n  }, 'deg'),\n  MARS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.523714015371070E+00,\n    e: 9.336741335309606E-02,\n    i: 1.848141099825311E+00,\n    om: 4.950420572080223E+01,\n    w: 2.866965847685386E+02,\n    ma: 2.538237617924876E+01,\n  }, 'deg'),\n  JUPITER: new Ephem({\n    epoch: 2458426.500000000,\n    a: 5.201803559110230E+00,\n    e: 4.899125582490060E-02,\n    i: 1.303560894624275E+00,\n    om: 1.005203828847816E+02,\n    w: 2.737363018454040E+02,\n    ma: 2.319395443894010E+02,\n  }, 'deg'),\n  SATURN: new Ephem({\n    epoch: 2458426.500000000,\n    a: 9.577177295536776E+00,\n    e: 5.101889921719987E-02,\n    i: 2.482782449972317E+00,\n    om: 1.136154964073247E+02,\n    w: 3.394422648650336E+02,\n    ma: 1.870970898012944E+02,\n  }, 'deg'),\n  URANUS: new Ephem({\n    epoch: 2458426.500000000,\n    a: 1.914496966635462E+01,\n    e: 4.832662948112808E-02,\n    i: 7.697511134483724E-01,\n    om: 7.414239045667875E+01,\n    w: 9.942704504702185E+01,\n    ma: 2.202603033874267E+02,\n  }, 'deg'),\n  NEPTUNE: new Ephem({\n    epoch: 2458426.500000000,\n    a: 3.009622263428050E+01,\n    e: 7.362571187193770E-03,\n    i: 1.774569249829094E+00,\n    om: 1.318695882492132E+02,\n    w: 2.586226409499831E+02,\n    ma: 3.152804988924479E+02,\n  }, 'deg'),\n};\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/Ephem.js",
+    "longname": "/Users/ian/code/spacekit/src/Ephem.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
@@ -776,7 +776,7 @@
     "longname": "src/Ephem.js~Ephem#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 56,
+    "lineNumber": 55,
     "params": [
       {
         "nullable": null,
@@ -920,7 +920,7 @@
     "longname": "src/Ephem.js~Ephem#_attrs",
     "access": "private",
     "description": null,
-    "lineNumber": 57,
+    "lineNumber": 56,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -940,7 +940,7 @@
     "longname": "src/Ephem.js~Ephem#set",
     "access": "public",
     "description": "Sets an ephemerides attribute.",
-    "lineNumber": 74,
+    "lineNumber": 73,
     "params": [
       {
         "nullable": null,
@@ -991,7 +991,7 @@
     "longname": "src/Ephem.js~Ephem#get",
     "access": "public",
     "description": "Gets an ephemerides attribute.",
-    "lineNumber": 94,
+    "lineNumber": 93,
     "params": [
       {
         "nullable": null,
@@ -1032,7 +1032,7 @@
     "longname": "src/Ephem.js~Ephem#fill",
     "access": "private",
     "description": "",
-    "lineNumber": 106,
+    "lineNumber": 105,
     "ignore": true,
     "params": [],
     "return": null
@@ -1052,7 +1052,7 @@
     "examples": [
       "const planet1 = viz.createObject('planet1', {\n  ephem: EphemPresets.MERCURY,\n});"
     ],
-    "lineNumber": 156,
+    "lineNumber": 155,
     "type": {
       "types": [
         "{\"MERCURY\": *, \"VENUS\": *, \"EARTH\": *, \"MARS\": *, \"JUPITER\": *, \"SATURN\": *, \"URANUS\": *, \"NEPTUNE\": *}"
@@ -1065,7 +1065,7 @@
     "name": "src/Orbit.js",
     "content": "/**\n * A class that builds a visual representation of a Kepler orbit.\n * @example\n * const orbit = new Spacekit.Orbit({\n *   ephem: new Spacekit.Ephem({...}),\n *   options: {\n *     color: 0xFFFFFF,\n *     eclipticLineColor: 0xCCCCCC,\n *   },\n * });\n */\nexport class Orbit {\n  /**\n   * @param {Ephem} ephem The ephemerides that define this orbit.\n   * @param {Object} options\n   * @param {Object} options.color The color of the orbital ellipse.\n   * @param {Object} options.eclipticLineColor The color of lines drawn\n   * perpendicular to the ecliptic in order to illustrate depth (defaults to\n   * 0x333333).\n   */\n  constructor(ephem, options) {\n    /**\n     * Ephem object\n     * @type {Ephem}\n     */\n    this._ephem = ephem;\n\n    /**\n     * Options (see class definition for details)\n     */\n    this._options = options || {};\n\n    /**\n     * Cached orbital points.\n     * @type {Array.<THREE.Vector3>}\n     */\n    this._points = null;\n\n    /**\n     * Cached ellipse.\n     * @type {THREE.Line}\n     */\n    this._ellipse = null;\n  }\n\n  /**\n   * @private\n   * @return {Array.<THREE.Vector3>} List of points\n   */\n  getOrbitPoints() {\n    if (this._points) {\n      return this._points;\n    }\n\n    const eph = this._ephem;\n\n    const period = eph.get('period');\n    const numSegments = Math.max(period / 10, 50);\n    const step = period / numSegments;\n\n    const pts = [];\n    let prevPos;\n    for (let time = 0; time < period; time += step) {\n      const pos = this.getPositionAtTime(time);\n      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {\n        console.error('NaN position value - you may have bad data in the following ephemeris:');\n        console.error(eph);\n      }\n      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);\n      if (prevPos && Math.abs(prevPos[0] - pos[0])\n                     + Math.abs(prevPos[1] - pos[1])\n                     + Math.abs(prevPos[2] - pos[2]) > 120) {\n        // Don't render bogus or very large ellipses.\n        points.vertices = [];\n        return points;\n      }\n      prevPos = pos;\n      pts.push(vector);\n    }\n    pts.push(pts[0]);\n\n    this._points = new THREE.Geometry();\n    this._points.vertices = pts;\n\n    return this._points;\n  }\n\n  /**\n   * Get heliocentric position of object at a given JED.\n   * @param {Number} jed Date value in JED.\n   * @return {Array.<Number>} [X, Y, Z] coordinates\n   */\n  getPositionAtTime(jed) {\n    const pi = Math.PI;\n    const sin = Math.sin;\n    const cos = Math.cos;\n\n    const eph = this._ephem;\n\n    // Note: logic below must match the vertex shader.\n    // This position calculation is used to create orbital ellipses.\n    const e = eph.get('e');\n    const a = eph.get('a');\n    const i = eph.get('i', 'rad');\n\n    // longitude of ascending node\n    const o = eph.get('om', 'rad');\n\n    // LONGITUDE of perihelion\n    const p = eph.get('w_bar', 'rad');\n\n    const ma = eph.get('ma', 'rad');\n    let M;\n\n    // Calculate mean anomaly at jed\n    const n = eph.get('n', 'rad');\n    const epoch = eph.get('epoch');\n    const d = jed - epoch;\n    M = ma + n * d;\n\n    // Estimate eccentric and true anom using iterative approx\n    let E0 = M;\n    let lastdiff;\n    do {\n      const E1 = M + e * sin(E0);\n      lastdiff = Math.abs(E1 - E0);\n      E0 = E1;\n    } while (lastdiff > 0.0000001);\n    const E = E0;\n    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));\n\n    // Radius vector, in AU\n    const r = a * (1 - e * e) / (1 + e * cos(v));\n\n    // Heliocentric coords\n    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));\n    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));\n    const Z = r * (sin(v + p - o) * sin(i));\n    return [X, Y, Z];\n  }\n\n  /**\n   * @return {THREE.Line} The ellipse object that represents this orbit.\n   */\n  getEllipse() {\n    if (!this._ellipse) {\n      const pointGeometry = this.getOrbitPoints();\n      this._ellipse = new THREE.Line(pointGeometry,\n        new THREE.LineBasicMaterial({\n          color: this._options.color,\n        }), THREE.LineStrip);\n    }\n    return this._ellipse;\n  }\n\n  /**\n   * A geometry containing line segments that run between the orbit ellipse and\n   * the ecliptic plane of the solar system. This is a useful visual effect\n   * that makes it easy to tell when an orbit goes below or above the ecliptic\n   * plane.\n   * @return {THREE.Geometry} A geometry with many line segments.\n   */\n  getLinesToEcliptic() {\n    const points = this.getOrbitPoints();\n    const geometry = new THREE.Geometry();\n\n    points.vertices.forEach((vertex) => {\n      geometry.vertices.push(vertex);\n      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));\n    });\n\n    return new THREE.LineSegments(\n      geometry,\n      new THREE.LineBasicMaterial({\n        color: this._options.eclipticLineColor || 0x333333,\n      }),\n      THREE.LineStrip,\n    );\n  }\n\n  /**\n   * Get the color of this orbit.\n   * @return {Number} The hexadecimal color of the orbital ellipse.\n   */\n  getHexColor() {\n    return this._ellipse.material.color.getHex();\n  }\n\n  /**\n   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.\n   */\n  setHexColor(hexVal) {\n    return this._ellipse.material.color = new THREE.Color(hexVal);\n  }\n\n  /**\n   * Get the visibility of this orbit.\n   * @return {boolean} Whether the orbital ellipse is visible. Note that\n   * although the ellipse may not be visible, it is still present in the\n   * underlying Scene and Simultation.\n   */\n  getVisibility() {\n    return this._ellipse.visible;\n  }\n\n  /**\n   * Change the visibility of this orbit.\n   * @param {boolean} val Whether to show the orbital ellipse.\n   */\n  setVisibility(val) {\n    return this._ellipse.visible = val;\n  }\n}\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/Orbit.js",
+    "longname": "/Users/ian/code/spacekit/src/Orbit.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
@@ -1427,16 +1427,192 @@
   {
     "__docId__": 82,
     "kind": "file",
-    "name": "src/Simulation.js",
-    "content": "import julian from 'julian';\n\nimport { Camera } from './Camera';\nimport { Skybox } from './Skybox';\nimport { SpaceObject } from './SpaceObject';\nimport { SpaceParticles } from './SpaceParticles';\n\n/**\n * The main entrypoint of a visualization.\n *\n * This class wraps a THREE.js scene, controls, skybox, etc in an animated\n * Simulation.\n *\n * @example\n * const sim = new Spacekit.Simulation('my-container', {\n *  startDate: Date.now(),\n *  jed: 0.0,\n *  jedDelta: 10.0,\n *  jedPerSecond: 100.0,  // overrides jedDelta\n *  startPaused: false,\n *  maxNumParticles: 2**16,\n *  enableCameraDrift: true,\n *  debug: {\n *    showAxesHelper: false,\n *    showStats: false,\n *  },\n * });\n */\nexport class Simulation {\n  /**\n   * @param {HTMLElement} simulationElt The container for this simulation.\n   * @param {Object} options for simulation\n   * @param {Date} options.startDate The start date and time for this\n   * simulation.\n   * @param {Number} options.jed The JED date of this simulation.\n   * Defaults to 0\n   * @param {Number} options.jedDelta The number of JED to add every tick of\n   * the simulation.\n   * @param {Number} options.jedPerSecond The number of jed to add every\n   * second. Use this instead of `jedDelta` for constant motion that does not\n   * vary with framerate. Defaults to 100\n   * @param {boolean} options.startPaused Whether the simulation should start\n   * in a paused state.\n   * @param {Number} options.maxNumParticles The maximum number of particles in\n   * the visualization. Try choosing a number that is larger than your\n   * particles, but not too much larger. It's usually good enough to choose the\n   * next highest power of 2. If you're not showing many particles (tens of\n   * thousands+), you don't need to worry about this.\n   * @param {boolean} options.enableCameraDrift Set true to have the camera\n   * float around slightly\n   * @param {Object} options.debug Options dictating debug state.\n   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes\n   * @param {boolean} options.debug.showStats Show FPS and other stats\n   * (requires stats.js).\n   */\n  constructor(simulationElt, options) {\n    this._simulationElt = simulationElt;\n    this._options = options || {};\n\n    this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;\n    this._jedDelta = this._options.jedDelta;\n    this._jedPerSecond = this._options.jedPerSecond || 100;\n    this._isPaused = options.startPaused || false;\n    this.onTick = null;\n\n    this._scene = null;\n    this._renderer = null;\n\n    this._enableCameraDrift = options.enableCameraDrift || true;\n    this._cameraDefaultPos = [0, -10, 5];\n    this._camera = null;\n    this._cameraControls = null;\n\n    this._subscribedObjects = {};\n    this._particles = null;\n\n    // stats.js panel\n    this._stats = null;\n    this._fps = 1;\n    this._lastUpdatedTime = Date.now();\n\n    this.init();\n    this.animate();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    this.initRenderer();\n\n    // Scene\n    this._scene = new THREE.Scene();\n\n    // Camera\n    this._camera = new Camera(this.getContext()).get3jsCamera();\n    this._camera.position.set(this._cameraDefaultPos[0],\n                              this._cameraDefaultPos[1],\n                              this._cameraDefaultPos[2]);\n    window.cam = this._camera;\n\n    // Controls\n    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);\n    this._cameraControls.userPanSpeed = 20;\n    this._cameraControls.rotateSpeed = 2;\n\n    // Events\n    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {\n      // When user begins interacting with the visualization, disable camera\n      // drift.\n      this._enableCameraDrift = false;\n    };\n\n    // Helper\n    if (this._options.debug) {\n      if (this._options.debug.showAxesHelper) {\n        this._scene.add(new THREE.AxesHelper(5));\n      }\n      if (this._options.debug.showStats) {\n        this._stats = new Stats();\n        this._stats.showPanel(0);\n        window.sssss = this._stats;\n        this._simulationElt.appendChild(this._stats.dom);\n      }\n    }\n\n    // Orbit particle system must be initialized after scene is created.\n    this._particles = new SpaceParticles({\n      textureUrl: '{{assets}}/sprites/smallparticle.png',\n      jed: this._jed,\n      maxNumParticles: this._options.maxNumParticles,\n    }, this);\n  }\n\n  /**\n   * @private\n   */\n  initRenderer() {\n    const renderer = new THREE.WebGLRenderer({\n      antialias: true,\n    });\n    renderer.setPixelRatio(window.devicePixelRatio);\n    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);\n\n    this._simulationElt.appendChild(renderer.domElement);\n\n    this._renderer = renderer;\n  }\n\n  /**\n   * @private\n   */\n  update() {\n    for (const objId in this._subscribedObjects) {\n      if (this._subscribedObjects.hasOwnProperty(objId)) {\n        this._subscribedObjects[objId].update(this._jed);\n      }\n    }\n  }\n\n  /**\n   * @private\n   */\n  doCameraDrift() {\n    // Follow floating path around\n    var timer = 0.00007 * Date.now();\n    this._camera.position.x = this._cameraDefaultPos[0] + Math.cos(timer);\n    this._camera.position.z = this._cameraDefaultPos[2] + Math.sin(timer);\n\n  }\n\n  /**\n   * @private\n   */\n  animate() {\n    window.requestAnimationFrame(this.animate.bind(this));\n\n    if (this._stats) {\n      this._stats.begin();\n    }\n\n    if (!this._isPaused) {\n      if (this._jedDelta) {\n        this._jed += this._jedDelta;\n      } else {\n        // N jed per second\n        this._jed += (this._jedPerSecond) / this._fps;\n      }\n\n      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;\n      this._lastUpdatedTime = Date.now();\n      this._fps = (1 / timeDelta) || 1;\n    }\n\n    // Update objects in this simulation\n    this.update();\n    // Update camera drifting, if applicable\n    if (this._enableCameraDrift) {\n      this.doCameraDrift();\n    }\n    // Handle trackball movements\n    this._cameraControls.update();\n    // Update three.js scene\n    this._renderer.render(this._scene, this._camera);\n\n    if (this.onTick) {\n      this.onTick();\n    }\n\n    if (this._stats) {\n      this._stats.end();\n    }\n  }\n\n  /**\n   * Add a spacekit object (usually a SpaceObject) to the visualization.\n   * @see SpaceObject\n   * @param {Object} obj Object to add to visualization\n   * @param {boolean} noUpdate Set to true if object does not need to be\n   * animated.\n   */\n  addObject(obj, noUpdate = false) {\n    obj.get3jsObjects().map((x) => {\n      this._scene.add(x);\n    });\n\n    if (!noUpdate) {\n      // Call for updates as time passes.\n      this._subscribedObjects[obj.getId()] = obj;\n    }\n  }\n\n  /**\n   * Removes an object from the visualization.\n   * @param {Object} obj Object to remove\n   */\n  removeObject(obj) {\n    // TODO(ian): test this and avoid memory leaks...\n    obj.get3jsObjects().map((x) => {\n      this._scene.remove(x);\n    });\n\n    delete this._subscribedObjects[obj.getId()];\n  }\n\n  /**\n   * Shortcut for creating a new SpaceObject belonging to this visualization.\n   * Takes any SpaceObject arguments.\n   * @see SpaceObject\n   */\n  createObject(...args) {\n    return new SpaceObject(...args, this);\n  }\n\n  /**\n   * Shortcut for creating a new Skybox belonging to this visualization. Takes\n   * any Skybox arguments.\n   * @see Skybox\n   */\n  createSkybox(...args) {\n    return new Skybox(...args, this);\n  }\n\n  /**\n   * Start time\n   */\n  start() {\n    this._lastUpdatedTime = Date.now();\n    this._isPaused = false;\n  }\n\n  /**\n   * Stop time\n   */\n  stop() {\n    this._isPaused = true;\n  }\n\n  /**\n   * Gets the current JED date of the simulation\n   * @return {Number} JED date\n   */\n  getJed() {\n    return this._jed;\n  }\n\n  /**\n   * Sets the JED date of the simulation.\n   * @param {Number} val JED date\n   */\n  setJed(val) {\n    this._jed = val;\n  }\n\n  /**\n   * Get a date object representing current date and time of the simulation.\n   * @return {Date} Date of simulation\n   */\n  getDate() {\n    return julian.toDate(this._jed);\n  }\n\n  /**\n   * Set the date and time of the simulation.\n   * @param {Date} date Date of simulation\n   */\n  setDate(date) {\n    this.setJed(julian.toJulianDay(date));\n  }\n\n  /**\n   * Get the JED per frame of the visualization.\n   */\n  getJedDelta() {\n    if (!this._jedDelta) {\n      return this._jedPerSecond / this._fps;\n    }\n    return this._jedDelta;\n  }\n\n  /**\n   * Set the JED per frame of the visualization. This will override any\n   * existing \"JED per second\" setting.\n   * @param {Number} delta JED per frame\n   */\n  setJedDelta(delta) {\n    this._jedDelta = delta;\n  }\n\n  /**\n   * Get the JED change per second of the visualization.\n   * @return {Number} JED per second\n   */\n  getJedPerSecond() {\n    if (this._jedDelta) {\n      // Jed per second can vary\n      return undefined;\n    }\n    return this._jedPerSecond;\n  }\n\n  /**\n   * Set the JED change per second of the visualization.\n   * @return {Number} x JED per second\n   */\n  setJedPerSecond(x) {\n    // Delta overrides jed per second, so unset it.\n    this._jedDelta = undefined;\n\n    this._jedPerSecond = x;\n  }\n\n  /**\n   * Get an object that contains useful context for this visualization\n   * @return {Object} Context object\n   */\n  getContext() {\n    return {\n      options: this._options,\n      objects: {\n        particles: this._particles,\n      },\n      container: {\n        width: this._simulationElt.offsetWidth,\n        height: this._simulationElt.offsetHeight,\n      },\n    };\n  }\n\n  /**\n   * Get the element containing this simulation\n   * @return {HTMLElement} The html container of this simulation\n   */\n  getSimulationElement() {\n    return this._simulationElt;\n  }\n\n  /**\n   * Get the three.js camera\n   * @return {THREE.Camera} The THREE.js camera object\n   */\n  getCamera() {\n    return this._camera;\n  }\n\n  /**\n   * Enable or disable camera drift.\n   * @param {boolean} driftOn True if you want the camera to float around a bit\n   */\n  setCameraDrift(driftOn) {\n    this._enableCameraDrift = driftOn;\n  }\n}\n",
+    "name": "src/ShapeObject.js",
+    "content": "import { SpaceObject } from './SpaceObject';\n\nexport class ShapeObject extends SpaceObject {\n\n  /**\n   * @param {Object} options.shape Shape specification\n   * @param {String} options.shape.url Path to shapefile\n   * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc\n   * @param {boolean} options.shape.enableRotation Show rotation of object\n   * @see SpaceObject\n   */\n  constructor(id, options, contextOrSimulation) {\n    super(id, options, contextOrSimulation, false /* autoInit */);\n    if (!options.shape) {\n      console.error('ShapeObject requires an options.shape object');\n      return;\n    }\n\n    // The THREE.js object\n    this._obj = undefined;\n\n    // Keep track of materials that comprise this object.\n    this._asteroidMaterials = [];\n\n    this.init();\n  }\n\n  init() {\n    const manager = new THREE.LoadingManager();\n    manager.onProgress = (item, loaded, total) => {\n      console.info(this._id, item, 'loading progress:', loaded, '/', total);\n    };\n    const loader = new THREE.OBJLoader(manager);\n    loader.load(this._options.shape.url, object => {\n      object.traverse(child => {\n        if (child instanceof THREE.Mesh) {\n          const material = new THREE.MeshLambertMaterial({color: this._options.shape.color || 0xcccccc});\n          child.material = material;\n          child.geometry.computeFaceNormals();\n          child.geometry.computeVertexNormals();\n          child.geometry.computeBoundingBox();\n          this._asteroidMaterials.push(material);\n        }\n      });\n      this._obj = object;\n      // TODO(ian): Figure out initial rotation and spin\n\n      if (this._simulation) {\n        // Add it all to visualization.\n        this._simulation.addObject(this, false /* noUpdate */);\n      }\n    });\n  }\n\n  get3jsObjects() {\n    const ret = super.get3jsObjects();\n    ret.push(this._obj);\n    return ret;\n  }\n\n  update() {\n    if (this._obj && this._options.enableRotation) {\n      // For now, just rotate on X axis.\n      this._obj.rotation.x += (0.2*(Math.PI / 180));\n      this._obj.rotation.x %= 360;\n    }\n  }\n}\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/Simulation.js",
+    "longname": "/Users/ian/code/spacekit/src/ShapeObject.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
     "__docId__": 83,
+    "kind": "class",
+    "name": "ShapeObject",
+    "memberof": "src/ShapeObject.js",
+    "static": true,
+    "longname": "src/ShapeObject.js~ShapeObject",
+    "access": "public",
+    "export": true,
+    "importPath": "spacekit/src/ShapeObject.js",
+    "importStyle": "{ShapeObject}",
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "interface": false,
+    "extends": [
+      "src/SpaceObject.js~SpaceObject"
+    ]
+  },
+  {
+    "__docId__": 84,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#constructor",
+    "access": "public",
+    "description": "",
+    "see": [
+      "SpaceObject"
+    ],
+    "lineNumber": 12,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.shape",
+        "description": "Shape specification"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.shape.url",
+        "description": "Path to shapefile"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.shape.color",
+        "description": "Color of shape materials. Default 0xcccccc"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "options.shape.enableRotation",
+        "description": "Show rotation of object"
+      }
+    ]
+  },
+  {
+    "__docId__": 85,
+    "kind": "member",
+    "name": "_obj",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#_obj",
+    "access": "private",
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 86,
+    "kind": "member",
+    "name": "_asteroidMaterials",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#_asteroidMaterials",
+    "access": "private",
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 87,
+    "kind": "method",
+    "name": "init",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#init",
+    "access": "public",
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true,
+    "params": [],
+    "return": null
+  },
+  {
+    "__docId__": 89,
+    "kind": "method",
+    "name": "get3jsObjects",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#get3jsObjects",
+    "access": "public",
+    "description": null,
+    "lineNumber": 55,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 90,
+    "kind": "method",
+    "name": "update",
+    "memberof": "src/ShapeObject.js~ShapeObject",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/ShapeObject.js~ShapeObject#update",
+    "access": "public",
+    "description": null,
+    "lineNumber": 61,
+    "undocument": true,
+    "params": [],
+    "return": null
+  },
+  {
+    "__docId__": 91,
+    "kind": "file",
+    "name": "src/Simulation.js",
+    "content": "import julian from 'julian';\n\nimport { Camera } from './Camera';\nimport { Skybox } from './Skybox';\nimport { ShapeObject } from './ShapeObject';\nimport { SpaceObject } from './SpaceObject';\nimport { SpaceParticles } from './SpaceParticles';\n\n/**\n * The main entrypoint of a visualization.\n *\n * This class wraps a THREE.js scene, controls, skybox, etc in an animated\n * Simulation.\n *\n * @example\n * const sim = new Spacekit.Simulation('my-container', {\n *  startDate: Date.now(),\n *  jed: 0.0,\n *  jedDelta: 10.0,\n *  jedPerSecond: 100.0,  // overrides jedDelta\n *  startPaused: false,\n *  maxNumParticles: 2**16,\n *  enableCameraDrift: true,\n *  debug: {\n *    showAxesHelper: false,\n *    showStats: false,\n *  },\n * });\n */\nexport class Simulation {\n  /**\n   * @param {HTMLElement} simulationElt The container for this simulation.\n   * @param {Object} options for simulation\n   * @param {Date} options.startDate The start date and time for this\n   * simulation.\n   * @param {Number} options.jed The JED date of this simulation.\n   * Defaults to 0\n   * @param {Number} options.jedDelta The number of JED to add every tick of\n   * the simulation.\n   * @param {Number} options.jedPerSecond The number of jed to add every\n   * second. Use this instead of `jedDelta` for constant motion that does not\n   * vary with framerate. Defaults to 100\n   * @param {boolean} options.startPaused Whether the simulation should start\n   * in a paused state.\n   * @param {Number} options.maxNumParticles The maximum number of particles in\n   * the visualization. Try choosing a number that is larger than your\n   * particles, but not too much larger. It's usually good enough to choose the\n   * next highest power of 2. If you're not showing many particles (tens of\n   * thousands+), you don't need to worry about this.\n   * @param {boolean} options.enableCameraDrift Set true to have the camera\n   * float around slightly. True by default.\n   * @param {Object} options.debug Options dictating debug state.\n   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes\n   * @param {boolean} options.debug.showStats Show FPS and other stats\n   * (requires stats.js).\n   */\n  constructor(simulationElt, options) {\n    this._simulationElt = simulationElt;\n    this._options = options || {};\n\n    this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;\n    this._jedDelta = this._options.jedDelta;\n    this._jedPerSecond = this._options.jedPerSecond || 100;\n    this._isPaused = options.startPaused || false;\n    this.onTick = null;\n\n    this._scene = null;\n    this._renderer = null;\n\n    this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;\n    this._cameraDefaultPos = [0, -10, 5];\n    this._camera = null;\n    this._cameraControls = null;\n\n    this._subscribedObjects = {};\n    this._particles = null;\n\n    this._renderEnabled = true;\n    this._boundAnimate = this.animate.bind(this);\n\n    // stats.js panel\n    this._stats = null;\n    this._fps = 1;\n    this._lastUpdatedTime = Date.now();\n\n    this.init();\n    this.animate();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    this.initRenderer();\n\n    // Scene\n    this._scene = new THREE.Scene();\n\n    // Camera\n    this._camera = new Camera(this.getContext()).get3jsCamera();\n    this._camera.position.set(this._cameraDefaultPos[0],\n      this._cameraDefaultPos[1],\n      this._cameraDefaultPos[2]);\n    window.cam = this._camera;\n\n    // Controls\n    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);\n    this._cameraControls.userPanSpeed = 20;\n    this._cameraControls.rotateSpeed = 2;\n\n    // Events\n    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {\n      // When user begins interacting with the visualization, disable camera\n      // drift.\n      this._enableCameraDrift = false;\n    };\n\n    // Helper\n    if (this._options.debug) {\n      if (this._options.debug.showAxesHelper) {\n        this._scene.add(new THREE.AxesHelper(5));\n      }\n      if (this._options.debug.showStats) {\n        this._stats = new Stats();\n        this._stats.showPanel(0);\n        this._simulationElt.appendChild(this._stats.dom);\n      }\n    }\n\n    // Orbit particle system must be initialized after scene is created.\n    this._particles = new SpaceParticles({\n      textureUrl: '{{assets}}/sprites/smallparticle.png',\n      jed: this._jed,\n      maxNumParticles: this._options.maxNumParticles,\n    }, this);\n  }\n\n  /**\n   * @private\n   */\n  initRenderer() {\n    const renderer = new THREE.WebGLRenderer({\n      antialias: true,\n    });\n    renderer.setPixelRatio(window.devicePixelRatio);\n    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);\n\n    this._simulationElt.appendChild(renderer.domElement);\n\n    this._renderer = renderer;\n  }\n\n  /**\n   * @private\n   */\n  update() {\n    for (const objId in this._subscribedObjects) {\n      if (this._subscribedObjects.hasOwnProperty(objId)) {\n        this._subscribedObjects[objId].update(this._jed);\n      }\n    }\n  }\n\n  /**\n   * @private\n   */\n  doCameraDrift() {\n    // Follow floating path around\n    const timer = 0.0001 * Date.now();\n    const pos = this._cameraDefaultPos;\n    this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1) / 3;\n    this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1) / 3;\n  }\n\n  /**\n   * @private\n   */\n  animate() {\n    if (!this._renderEnabled) {\n      return;\n    }\n\n    window.requestAnimationFrame(this._boundAnimate);\n\n    if (this._stats) {\n      this._stats.begin();\n    }\n\n    if (!this._isPaused) {\n      if (this._jedDelta) {\n        this._jed += this._jedDelta;\n      } else {\n        // N jed per second\n        this._jed += (this._jedPerSecond) / this._fps;\n      }\n\n      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;\n      this._lastUpdatedTime = Date.now();\n      this._fps = (1 / timeDelta) || 1;\n    }\n\n    // Update objects in this simulation\n    this.update();\n    // Update camera drifting, if applicable\n    if (this._enableCameraDrift) {\n      this.doCameraDrift();\n    }\n    // Handle trackball movements\n    this._cameraControls.update();\n    // Update three.js scene\n    this._renderer.render(this._scene, this._camera);\n\n    if (this.onTick) {\n      this.onTick();\n    }\n\n    if (this._stats) {\n      this._stats.end();\n    }\n  }\n\n  /**\n   * Add a spacekit object (usually a SpaceObject) to the visualization.\n   * @see SpaceObject\n   * @param {Object} obj Object to add to visualization\n   * @param {boolean} noUpdate Set to true if object does not need to be\n   * animated.\n   */\n  addObject(obj, noUpdate = false) {\n    obj.get3jsObjects().map((x) => {\n      this._scene.add(x);\n    });\n\n    if (!noUpdate) {\n      // Call for updates as time passes.\n      this._subscribedObjects[obj.getId()] = obj;\n    }\n  }\n\n  /**\n   * Removes an object from the visualization.\n   * @param {Object} obj Object to remove\n   */\n  removeObject(obj) {\n    // TODO(ian): test this and avoid memory leaks...\n    obj.get3jsObjects().map((x) => {\n      this._scene.remove(x);\n    });\n\n    delete this._subscribedObjects[obj.getId()];\n  }\n\n  /**\n   * Shortcut for creating a new SpaceObject belonging to this visualization.\n   * Takes any SpaceObject arguments.\n   * @see SpaceObject\n   */\n  createObject(...args) {\n    return new SpaceObject(...args, this);\n  }\n\n  /**\n   * Shortcut for creating a new ShapeObject belonging to this visualization.\n   * Takes any ShapeObject arguments.\n   * @see ShapeObject\n   */\n  createShape(...args) {\n    return new ShapeObject(...args, this);\n  }\n\n  /**\n   * Shortcut for creating a new Skybox belonging to this visualization. Takes\n   * any Skybox arguments.\n   * @see Skybox\n   */\n  createSkybox(...args) {\n    return new Skybox(...args, this);\n  }\n\n  /**\n   * Creates an ambient light source. This will dimly light everything in the\n   * visualization.\n   * @param {Number} color Color of light, default 0x333333\n   */\n  createAmbientLight(color = 0x333333) {\n    this._scene.add(new THREE.AmbientLight(color));\n  }\n\n  /**\n   * Creates a light source. This will make the shape of your objects visible\n   * and provide some contrast.\n   * @param {Array.<Number>} pos Position of light source. Defaults to moving\n   * with camera.\n   * @param {Number} color Color of light, default 0xCCCCCC\n   */\n  createLight(pos = undefined, color = 0xcccccc) {\n    const campos = this._camera.position;\n    const directionalLight = new THREE.DirectionalLight(color);\n    if (pos) {\n      directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();\n    } else {\n      this._cameraControls.addEventListener('change', () => {\n        directionalLight.position.copy(this._camera.position);\n      });\n    }\n    this._scene.add(directionalLight);\n  }\n\n  /**\n   * Installs a scroll handler that only renders the visualization while it is\n   * in the user's viewport.\n   *\n   * The scroll handler currently binds to the window object only.\n   */\n  renderOnlyInViewport() {\n    let previouslyInView = true;\n    const isInView = () => {\n      const rect = this._simulationElt.getBoundingClientRect();\n      const windowHeight = (window.innerHeight || document.documentElement.clientHeight);\n      const windowWidth = (window.innerWidth || document.documentElement.clientWidth);\n      const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0);\n      const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0);\n\n      return (vertInView && horInView);\n    };\n\n    window.addEventListener('scroll', () => {\n      const inView = isInView();\n      if (previouslyInView && !inView) {\n        // Went out of view\n        this._renderEnabled = false;\n        previouslyInView = false;\n      } else if (!previouslyInView && inView) {\n        // Came into view\n        this._renderEnabled = true;\n        window.requestAnimationFrame(this._boundAnimate);\n        previouslyInView = true;\n      }\n    });\n\n    if (!isInView()) {\n      // Initial state is render enabled, so disable it if currently out of\n      // view.\n      this._renderEnabled = false;\n      previouslyInView = false;\n    }\n  }\n\n  /**\n   * Adjust camera position so that the object fits within the viewport. If\n   * applicable, this function will fit around the object's orbit.\n   * @param {SpaceObject} spaceObj Object to fit within viewport.\n   * @param {Number} offset Add some extra room in the viewport. Increase to be\n   * further zoomed out, decrease to be closer. Default 3.0.\n   */\n  zoomToFit(spaceObj, offset = 3.0) {\n    const orbit = spaceObj.getOrbit();\n    const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];\n    const camera = this._camera;\n    const boundingBox = new THREE.Box3();\n    boundingBox.setFromObject(obj);\n\n    const center = new THREE.Vector3();\n    boundingBox.getCenter(center);\n    const size = new THREE.Vector3();\n    boundingBox.getSize(size);\n\n    // Get the max side of the bounding box (fits to width OR height as needed)\n    const maxDim = Math.max(size.x, size.y, size.z);\n    const fov = camera.fov * (Math.PI / 180);\n    const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;\n\n    const objectWorldPosition = new THREE.Vector3();\n    obj.getWorldPosition(objectWorldPosition);\n    const directionVector = camera.position.sub(objectWorldPosition); \t// Get vector from camera to object\n    const unitDirectionVector = directionVector.normalize(); // Convert to unit vector\n\n    const newpos = unitDirectionVector.multiplyScalar(cameraZ);\n    camera.position.x = newpos.x;\n    camera.position.y = newpos.y;\n    camera.position.z = newpos.z;\n    camera.updateProjectionMatrix();\n    this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];\n  }\n\n  /**\n   * Run the animation\n   */\n  start() {\n    this._lastUpdatedTime = Date.now();\n    this._isPaused = false;\n  }\n\n  /**\n   * Stop the animation\n   */\n  stop() {\n    this._isPaused = true;\n  }\n\n  /**\n   * Gets the current JED date of the simulation\n   * @return {Number} JED date\n   */\n  getJed() {\n    return this._jed;\n  }\n\n  /**\n   * Sets the JED date of the simulation.\n   * @param {Number} val JED date\n   */\n  setJed(val) {\n    this._jed = val;\n  }\n\n  /**\n   * Get a date object representing current date and time of the simulation.\n   * @return {Date} Date of simulation\n   */\n  getDate() {\n    return julian.toDate(this._jed);\n  }\n\n  /**\n   * Set the date and time of the simulation.\n   * @param {Date} date Date of simulation\n   */\n  setDate(date) {\n    this.setJed(julian.toJulianDay(date));\n  }\n\n  /**\n   * Get the JED per frame of the visualization.\n   */\n  getJedDelta() {\n    if (!this._jedDelta) {\n      return this._jedPerSecond / this._fps;\n    }\n    return this._jedDelta;\n  }\n\n  /**\n   * Set the JED per frame of the visualization. This will override any\n   * existing \"JED per second\" setting.\n   * @param {Number} delta JED per frame\n   */\n  setJedDelta(delta) {\n    this._jedDelta = delta;\n  }\n\n  /**\n   * Get the JED change per second of the visualization.\n   * @return {Number} JED per second\n   */\n  getJedPerSecond() {\n    if (this._jedDelta) {\n      // Jed per second can vary\n      return undefined;\n    }\n    return this._jedPerSecond;\n  }\n\n  /**\n   * Set the JED change per second of the visualization.\n   * @return {Number} x JED per second\n   */\n  setJedPerSecond(x) {\n    // Delta overrides jed per second, so unset it.\n    this._jedDelta = undefined;\n\n    this._jedPerSecond = x;\n  }\n\n  /**\n   * Get an object that contains useful context for this visualization\n   * @return {Object} Context object\n   */\n  getContext() {\n    return {\n      options: this._options,\n      objects: {\n        particles: this._particles,\n        camera: this._camera,\n      },\n      container: {\n        width: this._simulationElt.offsetWidth,\n        height: this._simulationElt.offsetHeight,\n      },\n    };\n  }\n\n  /**\n   * Get the element containing this simulation\n   * @return {HTMLElement} The html container of this simulation\n   */\n  getSimulationElement() {\n    return this._simulationElt;\n  }\n\n  /**\n   * Get the three.js camera\n   * @return {THREE.Camera} The THREE.js camera object\n   */\n  getCamera() {\n    return this._camera;\n  }\n\n  /**\n   * Enable or disable camera drift.\n   * @param {boolean} driftOn True if you want the camera to float around a bit\n   */\n  setCameraDrift(driftOn) {\n    this._enableCameraDrift = driftOn;\n  }\n}\n",
+    "static": true,
+    "longname": "/Users/ian/code/spacekit/src/Simulation.js",
+    "access": "public",
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 92,
     "kind": "class",
     "name": "Simulation",
     "memberof": "src/Simulation.js",
@@ -1450,11 +1626,11 @@
     "examples": [
       "const sim = new Spacekit.Simulation('my-container', {\n startDate: Date.now(),\n jed: 0.0,\n jedDelta: 10.0,\n jedPerSecond: 100.0,  // overrides jedDelta\n startPaused: false,\n maxNumParticles: 2**16,\n enableCameraDrift: true,\n debug: {\n   showAxesHelper: false,\n   showStats: false,\n },\n});"
     ],
-    "lineNumber": 29,
+    "lineNumber": 30,
     "interface": false
   },
   {
-    "__docId__": 84,
+    "__docId__": 93,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/Simulation.js~Simulation",
@@ -1464,7 +1640,7 @@
     "longname": "src/Simulation.js~Simulation#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 56,
+    "lineNumber": 57,
     "params": [
       {
         "nullable": null,
@@ -1554,7 +1730,7 @@
         "spread": false,
         "optional": false,
         "name": "options.enableCameraDrift",
-        "description": "Set true to have the camera\nfloat around slightly"
+        "description": "Set true to have the camera\nfloat around slightly. True by default."
       },
       {
         "nullable": null,
@@ -1589,30 +1765,12 @@
     ]
   },
   {
-    "__docId__": 85,
+    "__docId__": 94,
     "kind": "member",
     "name": "_simulationElt",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
     "longname": "src/Simulation.js~Simulation#_simulationElt",
-    "access": "private",
-    "description": null,
-    "lineNumber": 57,
-    "undocument": true,
-    "ignore": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 86,
-    "kind": "member",
-    "name": "_options",
-    "memberof": "src/Simulation.js~Simulation",
-    "static": false,
-    "longname": "src/Simulation.js~Simulation#_options",
     "access": "private",
     "description": null,
     "lineNumber": 58,
@@ -1625,15 +1783,15 @@
     }
   },
   {
-    "__docId__": 87,
+    "__docId__": 95,
     "kind": "member",
-    "name": "_jed",
+    "name": "_options",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_jed",
+    "longname": "src/Simulation.js~Simulation#_options",
     "access": "private",
     "description": null,
-    "lineNumber": 60,
+    "lineNumber": 59,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1643,12 +1801,12 @@
     }
   },
   {
-    "__docId__": 88,
+    "__docId__": 96,
     "kind": "member",
-    "name": "_jedDelta",
+    "name": "_jed",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_jedDelta",
+    "longname": "src/Simulation.js~Simulation#_jed",
     "access": "private",
     "description": null,
     "lineNumber": 61,
@@ -1661,12 +1819,12 @@
     }
   },
   {
-    "__docId__": 89,
+    "__docId__": 97,
     "kind": "member",
-    "name": "_jedPerSecond",
+    "name": "_jedDelta",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_jedPerSecond",
+    "longname": "src/Simulation.js~Simulation#_jedDelta",
     "access": "private",
     "description": null,
     "lineNumber": 62,
@@ -1679,12 +1837,12 @@
     }
   },
   {
-    "__docId__": 90,
+    "__docId__": 98,
     "kind": "member",
-    "name": "_isPaused",
+    "name": "_jedPerSecond",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_isPaused",
+    "longname": "src/Simulation.js~Simulation#_jedPerSecond",
     "access": "private",
     "description": null,
     "lineNumber": 63,
@@ -1697,32 +1855,15 @@
     }
   },
   {
-    "__docId__": 91,
+    "__docId__": 99,
     "kind": "member",
-    "name": "onTick",
+    "name": "_isPaused",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#onTick",
-    "access": "public",
-    "description": null,
-    "lineNumber": 64,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 92,
-    "kind": "member",
-    "name": "_scene",
-    "memberof": "src/Simulation.js~Simulation",
-    "static": false,
-    "longname": "src/Simulation.js~Simulation#_scene",
+    "longname": "src/Simulation.js~Simulation#_isPaused",
     "access": "private",
     "description": null,
-    "lineNumber": 66,
+    "lineNumber": 64,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1732,12 +1873,29 @@
     }
   },
   {
-    "__docId__": 93,
+    "__docId__": 100,
     "kind": "member",
-    "name": "_renderer",
+    "name": "onTick",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_renderer",
+    "longname": "src/Simulation.js~Simulation#onTick",
+    "access": "public",
+    "description": null,
+    "lineNumber": 65,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 101,
+    "kind": "member",
+    "name": "_scene",
+    "memberof": "src/Simulation.js~Simulation",
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#_scene",
     "access": "private",
     "description": null,
     "lineNumber": 67,
@@ -1750,15 +1908,15 @@
     }
   },
   {
-    "__docId__": 94,
+    "__docId__": 102,
     "kind": "member",
-    "name": "_enableCameraDrift",
+    "name": "_renderer",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_enableCameraDrift",
+    "longname": "src/Simulation.js~Simulation#_renderer",
     "access": "private",
     "description": null,
-    "lineNumber": 69,
+    "lineNumber": 68,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1768,7 +1926,25 @@
     }
   },
   {
-    "__docId__": 95,
+    "__docId__": 103,
+    "kind": "member",
+    "name": "_enableCameraDrift",
+    "memberof": "src/Simulation.js~Simulation",
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#_enableCameraDrift",
+    "access": "private",
+    "description": null,
+    "lineNumber": 70,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 104,
     "kind": "member",
     "name": "_cameraDefaultPos",
     "memberof": "src/Simulation.js~Simulation",
@@ -1776,7 +1952,7 @@
     "longname": "src/Simulation.js~Simulation#_cameraDefaultPos",
     "access": "private",
     "description": null,
-    "lineNumber": 70,
+    "lineNumber": 71,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1786,30 +1962,12 @@
     }
   },
   {
-    "__docId__": 96,
+    "__docId__": 105,
     "kind": "member",
     "name": "_camera",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
     "longname": "src/Simulation.js~Simulation#_camera",
-    "access": "private",
-    "description": null,
-    "lineNumber": 71,
-    "undocument": true,
-    "ignore": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 97,
-    "kind": "member",
-    "name": "_cameraControls",
-    "memberof": "src/Simulation.js~Simulation",
-    "static": false,
-    "longname": "src/Simulation.js~Simulation#_cameraControls",
     "access": "private",
     "description": null,
     "lineNumber": 72,
@@ -1822,7 +1980,25 @@
     }
   },
   {
-    "__docId__": 98,
+    "__docId__": 106,
+    "kind": "member",
+    "name": "_cameraControls",
+    "memberof": "src/Simulation.js~Simulation",
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#_cameraControls",
+    "access": "private",
+    "description": null,
+    "lineNumber": 73,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 107,
     "kind": "member",
     "name": "_subscribedObjects",
     "memberof": "src/Simulation.js~Simulation",
@@ -1830,7 +2006,7 @@
     "longname": "src/Simulation.js~Simulation#_subscribedObjects",
     "access": "private",
     "description": null,
-    "lineNumber": 74,
+    "lineNumber": 75,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1840,7 +2016,7 @@
     }
   },
   {
-    "__docId__": 99,
+    "__docId__": 108,
     "kind": "member",
     "name": "_particles",
     "memberof": "src/Simulation.js~Simulation",
@@ -1848,7 +2024,7 @@
     "longname": "src/Simulation.js~Simulation#_particles",
     "access": "private",
     "description": null,
-    "lineNumber": 75,
+    "lineNumber": 76,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1858,12 +2034,12 @@
     }
   },
   {
-    "__docId__": 100,
+    "__docId__": 109,
     "kind": "member",
-    "name": "_stats",
+    "name": "_renderEnabled",
     "memberof": "src/Simulation.js~Simulation",
     "static": false,
-    "longname": "src/Simulation.js~Simulation#_stats",
+    "longname": "src/Simulation.js~Simulation#_renderEnabled",
     "access": "private",
     "description": null,
     "lineNumber": 78,
@@ -1871,12 +2047,48 @@
     "ignore": true,
     "type": {
       "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 110,
+    "kind": "member",
+    "name": "_boundAnimate",
+    "memberof": "src/Simulation.js~Simulation",
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#_boundAnimate",
+    "access": "private",
+    "description": null,
+    "lineNumber": 79,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
         "*"
       ]
     }
   },
   {
-    "__docId__": 101,
+    "__docId__": 111,
+    "kind": "member",
+    "name": "_stats",
+    "memberof": "src/Simulation.js~Simulation",
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#_stats",
+    "access": "private",
+    "description": null,
+    "lineNumber": 82,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 112,
     "kind": "member",
     "name": "_fps",
     "memberof": "src/Simulation.js~Simulation",
@@ -1884,7 +2096,7 @@
     "longname": "src/Simulation.js~Simulation#_fps",
     "access": "private",
     "description": null,
-    "lineNumber": 79,
+    "lineNumber": 83,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1894,7 +2106,7 @@
     }
   },
   {
-    "__docId__": 102,
+    "__docId__": 113,
     "kind": "member",
     "name": "_lastUpdatedTime",
     "memberof": "src/Simulation.js~Simulation",
@@ -1902,7 +2114,7 @@
     "longname": "src/Simulation.js~Simulation#_lastUpdatedTime",
     "access": "private",
     "description": null,
-    "lineNumber": 80,
+    "lineNumber": 84,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -1912,7 +2124,7 @@
     }
   },
   {
-    "__docId__": 103,
+    "__docId__": 114,
     "kind": "method",
     "name": "init",
     "memberof": "src/Simulation.js~Simulation",
@@ -1922,13 +2134,13 @@
     "longname": "src/Simulation.js~Simulation#init",
     "access": "private",
     "description": "",
-    "lineNumber": 89,
+    "lineNumber": 93,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 110,
+    "__docId__": 121,
     "kind": "method",
     "name": "initRenderer",
     "memberof": "src/Simulation.js~Simulation",
@@ -1938,13 +2150,13 @@
     "longname": "src/Simulation.js~Simulation#initRenderer",
     "access": "private",
     "description": "",
-    "lineNumber": 138,
+    "lineNumber": 141,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 112,
+    "__docId__": 123,
     "kind": "method",
     "name": "update",
     "memberof": "src/Simulation.js~Simulation",
@@ -1954,13 +2166,13 @@
     "longname": "src/Simulation.js~Simulation#update",
     "access": "private",
     "description": "",
-    "lineNumber": 153,
+    "lineNumber": 156,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 113,
+    "__docId__": 124,
     "kind": "method",
     "name": "doCameraDrift",
     "memberof": "src/Simulation.js~Simulation",
@@ -1970,13 +2182,13 @@
     "longname": "src/Simulation.js~Simulation#doCameraDrift",
     "access": "private",
     "description": "",
-    "lineNumber": 164,
+    "lineNumber": 167,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 114,
+    "__docId__": 125,
     "kind": "method",
     "name": "animate",
     "memberof": "src/Simulation.js~Simulation",
@@ -1986,13 +2198,13 @@
     "longname": "src/Simulation.js~Simulation#animate",
     "access": "private",
     "description": "",
-    "lineNumber": 175,
+    "lineNumber": 178,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 119,
+    "__docId__": 130,
     "kind": "method",
     "name": "addObject",
     "memberof": "src/Simulation.js~Simulation",
@@ -2005,7 +2217,7 @@
     "see": [
       "SpaceObject"
     ],
-    "lineNumber": 222,
+    "lineNumber": 229,
     "params": [
       {
         "nullable": null,
@@ -2031,7 +2243,7 @@
     "return": null
   },
   {
-    "__docId__": 120,
+    "__docId__": 131,
     "kind": "method",
     "name": "removeObject",
     "memberof": "src/Simulation.js~Simulation",
@@ -2041,7 +2253,7 @@
     "longname": "src/Simulation.js~Simulation#removeObject",
     "access": "public",
     "description": "Removes an object from the visualization.",
-    "lineNumber": 237,
+    "lineNumber": 244,
     "params": [
       {
         "nullable": null,
@@ -2057,7 +2269,7 @@
     "return": null
   },
   {
-    "__docId__": 121,
+    "__docId__": 132,
     "kind": "method",
     "name": "createObject",
     "memberof": "src/Simulation.js~Simulation",
@@ -2070,7 +2282,7 @@
     "see": [
       "SpaceObject"
     ],
-    "lineNumber": 251,
+    "lineNumber": 258,
     "params": [
       {
         "name": "args",
@@ -2087,7 +2299,37 @@
     }
   },
   {
-    "__docId__": 122,
+    "__docId__": 133,
+    "kind": "method",
+    "name": "createShape",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#createShape",
+    "access": "public",
+    "description": "Shortcut for creating a new ShapeObject belonging to this visualization.\nTakes any ShapeObject arguments.",
+    "see": [
+      "ShapeObject"
+    ],
+    "lineNumber": 267,
+    "params": [
+      {
+        "name": "args",
+        "types": [
+          "...*"
+        ],
+        "spread": true
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 134,
     "kind": "method",
     "name": "createSkybox",
     "memberof": "src/Simulation.js~Simulation",
@@ -2100,7 +2342,7 @@
     "see": [
       "Skybox"
     ],
-    "lineNumber": 260,
+    "lineNumber": 276,
     "params": [
       {
         "name": "args",
@@ -2117,7 +2359,120 @@
     }
   },
   {
-    "__docId__": 123,
+    "__docId__": 135,
+    "kind": "method",
+    "name": "createAmbientLight",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#createAmbientLight",
+    "access": "public",
+    "description": "Creates an ambient light source. This will dimly light everything in the\nvisualization.",
+    "lineNumber": 285,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "color",
+        "description": "Color of light, default 0x333333"
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 136,
+    "kind": "method",
+    "name": "createLight",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#createLight",
+    "access": "public",
+    "description": "Creates a light source. This will make the shape of your objects visible\nand provide some contrast.",
+    "lineNumber": 296,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array.<Number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pos",
+        "description": "Position of light source. Defaults to moving\nwith camera."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "color",
+        "description": "Color of light, default 0xCCCCCC"
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 137,
+    "kind": "method",
+    "name": "renderOnlyInViewport",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#renderOnlyInViewport",
+    "access": "public",
+    "description": "Installs a scroll handler that only renders the visualization while it is\nin the user's viewport.\n\nThe scroll handler currently binds to the window object only.",
+    "lineNumber": 315,
+    "params": [],
+    "return": null
+  },
+  {
+    "__docId__": 141,
+    "kind": "method",
+    "name": "zoomToFit",
+    "memberof": "src/Simulation.js~Simulation",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/Simulation.js~Simulation#zoomToFit",
+    "access": "public",
+    "description": "Adjust camera position so that the object fits within the viewport. If\napplicable, this function will fit around the object's orbit.",
+    "lineNumber": 356,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "SpaceObject"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "spaceObj",
+        "description": "Object to fit within viewport."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "offset",
+        "description": "Add some extra room in the viewport. Increase to be\nfurther zoomed out, decrease to be closer. Default 3.0."
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 143,
     "kind": "method",
     "name": "start",
     "memberof": "src/Simulation.js~Simulation",
@@ -2126,13 +2481,13 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#start",
     "access": "public",
-    "description": "Start time",
-    "lineNumber": 267,
+    "description": "Run the animation",
+    "lineNumber": 389,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 126,
+    "__docId__": 146,
     "kind": "method",
     "name": "stop",
     "memberof": "src/Simulation.js~Simulation",
@@ -2141,13 +2496,13 @@
     "static": false,
     "longname": "src/Simulation.js~Simulation#stop",
     "access": "public",
-    "description": "Stop time",
-    "lineNumber": 275,
+    "description": "Stop the animation",
+    "lineNumber": 397,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 128,
+    "__docId__": 148,
     "kind": "method",
     "name": "getJed",
     "memberof": "src/Simulation.js~Simulation",
@@ -2157,7 +2512,7 @@
     "longname": "src/Simulation.js~Simulation#getJed",
     "access": "public",
     "description": "Gets the current JED date of the simulation",
-    "lineNumber": 283,
+    "lineNumber": 405,
     "return": {
       "nullable": null,
       "types": [
@@ -2169,7 +2524,7 @@
     "params": []
   },
   {
-    "__docId__": 129,
+    "__docId__": 149,
     "kind": "method",
     "name": "setJed",
     "memberof": "src/Simulation.js~Simulation",
@@ -2179,7 +2534,7 @@
     "longname": "src/Simulation.js~Simulation#setJed",
     "access": "public",
     "description": "Sets the JED date of the simulation.",
-    "lineNumber": 291,
+    "lineNumber": 413,
     "params": [
       {
         "nullable": null,
@@ -2195,7 +2550,7 @@
     "return": null
   },
   {
-    "__docId__": 131,
+    "__docId__": 151,
     "kind": "method",
     "name": "getDate",
     "memberof": "src/Simulation.js~Simulation",
@@ -2205,7 +2560,7 @@
     "longname": "src/Simulation.js~Simulation#getDate",
     "access": "public",
     "description": "Get a date object representing current date and time of the simulation.",
-    "lineNumber": 299,
+    "lineNumber": 421,
     "return": {
       "nullable": null,
       "types": [
@@ -2217,7 +2572,7 @@
     "params": []
   },
   {
-    "__docId__": 132,
+    "__docId__": 152,
     "kind": "method",
     "name": "setDate",
     "memberof": "src/Simulation.js~Simulation",
@@ -2227,7 +2582,7 @@
     "longname": "src/Simulation.js~Simulation#setDate",
     "access": "public",
     "description": "Set the date and time of the simulation.",
-    "lineNumber": 307,
+    "lineNumber": 429,
     "params": [
       {
         "nullable": null,
@@ -2243,7 +2598,7 @@
     "return": null
   },
   {
-    "__docId__": 133,
+    "__docId__": 153,
     "kind": "method",
     "name": "getJedDelta",
     "memberof": "src/Simulation.js~Simulation",
@@ -2253,7 +2608,7 @@
     "longname": "src/Simulation.js~Simulation#getJedDelta",
     "access": "public",
     "description": "Get the JED per frame of the visualization.",
-    "lineNumber": 314,
+    "lineNumber": 436,
     "params": [],
     "return": {
       "types": [
@@ -2262,7 +2617,7 @@
     }
   },
   {
-    "__docId__": 134,
+    "__docId__": 154,
     "kind": "method",
     "name": "setJedDelta",
     "memberof": "src/Simulation.js~Simulation",
@@ -2272,7 +2627,7 @@
     "longname": "src/Simulation.js~Simulation#setJedDelta",
     "access": "public",
     "description": "Set the JED per frame of the visualization. This will override any\nexisting \"JED per second\" setting.",
-    "lineNumber": 326,
+    "lineNumber": 448,
     "params": [
       {
         "nullable": null,
@@ -2288,7 +2643,7 @@
     "return": null
   },
   {
-    "__docId__": 136,
+    "__docId__": 156,
     "kind": "method",
     "name": "getJedPerSecond",
     "memberof": "src/Simulation.js~Simulation",
@@ -2298,7 +2653,7 @@
     "longname": "src/Simulation.js~Simulation#getJedPerSecond",
     "access": "public",
     "description": "Get the JED change per second of the visualization.",
-    "lineNumber": 334,
+    "lineNumber": 456,
     "return": {
       "nullable": null,
       "types": [
@@ -2310,7 +2665,7 @@
     "params": []
   },
   {
-    "__docId__": 137,
+    "__docId__": 157,
     "kind": "method",
     "name": "setJedPerSecond",
     "memberof": "src/Simulation.js~Simulation",
@@ -2320,7 +2675,7 @@
     "longname": "src/Simulation.js~Simulation#setJedPerSecond",
     "access": "public",
     "description": "Set the JED change per second of the visualization.",
-    "lineNumber": 346,
+    "lineNumber": 468,
     "return": {
       "nullable": null,
       "types": [
@@ -2339,7 +2694,7 @@
     ]
   },
   {
-    "__docId__": 140,
+    "__docId__": 160,
     "kind": "method",
     "name": "getContext",
     "memberof": "src/Simulation.js~Simulation",
@@ -2349,7 +2704,7 @@
     "longname": "src/Simulation.js~Simulation#getContext",
     "access": "public",
     "description": "Get an object that contains useful context for this visualization",
-    "lineNumber": 357,
+    "lineNumber": 479,
     "return": {
       "nullable": null,
       "types": [
@@ -2361,7 +2716,7 @@
     "params": []
   },
   {
-    "__docId__": 141,
+    "__docId__": 161,
     "kind": "method",
     "name": "getSimulationElement",
     "memberof": "src/Simulation.js~Simulation",
@@ -2371,7 +2726,7 @@
     "longname": "src/Simulation.js~Simulation#getSimulationElement",
     "access": "public",
     "description": "Get the element containing this simulation",
-    "lineNumber": 374,
+    "lineNumber": 497,
     "return": {
       "nullable": null,
       "types": [
@@ -2383,7 +2738,7 @@
     "params": []
   },
   {
-    "__docId__": 142,
+    "__docId__": 162,
     "kind": "method",
     "name": "getCamera",
     "memberof": "src/Simulation.js~Simulation",
@@ -2393,7 +2748,7 @@
     "longname": "src/Simulation.js~Simulation#getCamera",
     "access": "public",
     "description": "Get the three.js camera",
-    "lineNumber": 382,
+    "lineNumber": 505,
     "return": {
       "nullable": null,
       "types": [
@@ -2405,7 +2760,7 @@
     "params": []
   },
   {
-    "__docId__": 143,
+    "__docId__": 163,
     "kind": "method",
     "name": "setCameraDrift",
     "memberof": "src/Simulation.js~Simulation",
@@ -2415,7 +2770,7 @@
     "longname": "src/Simulation.js~Simulation#setCameraDrift",
     "access": "public",
     "description": "Enable or disable camera drift.",
-    "lineNumber": 390,
+    "lineNumber": 513,
     "params": [
       {
         "nullable": null,
@@ -2431,18 +2786,18 @@
     "return": null
   },
   {
-    "__docId__": 145,
+    "__docId__": 165,
     "kind": "file",
     "name": "src/Skybox.js",
     "content": "import { getFullTextureUrl } from './util';\n\n/**\n * A class that adds a skybox (technically a skysphere) to a visualization.\n */\nexport class Skybox {\n  /**\n   * @param {Object} options Options\n   * @param {String} options.textureUrl Texture to use\n   * @param {String} options.assetPath Base path to assets\n   * @param {Object} contextOrSimulation Simulation context or simulation\n   * object\n   */\n  constructor(options, contextOrSimulation) {\n    // TODO(ian): Support for actual box instead of sphere...\n    this._options = options;\n    this._id = `__skybox_${new Date().getTime()}`;\n\n    // if (contextOrSimulation instanceOf Simulation) {\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    this._mesh = null;\n\n    this.init();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    const geometry = new THREE.SphereBufferGeometry(4000);\n\n    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,\n      this._context.options.assetPath);\n    const texture = new THREE.TextureLoader().load(fullTextureUrl);\n\n    const material = new THREE.MeshBasicMaterial({\n      map: texture,\n      side: THREE.BackSide,\n    });\n\n    const sky = new THREE.Mesh(geometry, material);\n\n    // See this thread on orientation of milky way:\n    // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/\n    sky.rotation.x = 0;\n    sky.rotation.y = -1 / 12 * Math.PI;\n    sky.rotation.z = 8 / 5 * Math.PI;\n\n    // We're on the inside of the skybox, so invert it to correct it.\n    sky.scale.set(-1, 1, 1);\n\n    this._mesh = sky;\n\n    if (this._simulation) {\n      this._simulation.addObject(this, true /* noUpdate */);\n    }\n  }\n\n  /**\n   * A list of THREE.js objects that are used to compose the skybox.\n   * @return {THREE.Object} Skybox mesh\n   */\n  get3jsObjects() {\n    return [this._mesh];\n  }\n\n  /**\n   * Get the unique ID of this object.\n   * @return {String} id\n   */\n  getId() {\n    return this._id;\n  }\n}\n\n/**\n * Preset skybox objects that you can use to add a skybox to your\n * visualization.\n * @example\n * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);\n */\nexport const SkyboxPresets = {\n  ESO_GIGAGALAXY: {\n    textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',\n  },\n  NASA_TYCHO: {\n    textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',\n  },\n};\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/Skybox.js",
+    "longname": "/Users/ian/code/spacekit/src/Skybox.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 146,
+    "__docId__": 166,
     "kind": "class",
     "name": "Skybox",
     "memberof": "src/Skybox.js",
@@ -2457,7 +2812,7 @@
     "interface": false
   },
   {
-    "__docId__": 147,
+    "__docId__": 167,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/Skybox.js~Skybox",
@@ -2512,7 +2867,7 @@
     ]
   },
   {
-    "__docId__": 148,
+    "__docId__": 168,
     "kind": "member",
     "name": "_options",
     "memberof": "src/Skybox.js~Skybox",
@@ -2530,7 +2885,7 @@
     }
   },
   {
-    "__docId__": 149,
+    "__docId__": 169,
     "kind": "member",
     "name": "_id",
     "memberof": "src/Skybox.js~Skybox",
@@ -2548,7 +2903,7 @@
     }
   },
   {
-    "__docId__": 150,
+    "__docId__": 170,
     "kind": "member",
     "name": "_simulation",
     "memberof": "src/Skybox.js~Skybox",
@@ -2566,7 +2921,7 @@
     }
   },
   {
-    "__docId__": 151,
+    "__docId__": 171,
     "kind": "member",
     "name": "_context",
     "memberof": "src/Skybox.js~Skybox",
@@ -2584,7 +2939,7 @@
     }
   },
   {
-    "__docId__": 154,
+    "__docId__": 174,
     "kind": "member",
     "name": "_mesh",
     "memberof": "src/Skybox.js~Skybox",
@@ -2602,7 +2957,7 @@
     }
   },
   {
-    "__docId__": 155,
+    "__docId__": 175,
     "kind": "method",
     "name": "init",
     "memberof": "src/Skybox.js~Skybox",
@@ -2618,7 +2973,7 @@
     "return": null
   },
   {
-    "__docId__": 157,
+    "__docId__": 177,
     "kind": "method",
     "name": "get3jsObjects",
     "memberof": "src/Skybox.js~Skybox",
@@ -2640,7 +2995,7 @@
     "params": []
   },
   {
-    "__docId__": 158,
+    "__docId__": 178,
     "kind": "method",
     "name": "getId",
     "memberof": "src/Skybox.js~Skybox",
@@ -2662,7 +3017,7 @@
     "params": []
   },
   {
-    "__docId__": 159,
+    "__docId__": 179,
     "kind": "variable",
     "name": "SkyboxPresets",
     "memberof": "src/Skybox.js",
@@ -2684,18 +3039,18 @@
     }
   },
   {
-    "__docId__": 160,
+    "__docId__": 180,
     "kind": "file",
     "name": "src/SpaceObject.js",
-    "content": "import { EphemPresets, Ephem } from './Ephem';\nimport { Orbit } from './Orbit';\nimport { getFullTextureUrl } from './util';\n\n/**\n * @private\n * Minimum number of degrees per day an object must move in order for its\n * position to be updated in the visualization.\n */\nconst MIN_DEG_MOVE_PER_DAY = 0.5;\n\n/**\n * @private\n * Converts (X, Y, Z) position in visualization to pixel coordinates.\n */\nfunction toScreenXY(position, camera, canvas) {\n  const pos = new THREE.Vector3(position[0], position[1], position[2]);\n  const projScreenMat = new THREE.Matrix4();\n  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);\n  pos.applyMatrix4(projScreenMat);\n  return {\n    x: (pos.x + 1) * canvas.clientWidth / 2,\n    y: (-pos.y + 1) * canvas.clientHeight / 2,\n  };\n}\n\n/**\n * An object that can be added to a visualization.\n * @example\n * const myObject = viz.addObject('planet1', {\n *   position: [0, 0, 0],\n *   scale: [1, 1, 1],\n *   labelText: 'My object',\n *   hideOrbit: false,\n *   ephem: new Spacekit.Ephem({...}),\n *   textureUrl: '/path/to/spriteTexture.png',\n *   assetPath: '/base/assets',\n *   ecliptic: {\n *     lineColor: 0xCCCCCC,\n *     displayLines: false,\n *   },\n *   theme: {\n *     color: 0xFFFFFF,\n *   },\n * });\n */\nexport class SpaceObject {\n  /**\n   * @param {String} id Unique id of this object\n   * @param {Object} options Options container\n   * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]\n   * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]\n   * @param {String} options.labelText Text label to display above object (set undefined for no label)\n   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.\n   * @param {Ephem} options.ephem Ephemerides for this orbit\n   * @param {String} options.textureUrl Texture for sprite\n   * @param {String} options.assetPath Base path for texture urls\n   * @param {Object} options.ecliptic Contains settings related to ecliptic\n   * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit\n   * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.\n   * @param {Object} options.theme Contains settings related to appearance of orbit\n   * @param {Number} options.theme.color Hex color of the orbit\n   * @param {Object} contextOrSimulation Simulation context or simulation object\n   */\n  constructor(id, options, contextOrSimulation) {\n    this._id = id;\n    this._options = options || {};\n\n    // if (contextOrSimulation instanceOf Simulation) {\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    this._label = null;\n    this._position = this._options.position || [0, 0, 0];\n    this._scale = this._options.scale || [1, 1, 1];\n\n    // Number of degrees moved per day. Used to limit the number of orbit\n    // updates for very slow moving objects.\n    this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;\n\n    if (!this.init()) {\n      console.warn(`SpaceObject ${id}: failed to initialize`);\n    }\n  }\n\n  /**\n   * @private\n   * Initializes label and three.js objects\n   */\n  init() {\n    if (this._options.labelText) {\n      const labelElt = this.createLabel();\n      this._simulation.getSimulationElement().appendChild(labelElt);\n      this._label = labelElt;\n    }\n    if (this.isStaticObject()) {\n      // Create a stationary sprite.\n      this._object3js = this.createSprite();\n      if (this._simulation) {\n        // Add it all to visualization.\n        this._simulation.addObject(this, false /* noUpdate */);\n      }\n    } else {\n      if (!this._options.hideOrbit) {\n        // Orbit is initialized before sprite because sprite may be positioned\n        // according to orbit.\n        this._orbit = this.createOrbit();\n\n        if (this._simulation) {\n          // Add it all to visualization.\n          this._simulation.addObject(this, false /* noUpdate */);\n        }\n      }\n\n      // Don't create a sprite - do it on the GPU instead.\n      this._context.objects.particles.addParticle(this._options.ephem, {\n        particleSize: this._options.particleSize,\n        color: this.getColor(),\n      });\n    }\n    return true;\n  }\n\n  /**\n   * @private\n   * Builds the label div and adds it to the visualization\n   * @return {HTMLElement} A div that contains the label for this object\n   */\n  createLabel() {\n    const text = document.createElement('div');\n    text.className = 'spacekit__object-label';\n    text.innerHTML = `<div>${this._options.labelText}</div>`;\n    text.style.fontFamily = 'Arial';\n    text.style.fontSize = '12px';\n    text.style.color = '#fff';\n    text.style.position = 'absolute';\n    text.style.marginLeft = '1.5em';\n\n    text.style.backgroundColor = '#0009';\n    text.style.borderRadius = '4px';\n    text.style.padding = '0px 1px';\n    text.style.border = '1px solid #5f5f5f';\n\n    return text;\n  }\n\n  /**\n   * @private\n   * Builds the sprite for this object\n   * @return {THREE.Sprite} A sprite object\n   */\n  createSprite() {\n    const fullTextureUrl = getFullTextureUrl(\n      this._options.textureUrl,\n      this._context.options.assetPath,\n    );\n    const texture = new THREE.TextureLoader().load(fullTextureUrl);\n    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({\n      map: texture,\n      blending: THREE.AdditiveBlending,\n      color: 0xffffff,\n    }));\n    sprite.scale.set.apply(this, this._scale);\n    const position = this.getPosition(this._simulation.getJed());\n    sprite.position.set(position[0], position[1], position[2]);\n\n\n    if (this.isStaticObject()) {\n      sprite.matrixAutoUpdate = false;\n    }\n\n    return sprite;\n\n    /*\n    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );\n    light.position.set.apply(this, this._position);\n\n    const lensflare = new THREE.Lensflare();\n    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new\n                                                    THREE.Color(0xffffff),\n                                                    THREE.AdditiveBlending));\n\n    light.add(lensflare);\n    return light;\n   */\n  }\n\n  /**\n   * @private\n   * Builds the {Orbit} for this object\n   * @return {Orbit} An orbit object\n   */\n  createOrbit() {\n    if (this._orbit) {\n      return this._orbit;\n    }\n    return new Orbit(this._options.ephem, {\n      color: this.getColor(),\n      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,\n    });\n  }\n\n  /**\n   * @private\n   * Determines whether to update the position of an update. Don't update if JED\n   * threshold is less than a certain amount.\n   * TODO(ian): This should also be a function of zoom level, because as you get\n   * closer the chopiness gets more noticeable.\n   * @param {Number} afterJed Next JED\n   * @return {boolean} Whether to update\n   */\n  shouldUpdateObjectPosition(afterJed) {\n    const degMove = this._degreesPerDay * (afterJed - this._lastJedUpdated);\n    if (degMove < MIN_DEG_MOVE_PER_DAY) {\n      return false;\n    }\n    return true;\n  }\n\n  /**\n   * Updates the position of this object. Applicable only if this object is a\n   * sprite and not a particle type.\n   * @param {Number} x X position\n   * @param {Number} y Y position\n   * @param {Number} z Z position\n   */\n  setPosition(x, y, z) {\n    this._position[0] = x;\n    this._position[1] = y;\n    this._position[2] = z;\n  }\n\n  /**\n   * Gets the visualization coordinates of this object at a given time.\n   * @param {Number} jed JED date\n   * @return {Array.<Number>} [X, Y,Z] coordinates\n   */\n  getPosition(jed) {\n    const pos = this._position;\n    if (!this._orbit) {\n      // Default implementation, a static object.\n      return pos;\n    }\n\n    const posModified = this._orbit.getPositionAtTime(jed);\n    return [\n      pos[0] + posModified[0],\n      pos[1] + posModified[1],\n      pos[2] + posModified[2],\n    ];\n  }\n\n  /**\n   * Updates the object and its label positions for a given time.\n   * @param {Number} jed JED date\n   */\n  update(jed) {\n    if (this.isStaticObject()) {\n      return;\n    }\n\n    let newpos = undefined;\n    if (this._object3js) {\n      if (!this.shouldUpdateObjectPosition(jed)) {\n        return;\n      }\n      newpos = this.getPosition(jed);\n      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);\n    }\n    if (this._label) {\n      if (!this.shouldUpdateObjectPosition(jed)) {\n        return;\n      }\n      if (!newpos) {\n        newpos = this.getPosition(jed);\n      }\n      const label = this._label;\n      const SimulationElt = this._simulation.getSimulationElement();\n      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);\n      const loc = {\n        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,\n      };\n      if (loc.left > 0 && loc.right < SimulationElt.clientWidth\n          && loc.top > 0 && loc.bottom < SimulationElt.clientHeight) {\n        label.style.left = `${loc.left}px`;\n        label.style.top = `${loc.top}px`;\n        label.style.visibility = 'visible';\n      } else {\n        label.style.visibility = 'hidden';\n      }\n    }\n    this._lastJedUpdated = jed;\n  }\n\n  /**\n   * Gets the THREE.js objects that represent this SpaceObject.\n   * @return {Array.<THREE.Object>} A list of THREE.js objects\n   */\n  get3jsObjects() {\n    const ret = [];\n    if (this._object3js) {\n      ret.push(this._object3js);\n    }\n    if (this._orbit) {\n      ret.push(this._orbit.getEllipse());\n      if (this._options.ecliptic && this._options.ecliptic.displayLines) {\n        ret.push(this._orbit.getLinesToEcliptic());\n      }\n    }\n    return ret;\n  }\n\n  /**\n   * Gets the color of this object. Usually this corresponds to the color of\n   * the dot representing the object as well as its orbit.\n   * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF\n   */\n  getColor() {\n    if (this._options.theme) {\n      return this._options.theme.color || 0xffffff;\n    }\n    return 0xffffff;\n  }\n\n  /**\n   * Gets the {Orbit} object for this SpaceObject.\n   * @return {Orbit} Orbit object\n   */\n  getOrbit() {\n    return this._orbit;\n  }\n\n  /**\n   * Gets the unique ID of this object.\n   * @return {String} Unique ID\n   */\n  getId() {\n    return this._id;\n  }\n\n  /**\n   * Determines whether object is static (can't change its position) or whether\n   * its position can be updated (ie, it has ephemeris)\n   * @return {boolean} Whether this object can change its position.\n   */\n  isStaticObject() {\n    return !this._options.ephem;\n  }\n}\n\nconst DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';\n\n/**\n * Useful presets for creating SpaceObjects.\n * @example\n * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);\n */\nexport const SpaceObjectPresets = {\n  SUN: {\n    textureUrl: '{{assets}}/sprites/sunsprite.png',\n    position: [0, 0, 0],\n  },\n  MERCURY: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x913CEE,\n    },\n    ephem: EphemPresets.MERCURY,\n  },\n  VENUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFF7733,\n    },\n    ephem: EphemPresets.VENUS,\n  },\n  EARTH: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x009ACD,\n    },\n    ephem: EphemPresets.EARTH,\n  },\n  MARS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xA63A3A,\n    },\n    ephem: EphemPresets.MARS,\n  },\n  JUPITER: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFFB90F,\n    },\n    ephem: EphemPresets.JUPITER,\n  },\n  SATURN: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x336633,\n    },\n    ephem: EphemPresets.SATURN,\n  },\n  URANUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x0099FF,\n    },\n    ephem: EphemPresets.URANUS,\n  },\n  NEPTUNE: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x3333FF,\n    },\n    ephem: EphemPresets.NEPTUNE,\n  },\n};\n",
+    "content": "import { EphemPresets, Ephem } from './Ephem';\nimport { Orbit } from './Orbit';\nimport { getFullTextureUrl } from './util';\n\n/**\n * @private\n * Minimum number of degrees per day an object must move in order for its\n * position to be updated in the visualization.\n */\nconst MIN_DEG_MOVE_PER_DAY = 0.5;\n\n/**\n * @private\n * Number of milliseconds between label position updates.\n */\nconst LABEL_UPDATE_MS = 100;\n\n/**\n * @private\n * Converts (X, Y, Z) position in visualization to pixel coordinates.\n */\nfunction toScreenXY(position, camera, canvas) {\n  const pos = new THREE.Vector3(position[0], position[1], position[2]);\n  const projScreenMat = new THREE.Matrix4();\n  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);\n  pos.applyMatrix4(projScreenMat);\n  return {\n    x: (pos.x + 1) * canvas.clientWidth / 2,\n    y: (-pos.y + 1) * canvas.clientHeight / 2,\n  };\n}\n\n/**\n * An object that can be added to a visualization.\n * @example\n * const myObject = viz.addObject('planet1', {\n *   position: [0, 0, 0],\n *   scale: [1, 1, 1],\n *   labelText: 'My object',\n *   hideOrbit: false,\n *   ephem: new Spacekit.Ephem({...}),\n *   textureUrl: '/path/to/spriteTexture.png',\n *   assetPath: '/base/assets',\n *   ecliptic: {\n *     lineColor: 0xCCCCCC,\n *     displayLines: false,\n *   },\n *   theme: {\n *     color: 0xFFFFFF,\n *   },\n * });\n */\nexport class SpaceObject {\n  /**\n   * @param {String} id Unique id of this object\n   * @param {Object} options Options container\n   * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]\n   * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]\n   * @param {String} options.labelText Text label to display above object (set undefined for no label)\n   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.\n   * @param {Ephem} options.ephem Ephemerides for this orbit\n   * @param {String} options.textureUrl Texture for sprite\n   * @param {String} options.assetPath Base path for texture urls\n   * @param {Object} options.ecliptic Contains settings related to ecliptic\n   * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit\n   * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.\n   * @param {Object} options.theme Contains settings related to appearance of orbit\n   * @param {Number} options.theme.color Hex color of the orbit\n   * @param {Object} contextOrSimulation Simulation context or simulation object\n   * @param {boolean} autoInit Automatically initialize this object. If false\n   * you must call init() manually.\n   */\n  constructor(id, options, contextOrSimulation, autoInit = true) {\n    this._id = id;\n    this._options = options || {};\n\n    // if (contextOrSimulation instanceOf Simulation) {\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    this._label = null;\n    this._lastLabelUpdate = 0;\n\n    this._position = this._options.position || [0, 0, 0];\n    this._scale = this._options.scale || [1, 1, 1];\n\n    // Number of degrees moved per day. Used to limit the number of orbit\n    // updates for very slow moving objects.\n    this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;\n\n    if (autoInit && !this.init()) {\n      console.warn(`SpaceObject ${id}: failed to initialize`);\n      return;\n    }\n  }\n\n  /**\n   * Initializes label and three.js objects. Called automatically unless you've\n   * set autoInit to false in constructor (this init is suppressed by some\n   * child classes).\n   */\n  init() {\n    if (this.isStaticObject()) {\n      // Create a stationary sprite.\n      this._object3js = this.createSprite();\n      if (this._simulation) {\n        // Add it all to visualization.\n        this._simulation.addObject(this, false /* noUpdate */);\n      }\n    } else {\n      if (!this._options.hideOrbit) {\n        // Orbit is initialized before sprite because sprite may be positioned\n        // according to orbit.\n        this._orbit = this.createOrbit();\n\n        if (this._simulation) {\n          // Add it all to visualization.\n          this._simulation.addObject(this, false /* noUpdate */);\n        }\n      }\n\n      // Don't create a sprite - do it on the GPU instead.\n      this._context.objects.particles.addParticle(this._options.ephem, {\n        particleSize: this._options.particleSize,\n        color: this.getColor(),\n      });\n    }\n    if (this._options.labelText) {\n      const labelElt = this.createLabel();\n      this._simulation.getSimulationElement().appendChild(labelElt);\n      this._label = labelElt;\n    }\n    return true;\n  }\n\n  /**\n   * @private\n   * Builds the label div and adds it to the visualization\n   * @return {HTMLElement} A div that contains the label for this object\n   */\n  createLabel() {\n    const text = document.createElement('div');\n    text.className = 'spacekit__object-label';\n    text.innerHTML = `<div>${this._options.labelText}</div>`;\n    text.style.fontFamily = 'Arial';\n    text.style.fontSize = '12px';\n    text.style.color = '#fff';\n    text.style.position = 'absolute';\n    text.style.marginLeft = '1.5em';\n\n    text.style.backgroundColor = '#0009';\n    text.style.borderRadius = '4px';\n    text.style.padding = '0px 1px';\n    text.style.border = '1px solid #5f5f5f';\n\n    return text;\n  }\n\n  /**\n   * @private\n   * Updates the label's position\n   * @param {Array.Number} newpos Position of the label in the visualization's\n   * coordinate system\n   */\n  updateLabelPosition(newpos) {\n    const label = this._label;\n    const simulationElt = this._simulation.getSimulationElement();\n    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);\n    const loc = {\n      left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,\n    };\n    if (loc.left > 0 && loc.right < simulationElt.clientWidth\n        && loc.top > 0 && loc.bottom < simulationElt.clientHeight) {\n      label.style.left = `${loc.left}px`;\n      label.style.top = `${loc.top}px`;\n      label.style.visibility = 'visible';\n    } else {\n      label.style.visibility = 'hidden';\n    }\n  }\n\n  /**\n   * @private\n   * Builds the sprite for this object\n   * @return {THREE.Sprite} A sprite object\n   */\n  createSprite() {\n    const fullTextureUrl = getFullTextureUrl(\n      this._options.textureUrl,\n      this._context.options.assetPath,\n    );\n    const texture = new THREE.TextureLoader().load(fullTextureUrl);\n    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({\n      map: texture,\n      blending: THREE.AdditiveBlending,\n      color: 0xffffff,\n    }));\n    sprite.scale.set.apply(this, this._scale);\n    const position = this.getPosition(this._simulation.getJed());\n    sprite.position.set(position[0], position[1], position[2]);\n\n\n    if (this.isStaticObject()) {\n      sprite.matrixAutoUpdate = false;\n    }\n\n    return sprite;\n\n    /*\n    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );\n    light.position.set.apply(this, this._position);\n\n    const lensflare = new THREE.Lensflare();\n    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new\n                                                    THREE.Color(0xffffff),\n                                                    THREE.AdditiveBlending));\n\n    light.add(lensflare);\n    return light;\n   */\n  }\n\n  /**\n   * @private\n   * Builds the {Orbit} for this object\n   * @return {Orbit} An orbit object\n   */\n  createOrbit() {\n    if (this._orbit) {\n      return this._orbit;\n    }\n    return new Orbit(this._options.ephem, {\n      color: this.getColor(),\n      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,\n    });\n  }\n\n  /**\n   * @private\n   * Determines whether to update the position of an update. Don't update if JED\n   * threshold is less than a certain amount.\n   * TODO(ian): This should also be a function of zoom level, because as you get\n   * closer the chopiness gets more noticeable.\n   * @param {Number} afterJed Next JED\n   * @return {boolean} Whether to update\n   */\n  shouldUpdateObjectPosition(afterJed) {\n    const degMove = this._degreesPerDay * (afterJed - this._lastJedUpdated);\n    if (degMove < MIN_DEG_MOVE_PER_DAY) {\n      return false;\n    }\n    return true;\n  }\n\n  /**\n   * Updates the position of this object. Applicable only if this object is a\n   * sprite and not a particle type.\n   * @param {Number} x X position\n   * @param {Number} y Y position\n   * @param {Number} z Z position\n   */\n  setPosition(x, y, z) {\n    this._position[0] = x;\n    this._position[1] = y;\n    this._position[2] = z;\n  }\n\n  /**\n   * Gets the visualization coordinates of this object at a given time.\n   * @param {Number} jed JED date\n   * @return {Array.<Number>} [X, Y,Z] coordinates\n   */\n  getPosition(jed) {\n    const pos = this._position;\n    if (!this._orbit) {\n      // Default implementation, a static object.\n      return pos;\n    }\n\n    const posModified = this._orbit.getPositionAtTime(jed);\n    return [\n      pos[0] + posModified[0],\n      pos[1] + posModified[1],\n      pos[2] + posModified[2],\n    ];\n  }\n\n  /**\n   * Updates the object and its label positions for a given time.\n   * @param {Number} jed JED date\n   */\n  update(jed) {\n    if (this.isStaticObject()) {\n      return;\n    }\n\n    let newpos;\n    let shouldUpdateObjectPosition = false;\n    if (this._object3js || this._label) {\n      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jed);\n    }\n    if (this._object3js && shouldUpdateObjectPosition) {\n      newpos = this.getPosition(jed);\n      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);\n    }\n\n    // TODO(ian): Determine this based on orbit and camera position change.\n    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;\n    if (this._label && shouldUpdateLabelPos) {\n      if (!newpos) {\n        newpos = this.getPosition(jed);\n      }\n      this.updateLabelPosition(newpos);\n      this._lastLabelUpdate = +new Date();\n    }\n    this._lastJedUpdated = jed;\n  }\n\n  /**\n   * Gets the THREE.js objects that represent this SpaceObject.\n   * @return {Array.<THREE.Object>} A list of THREE.js objects\n   */\n  get3jsObjects() {\n    const ret = [];\n    if (this._object3js) {\n      ret.push(this._object3js);\n    }\n    if (this._orbit) {\n      ret.push(this._orbit.getEllipse());\n      if (this._options.ecliptic && this._options.ecliptic.displayLines) {\n        ret.push(this._orbit.getLinesToEcliptic());\n      }\n    }\n    return ret;\n  }\n\n  /**\n   * Gets the color of this object. Usually this corresponds to the color of\n   * the dot representing the object as well as its orbit.\n   * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF\n   */\n  getColor() {\n    if (this._options.theme) {\n      return this._options.theme.color || 0xffffff;\n    }\n    return 0xffffff;\n  }\n\n  /**\n   * Gets the {Orbit} object for this SpaceObject.\n   * @return {Orbit} Orbit object\n   */\n  getOrbit() {\n    return this._orbit;\n  }\n\n  /**\n   * Gets the unique ID of this object.\n   * @return {String} Unique ID\n   */\n  getId() {\n    return this._id;\n  }\n\n  /**\n   * Determines whether object is static (can't change its position) or whether\n   * its position can be updated (ie, it has ephemeris)\n   * @return {boolean} Whether this object can change its position.\n   */\n  isStaticObject() {\n    return !this._options.ephem;\n  }\n}\n\nconst DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';\n\n/**\n * Useful presets for creating SpaceObjects.\n * @example\n * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);\n */\nexport const SpaceObjectPresets = {\n  SUN: {\n    textureUrl: '{{assets}}/sprites/sunsprite.png',\n    position: [0, 0, 0],\n  },\n  MERCURY: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x913CEE,\n    },\n    ephem: EphemPresets.MERCURY,\n  },\n  VENUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFF7733,\n    },\n    ephem: EphemPresets.VENUS,\n  },\n  EARTH: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x009ACD,\n    },\n    ephem: EphemPresets.EARTH,\n  },\n  MARS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xA63A3A,\n    },\n    ephem: EphemPresets.MARS,\n  },\n  JUPITER: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0xFFB90F,\n    },\n    ephem: EphemPresets.JUPITER,\n  },\n  SATURN: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x336633,\n    },\n    ephem: EphemPresets.SATURN,\n  },\n  URANUS: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x0099FF,\n    },\n    ephem: EphemPresets.URANUS,\n  },\n  NEPTUNE: {\n    textureUrl: DEFAULT_PLANET_TEXTURE_URL,\n    theme: {\n      color: 0x3333FF,\n    },\n    ephem: EphemPresets.NEPTUNE,\n  },\n};\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/SpaceObject.js",
+    "longname": "/Users/ian/code/spacekit/src/SpaceObject.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 161,
+    "__docId__": 181,
     "kind": "variable",
     "name": "MIN_DEG_MOVE_PER_DAY",
     "memberof": "src/SpaceObject.js",
@@ -2715,7 +3070,27 @@
     }
   },
   {
-    "__docId__": 162,
+    "__docId__": 182,
+    "kind": "variable",
+    "name": "LABEL_UPDATE_MS",
+    "memberof": "src/SpaceObject.js",
+    "static": true,
+    "longname": "src/SpaceObject.js~LABEL_UPDATE_MS",
+    "access": "private",
+    "export": false,
+    "importPath": "spacekit/src/SpaceObject.js",
+    "importStyle": null,
+    "description": "",
+    "lineNumber": 16,
+    "ignore": true,
+    "type": {
+      "types": [
+        "number"
+      ]
+    }
+  },
+  {
+    "__docId__": 183,
     "kind": "function",
     "name": "toScreenXY",
     "memberof": "src/SpaceObject.js",
@@ -2728,7 +3103,7 @@
     "importPath": "spacekit/src/SpaceObject.js",
     "importStyle": null,
     "description": "",
-    "lineNumber": 16,
+    "lineNumber": 22,
     "ignore": true,
     "params": [
       {
@@ -2757,7 +3132,7 @@
     }
   },
   {
-    "__docId__": 163,
+    "__docId__": 184,
     "kind": "class",
     "name": "SpaceObject",
     "memberof": "src/SpaceObject.js",
@@ -2771,11 +3146,11 @@
     "examples": [
       "const myObject = viz.addObject('planet1', {\n  position: [0, 0, 0],\n  scale: [1, 1, 1],\n  labelText: 'My object',\n  hideOrbit: false,\n  ephem: new Spacekit.Ephem({...}),\n  textureUrl: '/path/to/spriteTexture.png',\n  assetPath: '/base/assets',\n  ecliptic: {\n    lineColor: 0xCCCCCC,\n    displayLines: false,\n  },\n  theme: {\n    color: 0xFFFFFF,\n  },\n});"
     ],
-    "lineNumber": 47,
+    "lineNumber": 53,
     "interface": false
   },
   {
-    "__docId__": 164,
+    "__docId__": 185,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -2785,7 +3160,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 65,
+    "lineNumber": 73,
     "params": [
       {
         "nullable": null,
@@ -2936,11 +3311,21 @@
         "optional": false,
         "name": "contextOrSimulation",
         "description": "Simulation context or simulation object"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "autoInit",
+        "description": "Automatically initialize this object. If false\nyou must call init() manually."
       }
     ]
   },
   {
-    "__docId__": 165,
+    "__docId__": 186,
     "kind": "member",
     "name": "_id",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -2948,7 +3333,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_id",
     "access": "private",
     "description": null,
-    "lineNumber": 66,
+    "lineNumber": 74,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2958,7 +3343,7 @@
     }
   },
   {
-    "__docId__": 166,
+    "__docId__": 187,
     "kind": "member",
     "name": "_options",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -2966,7 +3351,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_options",
     "access": "private",
     "description": null,
-    "lineNumber": 67,
+    "lineNumber": 75,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -2976,48 +3361,12 @@
     }
   },
   {
-    "__docId__": 167,
+    "__docId__": 188,
     "kind": "member",
     "name": "_simulation",
     "memberof": "src/SpaceObject.js~SpaceObject",
     "static": false,
     "longname": "src/SpaceObject.js~SpaceObject#_simulation",
-    "access": "private",
-    "description": null,
-    "lineNumber": 72,
-    "undocument": true,
-    "ignore": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 168,
-    "kind": "member",
-    "name": "_context",
-    "memberof": "src/SpaceObject.js~SpaceObject",
-    "static": false,
-    "longname": "src/SpaceObject.js~SpaceObject#_context",
-    "access": "private",
-    "description": null,
-    "lineNumber": 73,
-    "undocument": true,
-    "ignore": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 171,
-    "kind": "member",
-    "name": "_label",
-    "memberof": "src/SpaceObject.js~SpaceObject",
-    "static": false,
-    "longname": "src/SpaceObject.js~SpaceObject#_label",
     "access": "private",
     "description": null,
     "lineNumber": 80,
@@ -3030,12 +3379,12 @@
     }
   },
   {
-    "__docId__": 172,
+    "__docId__": 189,
     "kind": "member",
-    "name": "_position",
+    "name": "_context",
     "memberof": "src/SpaceObject.js~SpaceObject",
     "static": false,
-    "longname": "src/SpaceObject.js~SpaceObject#_position",
+    "longname": "src/SpaceObject.js~SpaceObject#_context",
     "access": "private",
     "description": null,
     "lineNumber": 81,
@@ -3048,7 +3397,61 @@
     }
   },
   {
-    "__docId__": 173,
+    "__docId__": 192,
+    "kind": "member",
+    "name": "_label",
+    "memberof": "src/SpaceObject.js~SpaceObject",
+    "static": false,
+    "longname": "src/SpaceObject.js~SpaceObject#_label",
+    "access": "private",
+    "description": null,
+    "lineNumber": 88,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 193,
+    "kind": "member",
+    "name": "_lastLabelUpdate",
+    "memberof": "src/SpaceObject.js~SpaceObject",
+    "static": false,
+    "longname": "src/SpaceObject.js~SpaceObject#_lastLabelUpdate",
+    "access": "private",
+    "description": null,
+    "lineNumber": 89,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "number"
+      ]
+    }
+  },
+  {
+    "__docId__": 194,
+    "kind": "member",
+    "name": "_position",
+    "memberof": "src/SpaceObject.js~SpaceObject",
+    "static": false,
+    "longname": "src/SpaceObject.js~SpaceObject#_position",
+    "access": "private",
+    "description": null,
+    "lineNumber": 91,
+    "undocument": true,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 195,
     "kind": "member",
     "name": "_scale",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3056,7 +3459,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_scale",
     "access": "private",
     "description": null,
-    "lineNumber": 82,
+    "lineNumber": 92,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -3066,7 +3469,7 @@
     }
   },
   {
-    "__docId__": 174,
+    "__docId__": 196,
     "kind": "member",
     "name": "_degreesPerDay",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3074,7 +3477,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_degreesPerDay",
     "access": "private",
     "description": null,
-    "lineNumber": 86,
+    "lineNumber": 96,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -3084,7 +3487,7 @@
     }
   },
   {
-    "__docId__": 175,
+    "__docId__": 197,
     "kind": "method",
     "name": "init",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3092,10 +3495,9 @@
     "async": false,
     "static": false,
     "longname": "src/SpaceObject.js~SpaceObject#init",
-    "access": "private",
-    "description": "",
-    "lineNumber": 97,
-    "ignore": true,
+    "access": "public",
+    "description": "Initializes label and three.js objects. Called automatically unless you've\nset autoInit to false in constructor (this init is suppressed by some\nchild classes).",
+    "lineNumber": 109,
     "params": [],
     "return": {
       "types": [
@@ -3104,7 +3506,7 @@
     }
   },
   {
-    "__docId__": 177,
+    "__docId__": 198,
     "kind": "member",
     "name": "_object3js",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3112,7 +3514,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_object3js",
     "access": "private",
     "description": null,
-    "lineNumber": 105,
+    "lineNumber": 112,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -3122,7 +3524,7 @@
     }
   },
   {
-    "__docId__": 178,
+    "__docId__": 199,
     "kind": "member",
     "name": "_orbit",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3130,7 +3532,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_orbit",
     "access": "private",
     "description": null,
-    "lineNumber": 114,
+    "lineNumber": 121,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -3140,7 +3542,7 @@
     }
   },
   {
-    "__docId__": 179,
+    "__docId__": 201,
     "kind": "method",
     "name": "createLabel",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3150,7 +3552,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createLabel",
     "access": "private",
     "description": "",
-    "lineNumber": 136,
+    "lineNumber": 148,
     "return": {
       "nullable": null,
       "types": [
@@ -3163,7 +3565,34 @@
     "params": []
   },
   {
-    "__docId__": 180,
+    "__docId__": 202,
+    "kind": "method",
+    "name": "updateLabelPosition",
+    "memberof": "src/SpaceObject.js~SpaceObject",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/SpaceObject.js~SpaceObject#updateLabelPosition",
+    "access": "private",
+    "description": "",
+    "lineNumber": 172,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array.Number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "newpos",
+        "description": "Position of the label in the visualization's\ncoordinate system"
+      }
+    ],
+    "ignore": true,
+    "return": null
+  },
+  {
+    "__docId__": 203,
     "kind": "method",
     "name": "createSprite",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3173,7 +3602,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createSprite",
     "access": "private",
     "description": "",
-    "lineNumber": 159,
+    "lineNumber": 194,
     "return": {
       "nullable": null,
       "types": [
@@ -3186,7 +3615,7 @@
     "params": []
   },
   {
-    "__docId__": 181,
+    "__docId__": 204,
     "kind": "method",
     "name": "createOrbit",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3196,7 +3625,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#createOrbit",
     "access": "private",
     "description": "",
-    "lineNumber": 200,
+    "lineNumber": 235,
     "return": {
       "nullable": null,
       "types": [
@@ -3209,7 +3638,7 @@
     "params": []
   },
   {
-    "__docId__": 182,
+    "__docId__": 205,
     "kind": "method",
     "name": "shouldUpdateObjectPosition",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3219,7 +3648,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#shouldUpdateObjectPosition",
     "access": "private",
     "description": "",
-    "lineNumber": 219,
+    "lineNumber": 254,
     "params": [
       {
         "nullable": null,
@@ -3243,7 +3672,7 @@
     "ignore": true
   },
   {
-    "__docId__": 183,
+    "__docId__": 206,
     "kind": "method",
     "name": "setPosition",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3253,7 +3682,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#setPosition",
     "access": "public",
     "description": "Updates the position of this object. Applicable only if this object is a\nsprite and not a particle type.",
-    "lineNumber": 234,
+    "lineNumber": 269,
     "params": [
       {
         "nullable": null,
@@ -3289,7 +3718,7 @@
     "return": null
   },
   {
-    "__docId__": 184,
+    "__docId__": 207,
     "kind": "method",
     "name": "getPosition",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3299,7 +3728,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getPosition",
     "access": "public",
     "description": "Gets the visualization coordinates of this object at a given time.",
-    "lineNumber": 245,
+    "lineNumber": 280,
     "params": [
       {
         "nullable": null,
@@ -3322,7 +3751,7 @@
     }
   },
   {
-    "__docId__": 185,
+    "__docId__": 208,
     "kind": "method",
     "name": "update",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3332,7 +3761,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#update",
     "access": "public",
     "description": "Updates the object and its label positions for a given time.",
-    "lineNumber": 264,
+    "lineNumber": 299,
     "params": [
       {
         "nullable": null,
@@ -3348,7 +3777,7 @@
     "return": null
   },
   {
-    "__docId__": 186,
+    "__docId__": 210,
     "kind": "member",
     "name": "_lastJedUpdated",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3356,7 +3785,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#_lastJedUpdated",
     "access": "private",
     "description": null,
-    "lineNumber": 299,
+    "lineNumber": 323,
     "undocument": true,
     "ignore": true,
     "type": {
@@ -3366,7 +3795,7 @@
     }
   },
   {
-    "__docId__": 187,
+    "__docId__": 211,
     "kind": "method",
     "name": "get3jsObjects",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3376,7 +3805,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#get3jsObjects",
     "access": "public",
     "description": "Gets the THREE.js objects that represent this SpaceObject.",
-    "lineNumber": 306,
+    "lineNumber": 330,
     "return": {
       "nullable": null,
       "types": [
@@ -3388,7 +3817,7 @@
     "params": []
   },
   {
-    "__docId__": 188,
+    "__docId__": 212,
     "kind": "method",
     "name": "getColor",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3398,7 +3827,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getColor",
     "access": "public",
     "description": "Gets the color of this object. Usually this corresponds to the color of\nthe dot representing the object as well as its orbit.",
-    "lineNumber": 325,
+    "lineNumber": 349,
     "return": {
       "nullable": null,
       "types": [
@@ -3410,7 +3839,7 @@
     "params": []
   },
   {
-    "__docId__": 189,
+    "__docId__": 213,
     "kind": "method",
     "name": "getOrbit",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3420,7 +3849,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getOrbit",
     "access": "public",
     "description": "Gets the {Orbit} object for this SpaceObject.",
-    "lineNumber": 336,
+    "lineNumber": 360,
     "return": {
       "nullable": null,
       "types": [
@@ -3432,7 +3861,7 @@
     "params": []
   },
   {
-    "__docId__": 190,
+    "__docId__": 214,
     "kind": "method",
     "name": "getId",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3442,7 +3871,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#getId",
     "access": "public",
     "description": "Gets the unique ID of this object.",
-    "lineNumber": 344,
+    "lineNumber": 368,
     "return": {
       "nullable": null,
       "types": [
@@ -3454,7 +3883,7 @@
     "params": []
   },
   {
-    "__docId__": 191,
+    "__docId__": 215,
     "kind": "method",
     "name": "isStaticObject",
     "memberof": "src/SpaceObject.js~SpaceObject",
@@ -3464,7 +3893,7 @@
     "longname": "src/SpaceObject.js~SpaceObject#isStaticObject",
     "access": "public",
     "description": "Determines whether object is static (can't change its position) or whether\nits position can be updated (ie, it has ephemeris)",
-    "lineNumber": 353,
+    "lineNumber": 377,
     "return": {
       "nullable": null,
       "types": [
@@ -3476,7 +3905,7 @@
     "params": []
   },
   {
-    "__docId__": 192,
+    "__docId__": 216,
     "kind": "variable",
     "name": "DEFAULT_PLANET_TEXTURE_URL",
     "memberof": "src/SpaceObject.js",
@@ -3487,7 +3916,7 @@
     "importPath": "spacekit/src/SpaceObject.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 358,
+    "lineNumber": 382,
     "undocument": true,
     "type": {
       "types": [
@@ -3497,7 +3926,7 @@
     "ignore": true
   },
   {
-    "__docId__": 193,
+    "__docId__": 217,
     "kind": "variable",
     "name": "SpaceObjectPresets",
     "memberof": "src/SpaceObject.js",
@@ -3511,7 +3940,7 @@
     "examples": [
       "const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);"
     ],
-    "lineNumber": 365,
+    "lineNumber": 389,
     "type": {
       "types": [
         "{\"SUN\": *, \"MERCURY\": *, \"VENUS\": *, \"EARTH\": *, \"MARS\": *, \"JUPITER\": *, \"SATURN\": *, \"URANUS\": *, \"NEPTUNE\": *}"
@@ -3519,18 +3948,18 @@
     }
   },
   {
-    "__docId__": 194,
+    "__docId__": 218,
     "kind": "file",
     "name": "src/SpaceParticles.js",
     "content": "import { getFullTextureUrl } from './util';\n\nimport { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';\n\nconst DEFAULT_PARTICLE_COUNT = 1024;\n\n/**\n * An efficient way to render many objects in space with Kepler orbits.\n * Primarily used by Simulation to render all non-static objects.\n * @see Simulation\n */\nexport class SpaceParticles {\n  /**\n   * @param {Object} options Options container\n   * @param {Object} options.textureUrl Template url for sprite\n   * @param {Object} options.assetPath Base path for assets\n   * @param {Number} options.jed JED date value\n   * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024\n   * @param {Object} contextOrSimulation Simulation context or object\n   */\n  constructor(options, contextOrSimulation) {\n    this._options = options;\n\n    this._id = `SpaceParticles__${SpaceParticles.instanceCount}`;\n\n    // TODO(ian): Add to ctx\n    if (true) {\n      // User passed in Simulation\n      this._simulation = contextOrSimulation;\n      this._context = contextOrSimulation.getContext();\n    } else {\n      // User just passed in options\n      this._simulation = null;\n      this._context = contextOrSimulation;\n    }\n\n    // Whether Points object has been added to the Simulation/Scene. This\n    // happens lazily when the first data point is added in order to prevent\n    // WebGL render warnings.\n    this._addedToScene = false;\n\n    // Number of particles in the scene.\n    this._particleCount = 0;\n\n    this._attributes = null;\n    this._uniforms = null;\n    this._geometry = null;\n    this._shaderMaterial = null;\n    this._particleSystem = null;\n\n    this.init();\n  }\n\n  /**\n   * @private\n   */\n  init() {\n    this.createParticleSystem();\n  }\n\n  /**\n   * @private\n   */\n  createParticleSystem() {\n    const fullTextureUrl = getFullTextureUrl(\n      this._options.textureUrl,\n      this._context.options.assetPath,\n    );\n    const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);\n\n    this._uniforms = {\n      jed: { value: this._options.jed || 0 },\n      texture: { value: defaultMapTexture },\n    };\n\n    const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;\n    this._attributes = {\n      size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),\n      fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),\n\n      a: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      e: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      i: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n      epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),\n    };\n\n    const geometry = new THREE.BufferGeometry();\n    geometry.setDrawRange(0, 0);\n    Object.keys(this._attributes).forEach((attributeName) => {\n      const attribute = this._attributes[attributeName];\n      // attribute.setDynamic(true);\n      geometry.addAttribute(attributeName, attribute);\n    });\n\n    const shader = new THREE.ShaderMaterial({\n      uniforms: this._uniforms,\n      vertexShader: ORBIT_SHADER_VERTEX,\n      fragmentShader: ORBIT_SHADER_FRAGMENT,\n\n      depthTest: false,\n      transparent: true,\n    });\n\n\n    this._shaderMaterial = shader;\n    this._geometry = geometry;\n    this._particleSystem = new THREE.Points(geometry, shader);\n  }\n\n  /**\n   * Add a particle to this particle system.\n   * @param {Ephem} ephem Kepler ephemeris\n   * @param {Object} options Options container\n   * @param {Number} options.particleSize Size of particles\n   * @param {Number} options.color Color of particles\n   */\n  addParticle(ephem, options = {}) {\n    const attributes = this._attributes;\n    const offset = this._particleCount++;\n\n    attributes.size.set([options.particleSize || 15], offset);\n    const color = new THREE.Color(options.color || 0xffffff);\n    attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);\n\n    attributes.a.set([ephem.get('a')], offset);\n    attributes.e.set([ephem.get('e')], offset);\n    attributes.i.set([ephem.get('i', 'rad')], offset);\n    attributes.om.set([ephem.get('om', 'rad')], offset);\n    attributes.ma.set([ephem.get('ma', 'rad')], offset);\n    attributes.n.set([ephem.get('n', 'rad')], offset);\n    attributes.w.set([ephem.get('w', 'rad')], offset);\n    attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);\n    attributes.epoch.set([ephem.get('epoch')], offset);\n\n    // TODO(ian): Set the update range\n    for (const attributeKey in attributes) {\n      if (attributes.hasOwnProperty(attributeKey)) {\n        attributes[attributeKey].needsUpdate = true;\n      }\n    }\n    this._shaderMaterial.needsUpdate = true;\n    this._geometry.setDrawRange(0, this._particleCount);\n    this._geometry.needsUpdate = true;\n\n    if (!this._addedToScene && this._simulation) {\n      // This happens lazily when the first data point is added in order to\n      // prevent WebGL render warnings.\n      this._simulation.addObject(this);\n      this._addedToScene = true;\n    }\n  }\n\n  /**\n   * Update the position for all particles\n   * @param {Number} jed JED date\n   */\n  update(jed) {\n    this._uniforms.jed.value = jed;\n  }\n\n  /**\n   * Get THREE.js objects that comprise this point cloud\n   * @return {Array.<THREE.Object>} List of objects to add to THREE.js scene\n   */\n  get3jsObjects() {\n    return [this._particleSystem];\n  }\n\n  /**\n   * Get unique id for this object.\n   * @return {String} Unique id\n   */\n  getId() {\n    return this._id;\n  }\n}\n\nSpaceParticles.instanceCount = 0;\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/SpaceParticles.js",
+    "longname": "/Users/ian/code/spacekit/src/SpaceParticles.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 195,
+    "__docId__": 219,
     "kind": "variable",
     "name": "DEFAULT_PARTICLE_COUNT",
     "memberof": "src/SpaceParticles.js",
@@ -3551,7 +3980,7 @@
     "ignore": true
   },
   {
-    "__docId__": 196,
+    "__docId__": 220,
     "kind": "class",
     "name": "SpaceParticles",
     "memberof": "src/SpaceParticles.js",
@@ -3569,7 +3998,7 @@
     "interface": false
   },
   {
-    "__docId__": 197,
+    "__docId__": 221,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3644,7 +4073,7 @@
     ]
   },
   {
-    "__docId__": 198,
+    "__docId__": 222,
     "kind": "member",
     "name": "_options",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3662,7 +4091,7 @@
     }
   },
   {
-    "__docId__": 199,
+    "__docId__": 223,
     "kind": "member",
     "name": "_id",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3680,7 +4109,7 @@
     }
   },
   {
-    "__docId__": 200,
+    "__docId__": 224,
     "kind": "member",
     "name": "_simulation",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3698,7 +4127,7 @@
     }
   },
   {
-    "__docId__": 201,
+    "__docId__": 225,
     "kind": "member",
     "name": "_context",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3716,7 +4145,7 @@
     }
   },
   {
-    "__docId__": 204,
+    "__docId__": 228,
     "kind": "member",
     "name": "_addedToScene",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3734,7 +4163,7 @@
     }
   },
   {
-    "__docId__": 205,
+    "__docId__": 229,
     "kind": "member",
     "name": "_particleCount",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3752,7 +4181,7 @@
     }
   },
   {
-    "__docId__": 206,
+    "__docId__": 230,
     "kind": "member",
     "name": "_attributes",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3770,7 +4199,7 @@
     }
   },
   {
-    "__docId__": 207,
+    "__docId__": 231,
     "kind": "member",
     "name": "_uniforms",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3788,7 +4217,7 @@
     }
   },
   {
-    "__docId__": 208,
+    "__docId__": 232,
     "kind": "member",
     "name": "_geometry",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3806,7 +4235,7 @@
     }
   },
   {
-    "__docId__": 209,
+    "__docId__": 233,
     "kind": "member",
     "name": "_shaderMaterial",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3824,7 +4253,7 @@
     }
   },
   {
-    "__docId__": 210,
+    "__docId__": 234,
     "kind": "member",
     "name": "_particleSystem",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3842,7 +4271,7 @@
     }
   },
   {
-    "__docId__": 211,
+    "__docId__": 235,
     "kind": "method",
     "name": "init",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3858,7 +4287,7 @@
     "return": null
   },
   {
-    "__docId__": 212,
+    "__docId__": 236,
     "kind": "method",
     "name": "createParticleSystem",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3874,7 +4303,7 @@
     "return": null
   },
   {
-    "__docId__": 218,
+    "__docId__": 242,
     "kind": "method",
     "name": "addParticle",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3930,7 +4359,7 @@
     "return": null
   },
   {
-    "__docId__": 220,
+    "__docId__": 244,
     "kind": "method",
     "name": "update",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3956,7 +4385,7 @@
     "return": null
   },
   {
-    "__docId__": 221,
+    "__docId__": 245,
     "kind": "method",
     "name": "get3jsObjects",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -3978,7 +4407,7 @@
     "params": []
   },
   {
-    "__docId__": 222,
+    "__docId__": 246,
     "kind": "method",
     "name": "getId",
     "memberof": "src/SpaceParticles.js~SpaceParticles",
@@ -4000,18 +4429,18 @@
     "params": []
   },
   {
-    "__docId__": 223,
+    "__docId__": 247,
     "kind": "file",
     "name": "src/shaders.js",
     "content": "/**\n * @ignore\n */\nexport const ORBIT_SHADER_FRAGMENT = `\n    varying vec3 vColor;\n    uniform sampler2D texture;\n\n    void main() {\n      gl_FragColor = vec4(vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n    }\n`;\n\n/**\n * @ignore\n */\nexport const ORBIT_SHADER_VERTEX = `\n    uniform float jed;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float w_bar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = w_bar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jed - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jed - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n`;\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/shaders.js",
+    "longname": "/Users/ian/code/spacekit/src/shaders.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 224,
+    "__docId__": 248,
     "kind": "variable",
     "name": "ORBIT_SHADER_FRAGMENT",
     "memberof": "src/shaders.js",
@@ -4031,7 +4460,7 @@
     }
   },
   {
-    "__docId__": 225,
+    "__docId__": 249,
     "kind": "variable",
     "name": "ORBIT_SHADER_VERTEX",
     "memberof": "src/shaders.js",
@@ -4051,29 +4480,29 @@
     }
   },
   {
-    "__docId__": 226,
+    "__docId__": 250,
     "kind": "file",
     "name": "src/spacekit.js",
     "content": "export * from './Camera';\nexport * from './Ephem';\nexport * from './Orbit';\nexport * from './Simulation';\nexport * from './Skybox';\nexport * from './SpaceObject';\nexport * from './SpaceParticles';\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/spacekit.js",
+    "longname": "/Users/ian/code/spacekit/src/spacekit.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 227,
+    "__docId__": 251,
     "kind": "file",
     "name": "src/util.js",
     "content": "/**\n * @ignore\n */\nexport const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';\n\n/**\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n */\nexport function getFullTextureUrl(template, assetPath) {\n  return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);\n}\n",
     "static": true,
-    "longname": "/home/ian/code/spacekit/src/util.js",
+    "longname": "/Users/ian/code/spacekit/src/util.js",
     "access": "public",
     "description": null,
     "lineNumber": 1
   },
   {
-    "__docId__": 228,
+    "__docId__": 252,
     "kind": "variable",
     "name": "DEFAULT_TEXTURE_URL",
     "memberof": "src/util.js",
@@ -4093,7 +4522,7 @@
     }
   },
   {
-    "__docId__": 229,
+    "__docId__": 253,
     "kind": "function",
     "name": "getFullTextureUrl",
     "memberof": "src/util.js",
@@ -4140,8 +4569,8 @@
   },
   {
     "kind": "index",
-    "content": "# spacekit\n\nSpacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.\n\nThis library generalizes work that is currently used on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.\n\n🚨 **This library is a work in progress and the API is subject to change!** 🚨\n\n# Dependencies\n\nYou'll need to include the following dependencies in production:\n\n  - THREE.js\n  - THREE.js TrackballControls\n  - Stats.js (optional)\n\nIf you want to contribute to this project, you will also need to install Python (2.7 or 3).\n\n# Running an Example\n\nRunning `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/simple.html to load a simple example.\n\nIf you're making changes to the code, run `yarn build` to update the build outputs.  `yarn build:watch` will continuously watch for your changes and update the build.\n\n# Usage\n\nSee the [examples](https://github.com/typpo/spacekit/tree/master/examples) directory for full usage examples.  For now, here's some example code that will build an interactive visualization of a couple planets:\n\n```javascript\n// Create the visualization and put it in our div.\nconst viz = new Spacekit.Simulation(document.getElementById('main-container'), {\n  assetPath: '../src/assets',\n});\n\n// Create a skybox using NASA TYCHO artwork.\nconst skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);\n\n// Create our first object - the sun - using a preset space object.\nconst sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);\n\n// Then add some planets\nviz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);\nviz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);\nviz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);\nviz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);\nviz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);\nviz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);\nviz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);\nviz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);\n```\n\n![example](https://i.imgur.com/WseTJidl.jpg)\n",
-    "longname": "/home/ian/code/spacekit/README.md",
+    "content": "# spacekit\n\nSpacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.\n\nThis library generalizes work that is currently used on [Asterank](http://www.asterank.com/), [Meteor Showers](https://www.meteorshowers.org/), [Ancient Earth](http://dinosaurpictures.org/ancient-earth), [and](http://www.ianww.com/ceres/) [many](http://www.asterank.com/exoplanets) [other](http://www.ianww.com/pluto/) [things](http://www.ianww.com/moonviz/) into a single open-source 3D engine for space that is both accurate and visually stunning.\n\nSee the **[full documentation](https://typpo.github.io/spacekit/)**\n\nNote that this library is a work in progress and the API is subject to change!\n\n# Dependencies\n\nYou'll need to include the following dependencies in production:\n\n  - THREE.js\n  - THREE.js TrackballControls\n  - Stats.js (optional)\n\nIf you want to contribute to this project, you will also need to install Python (2.7 or 3).\n\n# Running an Example\n\nRunning `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/simple.html to load a simple example.\n\nIf you're making changes to the code, run `yarn build` to update the build outputs.  `yarn build:watch` will continuously watch for your changes and update the build.\n\n# Usage\n\nSee the [examples](https://github.com/typpo/spacekit/tree/master/examples) directory for full usage examples.  For now, here's some example code that will build an interactive visualization of a couple planets:\n\n```javascript\n// Create the visualization and put it in our div.\nconst viz = new Spacekit.Simulation(document.getElementById('main-container'), {\n  assetPath: '../src/assets',\n});\n\n// Create a skybox using NASA TYCHO artwork.\nconst skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);\n\n// Create our first object - the sun - using a preset space object.\nconst sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);\n\n// Then add some planets\nviz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);\nviz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);\nviz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);\nviz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);\nviz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);\nviz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);\nviz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);\nviz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);\n```\n\n![example](https://i.imgur.com/WseTJidl.jpg)\n",
+    "longname": "/Users/ian/code/spacekit/README.md",
     "name": "./README.md",
     "static": true,
     "access": "public"
@@ -4149,7 +4578,7 @@
   {
     "kind": "packageJSON",
     "content": "{\n  \"name\": \"spacekit\",\n  \"version\": \"0.0.1\",\n  \"license\": \"MIT\",\n  \"scripts\": {\n    \"build\": \"rollup -c\",\n    \"build:watch\": \"rollup -c -w\",\n    \"lint\": \"eslint .\",\n    \"lint:fix\": \"eslint --fix .\",\n    \"docs\": \"esdoc\"\n  },\n  \"devDependencies\": {\n    \"esdoc\": \"^1.1.0\",\n    \"esdoc-standard-plugin\": \"^1.0.0\",\n    \"eslint\": \"^5.9.0\",\n    \"eslint-config-airbnb\": \"^17.1.0\",\n    \"eslint-config-airbnb-base\": \"^13.1.0\",\n    \"eslint-plugin-import\": \"^2.14.0\",\n    \"rollup\": \"^0.67.4\",\n    \"rollup-plugin-commonjs\": \"^9.2.0\",\n    \"rollup-plugin-node-resolve\": \"^4.0.0\"\n  },\n  \"dependencies\": {\n    \"julian\": \"^0.2.0\"\n  }\n}\n",
-    "longname": "/home/ian/code/spacekit/package.json",
+    "longname": "/Users/ian/code/spacekit/package.json",
     "name": "package.json",
     "static": true,
     "access": "public"

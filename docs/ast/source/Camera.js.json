@@ -1,7 +1,7 @@
 {
   "type": "File",
   "start": 0,
-  "end": 695,
+  "end": 697,
   "loc": {
     "start": {
       "line": 1,
@@ -15,7 +15,7 @@
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 695,
+    "end": 697,
     "loc": {
       "start": {
         "line": 1,
@@ -31,7 +31,7 @@
       {
         "type": "ExportNamedDeclaration",
         "start": 49,
-        "end": 694,
+        "end": 696,
         "loc": {
           "start": {
             "line": 4,
@@ -47,7 +47,7 @@
         "declaration": {
           "type": "ClassDeclaration",
           "start": 56,
-          "end": 694,
+          "end": 696,
           "loc": {
             "start": {
               "line": 4,
@@ -80,7 +80,7 @@
           "body": {
             "type": "ClassBody",
             "start": 69,
-            "end": 694,
+            "end": 696,
             "loc": {
               "start": {
                 "line": 4,
@@ -386,7 +386,7 @@
               {
                 "type": "ClassMethod",
                 "start": 267,
-                "end": 580,
+                "end": 582,
                 "loc": {
                   "start": {
                     "line": 15,
@@ -425,7 +425,7 @@
                 "body": {
                   "type": "BlockStatement",
                   "start": 274,
-                  "end": 580,
+                  "end": 582,
                   "loc": {
                     "start": {
                       "line": 15,
@@ -971,7 +971,7 @@
                     {
                       "type": "ExpressionStatement",
                       "start": 486,
-                      "end": 576,
+                      "end": 578,
                       "loc": {
                         "start": {
                           "line": 21,
@@ -979,13 +979,13 @@
                         },
                         "end": {
                           "line": 21,
-                          "column": 94
+                          "column": 96
                         }
                       },
                       "expression": {
                         "type": "AssignmentExpression",
                         "start": 486,
-                        "end": 575,
+                        "end": 577,
                         "loc": {
                           "start": {
                             "line": 21,
@@ -993,7 +993,7 @@
                           },
                           "end": {
                             "line": 21,
-                            "column": 93
+                            "column": 95
                           }
                         },
                         "operator": "=",
@@ -1048,7 +1048,7 @@
                         "right": {
                           "type": "NewExpression",
                           "start": 501,
-                          "end": 575,
+                          "end": 577,
                           "loc": {
                             "start": {
                               "line": 21,
@@ -1056,7 +1056,7 @@
                             },
                             "end": {
                               "line": 21,
-                              "column": 93
+                              "column": 95
                             }
                           },
                           "callee": {
@@ -1183,7 +1183,7 @@
                             {
                               "type": "NumericLiteral",
                               "start": 567,
-                              "end": 568,
+                              "end": 570,
                               "loc": {
                                 "start": {
                                   "line": 21,
@@ -1191,34 +1191,34 @@
                                 },
                                 "end": {
                                   "line": 21,
-                                  "column": 86
+                                  "column": 88
                                 }
                               },
                               "extra": {
-                                "rawValue": 1,
-                                "raw": "1"
+                                "rawValue": 0.1,
+                                "raw": "0.1"
                               },
-                              "value": 1
+                              "value": 0.1
                             },
                             {
                               "type": "NumericLiteral",
-                              "start": 570,
-                              "end": 574,
+                              "start": 572,
+                              "end": 576,
                               "loc": {
                                 "start": {
                                   "line": 21,
-                                  "column": 88
+                                  "column": 90
                                 },
                                 "end": {
                                   "line": 21,
-                                  "column": 92
+                                  "column": 94
                                 }
                               },
                               "extra": {
-                                "rawValue": 5000,
-                                "raw": "5000"
+                                "rawValue": 4000,
+                                "raw": "4000"
                               },
-                              "value": 5000
+                              "value": 4000
                             }
                           ]
                         }
@@ -1232,8 +1232,8 @@
                   {
                     "type": "CommentBlock",
                     "value": "*\n   * @returns {Object} The THREE.js camera object.\n   ",
-                    "start": 584,
-                    "end": 644,
+                    "start": 586,
+                    "end": 646,
                     "loc": {
                       "start": {
                         "line": 24,
@@ -1249,8 +1249,8 @@
               },
               {
                 "type": "ClassMethod",
-                "start": 647,
-                "end": 692,
+                "start": 649,
+                "end": 694,
                 "loc": {
                   "start": {
                     "line": 27,
@@ -1265,8 +1265,8 @@
                 "computed": false,
                 "key": {
                   "type": "Identifier",
-                  "start": 647,
-                  "end": 659,
+                  "start": 649,
+                  "end": 661,
                   "loc": {
                     "start": {
                       "line": 27,
@@ -1289,8 +1289,8 @@
                 "params": [],
                 "body": {
                   "type": "BlockStatement",
-                  "start": 662,
-                  "end": 692,
+                  "start": 664,
+                  "end": 694,
                   "loc": {
                     "start": {
                       "line": 27,
@@ -1304,8 +1304,8 @@
                   "body": [
                     {
                       "type": "ReturnStatement",
-                      "start": 668,
-                      "end": 688,
+                      "start": 670,
+                      "end": 690,
                       "loc": {
                         "start": {
                           "line": 28,
@@ -1318,8 +1318,8 @@
                       },
                       "argument": {
                         "type": "MemberExpression",
-                        "start": 675,
-                        "end": 687,
+                        "start": 677,
+                        "end": 689,
                         "loc": {
                           "start": {
                             "line": 28,
@@ -1332,8 +1332,8 @@
                         },
                         "object": {
                           "type": "ThisExpression",
-                          "start": 675,
-                          "end": 679,
+                          "start": 677,
+                          "end": 681,
                           "loc": {
                             "start": {
                               "line": 28,
@@ -1347,8 +1347,8 @@
                         },
                         "property": {
                           "type": "Identifier",
-                          "start": 680,
-                          "end": 687,
+                          "start": 682,
+                          "end": 689,
                           "loc": {
                             "start": {
                               "line": 28,
@@ -1372,8 +1372,8 @@
                   {
                     "type": "CommentBlock",
                     "value": "*\n   * @returns {Object} The THREE.js camera object.\n   ",
-                    "start": 584,
-                    "end": 644,
+                    "start": 586,
+                    "end": 646,
                     "loc": {
                       "start": {
                         "line": 24,
@@ -1483,8 +1483,8 @@
     {
       "type": "CommentBlock",
       "value": "*\n   * @returns {Object} The THREE.js camera object.\n   ",
-      "start": 584,
-      "end": 644,
+      "start": 586,
+      "end": 646,
       "loc": {
         "start": {
           "line": 24,
@@ -3585,9 +3585,9 @@
         "binop": null,
         "updateContext": null
       },
-      "value": 1,
+      "value": 0.1,
       "start": 567,
-      "end": 568,
+      "end": 570,
       "loc": {
         "start": {
           "line": 21,
@@ -3595,7 +3595,7 @@
         },
         "end": {
           "line": 21,
-          "column": 86
+          "column": 88
         }
       }
     },
@@ -3612,16 +3612,16 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 568,
-      "end": 569,
+      "start": 570,
+      "end": 571,
       "loc": {
         "start": {
           "line": 21,
-          "column": 86
+          "column": 88
         },
         "end": {
           "line": 21,
-          "column": 87
+          "column": 89
         }
       }
     },
@@ -3638,17 +3638,17 @@
         "binop": null,
         "updateContext": null
       },
-      "value": 5000,
-      "start": 570,
-      "end": 574,
+      "value": 4000,
+      "start": 572,
+      "end": 576,
       "loc": {
         "start": {
           "line": 21,
-          "column": 88
+          "column": 90
         },
         "end": {
           "line": 21,
-          "column": 92
+          "column": 94
         }
       }
     },
@@ -3664,16 +3664,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 574,
-      "end": 575,
+      "start": 576,
+      "end": 577,
       "loc": {
         "start": {
           "line": 21,
-          "column": 92
+          "column": 94
         },
         "end": {
           "line": 21,
-          "column": 93
+          "column": 95
         }
       }
     },
@@ -3690,16 +3690,16 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 575,
-      "end": 576,
+      "start": 577,
+      "end": 578,
       "loc": {
         "start": {
           "line": 21,
-          "column": 93
+          "column": 95
         },
         "end": {
           "line": 21,
-          "column": 94
+          "column": 96
         }
       }
     },
@@ -3715,8 +3715,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 579,
-      "end": 580,
+      "start": 581,
+      "end": 582,
       "loc": {
         "start": {
           "line": 22,
@@ -3731,8 +3731,8 @@
     {
       "type": "CommentBlock",
       "value": "*\n   * @returns {Object} The THREE.js camera object.\n   ",
-      "start": 584,
-      "end": 644,
+      "start": 586,
+      "end": 646,
       "loc": {
         "start": {
           "line": 24,
@@ -3757,8 +3757,8 @@
         "binop": null
       },
       "value": "get3jsCamera",
-      "start": 647,
-      "end": 659,
+      "start": 649,
+      "end": 661,
       "loc": {
         "start": {
           "line": 27,
@@ -3782,8 +3782,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 659,
-      "end": 660,
+      "start": 661,
+      "end": 662,
       "loc": {
         "start": {
           "line": 27,
@@ -3807,8 +3807,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 660,
-      "end": 661,
+      "start": 662,
+      "end": 663,
       "loc": {
         "start": {
           "line": 27,
@@ -3832,8 +3832,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 662,
-      "end": 663,
+      "start": 664,
+      "end": 665,
       "loc": {
         "start": {
           "line": 27,
@@ -3860,8 +3860,8 @@
         "updateContext": null
       },
       "value": "return",
-      "start": 668,
-      "end": 674,
+      "start": 670,
+      "end": 676,
       "loc": {
         "start": {
           "line": 28,
@@ -3888,8 +3888,8 @@
         "updateContext": null
       },
       "value": "this",
-      "start": 675,
-      "end": 679,
+      "start": 677,
+      "end": 681,
       "loc": {
         "start": {
           "line": 28,
@@ -3914,8 +3914,8 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 679,
-      "end": 680,
+      "start": 681,
+      "end": 682,
       "loc": {
         "start": {
           "line": 28,
@@ -3940,8 +3940,8 @@
         "binop": null
       },
       "value": "_camera",
-      "start": 680,
-      "end": 687,
+      "start": 682,
+      "end": 689,
       "loc": {
         "start": {
           "line": 28,
@@ -3966,8 +3966,8 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 687,
-      "end": 688,
+      "start": 689,
+      "end": 690,
       "loc": {
         "start": {
           "line": 28,
@@ -3991,8 +3991,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 691,
-      "end": 692,
+      "start": 693,
+      "end": 694,
       "loc": {
         "start": {
           "line": 29,
@@ -4016,8 +4016,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 693,
-      "end": 694,
+      "start": 695,
+      "end": 696,
       "loc": {
         "start": {
           "line": 30,
@@ -4042,8 +4042,8 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 695,
-      "end": 695,
+      "start": 697,
+      "end": 697,
       "loc": {
         "start": {
           "line": 31,

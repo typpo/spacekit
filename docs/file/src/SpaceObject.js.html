@@ -32,6 +32,7 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/ShapeObject.js~ShapeObject.html">ShapeObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
@@ -55,6 +56,12 @@ import { getFullTextureUrl } from &apos;./util&apos;;
  * position to be updated in the visualization.
  */
 const MIN_DEG_MOVE_PER_DAY = 0.5;
+
+/**
+ * @private
+ * Number of milliseconds between label position updates.
+ */
+const LABEL_UPDATE_MS = 100;
 
 /**
  * @private
@@ -108,8 +115,10 @@ export class SpaceObject {
    * @param {Object} options.theme Contains settings related to appearance of orbit
    * @param {Number} options.theme.color Hex color of the orbit
    * @param {Object} contextOrSimulation Simulation context or simulation object
+   * @param {boolean} autoInit Automatically initialize this object. If false
+   * you must call init() manually.
    */
-  constructor(id, options, contextOrSimulation) {
+  constructor(id, options, contextOrSimulation, autoInit = true) {
     this._id = id;
     this._options = options || {};
 
@@ -125,6 +134,8 @@ export class SpaceObject {
     }
 
     this._label = null;
+    this._lastLabelUpdate = 0;
+
     this._position = this._options.position || [0, 0, 0];
     this._scale = this._options.scale || [1, 1, 1];
 
@@ -132,21 +143,18 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem ? this._options.ephem.get(&apos;n&apos;, &apos;deg&apos;) : Number.MAX_VALUE;
 
-    if (!this.init()) {
+    if (autoInit &amp;&amp; !this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
+      return;
     }
   }
 
   /**
-   * @private
-   * Initializes label and three.js objects
+   * Initializes label and three.js objects. Called automatically unless you&apos;ve
+   * set autoInit to false in constructor (this init is suppressed by some
+   * child classes).
    */
   init() {
-    if (this._options.labelText) {
-      const labelElt = this.createLabel();
-      this._simulation.getSimulationElement().appendChild(labelElt);
-      this._label = labelElt;
-    }
     if (this.isStaticObject()) {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
@@ -172,6 +180,11 @@ export class SpaceObject {
         color: this.getColor(),
       });
     }
+    if (this._options.labelText) {
+      const labelElt = this.createLabel();
+      this._simulation.getSimulationElement().appendChild(labelElt);
+      this._label = labelElt;
+    }
     return true;
   }
 
@@ -196,6 +209,29 @@ export class SpaceObject {
     text.style.border = &apos;1px solid #5f5f5f&apos;;
 
     return text;
+  }
+
+  /**
+   * @private
+   * Updates the label&apos;s position
+   * @param {Array.Number} newpos Position of the label in the visualization&apos;s
+   * coordinate system
+   */
+  updateLabelPosition(newpos) {
+    const label = this._label;
+    const simulationElt = this._simulation.getSimulationElement();
+    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+    const loc = {
+      left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+    };
+    if (loc.left &gt; 0 &amp;&amp; loc.right &lt; simulationElt.clientWidth
+        &amp;&amp; loc.top &gt; 0 &amp;&amp; loc.bottom &lt; simulationElt.clientHeight) {
+      label.style.left = `${loc.left}px`;
+      label.style.top = `${loc.top}px`;
+      label.style.visibility = &apos;visible&apos;;
+    } else {
+      label.style.visibility = &apos;hidden&apos;;
+    }
   }
 
   /**
@@ -313,35 +349,24 @@ export class SpaceObject {
       return;
     }
 
-    let newpos = undefined;
-    if (this._object3js) {
-      if (!this.shouldUpdateObjectPosition(jed)) {
-        return;
-      }
+    let newpos;
+    let shouldUpdateObjectPosition = false;
+    if (this._object3js || this._label) {
+      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jed);
+    }
+    if (this._object3js &amp;&amp; shouldUpdateObjectPosition) {
       newpos = this.getPosition(jed);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
     }
-    if (this._label) {
-      if (!this.shouldUpdateObjectPosition(jed)) {
-        return;
-      }
+
+    // TODO(ian): Determine this based on orbit and camera position change.
+    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS;
+    if (this._label &amp;&amp; shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jed);
       }
-      const label = this._label;
-      const SimulationElt = this._simulation.getSimulationElement();
-      const pos = toScreenXY(newpos, this._simulation.getCamera(), SimulationElt);
-      const loc = {
-        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
-      };
-      if (loc.left &gt; 0 &amp;&amp; loc.right &lt; SimulationElt.clientWidth
-          &amp;&amp; loc.top &gt; 0 &amp;&amp; loc.bottom &lt; SimulationElt.clientHeight) {
-        label.style.left = `${loc.left}px`;
-        label.style.top = `${loc.top}px`;
-        label.style.visibility = &apos;visible&apos;;
-      } else {
-        label.style.visibility = &apos;hidden&apos;;
-      }
+      this.updateLabelPosition(newpos);
+      this._lastLabelUpdate = +new Date();
     }
     this._lastJedUpdated = jed;
   }

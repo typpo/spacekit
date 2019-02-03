@@ -2,6 +2,7 @@ import julian from 'julian';
 
 import { Camera } from './Camera';
 import { Skybox } from './Skybox';
+import { ShapeObject } from './ShapeObject';
 import { SpaceObject } from './SpaceObject';
 import { SpaceParticles } from './SpaceParticles';
 
@@ -259,12 +260,50 @@ export class Simulation {
   }
 
   /**
+   * Shortcut for creating a new ShapeObject belonging to this visualization.
+   * Takes any ShapeObject arguments.
+   * @see ShapeObject
+   */
+  createShape(...args) {
+    return new ShapeObject(...args, this);
+  }
+
+  /**
    * Shortcut for creating a new Skybox belonging to this visualization. Takes
    * any Skybox arguments.
    * @see Skybox
    */
   createSkybox(...args) {
     return new Skybox(...args, this);
+  }
+
+  /**
+   * Creates an ambient light source. This will dimly light everything in the
+   * visualization.
+   * @param {Number} color Color of light, default 0x333333
+   */
+  createAmbientLight(color = 0x333333) {
+    this._scene.add(new THREE.AmbientLight(color));
+  }
+
+  /**
+   * Creates a light source. This will make the shape of your objects visible
+   * and provide some contrast.
+   * @param {Array.<Number>} pos Position of light source. Defaults to moving
+   * with camera.
+   * @param {Number} color Color of light, default 0xCCCCCC
+   */
+  createLight(pos = undefined, color = 0xcccccc) {
+    const campos = this._camera.position;
+    const directionalLight = new THREE.DirectionalLight(color);
+    if (pos) {
+      directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+    } else {
+      this._cameraControls.addEventListener('change', () => {
+        directionalLight.position.copy(this._camera.position);
+      });
+    }
+    this._scene.add(directionalLight);
   }
 
   /**

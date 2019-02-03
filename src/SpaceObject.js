@@ -67,8 +67,10 @@ export class SpaceObject {
    * @param {Object} options.theme Contains settings related to appearance of orbit
    * @param {Number} options.theme.color Hex color of the orbit
    * @param {Object} contextOrSimulation Simulation context or simulation object
+   * @param {boolean} autoInit Automatically initialize this object. If false
+   * you must call init() manually.
    */
-  constructor(id, options, contextOrSimulation) {
+  constructor(id, options, contextOrSimulation, autoInit = true) {
     this._id = id;
     this._options = options || {};
 
@@ -93,15 +95,16 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
 
-    if (!this.init()) {
+    if (autoInit && !this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
       return;
     }
   }
 
   /**
-   * @private
-   * Initializes label and three.js objects
+   * Initializes label and three.js objects. Called automatically unless you've
+   * set autoInit to false in constructor (this init is suppressed by some
+   * child classes).
    */
   init() {
     if (this.isStaticObject()) {

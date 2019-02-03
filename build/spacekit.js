@@ -678,8 +678,10 @@ var Spacekit = (function (exports) {
      * @param {Object} options.theme Contains settings related to appearance of orbit
      * @param {Number} options.theme.color Hex color of the orbit
      * @param {Object} contextOrSimulation Simulation context or simulation object
+     * @param {boolean} autoInit Automatically initialize this object. If false
+     * you must call init() manually.
      */
-    constructor(id, options, contextOrSimulation) {
+    constructor(id, options, contextOrSimulation, autoInit = true) {
       this._id = id;
       this._options = options || {};
 
@@ -700,15 +702,16 @@ var Spacekit = (function (exports) {
       // updates for very slow moving objects.
       this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
 
-      if (!this.init()) {
+      if (autoInit && !this.init()) {
         console.warn(`SpaceObject ${id}: failed to initialize`);
         return;
       }
     }
 
     /**
-     * @private
-     * Initializes label and three.js objects
+     * Initializes label and three.js objects. Called automatically unless you've
+     * set autoInit to false in constructor (this init is suppressed by some
+     * child classes).
      */
     init() {
       if (this.isStaticObject()) {
@@ -1052,6 +1055,73 @@ var Spacekit = (function (exports) {
       ephem: EphemPresets.NEPTUNE,
     },
   };
+
+  class ShapeObject extends SpaceObject {
+
+    /**
+     * @param {Object} options.shape Shape specification
+     * @param {String} options.shape.url Path to shapefile
+     * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
+     * @param {boolean} options.shape.enableRotation Show rotation of object
+     * @see SpaceObject
+     */
+    constructor(id, options, contextOrSimulation) {
+      super(id, options, contextOrSimulation, false /* autoInit */);
+      if (!options.shape) {
+        console.error('ShapeObject requires an options.shape object');
+        return;
+      }
+
+      // The THREE.js object
+      this._obj = undefined;
+
+      // Keep track of materials that comprise this object.
+      this._asteroidMaterials = [];
+
+      this.init();
+    }
+
+    init() {
+      const manager = new THREE.LoadingManager();
+      manager.onProgress = (item, loaded, total) => {
+        console.info(this._id, item, 'loading progress:', loaded, '/', total);
+      };
+      const loader = new THREE.OBJLoader(manager);
+      loader.load(this._options.shape.url, object => {
+        object.traverse(child => {
+          if (child instanceof THREE.Mesh) {
+            const material = new THREE.MeshLambertMaterial({color: this._options.shape.color || 0xcccccc});
+            child.material = material;
+            child.geometry.computeFaceNormals();
+            child.geometry.computeVertexNormals();
+            child.geometry.computeBoundingBox();
+            this._asteroidMaterials.push(material);
+          }
+        });
+        this._obj = object;
+        // TODO(ian): Figure out initial rotation and spin
+
+        if (this._simulation) {
+          // Add it all to visualization.
+          this._simulation.addObject(this, false /* noUpdate */);
+        }
+      });
+    }
+
+    get3jsObjects() {
+      const ret = super.get3jsObjects();
+      ret.push(this._obj);
+      return ret;
+    }
+
+    update() {
+      if (this._obj && this._options.enableRotation) {
+        // For now, just rotate on X axis.
+        this._obj.rotation.x += (0.2*(Math.PI / 180));
+        this._obj.rotation.x %= 360;
+      }
+    }
+  }
 
   /**
    * @ignore
@@ -1591,12 +1661,50 @@ var Spacekit = (function (exports) {
     }
 
     /**
+     * Shortcut for creating a new ShapeObject belonging to this visualization.
+     * Takes any ShapeObject arguments.
+     * @see ShapeObject
+     */
+    createShape(...args) {
+      return new ShapeObject(...args, this);
+    }
+
+    /**
      * Shortcut for creating a new Skybox belonging to this visualization. Takes
      * any Skybox arguments.
      * @see Skybox
      */
     createSkybox(...args) {
       return new Skybox(...args, this);
+    }
+
+    /**
+     * Creates an ambient light source. This will dimly light everything in the
+     * visualization.
+     * @param {Number} color Color of light, default 0x333333
+     */
+    createAmbientLight(color = 0x333333) {
+      this._scene.add(new THREE.AmbientLight(color));
+    }
+
+    /**
+     * Creates a light source. This will make the shape of your objects visible
+     * and provide some contrast.
+     * @param {Array.<Number>} pos Position of light source. Defaults to moving
+     * with camera.
+     * @param {Number} color Color of light, default 0xCCCCCC
+     */
+    createLight(pos = undefined, color = 0xcccccc) {
+      const campos = this._camera.position;
+      const directionalLight = new THREE.DirectionalLight(color);
+      if (pos) {
+        directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+      } else {
+        this._cameraControls.addEventListener('change', () => {
+          directionalLight.position.copy(this._camera.position);
+        });
+      }
+      this._scene.add(directionalLight);
     }
 
     /**

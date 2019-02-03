@@ -52,6 +52,8 @@ export class ShapeObject extends SpaceObject {
         this._simulation.addObject(this, false /* noUpdate */);
       }
     });
+
+    // TODO(ian): Create an orbit if applicable
   }
 
   get3jsObjects() {
@@ -67,5 +69,6 @@ export class ShapeObject extends SpaceObject {
       this._obj.rotation.x += (speed * (Math.PI / 180));
       this._obj.rotation.x %= 360;
     }
+    // TODO(ian): Update position if there is an associated orbit
   }
 }

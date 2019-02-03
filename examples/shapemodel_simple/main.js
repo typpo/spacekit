@@ -10,7 +10,7 @@ viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 viz.createLight();
 viz.createAmbientLight();
 
-// Create our first object - the sun - using a preset space object.
+// Create an object for 1998 XO94
 viz.createShape('myobj', {
   shape: {
     url: './1998_XO94.obj',

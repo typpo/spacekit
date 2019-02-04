@@ -704,7 +704,6 @@ var Spacekit = (function (exports) {
 
       if (autoInit && !this.init()) {
         console.warn(`SpaceObject ${id}: failed to initialize`);
-        return;
       }
     }
 
@@ -1057,7 +1056,6 @@ var Spacekit = (function (exports) {
   };
 
   class ShapeObject extends SpaceObject {
-
     /**
      * @param {Object} options.shape Shape specification
      * @param {String} options.shape.url Path to shapefile
@@ -1089,10 +1087,10 @@ var Spacekit = (function (exports) {
         console.info(this._id, item, 'loading progress:', loaded, '/', total);
       };
       const loader = new THREE.OBJLoader(manager);
-      loader.load(this._options.shape.url, object => {
-        object.traverse(child => {
+      loader.load(this._options.shape.url, (object) => {
+        object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const material = new THREE.MeshLambertMaterial({color: this._options.shape.color || 0xcccccc});
+            const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();

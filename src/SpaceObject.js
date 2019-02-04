@@ -97,7 +97,6 @@ export class SpaceObject {
 
     if (autoInit && !this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
-      return;
     }
   }
 

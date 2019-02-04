@@ -1,7 +1,6 @@
 import { SpaceObject } from './SpaceObject';
 
 export class ShapeObject extends SpaceObject {
-
   /**
    * @param {Object} options.shape Shape specification
    * @param {String} options.shape.url Path to shapefile
@@ -33,10 +32,10 @@ export class ShapeObject extends SpaceObject {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
     };
     const loader = new THREE.OBJLoader(manager);
-    loader.load(this._options.shape.url, object => {
-      object.traverse(child => {
+    loader.load(this._options.shape.url, (object) => {
+      object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          const material = new THREE.MeshLambertMaterial({color: this._options.shape.color || 0xcccccc});
+          const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
           child.material = material;
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();

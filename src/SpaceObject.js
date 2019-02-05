@@ -95,6 +95,7 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
 
+    this._initialized = false;
     if (autoInit && !this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
     }
@@ -136,6 +137,7 @@ export class SpaceObject {
       this._simulation.getSimulationElement().appendChild(labelElt);
       this._label = labelElt;
     }
+    this._initialized = true;
     return true;
   }
 
@@ -375,6 +377,14 @@ export class SpaceObject {
    */
   isStaticObject() {
     return !this._options.ephem;
+  }
+
+  /**
+   * Determines whether object is ready to be measured or added to scene.
+   * @return {boolean} True if ready
+   */
+  isReady() {
+    return this._initialized;
   }
 }
 

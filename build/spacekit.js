@@ -702,6 +702,7 @@ var Spacekit = (function (exports) {
       // updates for very slow moving objects.
       this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
 
+      this._initialized = false;
       if (autoInit && !this.init()) {
         console.warn(`SpaceObject ${id}: failed to initialize`);
       }
@@ -743,6 +744,7 @@ var Spacekit = (function (exports) {
         this._simulation.getSimulationElement().appendChild(labelElt);
         this._label = labelElt;
       }
+      this._initialized = true;
       return true;
     }
 
@@ -983,6 +985,14 @@ var Spacekit = (function (exports) {
     isStaticObject() {
       return !this._options.ephem;
     }
+
+    /**
+     * Determines whether object is ready to be measured or added to scene.
+     * @return {boolean} True if ready
+     */
+    isReady() {
+      return this._initialized;
+    }
   }
 
   const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
@@ -1087,8 +1097,8 @@ var Spacekit = (function (exports) {
         console.info(this._id, item, 'loading progress:', loaded, '/', total);
       };
       const loader = new THREE.OBJLoader(manager);
-      loader.load(this._options.shape.url, (object) => {
-        object.traverse((child) => {
+      loader.load(this._options.shape.url, object => {
+        object.traverse(child => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
@@ -1105,6 +1115,8 @@ var Spacekit = (function (exports) {
           // Add it all to visualization.
           this._simulation.addObject(this, false /* noUpdate */);
         }
+
+        this._initialized = true;
       });
 
       // TODO(ian): Create an orbit if applicable
@@ -1759,9 +1771,35 @@ var Spacekit = (function (exports) {
      * further zoomed out, decrease to be closer. Default 3.0.
      */
     zoomToFit(spaceObj, offset = 3.0) {
-      const orbit = spaceObj.getOrbit();
-      const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
-      const camera = this._camera;
+      const checkZoomFit = () => {
+        const orbit = spaceObj.getOrbit();
+        const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
+        if (obj) {
+          this.doZoomToFit(obj, offset);
+          return true;
+        }
+        return false;
+      };
+
+      // Wait until the object has been fully created.
+      const bePatient = () => {
+        if (!checkZoomFit()) {
+          setTimeout(() => {
+            bePatient();
+          }, 100);
+        }
+      };
+      bePatient();
+    }
+
+    /**
+     * @private
+     * Perform the actual zoom to fit behavior.
+     * @param {SpaceObject} spaceObj Object to fit within viewport.
+     * @param {Number} offset Add some extra room in the viewport. Increase to be
+     * further zoomed out, decrease to be closer. Default 3.0.
+     */
+    doZoomToFit(obj, offset) {
       const boundingBox = new THREE.Box3();
       boundingBox.setFromObject(obj);
 
@@ -1771,6 +1809,7 @@ var Spacekit = (function (exports) {
       boundingBox.getSize(size);
 
       // Get the max side of the bounding box (fits to width OR height as needed)
+      const camera = this._camera;
       const maxDim = Math.max(size.x, size.y, size.z);
       const fov = camera.fov * (Math.PI / 180);
       const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
@@ -1785,6 +1824,9 @@ var Spacekit = (function (exports) {
       camera.position.y = newpos.y;
       camera.position.z = newpos.z;
       camera.updateProjectionMatrix();
+
+      // Update default camera pos so if drift is on, camera will drift around
+      // its new position.
       this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
     }
 

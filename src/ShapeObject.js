@@ -32,8 +32,8 @@ export class ShapeObject extends SpaceObject {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
     };
     const loader = new THREE.OBJLoader(manager);
-    loader.load(this._options.shape.url, (object) => {
-      object.traverse((child) => {
+    loader.load(this._options.shape.url, object => {
+      object.traverse(child => {
         if (child instanceof THREE.Mesh) {
           const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
           child.material = material;
@@ -50,6 +50,8 @@ export class ShapeObject extends SpaceObject {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);
       }
+
+      this._initialized = true;
     });
 
     // TODO(ian): Create an orbit if applicable

@@ -354,9 +354,35 @@ export class Simulation {
    * further zoomed out, decrease to be closer. Default 3.0.
    */
   zoomToFit(spaceObj, offset = 3.0) {
-    const orbit = spaceObj.getOrbit();
-    const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
-    const camera = this._camera;
+    const checkZoomFit = () => {
+      const orbit = spaceObj.getOrbit();
+      const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
+      if (obj) {
+        this.doZoomToFit(obj, offset);
+        return true;
+      }
+      return false;
+    };
+
+    // Wait until the object has been fully created.
+    const bePatient = () => {
+      if (!checkZoomFit()) {
+        setTimeout(() => {
+          bePatient();
+        }, 100);
+      }
+    };
+    bePatient();
+  }
+
+  /**
+   * @private
+   * Perform the actual zoom to fit behavior.
+   * @param {SpaceObject} spaceObj Object to fit within viewport.
+   * @param {Number} offset Add some extra room in the viewport. Increase to be
+   * further zoomed out, decrease to be closer. Default 3.0.
+   */
+  doZoomToFit(obj, offset) {
     const boundingBox = new THREE.Box3();
     boundingBox.setFromObject(obj);
 
@@ -366,6 +392,7 @@ export class Simulation {
     boundingBox.getSize(size);
 
     // Get the max side of the bounding box (fits to width OR height as needed)
+    const camera = this._camera;
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = camera.fov * (Math.PI / 180);
     const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
@@ -380,6 +407,9 @@ export class Simulation {
     camera.position.y = newpos.y;
     camera.position.z = newpos.z;
     camera.updateProjectionMatrix();
+
+    // Update default camera pos so if drift is on, camera will drift around
+    // its new position.
     this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
   }
 

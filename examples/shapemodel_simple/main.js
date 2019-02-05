@@ -11,9 +11,11 @@ viz.createLight();
 viz.createAmbientLight();
 
 // Create an object for 1998 XO94
-viz.createShape('myobj', {
+const obj = viz.createShape('myobj', {
   shape: {
     url: './1998_XO94.obj',
     enableRotation: true,
   },
 });
+
+viz.zoomToFit(obj, 5 /* zoom offset */);

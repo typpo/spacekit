@@ -1091,14 +1091,17 @@ var Spacekit = (function (exports) {
       this.init();
     }
 
+    /**
+     * @private
+     */
     init() {
       const manager = new THREE.LoadingManager();
       manager.onProgress = (item, loaded, total) => {
         console.info(this._id, item, 'loading progress:', loaded, '/', total);
       };
       const loader = new THREE.OBJLoader(manager);
-      loader.load(this._options.shape.url, object => {
-        object.traverse(child => {
+      loader.load(this._options.shape.url, (object) => {
+        object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
@@ -1122,12 +1125,20 @@ var Spacekit = (function (exports) {
       // TODO(ian): Create an orbit if applicable
     }
 
+    /**
+     * Gets the THREE.js objects that represent this SpaceObject.
+     * @return {Array.<THREE.Object>} A list of THREE.js objects
+     */
     get3jsObjects() {
       const ret = super.get3jsObjects();
       ret.push(this._obj);
       return ret;
     }
 
+    /**
+     * Updates the object and its label positions for a given time.
+     * @param {Number} jed JED date
+     */
     update() {
       if (this._obj && this._options.shape.enableRotation) {
         // For now, just rotate on X axis.

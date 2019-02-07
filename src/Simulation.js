@@ -289,11 +289,12 @@ export class Simulation {
   /**
    * Creates a light source. This will make the shape of your objects visible
    * and provide some contrast.
+   * @param {SpaceObject} target Target to shine light on
    * @param {Array.<Number>} pos Position of light source. Defaults to moving
    * with camera.
    * @param {Number} color Color of light, default 0xCCCCCC
    */
-  createLight(pos = undefined, color = 0xcccccc) {
+  createLight(target = undefined, pos = undefined, color = 0xAAAAAA) {
     const campos = this._camera.position;
     const directionalLight = new THREE.DirectionalLight(color);
     if (pos) {
@@ -302,6 +303,12 @@ export class Simulation {
       this._cameraControls.addEventListener('change', () => {
         directionalLight.position.copy(this._camera.position);
       });
+    }
+    if (target) {
+      setTimeout(function() {
+        // FIXME(ian): Wait til object is initialized.
+        directionalLight.target = target.get3jsObjects()[0];
+      }, 2000);
     }
     this._scene.add(directionalLight);
   }

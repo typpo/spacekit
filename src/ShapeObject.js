@@ -46,6 +46,10 @@ export class ShapeObject extends SpaceObject {
           this._asteroidMaterials.push(material);
         }
       });
+      const pos = this._options.position;
+      if (pos) {
+        object.position.set(pos[0], pos[1], pos[2]);
+      }
       this._obj = object;
       // TODO(ian): Figure out initial rotation and spin
 
@@ -54,10 +58,71 @@ export class ShapeObject extends SpaceObject {
         this._simulation.addObject(this, false /* noUpdate */);
       }
 
+      this.initRotation();
       this._initialized = true;
     });
 
     // TODO(ian): Create an orbit if applicable
+  }
+
+  initRotation() {
+    // Formula
+    // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
+
+    // Testing this asteroid:
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
+    // Model 2691
+    const PI = Math.PI;
+    const cos = Math.cos;
+    const sin = Math.sin;
+    const deg2rad = Math.PI / 180;
+
+    const lambda = 166 * deg2rad;
+    const beta = 21 * deg2rad;
+    const P = 15.7017;
+    const YORP = 0;
+    const JD0 = 2451162.0;
+    const phi0 = 0 * deg2rad;
+
+    // First term
+    const R_z1 = new THREE.Matrix3();
+    R_z1.set(cos(lambda), -sin(lambda), 0,
+             sin(lambda),  cos(lambda), 0,
+             0          ,  0          , 1);
+
+    // Second term
+    const y = (90 * deg2rad) - beta;
+    const R_y = new THREE.Matrix3();
+    R_y.set(cos(y) , 0, sin(y),
+            0      , 1, 0,
+            -sin(y), 0, cos(y));
+
+    // Third term
+    const z = phi0 + ((2 * PI) / P) * (JD0 - JD0);
+    const R_z2 = new THREE.Matrix3();
+    R_z2.set(cos(z), -sin(z), 0,
+             sin(z),  cos(z), 0,
+             0     ,  0     , 1);
+
+    // Initial vertex coordinates
+    const pos = this._obj.position;
+    const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z);
+
+    // Multiply the terms
+    console.log(R_z1, R_y, R_z2)
+    const r_ecl = r_ast.applyMatrix3(R_z1.multiply(R_y).multiply(R_z2));
+    console.log('ecl', r_ecl)
+
+    this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
+  }
+
+  calcRotation() {
+    const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
+    const R_z = new THREE.Matrix3();
+    R_z.set(cos(z), -sin(z), 0,
+            sin(z),  cos(z), 0,
+            0     ,  0     , 1);
+    console.log(R_z)
   }
 
   /**

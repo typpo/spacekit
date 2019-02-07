@@ -1111,6 +1111,10 @@ var Spacekit = (function (exports) {
             this._asteroidMaterials.push(material);
           }
         });
+        const pos = this._options.position;
+        if (pos) {
+          object.position.set(pos[0], pos[1], pos[2]);
+        }
         this._obj = object;
         // TODO(ian): Figure out initial rotation and spin
 
@@ -1119,10 +1123,70 @@ var Spacekit = (function (exports) {
           this._simulation.addObject(this, false /* noUpdate */);
         }
 
+        this.initRotation();
         this._initialized = true;
       });
 
       // TODO(ian): Create an orbit if applicable
+    }
+
+    initRotation() {
+      // Formula
+      // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
+
+      // Testing this asteroid:
+      // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
+      // Model 2691
+      const PI = Math.PI;
+      const cos = Math.cos;
+      const sin = Math.sin;
+      const deg2rad = Math.PI / 180;
+
+      const lambda = 166 * deg2rad;
+      const beta = 21 * deg2rad;
+      const P = 15.7017;
+      const JD0 = 2451162.0;
+      const phi0 = 0 * deg2rad;
+
+      // First term
+      const R_z1 = new THREE.Matrix3();
+      R_z1.set(cos(lambda), -sin(lambda), 0,
+               sin(lambda),  cos(lambda), 0,
+               0          ,  0          , 1);
+
+      // Second term
+      const y = (90 * deg2rad) - beta;
+      const R_y = new THREE.Matrix3();
+      R_y.set(cos(y) , 0, sin(y),
+              0      , 1, 0,
+              -sin(y), 0, cos(y));
+
+      // Third term
+      const z = phi0 + ((2 * PI) / P) * (JD0 - JD0);
+      const R_z2 = new THREE.Matrix3();
+      R_z2.set(cos(z), -sin(z), 0,
+               sin(z),  cos(z), 0,
+               0     ,  0     , 1);
+
+      // Initial vertex coordinates
+      const pos = this._obj.position;
+      const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z);
+
+      // Multiply the terms
+      console.log(R_z1, R_y, R_z2);
+      const r_ecl = r_ast.applyMatrix3(R_z1.multiply(R_y).multiply(R_z2));
+      console.log('ecl', r_ecl);
+
+      this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
+    }
+
+    calcRotation() {
+      const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
+      const R_z = new THREE.Matrix3();
+      R_z.set(cos(z), -sin(z), 0,
+              sin(z),  cos(z), 0,
+              0     ,  0     , 1);
+      console.log(R_z);
     }
 
     /**
@@ -1717,11 +1781,12 @@ var Spacekit = (function (exports) {
     /**
      * Creates a light source. This will make the shape of your objects visible
      * and provide some contrast.
+     * @param {SpaceObject} target Target to shine light on
      * @param {Array.<Number>} pos Position of light source. Defaults to moving
      * with camera.
      * @param {Number} color Color of light, default 0xCCCCCC
      */
-    createLight(pos = undefined, color = 0xcccccc) {
+    createLight(target = undefined, pos = undefined, color = 0xAAAAAA) {
       const campos = this._camera.position;
       const directionalLight = new THREE.DirectionalLight(color);
       if (pos) {
@@ -1730,6 +1795,12 @@ var Spacekit = (function (exports) {
         this._cameraControls.addEventListener('change', () => {
           directionalLight.position.copy(this._camera.position);
         });
+      }
+      if (target) {
+        setTimeout(function() {
+          // FIXME(ian): Wait til object is initialized.
+          directionalLight.target = target.get3jsObjects()[0];
+        }, 2000);
       }
       this._scene.add(directionalLight);
     }

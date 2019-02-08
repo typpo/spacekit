@@ -1105,7 +1105,7 @@ var Spacekit = (function (exports) {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
-            child.geometry.scale(0.5, 0.5, 0.5);
+            child.geometry.scale(0.1, 0.1, 0.1);
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
             child.geometry.computeBoundingBox();
@@ -1143,11 +1143,22 @@ var Spacekit = (function (exports) {
       const sin = Math.sin;
       const deg2rad = Math.PI / 180;
 
+      // 1998 XO94
+      /*
       const lambda = 166 * deg2rad;
       const beta = 21 * deg2rad;
       const P = 15.7017;
       const YORP = 0;
       const JD0 = 2451162.0;
+      const phi0 = 0 * deg2rad;
+     */
+
+      // Cacus
+      const lambda = 251 * deg2rad;
+      const beta = -63 * deg2rad;
+      const P = 3.755067;
+      const YORP = 1.9e-8;
+      const JD0 = 2443568.0;
       const phi0 = 0 * deg2rad;
 
       // First term

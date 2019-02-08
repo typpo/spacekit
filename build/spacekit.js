@@ -1105,6 +1105,7 @@ var Spacekit = (function (exports) {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
+            child.geometry.scale(0.5, 0.5, 0.5);
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
             child.geometry.computeBoundingBox();
@@ -1145,6 +1146,7 @@ var Spacekit = (function (exports) {
       const lambda = 166 * deg2rad;
       const beta = 21 * deg2rad;
       const P = 15.7017;
+      const YORP = 0;
       const JD0 = 2451162.0;
       const phi0 = 0 * deg2rad;
 
@@ -1162,7 +1164,7 @@ var Spacekit = (function (exports) {
               -sin(y), 0, cos(y));
 
       // Third term
-      const z = phi0 + ((2 * PI) / P) * (JD0 - JD0);
+      const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
       const R_z2 = new THREE.Matrix3();
       R_z2.set(cos(z), -sin(z), 0,
                sin(z),  cos(z), 0,
@@ -1172,21 +1174,19 @@ var Spacekit = (function (exports) {
       const pos = this._obj.position;
       const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z);
 
+      // Misc
+      const sunAsteroidVector = new THREE.Vector3();
+      sunAsteroidVector.subVectors(new THREE.Vector3(), pos).normalize();
+      console.log('sunAsteroidVector', sunAsteroidVector);
+      console.log('pos', pos);
+
       // Multiply the terms
-      console.log(R_z1, R_y, R_z2);
       const r_ecl = r_ast.applyMatrix3(R_z1.multiply(R_y).multiply(R_z2));
-      console.log('ecl', r_ecl);
 
+      //const finalVector = r_ecl.multiply(sunAsteroidVector);
+      //console.log('finalvector', finalVector);
+      //this._obj.rotation.set(finalVector.x, finalVector.y, finalVector.z);
       this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
-    }
-
-    calcRotation() {
-      const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
-      const R_z = new THREE.Matrix3();
-      R_z.set(cos(z), -sin(z), 0,
-              sin(z),  cos(z), 0,
-              0     ,  0     , 1);
-      console.log(R_z);
     }
 
     /**
@@ -1512,7 +1512,10 @@ var Spacekit = (function (exports) {
    *  jedPerSecond: 100.0,  // overrides jedDelta
    *  startPaused: false,
    *  maxNumParticles: 2**16,
-   *  enableCameraDrift: true,
+   *  camera: {
+   *    position: [0, -10, 5],
+   *    enableDrift: false,
+   *  },
    *  debug: {
    *    showAxesHelper: false,
    *    showStats: false,
@@ -1539,8 +1542,11 @@ var Spacekit = (function (exports) {
      * particles, but not too much larger. It's usually good enough to choose the
      * next highest power of 2. If you're not showing many particles (tens of
      * thousands+), you don't need to worry about this.
-     * @param {boolean} options.enableCameraDrift Set true to have the camera
-     * float around slightly. True by default.
+     * @param {Object} options.camera Options for camera
+     * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
+     * coordinates of the camera. Defaults to [0, -10, 5].
+     * @param {boolean} options.camera.enableDrift Set true to have the camera
+     * float around slightly. False by default.
      * @param {Object} options.debug Options dictating debug state.
      * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
      * @param {boolean} options.debug.showStats Show FPS and other stats
@@ -1559,8 +1565,13 @@ var Spacekit = (function (exports) {
       this._scene = null;
       this._renderer = null;
 
-      this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;
+      this._enableCameraDrift = false;
       this._cameraDefaultPos = [0, -10, 5];
+      if (this._options.camera) {
+        this._enableCameraDrift = !!this._options.camera.enableDrift;
+        this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+      }
+
       this._camera = null;
       this._cameraControls = null;
 
@@ -1787,7 +1798,7 @@ var Spacekit = (function (exports) {
      */
     createLight(pos = undefined, color = 0xFFFFFF) {
       const pointLight = new THREE.PointLight(color, 1, 0, 2);
-      if (typeof pos === 'undefined') {
+      if (typeof pos !== 'undefined') {
         pointLight.position.set(pos[0], pos[1], pos[2]);
       } else {
         this._cameraControls.addEventListener('change', () => {
@@ -2025,6 +2036,14 @@ var Spacekit = (function (exports) {
      */
     getCamera() {
       return this._camera;
+    }
+
+    /**
+     * Get the three.js controls
+     * @return {THREE.TrackballControls} THREE.js controls object
+     */
+    getControls() {
+      return this._cameraControls;
     }
 
     /**

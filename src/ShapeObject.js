@@ -40,6 +40,7 @@ export class ShapeObject extends SpaceObject {
         if (child instanceof THREE.Mesh) {
           const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
           child.material = material;
+          child.geometry.scale(0.5, 0.5, 0.5);
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();
           child.geometry.computeBoundingBox();
@@ -98,7 +99,7 @@ export class ShapeObject extends SpaceObject {
             -sin(y), 0, cos(y));
 
     // Third term
-    const z = phi0 + ((2 * PI) / P) * (JD0 - JD0);
+    const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
     const R_z2 = new THREE.Matrix3();
     R_z2.set(cos(z), -sin(z), 0,
              sin(z),  cos(z), 0,
@@ -108,21 +109,19 @@ export class ShapeObject extends SpaceObject {
     const pos = this._obj.position;
     const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z);
 
+    // Misc
+    const sunAsteroidVector = new THREE.Vector3();
+    sunAsteroidVector.subVectors(new THREE.Vector3(), pos).normalize();
+    console.log('sunAsteroidVector', sunAsteroidVector)
+    console.log('pos', pos)
+
     // Multiply the terms
-    console.log(R_z1, R_y, R_z2)
     const r_ecl = r_ast.applyMatrix3(R_z1.multiply(R_y).multiply(R_z2));
-    console.log('ecl', r_ecl)
 
+    //const finalVector = r_ecl.multiply(sunAsteroidVector);
+    //console.log('finalvector', finalVector);
+    //this._obj.rotation.set(finalVector.x, finalVector.y, finalVector.z);
     this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
-  }
-
-  calcRotation() {
-    const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
-    const R_z = new THREE.Matrix3();
-    R_z.set(cos(z), -sin(z), 0,
-            sin(z),  cos(z), 0,
-            0     ,  0     , 1);
-    console.log(R_z)
   }
 
   /**

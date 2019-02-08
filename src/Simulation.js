@@ -20,7 +20,10 @@ import { SpaceParticles } from './SpaceParticles';
  *  jedPerSecond: 100.0,  // overrides jedDelta
  *  startPaused: false,
  *  maxNumParticles: 2**16,
- *  enableCameraDrift: true,
+ *  camera: {
+ *    position: [0, -10, 5],
+ *    enableDrift: false,
+ *  },
  *  debug: {
  *    showAxesHelper: false,
  *    showStats: false,
@@ -47,8 +50,11 @@ export class Simulation {
    * particles, but not too much larger. It's usually good enough to choose the
    * next highest power of 2. If you're not showing many particles (tens of
    * thousands+), you don't need to worry about this.
-   * @param {boolean} options.enableCameraDrift Set true to have the camera
-   * float around slightly. True by default.
+   * @param {Object} options.camera Options for camera
+   * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
+   * coordinates of the camera. Defaults to [0, -10, 5].
+   * @param {boolean} options.camera.enableDrift Set true to have the camera
+   * float around slightly. False by default.
    * @param {Object} options.debug Options dictating debug state.
    * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
    * @param {boolean} options.debug.showStats Show FPS and other stats
@@ -67,8 +73,13 @@ export class Simulation {
     this._scene = null;
     this._renderer = null;
 
-    this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;
+    this._enableCameraDrift = false;
     this._cameraDefaultPos = [0, -10, 5];
+    if (this._options.camera) {
+      this._enableCameraDrift = !!this._options.camera.enableDrift;
+      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+    }
+
     this._camera = null;
     this._cameraControls = null;
 
@@ -295,7 +306,7 @@ export class Simulation {
    */
   createLight(pos = undefined, color = 0xFFFFFF) {
     const pointLight = new THREE.PointLight(color, 1, 0, 2);
-    if (typeof pos === 'undefined') {
+    if (typeof pos !== 'undefined') {
       pointLight.position.set(pos[0], pos[1], pos[2]);
     } else {
       this._cameraControls.addEventListener('change', () => {
@@ -533,6 +544,14 @@ export class Simulation {
    */
   getCamera() {
     return this._camera;
+  }
+
+  /**
+   * Get the three.js controls
+   * @return {THREE.TrackballControls} THREE.js controls object
+   */
+  getControls() {
+    return this._cameraControls;
   }
 
   /**

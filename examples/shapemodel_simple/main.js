@@ -43,5 +43,5 @@ const obj = viz.createShape('myobj', {
 //viz.zoomToFit(obj, 5 /* zoom offset */);
 
 // Add some light.
-viz.createLight(obj, [0, 0, 0], 0xffffff);
+viz.createLight([0, 0, 0]);
 viz.createAmbientLight();

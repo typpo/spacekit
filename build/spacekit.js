@@ -1103,7 +1103,7 @@ var Spacekit = (function (exports) {
       loader.load(this._options.shape.url, (object) => {
         object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
+            const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
             child.material = material;
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
@@ -1781,28 +1781,20 @@ var Spacekit = (function (exports) {
     /**
      * Creates a light source. This will make the shape of your objects visible
      * and provide some contrast.
-     * @param {SpaceObject} target Target to shine light on
      * @param {Array.<Number>} pos Position of light source. Defaults to moving
      * with camera.
-     * @param {Number} color Color of light, default 0xCCCCCC
+     * @param {Number} color Color of light, default 0xFFFFFF
      */
-    createLight(target = undefined, pos = undefined, color = 0xAAAAAA) {
-      const campos = this._camera.position;
-      const directionalLight = new THREE.DirectionalLight(color);
-      if (pos) {
-        directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+    createLight(pos = undefined, color = 0xFFFFFF) {
+      const pointLight = new THREE.PointLight(color, 1, 0, 2);
+      if (typeof pos === 'undefined') {
+        pointLight.position.set(pos[0], pos[1], pos[2]);
       } else {
         this._cameraControls.addEventListener('change', () => {
-          directionalLight.position.copy(this._camera.position);
+          pointLight.position.copy(this._camera.position);
         });
       }
-      if (target) {
-        setTimeout(function() {
-          // FIXME(ian): Wait til object is initialized.
-          directionalLight.target = target.get3jsObjects()[0];
-        }, 2000);
-      }
-      this._scene.add(directionalLight);
+      this._scene.add(pointLight);
     }
 
     /**

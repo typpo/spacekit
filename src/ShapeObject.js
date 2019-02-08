@@ -38,7 +38,7 @@ export class ShapeObject extends SpaceObject {
     loader.load(this._options.shape.url, (object) => {
       object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
+          const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
           child.material = material;
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();

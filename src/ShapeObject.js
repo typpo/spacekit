@@ -1,5 +1,53 @@
 import { SpaceObject } from './SpaceObject';
 
+const deg2rad = Math.PI / 180;
+
+function polarToCartesian(angleV, angleH, radius) {
+  // From https://gamedev.stackexchange.com/questions/164806/combine-rotation-xz-horizontal-with-yz-vertical-math-formula
+  const phi = (90 * deg2rad) - angleV;
+  const theta = angleH + (180 * deg2rad);
+  return [
+    -(radius * Math.sin(phi) * Math.sin(theta)),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.cos(theta),
+  ];
+}
+
+function wikipedia(l, b, r) {
+  // See also https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Rectangular_coordinates
+  const lRad = l;
+  const bRad = b;
+  return [
+    r * Math.cos(bRad) * Math.cos(lRad),
+    r * Math.cos(bRad) * Math.sin(lRad),
+    r * Math.sin(bRad),
+  ];
+}
+
+THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
+
+  // rotate object around axis in world space (the axis passes through point)
+  // axis is assumed to be normalized
+  // assumes object does not have a rotated parent
+
+  var q = new THREE.Quaternion();
+
+  return function rotateAroundWorldAxis( point, axis, angle ) {
+
+    q.setFromAxisAngle( axis, angle );
+
+    this.applyQuaternion( q );
+
+    this.position.sub( point );
+    this.position.applyQuaternion( q );
+    this.position.add( point );
+
+    return this;
+
+  }
+
+}();
+
 export class ShapeObject extends SpaceObject {
   /**
    * @param {Object} options.shape Shape specification
@@ -20,6 +68,10 @@ export class ShapeObject extends SpaceObject {
     // The THREE.js object
     this._obj = undefined;
 
+    // Offset of axis angle
+    this._axisRotationAngleOffset = 0;
+    this._axisOfRotation = undefined;
+
     // Keep track of materials that comprise this object.
     this._asteroidMaterials = [];
 
@@ -38,12 +90,16 @@ export class ShapeObject extends SpaceObject {
     loader.load(this._options.shape.url, (object) => {
       object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          const material = new THREE.MeshStandardMaterial({ color: this._options.shape.color || 0xcccccc });
+          const material = new THREE.MeshStandardMaterial({
+            color: this._options.shape.color || 0xcccccc,
+          });
           child.material = material;
           child.geometry.scale(0.1, 0.1, 0.1);
+          /*
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();
           child.geometry.computeBoundingBox();
+         */
           this._asteroidMaterials.push(material);
         }
       });
@@ -76,7 +132,6 @@ export class ShapeObject extends SpaceObject {
     const PI = Math.PI;
     const cos = Math.cos;
     const sin = Math.sin;
-    const deg2rad = Math.PI / 180;
 
     // 1998 XO94
     /*
@@ -89,12 +144,24 @@ export class ShapeObject extends SpaceObject {
    */
 
     // Cacus
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
     const lambda = 251 * deg2rad;
     const beta = -63 * deg2rad;
     const P = 3.755067;
     const YORP = 1.9e-8;
     const JD0 = 2443568.0;
     const phi0 = 0 * deg2rad;
+
+    // Longitude
+    //this._obj.rotateZ(-lambda);
+
+    // Latitude
+    //this._obj.rotateY(-((90*deg2rad) - beta));
+
+    this._obj.rotation.set(-lambda, -((90*deg2rad) - beta), 0);
+    console.log(-lambda, this._obj.rotation)
+    console.log(this._obj.rotation)
+    return;
 
     // First term
     const R_z1 = new THREE.Matrix3();
@@ -118,21 +185,56 @@ export class ShapeObject extends SpaceObject {
 
     // Initial vertex coordinates
     const pos = this._obj.position;
-    const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z);
-
-    // Misc
-    const sunAsteroidVector = new THREE.Vector3();
-    sunAsteroidVector.subVectors(new THREE.Vector3(), pos).normalize();
-    console.log('sunAsteroidVector', sunAsteroidVector)
-    console.log('pos', pos)
+    //const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z).normalize();
+    const r_ast = new THREE.Vector3(0.500100,-0.510089,0.234255).normalize();
+    //const r_ast = new THREE.Vector3(0.499759,-0.513008,0.232744).normalize();
+    //const r_ast = new THREE.Vector3(0.365975,-0.237092,-0.372104).normalize();
 
     // Multiply the terms
-    const r_ecl = r_ast.applyMatrix3(R_z1.multiply(R_y).multiply(R_z2));
-
-    //const finalVector = r_ecl.multiply(sunAsteroidVector);
-    //console.log('finalvector', finalVector);
+    const translation = R_z1.multiply(R_y).multiply(R_z2);
+    console.log('translation', translation)
+    const r_ecl = r_ast.clone().applyMatrix3(translation).normalize();
     //this._obj.rotation.set(finalVector.x, finalVector.y, finalVector.z);
-    this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
+    //this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
+
+    // Try to calculate angle
+    console.log('r_ast', r_ast)
+    console.log('r_ecl', r_ecl)
+
+    // Set rotation on object's axis
+    // https://github.com/mrdoob/three.js/issues/910
+
+    // Convert to rectangular coords
+    const rect = wikipedia(lambda, (90 * deg2rad) - beta, 1);
+    //const rect = polarToCartesian(lambda, beta, 1);
+    //
+
+    // http://mathworld.wolfram.com/SphericalCoordinates.html
+    // theta = longitude = lambda
+    // phi = 90 - latitude = 90 - beta
+    //const sphere = new THREE.Spherical(1, (90 * deg2rad) - beta /* latitude */ ,lambda /* longitude */);
+    //const rect2 = new THREE.Vector3();
+    //rect2.setFromSpherical(sphere);
+    //this._obj.rotation.set(rect2.x, rect2.y, rect2.z);
+
+    const rotationAxis = new THREE.Vector3(rect[0], rect[1], rect[2]).normalize();
+    console.log('rotationAxis', rotationAxis)
+    console.log('rectt', rect)
+
+    //const quaternion = new THREE.Quaternion().setFromAxisAngle( axisOfRotation, angleOfRotation );
+
+    //this._obj.rotateOnAxis(rotationAxis, phi0);
+    this._axisOfRotation = rotationAxis;
+    console.log(rotationAxis.x, rotationAxis.y, rotationAxis.z)
+
+    this._obj.rotation.set(rotationAxis.x, rotationAxis.y, rotationAxis.z);
+
+    /*
+    this._obj.rotateX(rect[0]);
+    this._obj.rotateY(rect[1]);
+    this._obj.rotateZ(rect[2]);
+   */
+    console.log(this._obj)
   }
 
   /**
@@ -156,6 +258,10 @@ export class ShapeObject extends SpaceObject {
       this._obj.rotation.x += (speed * (Math.PI / 180));
       this._obj.rotation.x %= 360;
     }
+    if (this._axisOfRotation) {
+      //this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
+    }
+    //this._obj.rotateZ(0.01)
     // TODO(ian): Update position if there is an associated orbit
   }
 }

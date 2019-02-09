@@ -13,7 +13,8 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
     enableDrift: false,
   },
   debug: {
-    showAxesHelper: true,
+    showAxes: true,
+    showGrid: true,
   },
 });
 
@@ -62,7 +63,6 @@ const obj = viz.createShape('myobj', {
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(JD0);
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
-console.log('astpos', astpos)
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
 
 // Add some light.

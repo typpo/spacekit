@@ -25,7 +25,8 @@ import { SpaceParticles } from './SpaceParticles';
  *    enableDrift: false,
  *  },
  *  debug: {
- *    showAxesHelper: false,
+ *    showAxes: false,
+ *    showGrid: false,
  *    showStats: false,
  *  },
  * });
@@ -56,7 +57,8 @@ export class Simulation {
    * @param {boolean} options.camera.enableDrift Set true to have the camera
    * float around slightly. False by default.
    * @param {Object} options.debug Options dictating debug state.
-   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
+   * @param {boolean} options.debug.showAxes Show X, Y, and Z axes
+   * @param {boolean} options.debug.showGrid Show grid on XY plane
    * @param {boolean} options.debug.showStats Show FPS and other stats
    * (requires stats.js).
    */
@@ -115,6 +117,8 @@ export class Simulation {
     window.cam = this._camera;
 
     // Controls
+    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
     this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
@@ -128,7 +132,12 @@ export class Simulation {
 
     // Helper
     if (this._options.debug) {
-      if (this._options.debug.showAxesHelper) {
+      if (this._options.debug.showGrid) {
+        const gridHelper = new THREE.GridHelper();
+        gridHelper.geometry.rotateX(Math.PI / 2);
+        this._scene.add(gridHelper);
+      }
+      if (this._options.debug.showAxes) {
         this._scene.add(new THREE.AxesHelper(5));
       }
       if (this._options.debug.showStats) {

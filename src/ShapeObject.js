@@ -1,6 +1,7 @@
 import { SpaceObject } from './SpaceObject';
 
 const deg2rad = Math.PI / 180;
+const rad2deg = 180 / Math.PI;
 
 function polarToCartesian(angleV, angleH, radius) {
   // From https://gamedev.stackexchange.com/questions/164806/combine-rotation-xz-horizontal-with-yz-vertical-math-formula
@@ -25,6 +26,7 @@ function wikipedia(l, b, r) {
 }
 
 THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
+  // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
 
   // rotate object around axis in world space (the axis passes through point)
   // axis is assumed to be normalized
@@ -55,6 +57,8 @@ export class ShapeObject extends SpaceObject {
    * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
    * @param {boolean} options.shape.enableRotation Show rotation of object
    * @param {Number} options.shape.rotationSpeed Factor that determines
+   * @param {Object} options.shape.debug Debug options
+   * @param {boolean} options.shape.debug.showAxes Show axes
    * rotation speed. Default 0.5
    * @see SpaceObject
    */
@@ -103,12 +107,22 @@ export class ShapeObject extends SpaceObject {
           this._asteroidMaterials.push(material);
         }
       });
+
+      const parent = new THREE.Object3D();
+      if (this._options.debug && this._options.debug.showAxes) {
+        this.getAxes().forEach(axis => parent.add(axis));
+
+        const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
+        gridHelper.geometry.rotateX(Math.PI / 2);
+        parent.add(gridHelper);
+      }
+      parent.add(object);
+      this._obj = parent;
+
       const pos = this._options.position;
       if (pos) {
-        object.position.set(pos[0], pos[1], pos[2]);
+        this._obj.position.set(pos[0], pos[1], pos[2]);
       }
-      this._obj = object;
-      // TODO(ian): Figure out initial rotation and spin
 
       if (this._simulation) {
         // Add it all to visualization.
@@ -133,6 +147,8 @@ export class ShapeObject extends SpaceObject {
     const cos = Math.cos;
     const sin = Math.sin;
 
+    const pos = this._obj.position;
+
     // 1998 XO94
     /*
     const lambda = 166 * deg2rad;
@@ -145,8 +161,14 @@ export class ShapeObject extends SpaceObject {
 
     // Cacus
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
+
+    // Latitude
     const lambda = 251 * deg2rad;
+
+    // Longitude
     const beta = -63 * deg2rad;
+
+    // Other
     const P = 3.755067;
     const YORP = 1.9e-8;
     const JD0 = 2443568.0;
@@ -156,11 +178,21 @@ export class ShapeObject extends SpaceObject {
     //this._obj.rotateZ(-lambda);
 
     // Latitude
-    //this._obj.rotateY(-((90*deg2rad) - beta));
 
-    this._obj.rotation.set(-lambda, -((90*deg2rad) - beta), 0);
-    console.log(-lambda, this._obj.rotation)
-    console.log(this._obj.rotation)
+    this._obj.lookAt(new THREE.Vector3(0,0,0));
+    //epoch:
+    //this._obj.lookAt(new THREE.Vector3(-0.988737257248415, 0.11466818644242142, -0.00001709012305153333));
+    //2443590:
+    //this._obj.lookAt(new THREE.Vector3(-0.9668713915734256, -0.2615816918593993, 0.0000070019773527366985));
+    this._obj.rotateY(-PI/2);
+    this._obj.rotateX(-PI/2);
+
+    this._obj.rotateZ(lambda);
+    //this._obj.rotateY(((90*deg2rad) - beta));
+    this._obj.rotateY(beta)
+
+    this._obj.rotateZ(phi0 + 2 * PI / P * (2443590.0 - JD0));
+
     return;
 
     // First term
@@ -184,7 +216,6 @@ export class ShapeObject extends SpaceObject {
              0     ,  0     , 1);
 
     // Initial vertex coordinates
-    const pos = this._obj.position;
     //const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z).normalize();
     const r_ast = new THREE.Vector3(0.500100,-0.510089,0.234255).normalize();
     //const r_ast = new THREE.Vector3(0.499759,-0.513008,0.232744).normalize();
@@ -235,6 +266,26 @@ export class ShapeObject extends SpaceObject {
     this._obj.rotateZ(rect[2]);
    */
     console.log(this._obj)
+  }
+
+  getAxes() {
+    return [
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
+    ];
+  }
+
+  getAxis(src, dst, color) {
+    const geom = new THREE.Geometry()
+    const mat = new THREE.LineBasicMaterial({ linewidth: 3, color: color });
+
+    geom.vertices.push(src.clone());
+    geom.vertices.push(dst.clone());
+
+    const axis = new THREE.Line(geom, mat, THREE.LineSegments);
+    axis.computeLineDistances();
+    return axis;
   }
 
   /**

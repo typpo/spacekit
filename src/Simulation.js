@@ -106,6 +106,11 @@ export class Simulation {
   init() {
     this.initRenderer();
 
+    // Misc
+    // This makes controls.lookAt and other objects treat the positive Z axis
+    // as "up" direction.
+    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
     // Scene
     this._scene = new THREE.Scene();
 

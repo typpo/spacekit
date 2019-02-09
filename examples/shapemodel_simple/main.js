@@ -1,13 +1,13 @@
 // 1998 XO94
-//const JD0 = 2451162.0;
+//const jedStart = 2451162.0;
 
 // Cacus
-const JD0 = 2443568.0;
+const jedStart = 2443590.0;
 
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
-  jed: JD0,
+  jed: jedStart,
   startPaused: true,
   camera: {
     enableDrift: false,
@@ -17,6 +17,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
     showGrid: true,
   },
 });
+viz.renderOnlyInViewport();
 
 // Create a skybox using NASA TYCHO artwork.
 //viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
@@ -46,7 +47,7 @@ const ephemCacus = new Spacekit.Ephem({
 }, 'deg');
 //const orb = new Spacekit.Orbit(ephemXO94);
 const orb = new Spacekit.Orbit(ephemCacus);
-const astpos = orb.getPositionAtTime(JD0);
+const astpos = orb.getPositionAtTime(jedStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
   shape: {
@@ -56,14 +57,18 @@ const obj = viz.createShape('myobj', {
     url: './A1046.M1863.obj',
     //enableRotation: true,
   },
+  debug: {
+    showAxes: true,
+  },
 });
 
 //viz.zoomToFit(obj, 5 /* zoom offset */);
 
 // Set up camera
-const earthpos = earth.getOrbit().getPositionAtTime(JD0);
+const earthpos = earth.getOrbit().getPositionAtTime(jedStart);
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
+viz.getCamera().rotation.set(0,0,0)
 
 // Add some light.
 //viz.createLight([0, 0, 0]);

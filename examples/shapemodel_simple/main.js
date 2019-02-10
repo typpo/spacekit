@@ -2,7 +2,11 @@
 //const jedStart = 2451162.0;
 
 // Cacus
-const jedStart = 2443590.0;
+const jedTest = 2443568.0;
+const jedEquinox = 2458563.415278;
+const jed2000 = 2451545.0;
+
+const jedStart = jedTest;
 
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
@@ -66,11 +70,26 @@ const obj = viz.createShape('myobj', {
 
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(jedStart);
+
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
-viz.getCamera().rotation.set(0,0,0)
 
 // Add some light.
-//viz.createLight([0, 0, 0]);
-viz.createLight();
+viz.createLight([0, 0, 0]);
+//viz.createLight();
 viz.createAmbientLight();
+
+const scene = viz.getScene();
+
+function addSphere(x, y, z, color) {
+  const geometry = new THREE.SphereGeometry(0.01, 32, 32);
+  const material = new THREE.MeshBasicMaterial( {color: color} );
+  const sphere = new THREE.Mesh( geometry, material );
+  sphere.position.set(x, y, z);
+  scene.add(sphere);
+}
+
+// equinox
+console.log('equinox pos', earth.getOrbit().getPositionAtTime(2458563.415278));
+addSphere(-0.9970896625010871, 0.006910224998151225, -0, 0xff0000);
+addSphere(earthpos[0], earthpos[1], earthpos[2], 0x00ff00);

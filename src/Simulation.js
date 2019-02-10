@@ -561,6 +561,14 @@ export class Simulation {
   }
 
   /**
+   * Get the three.js scene object
+   * @return {THREE.Scene} The THREE.js scene object
+   */
+  getScene() {
+    return this._scene;
+  }
+
+  /**
    * Get the three.js controls
    * @return {THREE.TrackballControls} THREE.js controls object
    */

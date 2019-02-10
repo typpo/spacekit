@@ -109,6 +109,8 @@ export class ShapeObject extends SpaceObject {
       });
 
       const parent = new THREE.Object3D();
+      parent.add(object);
+
       if (this._options.debug && this._options.debug.showAxes) {
         this.getAxes().forEach(axis => parent.add(axis));
 
@@ -116,7 +118,7 @@ export class ShapeObject extends SpaceObject {
         gridHelper.geometry.rotateX(Math.PI / 2);
         parent.add(gridHelper);
       }
-      parent.add(object);
+
       this._obj = parent;
 
       const pos = this._options.position;
@@ -147,7 +149,7 @@ export class ShapeObject extends SpaceObject {
     const cos = Math.cos;
     const sin = Math.sin;
 
-    const pos = this._obj.position;
+    const pos = this._obj.position.clone();
 
     // 1998 XO94
     /*
@@ -160,6 +162,7 @@ export class ShapeObject extends SpaceObject {
    */
 
     // Cacus
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
     // Latitude
@@ -179,20 +182,40 @@ export class ShapeObject extends SpaceObject {
 
     // Latitude
 
-    this._obj.lookAt(new THREE.Vector3(0,0,0));
+    // sun:
+    //this._obj.lookAt(new THREE.Vector3(0,0,0));
+    // earth at equinox:
+    //this._obj.lookAt(new THREE.Vector3(-0.9970896625010871, 0.006910224998151225, -0));
     //epoch:
     //this._obj.lookAt(new THREE.Vector3(-0.988737257248415, 0.11466818644242142, -0.00001709012305153333));
     //2443590:
     //this._obj.lookAt(new THREE.Vector3(-0.9668713915734256, -0.2615816918593993, 0.0000070019773527366985));
-    this._obj.rotateY(-PI/2);
-    this._obj.rotateX(-PI/2);
+    //this._obj.rotateY(-PI/2);
+    //this._obj.rotateX(-PI/2);
 
-    this._obj.rotateZ(lambda);
-    //this._obj.rotateY(((90*deg2rad) - beta));
-    this._obj.rotateY(beta)
+    //this._obj.rotateZ(lambda);
+    //this._obj.rotateY(-((90*deg2rad) - beta));
+    //this._obj.rotateY(beta)
 
-    this._obj.rotateZ(phi0 + 2 * PI / P * (2443590.0 - JD0));
+    //this._obj.rotateZ(phi0 + 2 * PI / P * (2443568.0 - JD0));
 
+    // World axis (ecliptic) rotation
+    //this._obj.rotateAroundWorldAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0), -beta);
+    //this._obj.rotateAroundWorldAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), 90*deg2rad);
+
+    // Rotate!
+    const zAdjust = phi0 + 2 * PI / P * (2443568.0 - JD0);
+
+    this._obj.rotateY(PI/2);
+    this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
+    this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+
+    //this._obj.rotateZ(zAdjust);
+
+    //this._obj.rotateZ(90 * deg2rad);
+    //this._obj.rotateY(-beta);
+    //this._obj.rotation.set(0, -beta, 90 * deg2rad);
+    //this._obj.position.set(pos.x, pos.y, pos.z);
     return;
 
     // First term
@@ -270,9 +293,9 @@ export class ShapeObject extends SpaceObject {
 
   getAxes() {
     return [
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff9999),
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x99ff99),
+      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x9999ff),
     ];
   }
 

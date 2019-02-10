@@ -153,6 +153,7 @@ export class Ephem {
  * });
  */
 export const EphemPresets = {
+  // See https://ssd.jpl.nasa.gov/?planet_pos
   MERCURY: new Ephem({
     epoch: 2458426.500000000,
     a: 3.870968969437096E-01,
@@ -175,7 +176,7 @@ export const EphemPresets = {
     epoch: 2458426.500000000,
     a: 1.000618919441359E+00,
     e: 1.676780871638673E-02,
-    i: 3.679932353783076E-03,
+    i: 0,
     om: 1.888900932218542E+02,
     w: 2.718307282052625E+02,
     ma: 3.021792498388233E+02,

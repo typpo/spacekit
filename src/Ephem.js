@@ -22,6 +22,11 @@ const ANGLE_UNITS = new Set([
   'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
 ]);
 
+// Returns true if object is defined.
+function isDef(obj) {
+  return typeof obj !== 'undefined';
+}
+
 /**
  * A class representing Kepler ephemerides.
  * @example
@@ -107,13 +112,13 @@ export class Ephem {
     let w = this.get('w');
     let wBar = this.get('w_bar');
     let om = this.get('om');
-    if (w && om && !wBar) {
+    if (isDef(w) && isDef(om) && !isDef(wBar)) {
       wBar = w + om;
       this.set('w_bar', wBar);
-    } else if (wBar && om && !w) {
+    } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
       w = wBar - om;
       this.set('w', w);
-    } else if (w && wBar && !om) {
+    } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
       om = wBar - w;
       this.set('om', om);
     }
@@ -123,24 +128,31 @@ export class Ephem {
     const n = this.get('n');
     let period = this.get('period');
 
-    if (!period && a) {
+    if (!isDef(period) && isDef(a)) {
       period = Math.sqrt(a * a * a) * 365.25;
       this.set('period', period);
     }
 
-    if (period && !n) {
+    if (isDef(period) && !isDef(n)) {
       // Set radians
       this.set('n', 2.0 * Math.PI / period);
-    } else if (n && !period) {
+    } else if (isDef(n) && !isDef(period)) {
       this.set('period', 2.0 * Math.PI / n);
     }
 
     // Mean longitude
     const ma = this.get('ma');
     let L = this.get('L');
-    if (!L && om && w && ma) {
+    if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
       L = om + w + ma;
+      this.set('L', L);
     }
+
+    // Mean anomaly
+    if (!isDef(ma)) {
+      this.set('ma', L - w);
+    }
+
     //  TODO(ian): Handle no mean anomaly, no om
   }
 }
@@ -153,7 +165,7 @@ export class Ephem {
  * });
  */
 export const EphemPresets = {
-  // See https://ssd.jpl.nasa.gov/?planet_pos
+  // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
   MERCURY: new Ephem({
     epoch: 2458426.500000000,
     a: 3.870968969437096E-01,
@@ -173,13 +185,35 @@ export const EphemPresets = {
     ma: 2.756687596099721E+02,
   }, 'deg'),
   EARTH: new Ephem({
-    epoch: 2458426.500000000,
-    a: 1.000618919441359E+00,
-    e: 1.676780871638673E-02,
-    i: 0,
-    om: 1.888900932218542E+02,
-    w: 2.718307282052625E+02,
-    ma: 3.021792498388233E+02,
+    // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+    /*
+    epoch: 2451545.0,
+    a: 1.00000011,
+    e: 0.01671022,
+    i: 0.00005,
+    om: -11.26064,
+    w_bar: 102.94719,
+    L: 100.46435,
+    */
+
+   // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+    epoch: 2451545.0,
+    a: 1.00000261,
+    e: 0.01671123,
+    i: -0.00001531,
+    om: 0.0,
+    w_bar: 102.93768193,
+    L: 100.46457166,
+
+    /*
+      epoch: 2458426.500000000,
+      a: 1.000618919441359E+00,
+      e: 1.676780871638673E-02,
+      i: 0,
+      om: 1.888900932218542E+02,
+      w: 2.718307282052625E+02,
+      ma: 3.021792498388233E+02,
+     */
   }, 'deg'),
   MARS: new Ephem({
     epoch: 2458426.500000000,

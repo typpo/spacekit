@@ -70,7 +70,6 @@ const obj = viz.createShape('myobj', {
 
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(jedStart);
-
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
 
@@ -90,6 +89,6 @@ function addSphere(x, y, z, color) {
 }
 
 // equinox
-console.log('equinox pos', earth.getOrbit().getPositionAtTime(2458563.415278));
-addSphere(-0.9970896625010871, 0.006910224998151225, -0, 0xff0000);
+const equinoxPos = earth.getOrbit().getPositionAtTime(jedEquinox);
+addSphere(equinoxPos[0], equinoxPos[1], equinoxPos[2], 0xff0000);
 addSphere(earthpos[0], earthpos[1], earthpos[2], 0x00ff00);

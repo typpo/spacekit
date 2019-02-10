@@ -53,6 +53,11 @@ var Spacekit = (function (exports) {
     'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
   ]);
 
+  // Returns true if object is defined.
+  function isDef(obj) {
+    return typeof obj !== 'undefined';
+  }
+
   /**
    * A class representing Kepler ephemerides.
    * @example
@@ -138,13 +143,13 @@ var Spacekit = (function (exports) {
       let w = this.get('w');
       let wBar = this.get('w_bar');
       let om = this.get('om');
-      if (w && om && !wBar) {
+      if (isDef(w) && isDef(om) && !isDef(wBar)) {
         wBar = w + om;
         this.set('w_bar', wBar);
-      } else if (wBar && om && !w) {
+      } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
         w = wBar - om;
         this.set('w', w);
-      } else if (w && wBar && !om) {
+      } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
         om = wBar - w;
         this.set('om', om);
       }
@@ -154,24 +159,31 @@ var Spacekit = (function (exports) {
       const n = this.get('n');
       let period = this.get('period');
 
-      if (!period && a) {
+      if (!isDef(period) && isDef(a)) {
         period = Math.sqrt(a * a * a) * 365.25;
         this.set('period', period);
       }
 
-      if (period && !n) {
+      if (isDef(period) && !isDef(n)) {
         // Set radians
         this.set('n', 2.0 * Math.PI / period);
-      } else if (n && !period) {
+      } else if (isDef(n) && !isDef(period)) {
         this.set('period', 2.0 * Math.PI / n);
       }
 
       // Mean longitude
       const ma = this.get('ma');
       let L = this.get('L');
-      if (!L && om && w && ma) {
+      if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
         L = om + w + ma;
+        this.set('L', L);
       }
+
+      // Mean anomaly
+      if (!isDef(ma)) {
+        this.set('ma', L - w);
+      }
+
       //  TODO(ian): Handle no mean anomaly, no om
     }
   }
@@ -184,7 +196,7 @@ var Spacekit = (function (exports) {
    * });
    */
   const EphemPresets = {
-    // See https://ssd.jpl.nasa.gov/?planet_pos
+    // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
     MERCURY: new Ephem({
       epoch: 2458426.500000000,
       a: 3.870968969437096E-01,
@@ -204,13 +216,35 @@ var Spacekit = (function (exports) {
       ma: 2.756687596099721E+02,
     }, 'deg'),
     EARTH: new Ephem({
-      epoch: 2458426.500000000,
-      a: 1.000618919441359E+00,
-      e: 1.676780871638673E-02,
-      i: 0,
-      om: 1.888900932218542E+02,
-      w: 2.718307282052625E+02,
-      ma: 3.021792498388233E+02,
+      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+      /*
+      epoch: 2451545.0,
+      a: 1.00000011,
+      e: 0.01671022,
+      i: 0.00005,
+      om: -11.26064,
+      w_bar: 102.94719,
+      L: 100.46435,
+      */
+
+     // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+      epoch: 2451545.0,
+      a: 1.00000261,
+      e: 0.01671123,
+      i: -0.00001531,
+      om: 0.0,
+      w_bar: 102.93768193,
+      L: 100.46457166,
+
+      /*
+        epoch: 2458426.500000000,
+        a: 1.000618919441359E+00,
+        e: 1.676780871638673E-02,
+        i: 0,
+        om: 1.888900932218542E+02,
+        w: 2.718307282052625E+02,
+        ma: 3.021792498388233E+02,
+       */
     }, 'deg'),
     MARS: new Ephem({
       epoch: 2458426.500000000,
@@ -324,7 +358,7 @@ var Spacekit = (function (exports) {
       for (let time = 0; time < period; time += step) {
         const pos = this.getPositionAtTime(time);
         if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-          console.error('NaN position value - you may have bad data in the following ephemeris:');
+          console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
           console.error(eph);
         }
         const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
@@ -1069,17 +1103,6 @@ var Spacekit = (function (exports) {
   const deg2rad = Math.PI / 180;
   const rad2deg = 180 / Math.PI;
 
-  function wikipedia(l, b, r) {
-    // See also https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Rectangular_coordinates
-    const lRad = l;
-    const bRad = b;
-    return [
-      r * Math.cos(bRad) * Math.cos(lRad),
-      r * Math.cos(bRad) * Math.sin(lRad),
-      r * Math.sin(bRad),
-    ];
-  }
-
   THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
     // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
 
@@ -1126,6 +1149,7 @@ var Spacekit = (function (exports) {
 
       // The THREE.js object
       this._obj = undefined;
+      this._eclipticOrigin = undefined;
 
       // Offset of axis angle
       this._axisRotationAngleOffset = 0;
@@ -1153,7 +1177,7 @@ var Spacekit = (function (exports) {
               color: this._options.shape.color || 0xcccccc,
             });
             child.material = material;
-            child.geometry.scale(0.1, 0.1, 0.1);
+            child.geometry.scale(0.05, 0.05, 0.05);
             /*
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
@@ -1171,11 +1195,15 @@ var Spacekit = (function (exports) {
 
           const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
           gridHelper.geometry.rotateX(Math.PI / 2);
-          parent.add(gridHelper);
+          //parent.add(gridHelper);
         }
 
         this._obj = parent;
 
+        // Initialize the rotation at 0,0,0.
+        this.initRotation();
+
+        // Then move the object to its position.
         const pos = this._options.position;
         if (pos) {
           this._obj.position.set(pos[0], pos[1], pos[2]);
@@ -1186,7 +1214,6 @@ var Spacekit = (function (exports) {
           this._simulation.addObject(this, false /* noUpdate */);
         }
 
-        this.initRotation();
         this._initialized = true;
       });
 
@@ -1201,20 +1228,6 @@ var Spacekit = (function (exports) {
       // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
       // Model 2691
       const PI = Math.PI;
-      const cos = Math.cos;
-      const sin = Math.sin;
-
-      const pos = this._obj.position.clone();
-
-      // 1998 XO94
-      /*
-      const lambda = 166 * deg2rad;
-      const beta = 21 * deg2rad;
-      const P = 15.7017;
-      const YORP = 0;
-      const JD0 = 2451162.0;
-      const phi0 = 0 * deg2rad;
-     */
 
       // Cacus
       // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
@@ -1229,92 +1242,33 @@ var Spacekit = (function (exports) {
       // Other
       const P = 3.755067;
       const YORP = 1.9e-8;
+      const JD = 2443568.0;
       const JD0 = 2443568.0;
       const phi0 = 0 * deg2rad;
 
-      this._obj.rotateY(PI/2);
-      this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
-      this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+      // Set up ecliptic
+      const eclipticOrigin = new THREE.Object3D();
+      const geometry = new THREE.SphereGeometry(0.05, 32, 32);
+      const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      const pointOfAries = new THREE.Mesh( geometry, material );
+      pointOfAries.position.set(1e32, 0, 0);
+      eclipticOrigin.add(pointOfAries);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+      this._eclipticOrigin = eclipticOrigin;
 
-      //this._obj.rotateZ(zAdjust);
+      eclipticOrigin.updateMatrixWorld();
+      const poleProjectionPoint = new THREE.Vector3();
+      pointOfAries.getWorldPosition(poleProjectionPoint);
+      this._obj.lookAt(poleProjectionPoint);
 
-      //this._obj.rotateZ(90 * deg2rad);
-      //this._obj.rotateY(-beta);
-      //this._obj.rotation.set(0, -beta, 90 * deg2rad);
-      //this._obj.position.set(pos.x, pos.y, pos.z);
-      return;
+      // Move rotate so zAxis follows right-hand rule.
+      this._obj.rotateZ(-PI/4);
 
-      // First term
-      const R_z1 = new THREE.Matrix3();
-      R_z1.set(cos(lambda), -sin(lambda), 0,
-               sin(lambda),  cos(lambda), 0,
-               0          ,  0          , 1);
-
-      // Second term
-      const y = (90 * deg2rad) - beta;
-      const R_y = new THREE.Matrix3();
-      R_y.set(cos(y) , 0, sin(y),
-              0      , 1, 0,
-              -sin(y), 0, cos(y));
-
-      // Third term
-      const z = phi0 + (2 * PI / P) * (JD0 - JD0) + 1/2 * YORP * Math.pow(JD0 - JD0, 2);
-      const R_z2 = new THREE.Matrix3();
-      R_z2.set(cos(z), -sin(z), 0,
-               sin(z),  cos(z), 0,
-               0     ,  0     , 1);
-
-      // Initial vertex coordinates
-      //const r_ast = new THREE.Vector3(pos.x, pos.y, pos.z).normalize();
-      const r_ast = new THREE.Vector3(0.500100,-0.510089,0.234255).normalize();
-      //const r_ast = new THREE.Vector3(0.499759,-0.513008,0.232744).normalize();
-      //const r_ast = new THREE.Vector3(0.365975,-0.237092,-0.372104).normalize();
-
-      // Multiply the terms
-      const translation = R_z1.multiply(R_y).multiply(R_z2);
-      console.log('translation', translation);
-      const r_ecl = r_ast.clone().applyMatrix3(translation).normalize();
-      //this._obj.rotation.set(finalVector.x, finalVector.y, finalVector.z);
-      //this._obj.rotation.set(r_ecl.x, r_ecl.y, r_ecl.z);
-
-      // Try to calculate angle
-      console.log('r_ast', r_ast);
-      console.log('r_ecl', r_ecl);
-
-      // Set rotation on object's axis
-      // https://github.com/mrdoob/three.js/issues/910
-
-      // Convert to rectangular coords
-      const rect = wikipedia(lambda, (90 * deg2rad) - beta, 1);
-      //const rect = polarToCartesian(lambda, beta, 1);
-      //
-
-      // http://mathworld.wolfram.com/SphericalCoordinates.html
-      // theta = longitude = lambda
-      // phi = 90 - latitude = 90 - beta
-      //const sphere = new THREE.Spherical(1, (90 * deg2rad) - beta /* latitude */ ,lambda /* longitude */);
-      //const rect2 = new THREE.Vector3();
-      //rect2.setFromSpherical(sphere);
-      //this._obj.rotation.set(rect2.x, rect2.y, rect2.z);
-
-      const rotationAxis = new THREE.Vector3(rect[0], rect[1], rect[2]).normalize();
-      console.log('rotationAxis', rotationAxis);
-      console.log('rectt', rect);
-
-      //const quaternion = new THREE.Quaternion().setFromAxisAngle( axisOfRotation, angleOfRotation );
-
-      //this._obj.rotateOnAxis(rotationAxis, phi0);
-      this._axisOfRotation = rotationAxis;
-      console.log(rotationAxis.x, rotationAxis.y, rotationAxis.z);
-
-      this._obj.rotation.set(rotationAxis.x, rotationAxis.y, rotationAxis.z);
-
-      /*
-      this._obj.rotateX(rect[0]);
-      this._obj.rotateY(rect[1]);
-      this._obj.rotateZ(rect[2]);
-     */
-      console.log(this._obj);
+      // Adjust Z axis according to time.
+      const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
+      this._obj.rotateZ(zAdjust);
+      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
     }
 
     getAxes() {
@@ -1344,6 +1298,7 @@ var Spacekit = (function (exports) {
     get3jsObjects() {
       const ret = super.get3jsObjects();
       ret.push(this._obj);
+      ret.push(this._eclipticOrigin);
       return ret;
     }
 
@@ -1359,7 +1314,8 @@ var Spacekit = (function (exports) {
         this._obj.rotation.x %= 360;
       }
       if (this._axisOfRotation) ;
-      //this._obj.rotateZ(0.01)
+      //this._obj.rotateZ(0.015)
+      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
       // TODO(ian): Update position if there is an associated orbit
     }
   }

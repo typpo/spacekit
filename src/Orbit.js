@@ -63,7 +63,7 @@ export class Orbit {
     for (let time = 0; time < period; time += step) {
       const pos = this.getPositionAtTime(time);
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-        console.error('NaN position value - you may have bad data in the following ephemeris:');
+        console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
         console.error(eph);
       }
       const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);

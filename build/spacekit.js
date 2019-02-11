@@ -1195,7 +1195,7 @@ var Spacekit = (function (exports) {
 
           const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
           gridHelper.geometry.rotateX(Math.PI / 2);
-          //parent.add(gridHelper);
+          parent.add(gridHelper);
         }
 
         this._obj = parent;
@@ -1239,19 +1239,16 @@ var Spacekit = (function (exports) {
       // Longitude
       const beta = -63 * deg2rad;
 
-      // Other
-      const P = 3.755067;
-      const YORP = 1.9e-8;
-      const JD = 2443568.0;
-      const JD0 = 2443568.0;
-      const phi0 = 0 * deg2rad;
+      // Asteroid rotation
+      this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
+      this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
 
       // Set up ecliptic
       const eclipticOrigin = new THREE.Object3D();
       const geometry = new THREE.SphereGeometry(0.05, 32, 32);
       const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
       const pointOfAries = new THREE.Mesh( geometry, material );
-      pointOfAries.position.set(1e32, 0, 0);
+      //pointOfAries.position.set(5, 0, 0);
       eclipticOrigin.add(pointOfAries);
       eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
       eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
@@ -1260,22 +1257,15 @@ var Spacekit = (function (exports) {
       eclipticOrigin.updateMatrixWorld();
       const poleProjectionPoint = new THREE.Vector3();
       pointOfAries.getWorldPosition(poleProjectionPoint);
-      this._obj.lookAt(poleProjectionPoint);
-
-      // Move rotate so zAxis follows right-hand rule.
-      this._obj.rotateZ(-PI/4);
-
-      // Adjust Z axis according to time.
-      const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
-      this._obj.rotateZ(zAdjust);
+      //this._obj.rotateZ(zAdjust);
       //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
     }
 
     getAxes() {
       return [
-        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff9999),
-        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x99ff99),
-        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x9999ff),
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
       ];
     }
 

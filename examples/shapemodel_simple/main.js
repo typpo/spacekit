@@ -17,7 +17,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
     enableDrift: false,
   },
   debug: {
-    showAxes: true,
+    //showAxes: true,
     showGrid: true,
   },
 });

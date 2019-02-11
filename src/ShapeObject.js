@@ -171,9 +171,12 @@ export class ShapeObject extends SpaceObject {
     const phi0 = 0 * deg2rad;
 
     // Asteroid rotation
-    this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
-    this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
+    this._obj.rotateZ(lambda);
+    this._obj.rotateY(beta);
 
+    /*
     // Set up ecliptic
     const eclipticOrigin = new THREE.Object3D();
     const geometry = new THREE.SphereGeometry(0.05, 32, 32);
@@ -181,13 +184,14 @@ export class ShapeObject extends SpaceObject {
     const pointOfAries = new THREE.Mesh( geometry, material );
     //pointOfAries.position.set(5, 0, 0);
     eclipticOrigin.add(pointOfAries);
-    eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
     eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+    eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
     this._eclipticOrigin = eclipticOrigin;
 
     eclipticOrigin.updateMatrixWorld();
     const poleProjectionPoint = new THREE.Vector3();
     pointOfAries.getWorldPosition(poleProjectionPoint);
+    */
     //this._obj.lookAt(poleProjectionPoint);
 
     // Adjust Z axis according to time.

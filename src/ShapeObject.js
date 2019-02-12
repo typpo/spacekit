@@ -99,7 +99,7 @@ export class ShapeObject extends SpaceObject {
             color: this._options.shape.color || 0xcccccc,
           });
           child.material = material;
-          child.geometry.scale(0.05, 0.05, 0.05);
+          child.geometry.scale(0.004, 0.004, 0.004);
           /*
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();
@@ -150,8 +150,6 @@ export class ShapeObject extends SpaceObject {
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
     // Model 2691
     const PI = Math.PI;
-    const cos = Math.cos;
-    const sin = Math.sin;
 
     // Cacus
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
@@ -161,24 +159,28 @@ export class ShapeObject extends SpaceObject {
     const lambda = 251 * deg2rad;
 
     // Longitude
-    const beta = -63 * deg2rad;
+    const beta = -10 * deg2rad;
 
     // Other
-    const P = 3.755067;
-    const YORP = 1.9e-8;
-    const JD = 2443568.0;
-    const JD0 = 2443568.0;
+    const P = 5.761987;
+    const YORP = 0;
+    const JD = 2438882.233280;
+    const JD0 = 2438882.233280;
     const phi0 = 0 * deg2rad;
 
     // Asteroid rotation
     //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
     //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-    this._obj.rotateZ(lambda);
-    this._obj.rotateY(beta);
 
+    // Adjust Z axis according to time.
+    const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
+    //this._obj.rotateZ(zAdjust);
+    this._obj.rotateY(PI/2 - beta);
+    this._obj.rotateZ(lambda);
+
+    const eclipticOrigin = new THREE.Object3D();
     /*
     // Set up ecliptic
-    const eclipticOrigin = new THREE.Object3D();
     const geometry = new THREE.SphereGeometry(0.05, 32, 32);
     const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
     const pointOfAries = new THREE.Mesh( geometry, material );
@@ -186,17 +188,14 @@ export class ShapeObject extends SpaceObject {
     eclipticOrigin.add(pointOfAries);
     eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
     eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
-    this._eclipticOrigin = eclipticOrigin;
 
     eclipticOrigin.updateMatrixWorld();
     const poleProjectionPoint = new THREE.Vector3();
     pointOfAries.getWorldPosition(poleProjectionPoint);
     */
+    this._eclipticOrigin = eclipticOrigin;
     //this._obj.lookAt(poleProjectionPoint);
 
-    // Adjust Z axis according to time.
-    const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
-    //this._obj.rotateZ(zAdjust);
     //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
   }
 

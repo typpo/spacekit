@@ -2,7 +2,7 @@
 //const jedStart = 2451162.0;
 
 // Cacus
-const jedTest = 2443568.0;
+const jedTest = 2438882.233280;
 const jedEquinox = 2458563.415278;
 const jed2000 = 2451545.0;
 
@@ -17,7 +17,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
     enableDrift: false,
   },
   debug: {
-    //showAxes: true,
+    showAxes: true,
     showGrid: true,
   },
 });
@@ -49,8 +49,18 @@ const ephemCacus = new Spacekit.Ephem({
   w: 102.175880686,
   ma: 122.22725789,
 }, 'deg');
+const ephemAriadne = new Spacekit.Ephem({
+  epoch: 2458600.5,
+  a: 2.20347509373,
+  e: 0.168321859048,
+  i: 3.47139898527,
+  om: 264.810208852,
+  w: 16.2715173585,
+  ma: 137.946567266,
+}, 'deg');
 //const orb = new Spacekit.Orbit(ephemXO94);
-const orb = new Spacekit.Orbit(ephemCacus);
+//const orb = new Spacekit.Orbit(ephemCacus);
+const orb = new Spacekit.Orbit(ephemAriadne);
 const astpos = orb.getPositionAtTime(jedStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
@@ -58,7 +68,8 @@ const obj = viz.createShape('myobj', {
     //url: './1998_XO94.obj',
 
     //http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
-    url: './A1046.M1863.obj',
+    //url: './A1046.M1863.obj',  // Cacus
+    url: './A122.M1825.obj',   // Ariadne
     //enableRotation: true,
   },
   debug: {
@@ -81,7 +92,7 @@ viz.createAmbientLight();
 const scene = viz.getScene();
 
 function addSphere(x, y, z, color) {
-  const geometry = new THREE.SphereGeometry(0.01, 32, 32);
+  const geometry = new THREE.SphereGeometry(0.04, 32, 32);
   const material = new THREE.MeshBasicMaterial( {color: color} );
   const sphere = new THREE.Mesh( geometry, material );
   sphere.position.set(x, y, z);

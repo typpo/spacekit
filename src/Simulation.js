@@ -143,7 +143,7 @@ export class Simulation {
         this._scene.add(gridHelper);
       }
       if (this._options.debug.showAxes) {
-        this._scene.add(new THREE.AxesHelper(5));
+        this._scene.add(new THREE.AxesHelper(0.5));
       }
       if (this._options.debug.showStats) {
         this._stats = new Stats();

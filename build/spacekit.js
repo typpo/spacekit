@@ -1177,7 +1177,7 @@ var Spacekit = (function (exports) {
               color: this._options.shape.color || 0xcccccc,
             });
             child.material = material;
-            child.geometry.scale(0.05, 0.05, 0.05);
+            child.geometry.scale(0.004, 0.004, 0.004);
             /*
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
@@ -1237,14 +1237,29 @@ var Spacekit = (function (exports) {
       const lambda = 251 * deg2rad;
 
       // Longitude
-      const beta = -63 * deg2rad;
-
-      // Asteroid rotation
-      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-      this._obj.rotateZ(lambda);
-      this._obj.rotateY(beta);
+      const beta = -10 * deg2rad;
       //this._obj.rotateZ(zAdjust);
+      this._obj.rotateY(PI/2 - beta);
+      this._obj.rotateZ(lambda);
+
+      const eclipticOrigin = new THREE.Object3D();
+      /*
+      // Set up ecliptic
+      const geometry = new THREE.SphereGeometry(0.05, 32, 32);
+      const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      const pointOfAries = new THREE.Mesh( geometry, material );
+      //pointOfAries.position.set(5, 0, 0);
+      eclipticOrigin.add(pointOfAries);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
+
+      eclipticOrigin.updateMatrixWorld();
+      const poleProjectionPoint = new THREE.Vector3();
+      pointOfAries.getWorldPosition(poleProjectionPoint);
+      */
+      this._eclipticOrigin = eclipticOrigin;
+      //this._obj.lookAt(poleProjectionPoint);
+
       //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
     }
 
@@ -1718,7 +1733,7 @@ var Spacekit = (function (exports) {
           this._scene.add(gridHelper);
         }
         if (this._options.debug.showAxes) {
-          this._scene.add(new THREE.AxesHelper(5));
+          this._scene.add(new THREE.AxesHelper(0.5));
         }
         if (this._options.debug.showStats) {
           this._stats = new Stats();

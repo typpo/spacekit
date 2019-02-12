@@ -2,7 +2,7 @@
 //const jedStart = 2451162.0;
 
 // Cacus
-const jedTest = 2438882.233280;
+const jedTest = 2443568.0;
 const jedEquinox = 2458563.415278;
 const jed2000 = 2451545.0;
 
@@ -59,8 +59,8 @@ const ephemAriadne = new Spacekit.Ephem({
   ma: 137.946567266,
 }, 'deg');
 //const orb = new Spacekit.Orbit(ephemXO94);
-//const orb = new Spacekit.Orbit(ephemCacus);
-const orb = new Spacekit.Orbit(ephemAriadne);
+const orb = new Spacekit.Orbit(ephemCacus);
+//const orb = new Spacekit.Orbit(ephemAriadne);
 const astpos = orb.getPositionAtTime(jedStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
@@ -68,8 +68,8 @@ const obj = viz.createShape('myobj', {
     //url: './1998_XO94.obj',
 
     //http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
-    //url: './A1046.M1863.obj',  // Cacus
-    url: './A122.M1825.obj',   // Ariadne
+    url: './A1046.M1863.obj',  // Cacus
+    //url: './A122.M1825.obj',   // Ariadne
     //enableRotation: true,
   },
   debug: {

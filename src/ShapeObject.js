@@ -99,7 +99,7 @@ export class ShapeObject extends SpaceObject {
             color: this._options.shape.color || 0xcccccc,
           });
           child.material = material;
-          child.geometry.scale(0.004, 0.004, 0.004);
+          child.geometry.scale(0.05, 0.05, 0.05);
           /*
           child.geometry.computeFaceNormals();
           child.geometry.computeVertexNormals();
@@ -159,13 +159,13 @@ export class ShapeObject extends SpaceObject {
     const lambda = 251 * deg2rad;
 
     // Longitude
-    const beta = -10 * deg2rad;
+    const beta = -63 * deg2rad;
 
     // Other
-    const P = 5.761987;
-    const YORP = 0;
-    const JD = 2438882.233280;
-    const JD0 = 2438882.233280;
+    const P = 3.755067;
+    const YORP = 1.9e-8;
+    const JD = 2443568.0;
+    const JD0 = 2443568.0;
     const phi0 = 0 * deg2rad;
 
     // Asteroid rotation

@@ -1177,7 +1177,7 @@ var Spacekit = (function (exports) {
               color: this._options.shape.color || 0xcccccc,
             });
             child.material = material;
-            child.geometry.scale(0.004, 0.004, 0.004);
+            child.geometry.scale(0.05, 0.05, 0.05);
             /*
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
@@ -1237,7 +1237,7 @@ var Spacekit = (function (exports) {
       const lambda = 251 * deg2rad;
 
       // Longitude
-      const beta = -10 * deg2rad;
+      const beta = -63 * deg2rad;
       //this._obj.rotateZ(zAdjust);
       this._obj.rotateY(PI/2 - beta);
       this._obj.rotateZ(lambda);

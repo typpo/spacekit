@@ -1238,9 +1238,9 @@ var Spacekit = (function (exports) {
 
       // Longitude
       const beta = -63 * deg2rad;
+      this._obj.rotateY(-(PI/2 - beta));
+      this._obj.rotateZ(-lambda);
       //this._obj.rotateZ(zAdjust);
-      this._obj.rotateY(PI/2 - beta);
-      this._obj.rotateZ(lambda);
 
       const eclipticOrigin = new THREE.Object3D();
       /*

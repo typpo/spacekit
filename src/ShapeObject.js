@@ -174,9 +174,9 @@ export class ShapeObject extends SpaceObject {
 
     // Adjust Z axis according to time.
     const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
+    this._obj.rotateY(-(PI/2 - beta));
+    this._obj.rotateZ(-lambda);
     //this._obj.rotateZ(zAdjust);
-    this._obj.rotateY(PI/2 - beta);
-    this._obj.rotateZ(lambda);
 
     const eclipticOrigin = new THREE.Object3D();
     /*

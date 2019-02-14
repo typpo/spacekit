@@ -12,6 +12,7 @@ const jedStart = jedTest;
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   jed: jedStart,
+  //startDate: Date.now(),
   startPaused: true,
   camera: {
     enableDrift: false,
@@ -58,9 +59,19 @@ const ephemAriadne = new Spacekit.Ephem({
   w: 16.2715173585,
   ma: 137.946567266,
 }, 'deg');
+const ephemAmphitrite = new Spacekit.Ephem({
+  epoch: 2458600.5,
+  a: 2.55411356494,
+  e: 0.0726955386857,
+  i: 6.08252245688,
+  om: 356.341729978,
+  w: 63.3632780541,
+  ma: 284.235313247,
+}, 'deg');
 //const orb = new Spacekit.Orbit(ephemXO94);
 const orb = new Spacekit.Orbit(ephemCacus);
 //const orb = new Spacekit.Orbit(ephemAriadne);
+//const orb = new Spacekit.Orbit(ephemAmphitrite);
 const astpos = orb.getPositionAtTime(jedStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
@@ -81,8 +92,8 @@ const obj = viz.createShape('myobj', {
 
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(jedStart);
-viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
-viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
+//viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
+//viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
 
 // Add some light.
 //viz.createLight([0, 0, 0]);

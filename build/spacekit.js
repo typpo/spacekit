@@ -380,6 +380,31 @@ var Spacekit = (function (exports) {
       return this._points;
     }
 
+    computeE(jed) {
+      const eph = this._ephem;
+
+      const lonOfPeri = eph.get('w_bar', 'rad');
+      const meanLon = eph.get('L', 'rad');
+      const meanMotion = eph.get('n', 'rad');
+      let ecc = eph.get('e');
+      // TODO(ian): handle hyperbolic ecc
+      const epoch = eph.get('epoch');
+
+      const meanAnom = eph.get('ma', 'rad');
+      const timeDelta = jed - epoch;
+      const M = meanAnom + meanMotion * timeDelta;
+
+      let lastdiff;
+      let E0 = M;
+      do {
+        const E1 = meanAnom + ecc * Math.sin(E0);
+        lastdiff = Math.abs(E1 - E0);
+        E0 = E1;
+      } while (lastdiff > 0.0000001);
+
+      return E0;
+    }
+
     /**
      * Get heliocentric position of object at a given JED.
      * @param {Number} jed Date value in JED.
@@ -394,17 +419,37 @@ var Spacekit = (function (exports) {
 
       // Note: logic below must match the vertex shader.
       // This position calculation is used to create orbital ellipses.
-      const e = eph.get('e');
+      let e = eph.get('e');
       const a = eph.get('a');
       const i = eph.get('i', 'rad');
 
       // longitude of ascending node
-      const o = eph.get('om', 'rad');
+      const om = eph.get('om', 'rad');
 
       // LONGITUDE of perihelion
-      const p = eph.get('w_bar', 'rad');
+      const peri = eph.get('w_bar', 'rad');
 
       const ma = eph.get('ma', 'rad');
+
+      const E = this.computeE(jed);
+
+      if (e >= 1) {
+        e = 0.999999999999;
+      }
+
+      // True anom
+      const theta = 2 * Math.atan(Math.sqrt((1.0 + e) / (1.0 - e)) * Math.tan(E / 2.0));
+
+      // Distance from sun to point on orbit
+      const r = a * (1.0 - e * Math.cos(E));
+
+      const x = r*(cos(om)*cos(peri + theta) - sin(om)*sin(peri + theta)*cos(i));
+      const y = r*(sin(om)*cos(peri + theta) + cos(om)*sin(peri + theta)*cos(i));
+      const z = r*sin(peri + theta)*sin(i);
+
+      return [x, y, z];
+      /*
+
       let M;
 
       // Calculate mean anomaly at jed
@@ -432,6 +477,7 @@ var Spacekit = (function (exports) {
       const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
       const Z = r * (sin(v + p - o) * sin(i));
       return [X, Y, Z];
+     */
     }
 
     /**

@@ -95,19 +95,21 @@ export class Orbit {
     // TODO(ian): handle hyperbolic ecc
     const epoch = eph.get('epoch');
 
+    // Time of perihelion passage
     const tau = (lonOfPeri - meanLon) / meanMotion;
 
-    const meanAnom = eph.get('ma', 'rad');
-    const timeDelta = jed - epoch;
-    const M = meanAnom + meanMotion * timeDelta;
+    let timeDiff = jed - epoch;
+
+    //const timeDelta = jed - epoch;
+    const M = meanMotion * (timeDiff - tau);
 
     let lastdiff;
     let E0 = M;
     do {
-      const E1 = meanAnom + ecc * Math.sin(E0);
+      const E1 = M + ecc * Math.sin(E0);
       lastdiff = Math.abs(E1 - E0);
       E0 = E1;
-    } while (lastdiff > 0.0000001);
+    } while (lastdiff > 1e-5);
 
     return E0;
   }
@@ -127,25 +129,25 @@ export class Orbit {
     // Note: logic below must match the vertex shader.
     // This position calculation is used to create orbital ellipses.
     let e = eph.get('e');
+    if (e >= 1) {
+      e = 0.999999999999;
+    }
+
     const a = eph.get('a');
     const i = eph.get('i', 'rad');
 
     // longitude of ascending node
     const om = eph.get('om', 'rad');
 
-    // LONGITUDE of perihelion
-    const peri = eph.get('w_bar', 'rad');
+    // Argument of perihelion
+    const peri = eph.get('w', 'rad');
 
     const ma = eph.get('ma', 'rad');
 
     const E = this.computeE(jed);
 
-    if (e >= 1) {
-      e = 0.999999999999;
-    }
-
     // True anom
-    const theta = 2 * Math.atan(Math.sqrt((1.0 + e) / (1.0 - e)) * Math.tan(E / 2.0));
+    const theta = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
     // Distance from sun to point on orbit
     const r = a * (1.0 - e * Math.cos(E));

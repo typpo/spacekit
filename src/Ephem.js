@@ -81,6 +81,8 @@ export class Ephem {
       return false;
     }
 
+    // Store everything in radians.
+    // TODO(ian): Make sure value can't be set with bogus units.
     if (units === 'deg') {
       this._attrs[attr] = val * Math.PI / 180;
     } else {

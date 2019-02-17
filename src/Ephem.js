@@ -1,3 +1,6 @@
+const METERS_IN_AU = 149597870700;
+const SECONDS_IN_DAY = 86400;
+
 // TODO(ian): Allow multiple valid attrs for a single quantity and map them
 // internally to a single canonical attribute.
 const EPHEM_VALID_ATTRS = new Set([
@@ -44,17 +47,19 @@ export class Ephem {
   /**
    * @param {Object} initialValues A dictionary of initial values. Not all values
    * are required as some may be inferred from others.
-   * @param {Object} initialValues.a Semimajor axis
-   * @param {Object} initialValues.e Eccentricity
-   * @param {Object} initialValues.i Inclination
-   * @param {Object} initialValues.epoch Epoch in JED
-   * @param {Object} initialValues.period Period in days
-   * @param {Object} initialValues.ma Mean anomaly
-   * @param {Object} initialValues.n Mean motion
-   * @param {Object} initialValues.L Mean longitude
-   * @param {Object} initialValues.om Longitude of Ascending Node
-   * @param {Object} initialValues.w Argument of Perihelion
-   * @param {Object} initialValues.w_bar Longitude of Perihelion
+   * @param {Number} initialValues.a Semimajor axis
+   * @param {Number} initialValues.e Eccentricity
+   * @param {Number} initialValues.i Inclination
+   * @param {Number} initialValues.epoch Epoch in JED
+   * @param {Number} initialValues.period Period in days
+   * @param {Number} initialValues.ma Mean anomaly
+   * @param {Number} initialValues.n Mean motion
+   * @param {Number} initialValues.L Mean longitude
+   * @param {Number} initialValues.om Longitude of Ascending Node
+   * @param {Number} initialValues.w Argument of Perihelion
+   * @param {Number} initialValues.w_bar Longitude of Perihelion
+   * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+   * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
   constructor(initialValues, units = 'rad') {
@@ -65,6 +70,10 @@ export class Ephem {
         const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
         this.set(attr, initialValues[attr], actualUnits);
       }
+    }
+
+    if (typeof this._attrs.GM === 'undefined') {
+      this._attrs['GM'] = GM.SUN;
     }
     this.fill();
   }
@@ -125,17 +134,20 @@ export class Ephem {
 
     // Mean motion / period
     const a = this.get('a');
+    const aMeters = a * METERS_IN_AU;
     const n = this.get('n');
+    const GM = this.get('GM');
     let period = this.get('period');
 
     if (!isDef(period) && isDef(a)) {
-      period = Math.sqrt(a * a * a) * 365.25;
+      period = 2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM) / SECONDS_IN_DAY;
       this.set('period', period);
     }
 
     if (isDef(period) && !isDef(n)) {
       // Set radians
-      this.set('n', 2.0 * Math.PI / period);
+      const newN = 2.0 * Math.PI / period;
+      this.set('n', newN);
     } else if (isDef(n) && !isDef(period)) {
       this.set('period', 2.0 * Math.PI / n);
     }
@@ -153,9 +165,27 @@ export class Ephem {
       this.set('ma', L - w);
     }
 
-    //  TODO(ian): Handle no mean anomaly, no om
+    //  TODO(ian): Handle no om
   }
 }
+
+/**
+ * Standard gravitational parameter for objects orbiting these bodies.
+ * Units in m^3/s^2
+ */
+export const GM = {
+  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+  SUN: 1.3271244004193938E+20,
+  MERCURY: 2.2031780000000021E+13,
+  VENUS: 3.2485859200000006E+14,
+  EARTH_MOON: 4.0350323550225981E+14,
+  MARS: 4.2828375214000022E+13,
+  JUPITER: 1.2671276480000021E+17,
+  SATURN: 3.7940585200000003E+16,
+  URANUS: 5.7945486000000080E+15,
+  NEPTUNE: 6.8365271005800236E+15,
+  PLUTO_CHARON: 9.7700000000000068E+11,
+};
 
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.

@@ -107,7 +107,7 @@ export class Orbit {
     const o = eph.get('om', 'rad');
 
     // LONGITUDE of perihelion
-    const p = eph.get('w_bar', 'rad');
+    const p = eph.get('wBar', 'rad');
 
     const ma = eph.get('ma', 'rad');
     let M;

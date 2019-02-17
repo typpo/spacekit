@@ -17,12 +17,12 @@ const EPHEM_VALID_ATTRS = new Set([
 
   'om', // Longitude of Ascending Node
   'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
-  'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+  'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
 ]);
 
 // Which of these are angular measurements.
 const ANGLE_UNITS = new Set([
-  'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
+  'i', 'ma', 'n', 'L', 'om', 'w', 'wBar',
 ]);
 
 // Returns true if object is defined.
@@ -57,7 +57,7 @@ export class Ephem {
    * @param {Number} initialValues.L Mean longitude
    * @param {Number} initialValues.om Longitude of Ascending Node
    * @param {Number} initialValues.w Argument of Perihelion
-   * @param {Number} initialValues.w_bar Longitude of Perihelion
+   * @param {Number} initialValues.wBar Longitude of Perihelion
    * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
    * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
@@ -119,11 +119,11 @@ export class Ephem {
   fill() {
     // Longitude/Argument of Perihelion and Long. of Ascending Node
     let w = this.get('w');
-    let wBar = this.get('w_bar');
+    let wBar = this.get('wBar');
     let om = this.get('om');
     if (isDef(w) && isDef(om) && !isDef(wBar)) {
       wBar = w + om;
-      this.set('w_bar', wBar);
+      this.set('wBar', wBar);
     } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
       w = wBar - om;
       this.set('w', w);
@@ -132,7 +132,7 @@ export class Ephem {
       this.set('om', om);
     }
 
-    // Mean motion / period
+    // Mean motion and period
     const a = this.get('a');
     const aMeters = a * METERS_IN_AU;
     const n = this.get('n');
@@ -162,7 +162,8 @@ export class Ephem {
 
     // Mean anomaly
     if (!isDef(ma)) {
-      this.set('ma', L - w);
+      // MA = Mean longitude - Longitude of perihelion
+      this.set('ma', L - wBar);
     }
 
     //  TODO(ian): Handle no om
@@ -222,7 +223,7 @@ export const EphemPresets = {
     e: 0.01671022,
     i: 0.00005,
     om: -11.26064,
-    w_bar: 102.94719,
+    wBar: 102.94719,
     L: 100.46435,
     */
 
@@ -232,7 +233,7 @@ export const EphemPresets = {
     e: 0.01671123,
     i: -0.00001531,
     om: 0.0,
-    w_bar: 102.93768193,
+    wBar: 102.93768193,
     L: 100.46457166,
 
     /*

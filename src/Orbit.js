@@ -117,9 +117,10 @@ export class Orbit {
   /**
    * Get heliocentric position of object at a given JED.
    * @param {Number} jed Date value in JED.
+   * @param {boolean} debug Set true for debug output.
    * @return {Array.<Number>} [X, Y, Z] coordinates
    */
-  getPositionAtTime(jed) {
+  getPositionAtTime(jed, debug) {
     const pi = Math.PI;
     const sin = Math.sin;
     const cos = Math.cos;
@@ -165,7 +166,15 @@ export class Orbit {
     const n = eph.get('n', 'rad');
     const epoch = eph.get('epoch');
     const d = jed - epoch;
-    M = ma + n * d;
+
+    let M = ma + n * d;
+    if (debug) {
+      console.info('period=', eph.get('period'));
+      console.info('n=', n);
+      console.info('ma=', ma);
+      console.info('d=', d);
+      console.info('M=', M);
+    }
 
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;

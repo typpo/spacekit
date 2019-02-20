@@ -29,6 +29,9 @@ var Spacekit = (function (exports) {
     }
   }
 
+  const METERS_IN_AU = 149597870700;
+  const SECONDS_IN_DAY = 86400;
+
   // TODO(ian): Allow multiple valid attrs for a single quantity and map them
   // internally to a single canonical attribute.
   const EPHEM_VALID_ATTRS = new Set([
@@ -45,12 +48,12 @@ var Spacekit = (function (exports) {
 
     'om', // Longitude of Ascending Node
     'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
-    'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+    'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
   ]);
 
   // Which of these are angular measurements.
   const ANGLE_UNITS = new Set([
-    'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
+    'i', 'ma', 'n', 'L', 'om', 'w', 'wBar',
   ]);
 
   // Returns true if object is defined.
@@ -75,17 +78,19 @@ var Spacekit = (function (exports) {
     /**
      * @param {Object} initialValues A dictionary of initial values. Not all values
      * are required as some may be inferred from others.
-     * @param {Object} initialValues.a Semimajor axis
-     * @param {Object} initialValues.e Eccentricity
-     * @param {Object} initialValues.i Inclination
-     * @param {Object} initialValues.epoch Epoch in JED
-     * @param {Object} initialValues.period Period in days
-     * @param {Object} initialValues.ma Mean anomaly
-     * @param {Object} initialValues.n Mean motion
-     * @param {Object} initialValues.L Mean longitude
-     * @param {Object} initialValues.om Longitude of Ascending Node
-     * @param {Object} initialValues.w Argument of Perihelion
-     * @param {Object} initialValues.w_bar Longitude of Perihelion
+     * @param {Number} initialValues.a Semimajor axis
+     * @param {Number} initialValues.e Eccentricity
+     * @param {Number} initialValues.i Inclination
+     * @param {Number} initialValues.epoch Epoch in JED
+     * @param {Number} initialValues.period Period in days
+     * @param {Number} initialValues.ma Mean anomaly
+     * @param {Number} initialValues.n Mean motion
+     * @param {Number} initialValues.L Mean longitude
+     * @param {Number} initialValues.om Longitude of Ascending Node
+     * @param {Number} initialValues.w Argument of Perihelion
+     * @param {Number} initialValues.wBar Longitude of Perihelion
+     * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+     * Defaults to GM.SUN.  @see {GM}
      * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
      */
     constructor(initialValues, units = 'rad') {
@@ -96,6 +101,10 @@ var Spacekit = (function (exports) {
           const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
           this.set(attr, initialValues[attr], actualUnits);
         }
+      }
+
+      if (typeof this._attrs.GM === 'undefined') {
+        this._attrs['GM'] = GM.SUN;
       }
       this.fill();
     }
@@ -143,11 +152,11 @@ var Spacekit = (function (exports) {
     fill() {
       // Longitude/Argument of Perihelion and Long. of Ascending Node
       let w = this.get('w');
-      let wBar = this.get('w_bar');
+      let wBar = this.get('wBar');
       let om = this.get('om');
       if (isDef(w) && isDef(om) && !isDef(wBar)) {
         wBar = w + om;
-        this.set('w_bar', wBar);
+        this.set('wBar', wBar);
       } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
         w = wBar - om;
         this.set('w', w);
@@ -156,19 +165,22 @@ var Spacekit = (function (exports) {
         this.set('om', om);
       }
 
-      // Mean motion / period
+      // Mean motion and period
       const a = this.get('a');
+      const aMeters = a * METERS_IN_AU;
       const n = this.get('n');
+      const GM = this.get('GM');
       let period = this.get('period');
 
       if (!isDef(period) && isDef(a)) {
-        period = Math.sqrt(a * a * a) * 365.25;
+        period = 2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM) / SECONDS_IN_DAY;
         this.set('period', period);
       }
 
       if (isDef(period) && !isDef(n)) {
         // Set radians
-        this.set('n', 2.0 * Math.PI / period);
+        const newN = 2.0 * Math.PI / period;
+        this.set('n', newN);
       } else if (isDef(n) && !isDef(period)) {
         this.set('period', 2.0 * Math.PI / n);
       }
@@ -183,12 +195,31 @@ var Spacekit = (function (exports) {
 
       // Mean anomaly
       if (!isDef(ma)) {
-        this.set('ma', L - w);
+        // MA = Mean longitude - Longitude of perihelion
+        this.set('ma', L - wBar);
       }
 
-      //  TODO(ian): Handle no mean anomaly, no om
+      //  TODO(ian): Handle no om
     }
   }
+
+  /**
+   * Standard gravitational parameter for objects orbiting these bodies.
+   * Units in m^3/s^2
+   */
+  const GM = {
+    // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+    SUN: 1.3271244004193938E+20,
+    MERCURY: 2.2031780000000021E+13,
+    VENUS: 3.2485859200000006E+14,
+    EARTH_MOON: 4.0350323550225981E+14,
+    MARS: 4.2828375214000022E+13,
+    JUPITER: 1.2671276480000021E+17,
+    SATURN: 3.7940585200000003E+16,
+    URANUS: 5.7945486000000080E+15,
+    NEPTUNE: 6.8365271005800236E+15,
+    PLUTO_CHARON: 9.7700000000000068E+11,
+  };
 
   /**
    * A dictionary containing ephemerides of planets and other well-known objects.
@@ -225,7 +256,7 @@ var Spacekit = (function (exports) {
       e: 0.01671022,
       i: 0.00005,
       om: -11.26064,
-      w_bar: 102.94719,
+      wBar: 102.94719,
       L: 100.46435,
       */
 
@@ -235,7 +266,7 @@ var Spacekit = (function (exports) {
       e: 0.01671123,
       i: -0.00001531,
       om: 0.0,
-      w_bar: 102.93768193,
+      wBar: 102.93768193,
       L: 100.46457166,
 
       /*
@@ -414,9 +445,10 @@ var Spacekit = (function (exports) {
     /**
      * Get heliocentric position of object at a given JED.
      * @param {Number} jed Date value in JED.
+     * @param {boolean} debug Set true for debug output.
      * @return {Array.<Number>} [X, Y, Z] coordinates
      */
-    getPositionAtTime(jed) {
+    getPositionAtTime(jed, debug) {
       const pi = Math.PI;
       const sin = Math.sin;
       const cos = Math.cos;
@@ -462,7 +494,15 @@ var Spacekit = (function (exports) {
       const n = eph.get('n', 'rad');
       const epoch = eph.get('epoch');
       const d = jed - epoch;
-      M = ma + n * d;
+
+      let M = ma + n * d;
+      if (debug) {
+        console.info('period=', eph.get('period'));
+        console.info('n=', n);
+        console.info('ma=', ma);
+        console.info('d=', d);
+        console.info('M=', M);
+      }
 
       // Estimate eccentric and true anom using iterative approx
       let E0 = M;
@@ -2229,6 +2269,7 @@ var Spacekit = (function (exports) {
 
   exports.Camera = Camera;
   exports.Ephem = Ephem;
+  exports.GM = GM;
   exports.EphemPresets = EphemPresets;
   exports.Orbit = Orbit;
   exports.Simulation = Simulation;

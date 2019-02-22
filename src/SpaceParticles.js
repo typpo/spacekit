@@ -86,7 +86,7 @@ export class SpaceParticles {
       ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-      w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
@@ -135,7 +135,7 @@ export class SpaceParticles {
     attributes.ma.set([ephem.get('ma', 'rad')], offset);
     attributes.n.set([ephem.get('n', 'rad')], offset);
     attributes.w.set([ephem.get('w', 'rad')], offset);
-    attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
+    attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
     attributes.epoch.set([ephem.get('epoch')], offset);
 
     // TODO(ian): Set the update range

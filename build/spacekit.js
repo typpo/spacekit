@@ -413,35 +413,6 @@ var Spacekit = (function (exports) {
       return this._points;
     }
 
-    computeE(jed) {
-      const eph = this._ephem;
-
-      const lonOfPeri = eph.get('w_bar', 'rad');
-      const meanLon = eph.get('L', 'rad');
-      const meanMotion = eph.get('n', 'rad');
-      let ecc = eph.get('e');
-      // TODO(ian): handle hyperbolic ecc
-      const epoch = eph.get('epoch');
-
-      // Time of perihelion passage
-      const tau = (lonOfPeri - meanLon) / meanMotion;
-
-      let timeDiff = jed - epoch;
-
-      //const timeDelta = jed - epoch;
-      const M = meanMotion * (timeDiff - tau);
-
-      let lastdiff;
-      let E0 = M;
-      do {
-        const E1 = M + ecc * Math.sin(E0);
-        lastdiff = Math.abs(E1 - E0);
-        E0 = E1;
-      } while (lastdiff > 1e-5);
-
-      return E0;
-    }
-
     /**
      * Get heliocentric position of object at a given JED.
      * @param {Number} jed Date value in JED.
@@ -449,46 +420,22 @@ var Spacekit = (function (exports) {
      * @return {Array.<Number>} [X, Y, Z] coordinates
      */
     getPositionAtTime(jed, debug) {
+      // Note: logic below must match the vertex shader.
+
       const pi = Math.PI;
       const sin = Math.sin;
       const cos = Math.cos;
 
       const eph = this._ephem;
 
-      // Note: logic below must match the vertex shader.
       // This position calculation is used to create orbital ellipses.
       let e = eph.get('e');
       if (e >= 1) {
         e = 0.999999999999;
       }
 
-      const a = eph.get('a');
-      const i = eph.get('i', 'rad');
-
-      // longitude of ascending node
-      const om = eph.get('om', 'rad');
-
-      // Argument of perihelion
-      const peri = eph.get('w', 'rad');
-
+      // Mean anomaly
       const ma = eph.get('ma', 'rad');
-
-      const E = this.computeE(jed);
-
-      // True anom
-      const theta = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
-
-      // Distance from sun to point on orbit
-      const r = a * (1.0 - e * Math.cos(E));
-
-      const x = r*(cos(om)*cos(peri + theta) - sin(om)*sin(peri + theta)*cos(i));
-      const y = r*(sin(om)*cos(peri + theta) + cos(om)*sin(peri + theta)*cos(i));
-      const z = r*sin(peri + theta)*sin(i);
-
-      return [x, y, z];
-      /*
-
-      let M;
 
       // Calculate mean anomaly at jed
       const n = eph.get('n', 'rad');
@@ -516,14 +463,19 @@ var Spacekit = (function (exports) {
       const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
       // Radius vector, in AU
+      const a = eph.get('a');
       const r = a * (1 - e * e) / (1 + e * cos(v));
+
+      // Inclination, Longitude of ascending node, Longitude of perihelion
+      const i = eph.get('i', 'rad');
+      const o = eph.get('om', 'rad');
+      const p = eph.get('wBar', 'rad');
 
       // Heliocentric coords
       const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
       const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
       const Z = r * (sin(v + p - o) * sin(i));
       return [X, Y, Z];
-     */
     }
 
     /**

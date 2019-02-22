@@ -1,3 +1,6 @@
+const METERS_IN_AU = 149597870700;
+const SECONDS_IN_DAY = 86400;
+
 // TODO(ian): Allow multiple valid attrs for a single quantity and map them
 // internally to a single canonical attribute.
 const EPHEM_VALID_ATTRS = new Set([
@@ -14,13 +17,18 @@ const EPHEM_VALID_ATTRS = new Set([
 
   'om', // Longitude of Ascending Node
   'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
-  'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+  'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
 ]);
 
 // Which of these are angular measurements.
 const ANGLE_UNITS = new Set([
-  'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
+  'i', 'ma', 'n', 'L', 'om', 'w', 'wBar',
 ]);
+
+// Returns true if object is defined.
+function isDef(obj) {
+  return typeof obj !== 'undefined';
+}
 
 /**
  * A class representing Kepler ephemerides.
@@ -39,17 +47,19 @@ export class Ephem {
   /**
    * @param {Object} initialValues A dictionary of initial values. Not all values
    * are required as some may be inferred from others.
-   * @param {Object} initialValues.a Semimajor axis
-   * @param {Object} initialValues.e Eccentricity
-   * @param {Object} initialValues.i Inclination
-   * @param {Object} initialValues.epoch Epoch in JED
-   * @param {Object} initialValues.period Period in days
-   * @param {Object} initialValues.ma Mean anomaly
-   * @param {Object} initialValues.n Mean motion
-   * @param {Object} initialValues.L Mean longitude
-   * @param {Object} initialValues.om Longitude of Ascending Node
-   * @param {Object} initialValues.w Argument of Perihelion
-   * @param {Object} initialValues.w_bar Longitude of Perihelion
+   * @param {Number} initialValues.a Semimajor axis
+   * @param {Number} initialValues.e Eccentricity
+   * @param {Number} initialValues.i Inclination
+   * @param {Number} initialValues.epoch Epoch in JED
+   * @param {Number} initialValues.period Period in days
+   * @param {Number} initialValues.ma Mean anomaly
+   * @param {Number} initialValues.n Mean motion
+   * @param {Number} initialValues.L Mean longitude
+   * @param {Number} initialValues.om Longitude of Ascending Node
+   * @param {Number} initialValues.w Argument of Perihelion
+   * @param {Number} initialValues.wBar Longitude of Perihelion
+   * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+   * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
   constructor(initialValues, units = 'rad') {
@@ -60,6 +70,10 @@ export class Ephem {
         const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
         this.set(attr, initialValues[attr], actualUnits);
       }
+    }
+
+    if (typeof this._attrs.GM === 'undefined') {
+      this._attrs['GM'] = GM.SUN;
     }
     this.fill();
   }
@@ -76,6 +90,8 @@ export class Ephem {
       return false;
     }
 
+    // Store everything in radians.
+    // TODO(ian): Make sure value can't be set with bogus units.
     if (units === 'deg') {
       this._attrs[attr] = val * Math.PI / 180;
     } else {
@@ -105,45 +121,74 @@ export class Ephem {
   fill() {
     // Longitude/Argument of Perihelion and Long. of Ascending Node
     let w = this.get('w');
-    let wBar = this.get('w_bar');
+    let wBar = this.get('wBar');
     let om = this.get('om');
-    if (w && om && !wBar) {
+    if (isDef(w) && isDef(om) && !isDef(wBar)) {
       wBar = w + om;
-      this.set('w_bar', wBar);
-    } else if (wBar && om && !w) {
+      this.set('wBar', wBar);
+    } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
       w = wBar - om;
       this.set('w', w);
-    } else if (w && wBar && !om) {
+    } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
       om = wBar - w;
       this.set('om', om);
     }
 
-    // Mean motion / period
+    // Mean motion and period
     const a = this.get('a');
+    const aMeters = a * METERS_IN_AU;
     const n = this.get('n');
+    const GM = this.get('GM');
     let period = this.get('period');
 
-    if (!period && a) {
-      period = Math.sqrt(a * a * a) * 365.25;
+    if (!isDef(period) && isDef(a)) {
+      period = 2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM) / SECONDS_IN_DAY;
       this.set('period', period);
     }
 
-    if (period && !n) {
+    if (isDef(period) && !isDef(n)) {
       // Set radians
-      this.set('n', 2.0 * Math.PI / period);
-    } else if (n && !period) {
+      const newN = 2.0 * Math.PI / period;
+      this.set('n', newN);
+    } else if (isDef(n) && !isDef(period)) {
       this.set('period', 2.0 * Math.PI / n);
     }
 
     // Mean longitude
     const ma = this.get('ma');
     let L = this.get('L');
-    if (!L && om && w && ma) {
+    if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
       L = om + w + ma;
+      this.set('L', L);
     }
-    //  TODO(ian): Handle no mean anomaly, no om
+
+    // Mean anomaly
+    if (!isDef(ma)) {
+      // MA = Mean longitude - Longitude of perihelion
+      this.set('ma', L - wBar);
+    }
+
+    //  TODO(ian): Handle no om
   }
 }
+
+/**
+ * Standard gravitational parameter for objects orbiting these bodies.
+ * Units in m^3/s^2
+ */
+export const GM = {
+  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+  SUN: 1.3271244004193938E+20,
+  MERCURY: 2.2031780000000021E+13,
+  VENUS: 3.2485859200000006E+14,
+  EARTH_MOON: 4.0350323550225981E+14,
+  MARS: 4.2828375214000022E+13,
+  JUPITER: 1.2671276480000021E+17,
+  SATURN: 3.7940585200000003E+16,
+  URANUS: 5.7945486000000080E+15,
+  NEPTUNE: 6.8365271005800236E+15,
+  PLUTO_CHARON: 9.7700000000000068E+11,
+};
 
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
@@ -153,6 +198,7 @@ export class Ephem {
  * });
  */
 export const EphemPresets = {
+  // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
   MERCURY: new Ephem({
     epoch: 2458426.500000000,
     a: 3.870968969437096E-01,
@@ -172,13 +218,35 @@ export const EphemPresets = {
     ma: 2.756687596099721E+02,
   }, 'deg'),
   EARTH: new Ephem({
-    epoch: 2458426.500000000,
-    a: 1.000618919441359E+00,
-    e: 1.676780871638673E-02,
-    i: 3.679932353783076E-03,
-    om: 1.888900932218542E+02,
-    w: 2.718307282052625E+02,
-    ma: 3.021792498388233E+02,
+    // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+    /*
+    epoch: 2451545.0,
+    a: 1.00000011,
+    e: 0.01671022,
+    i: 0.00005,
+    om: -11.26064,
+    wBar: 102.94719,
+    L: 100.46435,
+    */
+
+   // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+    epoch: 2451545.0,
+    a: 1.00000261,
+    e: 0.01671123,
+    i: -0.00001531,
+    om: 0.0,
+    wBar: 102.93768193,
+    L: 100.46457166,
+
+    /*
+      epoch: 2458426.500000000,
+      a: 1.000618919441359E+00,
+      e: 1.676780871638673E-02,
+      i: 0,
+      om: 1.888900932218542E+02,
+      w: 2.718307282052625E+02,
+      ma: 3.021792498388233E+02,
+     */
   }, 'deg'),
   MARS: new Ephem({
     epoch: 2458426.500000000,

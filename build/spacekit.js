@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.1, 4000);
+      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.001, 4000);
     }
 
     /**
@@ -28,6 +28,9 @@ var Spacekit = (function (exports) {
       return this._camera;
     }
   }
+
+  const METERS_IN_AU = 149597870700;
+  const SECONDS_IN_DAY = 86400;
 
   // TODO(ian): Allow multiple valid attrs for a single quantity and map them
   // internally to a single canonical attribute.
@@ -45,13 +48,18 @@ var Spacekit = (function (exports) {
 
     'om', // Longitude of Ascending Node
     'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
-    'w_bar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+    'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
   ]);
 
   // Which of these are angular measurements.
   const ANGLE_UNITS = new Set([
-    'i', 'ma', 'n', 'L', 'om', 'w', 'w_bar',
+    'i', 'ma', 'n', 'L', 'om', 'w', 'wBar',
   ]);
+
+  // Returns true if object is defined.
+  function isDef(obj) {
+    return typeof obj !== 'undefined';
+  }
 
   /**
    * A class representing Kepler ephemerides.
@@ -70,17 +78,19 @@ var Spacekit = (function (exports) {
     /**
      * @param {Object} initialValues A dictionary of initial values. Not all values
      * are required as some may be inferred from others.
-     * @param {Object} initialValues.a Semimajor axis
-     * @param {Object} initialValues.e Eccentricity
-     * @param {Object} initialValues.i Inclination
-     * @param {Object} initialValues.epoch Epoch in JED
-     * @param {Object} initialValues.period Period in days
-     * @param {Object} initialValues.ma Mean anomaly
-     * @param {Object} initialValues.n Mean motion
-     * @param {Object} initialValues.L Mean longitude
-     * @param {Object} initialValues.om Longitude of Ascending Node
-     * @param {Object} initialValues.w Argument of Perihelion
-     * @param {Object} initialValues.w_bar Longitude of Perihelion
+     * @param {Number} initialValues.a Semimajor axis
+     * @param {Number} initialValues.e Eccentricity
+     * @param {Number} initialValues.i Inclination
+     * @param {Number} initialValues.epoch Epoch in JED
+     * @param {Number} initialValues.period Period in days
+     * @param {Number} initialValues.ma Mean anomaly
+     * @param {Number} initialValues.n Mean motion
+     * @param {Number} initialValues.L Mean longitude
+     * @param {Number} initialValues.om Longitude of Ascending Node
+     * @param {Number} initialValues.w Argument of Perihelion
+     * @param {Number} initialValues.wBar Longitude of Perihelion
+     * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+     * Defaults to GM.SUN.  @see {GM}
      * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
      */
     constructor(initialValues, units = 'rad') {
@@ -91,6 +101,10 @@ var Spacekit = (function (exports) {
           const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
           this.set(attr, initialValues[attr], actualUnits);
         }
+      }
+
+      if (typeof this._attrs.GM === 'undefined') {
+        this._attrs['GM'] = GM.SUN;
       }
       this.fill();
     }
@@ -107,6 +121,8 @@ var Spacekit = (function (exports) {
         return false;
       }
 
+      // Store everything in radians.
+      // TODO(ian): Make sure value can't be set with bogus units.
       if (units === 'deg') {
         this._attrs[attr] = val * Math.PI / 180;
       } else {
@@ -136,45 +152,74 @@ var Spacekit = (function (exports) {
     fill() {
       // Longitude/Argument of Perihelion and Long. of Ascending Node
       let w = this.get('w');
-      let wBar = this.get('w_bar');
+      let wBar = this.get('wBar');
       let om = this.get('om');
-      if (w && om && !wBar) {
+      if (isDef(w) && isDef(om) && !isDef(wBar)) {
         wBar = w + om;
-        this.set('w_bar', wBar);
-      } else if (wBar && om && !w) {
+        this.set('wBar', wBar);
+      } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
         w = wBar - om;
         this.set('w', w);
-      } else if (w && wBar && !om) {
+      } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
         om = wBar - w;
         this.set('om', om);
       }
 
-      // Mean motion / period
+      // Mean motion and period
       const a = this.get('a');
+      const aMeters = a * METERS_IN_AU;
       const n = this.get('n');
+      const GM = this.get('GM');
       let period = this.get('period');
 
-      if (!period && a) {
-        period = Math.sqrt(a * a * a) * 365.25;
+      if (!isDef(period) && isDef(a)) {
+        period = 2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM) / SECONDS_IN_DAY;
         this.set('period', period);
       }
 
-      if (period && !n) {
+      if (isDef(period) && !isDef(n)) {
         // Set radians
-        this.set('n', 2.0 * Math.PI / period);
-      } else if (n && !period) {
+        const newN = 2.0 * Math.PI / period;
+        this.set('n', newN);
+      } else if (isDef(n) && !isDef(period)) {
         this.set('period', 2.0 * Math.PI / n);
       }
 
       // Mean longitude
       const ma = this.get('ma');
       let L = this.get('L');
-      if (!L && om && w && ma) {
+      if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
         L = om + w + ma;
+        this.set('L', L);
       }
-      //  TODO(ian): Handle no mean anomaly, no om
+
+      // Mean anomaly
+      if (!isDef(ma)) {
+        // MA = Mean longitude - Longitude of perihelion
+        this.set('ma', L - wBar);
+      }
+
+      //  TODO(ian): Handle no om
     }
   }
+
+  /**
+   * Standard gravitational parameter for objects orbiting these bodies.
+   * Units in m^3/s^2
+   */
+  const GM = {
+    // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+    SUN: 1.3271244004193938E+20,
+    MERCURY: 2.2031780000000021E+13,
+    VENUS: 3.2485859200000006E+14,
+    EARTH_MOON: 4.0350323550225981E+14,
+    MARS: 4.2828375214000022E+13,
+    JUPITER: 1.2671276480000021E+17,
+    SATURN: 3.7940585200000003E+16,
+    URANUS: 5.7945486000000080E+15,
+    NEPTUNE: 6.8365271005800236E+15,
+    PLUTO_CHARON: 9.7700000000000068E+11,
+  };
 
   /**
    * A dictionary containing ephemerides of planets and other well-known objects.
@@ -184,6 +229,7 @@ var Spacekit = (function (exports) {
    * });
    */
   const EphemPresets = {
+    // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
     MERCURY: new Ephem({
       epoch: 2458426.500000000,
       a: 3.870968969437096E-01,
@@ -203,13 +249,35 @@ var Spacekit = (function (exports) {
       ma: 2.756687596099721E+02,
     }, 'deg'),
     EARTH: new Ephem({
-      epoch: 2458426.500000000,
-      a: 1.000618919441359E+00,
-      e: 1.676780871638673E-02,
-      i: 3.679932353783076E-03,
-      om: 1.888900932218542E+02,
-      w: 2.718307282052625E+02,
-      ma: 3.021792498388233E+02,
+      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+      /*
+      epoch: 2451545.0,
+      a: 1.00000011,
+      e: 0.01671022,
+      i: 0.00005,
+      om: -11.26064,
+      wBar: 102.94719,
+      L: 100.46435,
+      */
+
+     // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+      epoch: 2451545.0,
+      a: 1.00000261,
+      e: 0.01671123,
+      i: -0.00001531,
+      om: 0.0,
+      wBar: 102.93768193,
+      L: 100.46457166,
+
+      /*
+        epoch: 2458426.500000000,
+        a: 1.000618919441359E+00,
+        e: 1.676780871638673E-02,
+        i: 0,
+        om: 1.888900932218542E+02,
+        w: 2.718307282052625E+02,
+        ma: 3.021792498388233E+02,
+       */
     }, 'deg'),
     MARS: new Ephem({
       epoch: 2458426.500000000,
@@ -315,7 +383,7 @@ var Spacekit = (function (exports) {
       const eph = this._ephem;
 
       const period = eph.get('period');
-      const numSegments = Math.max(period / 10, 50);
+      const numSegments = Math.max(period / 2, 50);
       const step = period / numSegments;
 
       const pts = [];
@@ -323,7 +391,7 @@ var Spacekit = (function (exports) {
       for (let time = 0; time < period; time += step) {
         const pos = this.getPositionAtTime(time);
         if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-          console.error('NaN position value - you may have bad data in the following ephemeris:');
+          console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
           console.error(eph);
         }
         const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
@@ -348,35 +416,40 @@ var Spacekit = (function (exports) {
     /**
      * Get heliocentric position of object at a given JED.
      * @param {Number} jed Date value in JED.
+     * @param {boolean} debug Set true for debug output.
      * @return {Array.<Number>} [X, Y, Z] coordinates
      */
-    getPositionAtTime(jed) {
+    getPositionAtTime(jed, debug) {
+      // Note: logic below must match the vertex shader.
+
       const pi = Math.PI;
       const sin = Math.sin;
       const cos = Math.cos;
 
       const eph = this._ephem;
 
-      // Note: logic below must match the vertex shader.
       // This position calculation is used to create orbital ellipses.
-      const e = eph.get('e');
-      const a = eph.get('a');
-      const i = eph.get('i', 'rad');
+      let e = eph.get('e');
+      if (e >= 1) {
+        e = 0.999999999999;
+      }
 
-      // longitude of ascending node
-      const o = eph.get('om', 'rad');
-
-      // LONGITUDE of perihelion
-      const p = eph.get('w_bar', 'rad');
-
+      // Mean anomaly
       const ma = eph.get('ma', 'rad');
-      let M;
 
       // Calculate mean anomaly at jed
       const n = eph.get('n', 'rad');
       const epoch = eph.get('epoch');
       const d = jed - epoch;
-      M = ma + n * d;
+
+      let M = ma + n * d;
+      if (debug) {
+        console.info('period=', eph.get('period'));
+        console.info('n=', n);
+        console.info('ma=', ma);
+        console.info('d=', d);
+        console.info('M=', M);
+      }
 
       // Estimate eccentric and true anom using iterative approx
       let E0 = M;
@@ -390,7 +463,13 @@ var Spacekit = (function (exports) {
       const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
       // Radius vector, in AU
+      const a = eph.get('a');
       const r = a * (1 - e * e) / (1 + e * cos(v));
+
+      // Inclination, Longitude of ascending node, Longitude of perihelion
+      const i = eph.get('i', 'rad');
+      const o = eph.get('om', 'rad');
+      const p = eph.get('wBar', 'rad');
 
       // Heliocentric coords
       const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
@@ -1065,6 +1144,34 @@ var Spacekit = (function (exports) {
     },
   };
 
+  const deg2rad = Math.PI / 180;
+  const rad2deg = 180 / Math.PI;
+
+  THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
+    // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
+
+    // rotate object around axis in world space (the axis passes through point)
+    // axis is assumed to be normalized
+    // assumes object does not have a rotated parent
+
+    var q = new THREE.Quaternion();
+
+    return function rotateAroundWorldAxis( point, axis, angle ) {
+
+      q.setFromAxisAngle( axis, angle );
+
+      this.applyQuaternion( q );
+
+      this.position.sub( point );
+      this.position.applyQuaternion( q );
+      this.position.add( point );
+
+      return this;
+
+    }
+
+  }();
+
   class ShapeObject extends SpaceObject {
     /**
      * @param {Object} options.shape Shape specification
@@ -1072,6 +1179,8 @@ var Spacekit = (function (exports) {
      * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
      * @param {boolean} options.shape.enableRotation Show rotation of object
      * @param {Number} options.shape.rotationSpeed Factor that determines
+     * @param {Object} options.shape.debug Debug options
+     * @param {boolean} options.shape.debug.showAxes Show axes
      * rotation speed. Default 0.5
      * @see SpaceObject
      */
@@ -1084,6 +1193,11 @@ var Spacekit = (function (exports) {
 
       // The THREE.js object
       this._obj = undefined;
+      this._eclipticOrigin = undefined;
+
+      // Offset of axis angle
+      this._axisRotationAngleOffset = 0;
+      this._axisOfRotation = undefined;
 
       // Keep track of materials that comprise this object.
       this._asteroidMaterials = [];
@@ -1103,16 +1217,41 @@ var Spacekit = (function (exports) {
       loader.load(this._options.shape.url, (object) => {
         object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
-            const material = new THREE.MeshLambertMaterial({ color: this._options.shape.color || 0xcccccc });
+            const material = new THREE.MeshStandardMaterial({
+              color: this._options.shape.color || 0xcccccc,
+            });
             child.material = material;
+            child.geometry.scale(0.05, 0.05, 0.05);
+            /*
             child.geometry.computeFaceNormals();
             child.geometry.computeVertexNormals();
             child.geometry.computeBoundingBox();
+           */
             this._asteroidMaterials.push(material);
           }
         });
-        this._obj = object;
-        // TODO(ian): Figure out initial rotation and spin
+
+        const parent = new THREE.Object3D();
+        parent.add(object);
+
+        if (this._options.debug && this._options.debug.showAxes) {
+          this.getAxes().forEach(axis => parent.add(axis));
+
+          const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
+          gridHelper.geometry.rotateX(Math.PI / 2);
+          parent.add(gridHelper);
+        }
+
+        this._obj = parent;
+
+        // Initialize the rotation at 0,0,0.
+        this.initRotation();
+
+        // Then move the object to its position.
+        const pos = this._options.position;
+        if (pos) {
+          this._obj.position.set(pos[0], pos[1], pos[2]);
+        }
 
         if (this._simulation) {
           // Add it all to visualization.
@@ -1125,6 +1264,69 @@ var Spacekit = (function (exports) {
       // TODO(ian): Create an orbit if applicable
     }
 
+    initRotation() {
+      // Formula
+      // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
+
+      // Testing this asteroid:
+      // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
+      // Model 2691
+      const PI = Math.PI;
+
+      // Cacus
+      // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
+      // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
+
+      // Latitude
+      const lambda = 251 * deg2rad;
+
+      // Longitude
+      const beta = -63 * deg2rad;
+      this._obj.rotateY(-(PI/2 - beta));
+      this._obj.rotateZ(-lambda);
+      //this._obj.rotateZ(zAdjust);
+
+      const eclipticOrigin = new THREE.Object3D();
+      /*
+      // Set up ecliptic
+      const geometry = new THREE.SphereGeometry(0.05, 32, 32);
+      const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+      const pointOfAries = new THREE.Mesh( geometry, material );
+      //pointOfAries.position.set(5, 0, 0);
+      eclipticOrigin.add(pointOfAries);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+      eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
+
+      eclipticOrigin.updateMatrixWorld();
+      const poleProjectionPoint = new THREE.Vector3();
+      pointOfAries.getWorldPosition(poleProjectionPoint);
+      */
+      this._eclipticOrigin = eclipticOrigin;
+      //this._obj.lookAt(poleProjectionPoint);
+
+      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
+    }
+
+    getAxes() {
+      return [
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
+        this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
+      ];
+    }
+
+    getAxis(src, dst, color) {
+      const geom = new THREE.Geometry();
+      const mat = new THREE.LineBasicMaterial({ linewidth: 3, color: color });
+
+      geom.vertices.push(src.clone());
+      geom.vertices.push(dst.clone());
+
+      const axis = new THREE.Line(geom, mat, THREE.LineSegments);
+      axis.computeLineDistances();
+      return axis;
+    }
+
     /**
      * Gets the THREE.js objects that represent this SpaceObject.
      * @return {Array.<THREE.Object>} A list of THREE.js objects
@@ -1132,6 +1334,7 @@ var Spacekit = (function (exports) {
     get3jsObjects() {
       const ret = super.get3jsObjects();
       ret.push(this._obj);
+      ret.push(this._eclipticOrigin);
       return ret;
     }
 
@@ -1146,6 +1349,9 @@ var Spacekit = (function (exports) {
         this._obj.rotation.x += (speed * (Math.PI / 180));
         this._obj.rotation.x %= 360;
       }
+      if (this._axisOfRotation) ;
+      //this._obj.rotateZ(0.015)
+      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
       // TODO(ian): Update position if there is an associated orbit
     }
   }
@@ -1448,9 +1654,13 @@ var Spacekit = (function (exports) {
    *  jedPerSecond: 100.0,  // overrides jedDelta
    *  startPaused: false,
    *  maxNumParticles: 2**16,
-   *  enableCameraDrift: true,
+   *  camera: {
+   *    position: [0, -10, 5],
+   *    enableDrift: false,
+   *  },
    *  debug: {
-   *    showAxesHelper: false,
+   *    showAxes: false,
+   *    showGrid: false,
    *    showStats: false,
    *  },
    * });
@@ -1475,10 +1685,14 @@ var Spacekit = (function (exports) {
      * particles, but not too much larger. It's usually good enough to choose the
      * next highest power of 2. If you're not showing many particles (tens of
      * thousands+), you don't need to worry about this.
-     * @param {boolean} options.enableCameraDrift Set true to have the camera
-     * float around slightly. True by default.
+     * @param {Object} options.camera Options for camera
+     * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
+     * coordinates of the camera. Defaults to [0, -10, 5].
+     * @param {boolean} options.camera.enableDrift Set true to have the camera
+     * float around slightly. False by default.
      * @param {Object} options.debug Options dictating debug state.
-     * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
+     * @param {boolean} options.debug.showAxes Show X, Y, and Z axes
+     * @param {boolean} options.debug.showGrid Show grid on XY plane
      * @param {boolean} options.debug.showStats Show FPS and other stats
      * (requires stats.js).
      */
@@ -1495,8 +1709,13 @@ var Spacekit = (function (exports) {
       this._scene = null;
       this._renderer = null;
 
-      this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;
+      this._enableCameraDrift = false;
       this._cameraDefaultPos = [0, -10, 5];
+      if (this._options.camera) {
+        this._enableCameraDrift = !!this._options.camera.enableDrift;
+        this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+      }
+
       this._camera = null;
       this._cameraControls = null;
 
@@ -1521,6 +1740,11 @@ var Spacekit = (function (exports) {
     init() {
       this.initRenderer();
 
+      // Misc
+      // This makes controls.lookAt and other objects treat the positive Z axis
+      // as "up" direction.
+      THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
       // Scene
       this._scene = new THREE.Scene();
 
@@ -1532,6 +1756,8 @@ var Spacekit = (function (exports) {
       window.cam = this._camera;
 
       // Controls
+      // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+      // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
       this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
       this._cameraControls.userPanSpeed = 20;
       this._cameraControls.rotateSpeed = 2;
@@ -1545,8 +1771,13 @@ var Spacekit = (function (exports) {
 
       // Helper
       if (this._options.debug) {
-        if (this._options.debug.showAxesHelper) {
-          this._scene.add(new THREE.AxesHelper(5));
+        if (this._options.debug.showGrid) {
+          const gridHelper = new THREE.GridHelper();
+          gridHelper.geometry.rotateX(Math.PI / 2);
+          this._scene.add(gridHelper);
+        }
+        if (this._options.debug.showAxes) {
+          this._scene.add(new THREE.AxesHelper(0.5));
         }
         if (this._options.debug.showStats) {
           this._stats = new Stats();
@@ -1719,19 +1950,18 @@ var Spacekit = (function (exports) {
      * and provide some contrast.
      * @param {Array.<Number>} pos Position of light source. Defaults to moving
      * with camera.
-     * @param {Number} color Color of light, default 0xCCCCCC
+     * @param {Number} color Color of light, default 0xFFFFFF
      */
-    createLight(pos = undefined, color = 0xcccccc) {
-      const campos = this._camera.position;
-      const directionalLight = new THREE.DirectionalLight(color);
-      if (pos) {
-        directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+    createLight(pos = undefined, color = 0xFFFFFF) {
+      const pointLight = new THREE.PointLight(color, 1, 0, 2);
+      if (typeof pos !== 'undefined') {
+        pointLight.position.set(pos[0], pos[1], pos[2]);
       } else {
         this._cameraControls.addEventListener('change', () => {
-          directionalLight.position.copy(this._camera.position);
+          pointLight.position.copy(this._camera.position);
         });
       }
-      this._scene.add(directionalLight);
+      this._scene.add(pointLight);
     }
 
     /**
@@ -1965,6 +2195,22 @@ var Spacekit = (function (exports) {
     }
 
     /**
+     * Get the three.js scene object
+     * @return {THREE.Scene} The THREE.js scene object
+     */
+    getScene() {
+      return this._scene;
+    }
+
+    /**
+     * Get the three.js controls
+     * @return {THREE.TrackballControls} THREE.js controls object
+     */
+    getControls() {
+      return this._cameraControls;
+    }
+
+    /**
      * Enable or disable camera drift.
      * @param {boolean} driftOn True if you want the camera to float around a bit
      */
@@ -1975,6 +2221,7 @@ var Spacekit = (function (exports) {
 
   exports.Camera = Camera;
   exports.Ephem = Ephem;
+  exports.GM = GM;
   exports.EphemPresets = EphemPresets;
   exports.Orbit = Orbit;
   exports.Simulation = Simulation;

@@ -2,7 +2,9 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   startDate: Date.now(),
-  enableCameraDrift: true,
+  camera: {
+    enableDrift: true,
+  },
 });
 
 // Create a skybox using NASA TYCHO artwork.

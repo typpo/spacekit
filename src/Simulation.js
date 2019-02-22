@@ -20,9 +20,13 @@ import { SpaceParticles } from './SpaceParticles';
  *  jedPerSecond: 100.0,  // overrides jedDelta
  *  startPaused: false,
  *  maxNumParticles: 2**16,
- *  enableCameraDrift: true,
+ *  camera: {
+ *    position: [0, -10, 5],
+ *    enableDrift: false,
+ *  },
  *  debug: {
- *    showAxesHelper: false,
+ *    showAxes: false,
+ *    showGrid: false,
  *    showStats: false,
  *  },
  * });
@@ -47,10 +51,14 @@ export class Simulation {
    * particles, but not too much larger. It's usually good enough to choose the
    * next highest power of 2. If you're not showing many particles (tens of
    * thousands+), you don't need to worry about this.
-   * @param {boolean} options.enableCameraDrift Set true to have the camera
-   * float around slightly. True by default.
+   * @param {Object} options.camera Options for camera
+   * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
+   * coordinates of the camera. Defaults to [0, -10, 5].
+   * @param {boolean} options.camera.enableDrift Set true to have the camera
+   * float around slightly. False by default.
    * @param {Object} options.debug Options dictating debug state.
-   * @param {boolean} options.debug.showAxesHelper Show X, Y, and Z axes
+   * @param {boolean} options.debug.showAxes Show X, Y, and Z axes
+   * @param {boolean} options.debug.showGrid Show grid on XY plane
    * @param {boolean} options.debug.showStats Show FPS and other stats
    * (requires stats.js).
    */
@@ -67,8 +75,13 @@ export class Simulation {
     this._scene = null;
     this._renderer = null;
 
-    this._enableCameraDrift = typeof options.enableCameraDrift !== 'undefined' ? options.enableCameraDrift : true;
+    this._enableCameraDrift = false;
     this._cameraDefaultPos = [0, -10, 5];
+    if (this._options.camera) {
+      this._enableCameraDrift = !!this._options.camera.enableDrift;
+      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+    }
+
     this._camera = null;
     this._cameraControls = null;
 
@@ -93,6 +106,11 @@ export class Simulation {
   init() {
     this.initRenderer();
 
+    // Misc
+    // This makes controls.lookAt and other objects treat the positive Z axis
+    // as "up" direction.
+    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
     // Scene
     this._scene = new THREE.Scene();
 
@@ -104,6 +122,8 @@ export class Simulation {
     window.cam = this._camera;
 
     // Controls
+    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
     this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
@@ -117,8 +137,13 @@ export class Simulation {
 
     // Helper
     if (this._options.debug) {
-      if (this._options.debug.showAxesHelper) {
-        this._scene.add(new THREE.AxesHelper(5));
+      if (this._options.debug.showGrid) {
+        const gridHelper = new THREE.GridHelper();
+        gridHelper.geometry.rotateX(Math.PI / 2);
+        this._scene.add(gridHelper);
+      }
+      if (this._options.debug.showAxes) {
+        this._scene.add(new THREE.AxesHelper(0.5));
       }
       if (this._options.debug.showStats) {
         this._stats = new Stats();
@@ -291,19 +316,18 @@ export class Simulation {
    * and provide some contrast.
    * @param {Array.<Number>} pos Position of light source. Defaults to moving
    * with camera.
-   * @param {Number} color Color of light, default 0xCCCCCC
+   * @param {Number} color Color of light, default 0xFFFFFF
    */
-  createLight(pos = undefined, color = 0xcccccc) {
-    const campos = this._camera.position;
-    const directionalLight = new THREE.DirectionalLight(color);
-    if (pos) {
-      directionalLight.position.set(pos[0], pos[1], pos[2]).normalize();
+  createLight(pos = undefined, color = 0xFFFFFF) {
+    const pointLight = new THREE.PointLight(color, 1, 0, 2);
+    if (typeof pos !== 'undefined') {
+      pointLight.position.set(pos[0], pos[1], pos[2]);
     } else {
       this._cameraControls.addEventListener('change', () => {
-        directionalLight.position.copy(this._camera.position);
+        pointLight.position.copy(this._camera.position);
       });
     }
-    this._scene.add(directionalLight);
+    this._scene.add(pointLight);
   }
 
   /**
@@ -534,6 +558,22 @@ export class Simulation {
    */
   getCamera() {
     return this._camera;
+  }
+
+  /**
+   * Get the three.js scene object
+   * @return {THREE.Scene} The THREE.js scene object
+   */
+  getScene() {
+    return this._scene;
+  }
+
+  /**
+   * Get the three.js controls
+   * @return {THREE.TrackballControls} THREE.js controls object
+   */
+  getControls() {
+    return this._cameraControls;
   }
 
   /**

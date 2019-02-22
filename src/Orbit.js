@@ -55,7 +55,7 @@ export class Orbit {
     const eph = this._ephem;
 
     const period = eph.get('period');
-    const numSegments = Math.max(period / 10, 50);
+    const numSegments = Math.max(period / 2, 50);
     const step = period / numSegments;
 
     const pts = [];
@@ -63,7 +63,7 @@ export class Orbit {
     for (let time = 0; time < period; time += step) {
       const pos = this.getPositionAtTime(time);
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-        console.error('NaN position value - you may have bad data in the following ephemeris:');
+        console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
         console.error(eph);
       }
       const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
@@ -88,35 +88,40 @@ export class Orbit {
   /**
    * Get heliocentric position of object at a given JED.
    * @param {Number} jed Date value in JED.
+   * @param {boolean} debug Set true for debug output.
    * @return {Array.<Number>} [X, Y, Z] coordinates
    */
-  getPositionAtTime(jed) {
+  getPositionAtTime(jed, debug) {
+    // Note: logic below must match the vertex shader.
+
     const pi = Math.PI;
     const sin = Math.sin;
     const cos = Math.cos;
 
     const eph = this._ephem;
 
-    // Note: logic below must match the vertex shader.
     // This position calculation is used to create orbital ellipses.
-    const e = eph.get('e');
-    const a = eph.get('a');
-    const i = eph.get('i', 'rad');
+    let e = eph.get('e');
+    if (e >= 1) {
+      e = 0.999999999999;
+    }
 
-    // longitude of ascending node
-    const o = eph.get('om', 'rad');
-
-    // LONGITUDE of perihelion
-    const p = eph.get('w_bar', 'rad');
-
+    // Mean anomaly
     const ma = eph.get('ma', 'rad');
-    let M;
 
     // Calculate mean anomaly at jed
     const n = eph.get('n', 'rad');
     const epoch = eph.get('epoch');
     const d = jed - epoch;
-    M = ma + n * d;
+
+    let M = ma + n * d;
+    if (debug) {
+      console.info('period=', eph.get('period'));
+      console.info('n=', n);
+      console.info('ma=', ma);
+      console.info('d=', d);
+      console.info('M=', M);
+    }
 
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;
@@ -130,7 +135,13 @@ export class Orbit {
     const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
     // Radius vector, in AU
+    const a = eph.get('a');
     const r = a * (1 - e * e) / (1 + e * cos(v));
+
+    // Inclination, Longitude of ascending node, Longitude of perihelion
+    const i = eph.get('i', 'rad');
+    const o = eph.get('om', 'rad');
+    const p = eph.get('wBar', 'rad');
 
     // Heliocentric coords
     const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));

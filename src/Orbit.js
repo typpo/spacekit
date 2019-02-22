@@ -90,18 +90,13 @@ export class Orbit {
 
     const lonOfPeri = eph.get('w_bar', 'rad');
     const meanLon = eph.get('L', 'rad');
+    const meanAnomaly = eph.get('ma', 'rad');
     const meanMotion = eph.get('n', 'rad');
     let ecc = eph.get('e');
     // TODO(ian): handle hyperbolic ecc
     const epoch = eph.get('epoch');
 
-    // Time of perihelion passage
-    const tau = (lonOfPeri - meanLon) / meanMotion;
-
-    let timeDiff = jed - epoch;
-
-    //const timeDelta = jed - epoch;
-    const M = meanMotion * (timeDiff - tau);
+    const M = meanAnomaly + meanMotion * (jed - epoch);
 
     let lastdiff;
     let E0 = M;

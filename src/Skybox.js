@@ -1,6 +1,31 @@
 import { getFullTextureUrl } from './util';
 
 /**
+ * Maps spectral class to star color
+ * @param spectralClass {String} Star temperature classification
+ * @return {Number} Color for star of given spectral class
+ */
+function getColorForStar(spectralClass) {
+  switch (spectralClass) {
+    case 'O':
+      return 0xc8c8ff;
+    case 'B':
+      return 0xe3e3ff;
+    case 'A':
+      return 0xffffff;
+    case 'F':
+      return 0xffffe3;
+    case 'G':
+      return 0xffffc8;
+    case 'K':
+      return 0xffe3c8;
+    case 'M':
+      return 0xffc8c8;
+  }
+  return 0xffffff;
+}
+
+/**
  * A class that adds a skybox (technically a skysphere) to a visualization.
  */
 export class Skybox {
@@ -60,9 +85,37 @@ export class Skybox {
 
     this._mesh = sky;
 
-    if (this._simulation) {
-      this._simulation.addObject(this, true /* noUpdate */);
-    }
+    this._stars = undefined;
+
+    this.loadStars();
+  }
+
+  loadStars() {
+    fetch('../../src/data/bsc_short.json').then(resp => {
+      return resp.json();
+    }).then(result => {
+      const library = result.BSC;
+
+      const geometry = new THREE.Geometry();
+      library.forEach(star => {
+        const spectralClass = star.Sp.slice(0, 1);
+        const pos = new THREE.Vector3(Math.random() * 5, Math.random() * 5, Math.random() * 5);
+        geometry.vertices.push(pos);
+        geometry.colors.push(new THREE.Color(getColorForStar(spectralClass)));
+      });
+
+      const material = new THREE.PointsMaterial({
+        size: 1,
+        vertexColors: THREE.VertexColors,
+        sizeAttenuation: false,
+      });
+
+      this._stars = new THREE.Points(geometry, material);
+
+      if (this._simulation) {
+        this._simulation.addObject(this, true /* noUpdate */);
+      }
+    });
   }
 
   /**
@@ -70,7 +123,7 @@ export class Skybox {
    * @return {THREE.Object} Skybox mesh
    */
   get3jsObjects() {
-    return [this._mesh];
+    return [this._stars];
   }
 
   /**

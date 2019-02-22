@@ -55,7 +55,8 @@ export class Skybox {
       this._context = contextOrSimulation;
     }
 
-    this._mesh = null;
+    this._mesh = undefined;
+    this._stars = undefined;
 
     this.init();
   }
@@ -64,7 +65,7 @@ export class Skybox {
    * @private
    */
   init() {
-    const geometry = new THREE.SphereBufferGeometry(4000);
+    const geometry = new THREE.SphereBufferGeometry(99000, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
       this._context.options.assetPath);
@@ -87,8 +88,6 @@ export class Skybox {
     sky.scale.set(-1, 1, 1);
 
     this._mesh = sky;
-
-    this._stars = undefined;
 
     this.loadStars();
   }
@@ -115,7 +114,7 @@ export class Skybox {
         const raRad = rad(hoursToDeg(star.RAh));
         const decRad = rad(star.DEd);
 
-        const cartesianSpherical = sphericalToCartesian(raRad, decRad, 10000);
+        const cartesianSpherical = sphericalToCartesian(raRad, decRad, 98000);
         const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
 
         positions[idx] = pos[0];
@@ -150,7 +149,7 @@ export class Skybox {
    * @return {THREE.Object} Skybox mesh
    */
   get3jsObjects() {
-    return [this._stars];
+    return [this._mesh, this._stars];
   }
 
   /**
@@ -171,6 +170,9 @@ export class Skybox {
 export const SkyboxPresets = {
   ESO_GIGAGALAXY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+  },
+  ESO_LITE: {
+    textureUrl: '{{assets}}/skybox/eso_lite.png',
   },
   NASA_TYCHO: {
     textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',

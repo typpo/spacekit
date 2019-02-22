@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.001, 4000);
+      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.001, 100000);
     }
 
     /**
@@ -842,7 +842,8 @@ var Spacekit = (function (exports) {
         this._context = contextOrSimulation.getContext();
       }
 
-      this._mesh = null;
+      this._mesh = undefined;
+      this._stars = undefined;
 
       this.init();
     }
@@ -851,7 +852,7 @@ var Spacekit = (function (exports) {
      * @private
      */
     init() {
-      const geometry = new THREE.SphereBufferGeometry(4000);
+      const geometry = new THREE.SphereBufferGeometry(99000, 32, 32);
 
       const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
         this._context.options.assetPath);
@@ -874,8 +875,6 @@ var Spacekit = (function (exports) {
       sky.scale.set(-1, 1, 1);
 
       this._mesh = sky;
-
-      this._stars = undefined;
 
       this.loadStars();
     }
@@ -902,7 +901,7 @@ var Spacekit = (function (exports) {
           const raRad = rad(hoursToDeg(star.RAh));
           const decRad = rad(star.DEd);
 
-          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 10000);
+          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 98000);
           const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
 
           positions[idx] = pos[0];
@@ -937,7 +936,7 @@ var Spacekit = (function (exports) {
      * @return {THREE.Object} Skybox mesh
      */
     get3jsObjects() {
-      return [this._stars];
+      return [this._mesh, this._stars];
     }
 
     /**
@@ -958,6 +957,9 @@ var Spacekit = (function (exports) {
   const SkyboxPresets = {
     ESO_GIGAGALAXY: {
       textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+    },
+    ESO_LITE: {
+      textureUrl: '{{assets}}/skybox/eso_lite.png',
     },
     NASA_TYCHO: {
       textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',

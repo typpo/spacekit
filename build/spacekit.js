@@ -383,7 +383,9 @@ var Spacekit = (function (exports) {
       const eph = this._ephem;
 
       const period = eph.get('period');
-      const numSegments = Math.max(period / 2, 50);
+      const ecc = eph.get('e');
+      const minSegments = ecc > 0.4 ? 100 : 50;
+      const numSegments = Math.max(period / 2, minSegments);
       const step = period / numSegments;
 
       const pts = [];
@@ -1387,13 +1389,13 @@ var Spacekit = (function (exports) {
     attribute float ma;
     attribute float n;
     attribute float w;
-    attribute float w_bar;
+    attribute float wBar;
     attribute float epoch;
 
     vec3 getAstroPos() {
       float i_rad = i;
       float o_rad = om;
-      float p_rad = w_bar;
+      float p_rad = wBar;
       float ma_rad = ma;
       float n_rad = n;
 
@@ -1543,7 +1545,7 @@ var Spacekit = (function (exports) {
         ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        w_bar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       };
 
@@ -1592,7 +1594,7 @@ var Spacekit = (function (exports) {
       attributes.ma.set([ephem.get('ma', 'rad')], offset);
       attributes.n.set([ephem.get('n', 'rad')], offset);
       attributes.w.set([ephem.get('w', 'rad')], offset);
-      attributes.w_bar.set([ephem.get('w_bar', 'rad')], offset);
+      attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
       attributes.epoch.set([ephem.get('epoch')], offset);
 
       // TODO(ian): Set the update range

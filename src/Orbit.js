@@ -55,7 +55,9 @@ export class Orbit {
     const eph = this._ephem;
 
     const period = eph.get('period');
-    const numSegments = Math.max(period / 2, 50);
+    const ecc = eph.get('e');
+    const minSegments = ecc > 0.4 ? 100 : 50;
+    const numSegments = Math.max(period / 2, minSegments);
     const step = period / numSegments;
 
     const pts = [];

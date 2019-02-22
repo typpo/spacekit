@@ -1,4 +1,7 @@
+import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullTextureUrl } from './util';
+import { rad, hoursToDeg } from './Units';
+import { sphericalToCartesian, equatorialToEcliptic_Cartesian } from './Coordinates';
 
 /**
  * Maps spectral class to star color
@@ -91,23 +94,47 @@ export class Skybox {
   }
 
   loadStars() {
-    fetch('../../src/data/bsc_short.json').then(resp => {
-      return resp.json();
-    }).then(result => {
+    fetch('../../src/data/bsc_short.json').then(resp => resp.json()).then((result) => {
       const library = result.BSC;
 
-      const geometry = new THREE.Geometry();
-      library.forEach(star => {
+      const n = library.length;
+
+      const geometry = new THREE.BufferGeometry();
+
+      const positions = new Float32Array(n * 3);
+      const colors = new Float32Array(n * 3);
+      const sizes = new Float32Array(n);
+
+      geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+      library.forEach((star, idx) => {
         const spectralClass = star.Sp.slice(0, 1);
-        const pos = new THREE.Vector3(Math.random() * 5, Math.random() * 5, Math.random() * 5);
-        geometry.vertices.push(pos);
-        geometry.colors.push(new THREE.Color(getColorForStar(spectralClass)));
+
+        const raRad = rad(hoursToDeg(star.RAh));
+        const decRad = rad(star.DEd);
+
+        const cartesianSpherical = sphericalToCartesian(raRad, decRad, 10000);
+        const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
+
+        positions[idx] = pos[0];
+        positions[idx + 1] = pos[1];
+        positions[idx + 2] = pos[2];
+
+        const color = new THREE.Color(getColorForStar(spectralClass));
+        colors[idx] = color.r;
+        colors[idx + 1] = color.g;
+        colors[idx + 2] = color.b;
+
+        sizes[idx] = Math.random() * 5;
       });
 
-      const material = new THREE.PointsMaterial({
-        size: 1,
-        vertexColors: THREE.VertexColors,
-        sizeAttenuation: false,
+      const material = new THREE.ShaderMaterial({
+        uniforms: {},
+        vertexShader: STAR_SHADER_VERTEX,
+        fragmentShader: STAR_SHADER_FRAGMENT,
+        transparent: true,
       });
 
       this._stars = new THREE.Points(geometry, material);

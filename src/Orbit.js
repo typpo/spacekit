@@ -116,7 +116,7 @@ export class Orbit {
     const epoch = eph.get('epoch');
     const d = jd - epoch;
 
-    let M = ma + n * d;
+    const M = ma + n * d;
     if (debug) {
       console.info('period=', eph.get('period'));
       console.info('n=', n);

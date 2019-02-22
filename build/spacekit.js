@@ -104,7 +104,7 @@ var Spacekit = (function (exports) {
       }
 
       if (typeof this._attrs.GM === 'undefined') {
-        this._attrs['GM'] = GM.SUN;
+        this._attrs.GM = GM.SUN;
       }
       this.fill();
     }
@@ -260,7 +260,7 @@ var Spacekit = (function (exports) {
       L: 100.46435,
       */
 
-     // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
       epoch: 2451545.0,
       a: 1.00000261,
       e: 0.01671123,
@@ -444,7 +444,7 @@ var Spacekit = (function (exports) {
       const epoch = eph.get('epoch');
       const d = jd - epoch;
 
-      let M = ma + n * d;
+      const M = ma + n * d;
       if (debug) {
         console.info('period=', eph.get('period'));
         console.info('n=', n);
@@ -587,6 +587,133 @@ var Spacekit = (function (exports) {
   /**
    * @ignore
    */
+  const ORBIT_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    uniform sampler2D texture;
+
+    void main() {
+      gl_FragColor = vec4(vColor, 1.0);
+      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+    }
+`;
+
+  /**
+   * @ignore
+   */
+  const ORBIT_SHADER_VERTEX = `
+    uniform float jd;
+
+    attribute vec3 fuzzColor;
+    varying vec3 vColor;
+
+    attribute float size;
+
+    attribute float a;
+    attribute float e;
+    attribute float i;
+    attribute float om;
+    attribute float ma;
+    attribute float n;
+    attribute float w;
+    attribute float wBar;
+    attribute float epoch;
+
+    vec3 getAstroPos() {
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float ma_rad = ma;
+      float n_rad = n;
+
+      float d = jd - epoch;
+      float M = ma_rad + n_rad * d;
+
+      // Estimate eccentric and true anom using iterative approximation (this
+      // is normally an intergral).
+      float E0 = M;
+      float E1 = M + e * sin(E0);
+      float lastdiff = abs(E1-E0);
+      E0 = E1;
+      for (int foo=0; foo < 25; foo++) {
+        E1 = M + e * sin(E0);
+        lastdiff = abs(E1-E0);
+        E0 = E1;
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+
+      float E = E0;
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
+
+      // Compute radius vector.
+      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
+
+      // Compute heliocentric coords.
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getAstroPosFast() {
+      float M1 = ma + (jd - epoch) * n;
+      float theta = M1 + 2. * e * sin(M1);
+
+      float cosT = cos(theta);
+
+      float r = a * (1. - e * e) / (1. + e * cosT);
+      float v0 = r * cosT;
+      float v1 = r * sin(theta);
+
+      float sinOm = sin(om);
+      float cosOm = cos(om);
+      float sinW = sin(w);
+      float cosW = cos(w);
+      float sinI = sin(i);
+      float cosI = cos(i);
+
+      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
+      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
+      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
+
+      return vec3(X, Y, Z);
+    }
+
+    void main() {
+      vColor = fuzzColor;
+
+      //vec3 newpos = getAstroPosFast();
+      vec3 newpos = getAstroPos();
+      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      gl_PointSize = size;
+    }
+`;
+
+  const STAR_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+`;
+
+  const STAR_SHADER_VERTEX = `
+    attribute vec3 color;
+    attribute float size;
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size;
+        gl_Position = projectionMatrix * mvPosition;
+    }
+`;
+
+  /**
+   * @ignore
+   */
   const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
 
   /**
@@ -599,6 +726,72 @@ var Spacekit = (function (exports) {
    */
   function getFullTextureUrl(template, assetPath) {
     return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
+  }
+
+  function rad(val) {
+    return val * Math.PI / 180;
+  }
+
+  function deg(val) {
+    return val * 180 / Math.PI;
+  }
+
+  function hoursToDeg(val) {
+    return val * 15.0;
+  }
+
+  const J2000 = 2451545.0;
+
+  function sphericalToCartesian(ra, dec, dist) {
+    // See http://www.stargazing.net/kepler/rectang.html
+    return [
+      dist * Math.cos(ra) * Math.cos(dec),
+      dist * Math.sin(ra) * Math.cos(dec),
+      dist * Math.sin(ra),
+    ];
+  }
+
+  function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
+    const obliquity = getObliquity(jd);
+
+    return [
+      x,
+      Math.cos(obliquity) * y + Math.sin(obliquity) * z,
+      -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+    ];
+  }
+
+  /**
+   * Get Earth's obliquity and nutation at a given date.
+   * @param {Number} jd JD date
+   * @return {Object} Object with attributes "obliquity" and "nutation" provided
+   * in radians
+   */
+  function getNutationAndObliquity(jd = J2000) {
+    const t = (jd - J2000) / 36525;
+    const omega = rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
+    const Lsun = rad(280.4665 + 36000.7698 * t);
+    const Lmoon = rad(218.3165 + 481267.8813 * t);
+
+    const nutation = (-17.20 / 3600) * Math.sin(omega) - (-1.32 / 3600) * Math.sin(2 * Lsun) - (0.23 / 3600) * Math.sin(2 * Lmoon) + deg((0.21 / 3600) * Math.sin(2 * omega));
+
+    const obliquity_zero = 23 + 26.0 / 60 + 21.448 / 3600 - (46.8150 / 3600) * t - (0.00059 / 3600) * t * t + (0.001813 / 3600) * t * t * t;
+    const obliquity_delta = (9.20 / 3600) * Math.cos(omega) + (0.57 / 3600) * Math.cos(2 * Lsun) + (0.10 / 3600) * Math.cos(2 * Lmoon) - (0.09 / 3600) * Math.cos(2 * omega);
+    const obliquity = obliquity_zero + obliquity_delta;
+
+    return {
+      nutation: rad(nutation),
+      obliquity: rad(obliquity),
+    };
+  }
+
+  /**
+   * Get Earth's obliquity at a given date.
+   * @param {Number} jd JD date
+   * @return {Number} Obliquity in radians
+   */
+  function getObliquity(jd = J2000) {
+    return getNutationAndObliquity(jd).obliquity;
   }
 
   /**
@@ -688,23 +881,47 @@ var Spacekit = (function (exports) {
     }
 
     loadStars() {
-      fetch('../../src/data/bsc_short.json').then(resp => {
-        return resp.json();
-      }).then(result => {
+      fetch('../../src/data/bsc_short.json').then(resp => resp.json()).then((result) => {
         const library = result.BSC;
 
-        const geometry = new THREE.Geometry();
-        library.forEach(star => {
+        const n = library.length;
+
+        const geometry = new THREE.BufferGeometry();
+
+        const positions = new Float32Array(n * 3);
+        const colors = new Float32Array(n * 3);
+        const sizes = new Float32Array(n);
+
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        library.forEach((star, idx) => {
           const spectralClass = star.Sp.slice(0, 1);
-          const pos = new THREE.Vector3(Math.random() * 5, Math.random() * 5, Math.random() * 5);
-          geometry.vertices.push(pos);
-          geometry.colors.push(new THREE.Color(getColorForStar(spectralClass)));
+
+          const raRad = rad(hoursToDeg(star.RAh));
+          const decRad = rad(star.DEd);
+
+          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 10000);
+          const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
+
+          positions[idx] = pos[0];
+          positions[idx + 1] = pos[1];
+          positions[idx + 2] = pos[2];
+
+          const color = new THREE.Color(getColorForStar(spectralClass));
+          colors[idx] = color.r;
+          colors[idx + 1] = color.g;
+          colors[idx + 2] = color.b;
+
+          sizes[idx] = Math.random() * 5;
         });
 
-        const material = new THREE.PointsMaterial({
-          size: 1,
-          vertexColors: THREE.VertexColors,
-          sizeAttenuation: false,
+        const material = new THREE.ShaderMaterial({
+          uniforms: {},
+          vertexShader: STAR_SHADER_VERTEX,
+          fragmentShader: STAR_SHADER_FRAGMENT,
+          transparent: true,
         });
 
         this._stars = new THREE.Points(geometry, material);
@@ -1202,30 +1419,27 @@ var Spacekit = (function (exports) {
   const deg2rad = Math.PI / 180;
   const rad2deg = 180 / Math.PI;
 
-  THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
+  THREE.Object3D.prototype.rotateAroundWorldAxis = (function () {
     // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
 
     // rotate object around axis in world space (the axis passes through point)
     // axis is assumed to be normalized
     // assumes object does not have a rotated parent
 
-    var q = new THREE.Quaternion();
+    const q = new THREE.Quaternion();
 
-    return function rotateAroundWorldAxis( point, axis, angle ) {
+    return function rotateAroundWorldAxis(point, axis, angle) {
+      q.setFromAxisAngle(axis, angle);
 
-      q.setFromAxisAngle( axis, angle );
+      this.applyQuaternion(q);
 
-      this.applyQuaternion( q );
-
-      this.position.sub( point );
-      this.position.applyQuaternion( q );
-      this.position.add( point );
+      this.position.sub(point);
+      this.position.applyQuaternion(q);
+      this.position.add(point);
 
       return this;
-
-    }
-
-  }();
+    };
+  }());
 
   class ShapeObject extends SpaceObject {
     /**
@@ -1337,9 +1551,9 @@ var Spacekit = (function (exports) {
 
       // Longitude
       const beta = -63 * deg2rad;
-      this._obj.rotateY(-(PI/2 - beta));
+      this._obj.rotateY(-(PI / 2 - beta));
       this._obj.rotateZ(-lambda);
-      //this._obj.rotateZ(zAdjust);
+      // this._obj.rotateZ(zAdjust);
 
       const eclipticOrigin = new THREE.Object3D();
       /*
@@ -1357,9 +1571,9 @@ var Spacekit = (function (exports) {
       pointOfAries.getWorldPosition(poleProjectionPoint);
       */
       this._eclipticOrigin = eclipticOrigin;
-      //this._obj.lookAt(poleProjectionPoint);
+      // this._obj.lookAt(poleProjectionPoint);
 
-      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
+      // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
     }
 
     getAxes() {
@@ -1372,7 +1586,7 @@ var Spacekit = (function (exports) {
 
     getAxis(src, dst, color) {
       const geom = new THREE.Geometry();
-      const mat = new THREE.LineBasicMaterial({ linewidth: 3, color: color });
+      const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
       geom.vertices.push(src.clone());
       geom.vertices.push(dst.clone());
@@ -1405,118 +1619,11 @@ var Spacekit = (function (exports) {
         this._obj.rotation.x %= 360;
       }
       if (this._axisOfRotation) ;
-      //this._obj.rotateZ(0.015)
-      //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
+      // this._obj.rotateZ(0.015)
+      // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
       // TODO(ian): Update position if there is an associated orbit
     }
   }
-
-  /**
-   * @ignore
-   */
-  const ORBIT_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    uniform sampler2D texture;
-
-    void main() {
-      gl_FragColor = vec4(vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-    }
-`;
-
-  /**
-   * @ignore
-   */
-  const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
-
-    attribute vec3 fuzzColor;
-    varying vec3 vColor;
-
-    attribute float size;
-
-    attribute float a;
-    attribute float e;
-    attribute float i;
-    attribute float om;
-    attribute float ma;
-    attribute float n;
-    attribute float w;
-    attribute float wBar;
-    attribute float epoch;
-
-    vec3 getAstroPos() {
-      float i_rad = i;
-      float o_rad = om;
-      float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
-
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
-
-      // Estimate eccentric and true anom using iterative approximation (this
-      // is normally an intergral).
-      float E0 = M;
-      float E1 = M + e * sin(E0);
-      float lastdiff = abs(E1-E0);
-      E0 = E1;
-      for (int foo=0; foo < 25; foo++) {
-        E1 = M + e * sin(E0);
-        lastdiff = abs(E1-E0);
-        E0 = E1;
-        if (lastdiff < 0.0000001) {
-          break;
-        }
-      }
-
-      float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
-
-      // Compute radius vector.
-      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
-
-      // Compute heliocentric coords.
-      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
-      return vec3(X, Y, Z);
-    }
-
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
-    }
-
-    void main() {
-      vColor = fuzzColor;
-
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
-      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = size;
-    }
-`;
 
   const DEFAULT_PARTICLE_COUNT = 1024;
 
@@ -2285,6 +2392,13 @@ var Spacekit = (function (exports) {
   exports.SpaceObject = SpaceObject;
   exports.SpaceObjectPresets = SpaceObjectPresets;
   exports.SpaceParticles = SpaceParticles;
+  exports.sphericalToCartesian = sphericalToCartesian;
+  exports.equatorialToEcliptic_Cartesian = equatorialToEcliptic_Cartesian;
+  exports.getNutationAndObliquity = getNutationAndObliquity;
+  exports.getObliquity = getObliquity;
+  exports.rad = rad;
+  exports.deg = deg;
+  exports.hoursToDeg = hoursToDeg;
 
   return exports;
 

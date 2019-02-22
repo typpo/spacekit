@@ -104,3 +104,23 @@ export const ORBIT_SHADER_VERTEX = `
       gl_PointSize = size;
     }
 `;
+
+export const STAR_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+`;
+
+export const STAR_SHADER_VERTEX = `
+    attribute vec3 color;
+    attribute float size;
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size;
+        gl_Position = projectionMatrix * mvPosition;
+    }
+`;

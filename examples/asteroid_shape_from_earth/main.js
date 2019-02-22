@@ -1,5 +1,5 @@
 // 1998 XO94
-//const jdStart = 2451162.0;
+// const jdStart = 2451162.0;
 
 // Cacus
 const jdTest = 2443568.0;
@@ -12,7 +12,7 @@ const jdStart = jdTest;
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   jd: jdStart,
-  //startDate: Date.now(),
+  // startDate: Date.now(),
   startPaused: true,
   camera: {
     enableDrift: false,
@@ -25,7 +25,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 viz.renderOnlyInViewport();
 
 // Create a skybox using NASA TYCHO artwork.
-//viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+// viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 
 // Create sun and earth
 const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
@@ -68,27 +68,27 @@ const ephemAmphitrite = new Spacekit.Ephem({
   w: 63.3632780541,
   ma: 284.235313247,
 }, 'deg');
-//const orb = new Spacekit.Orbit(ephemXO94);
+// const orb = new Spacekit.Orbit(ephemXO94);
 const orb = new Spacekit.Orbit(ephemCacus);
-//const orb = new Spacekit.Orbit(ephemAriadne);
-//const orb = new Spacekit.Orbit(ephemAmphitrite);
+// const orb = new Spacekit.Orbit(ephemAriadne);
+// const orb = new Spacekit.Orbit(ephemAmphitrite);
 const astpos = orb.getPositionAtTime(jdStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
   shape: {
-    //url: './1998_XO94.obj',
+    // url: './1998_XO94.obj',
 
-    //http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
-    url: './A1046.M1863.obj',  // Cacus
-    //url: './A122.M1825.obj',   // Ariadne
-    //enableRotation: true,
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
+    url: './A1046.M1863.obj', // Cacus
+    // url: './A122.M1825.obj',   // Ariadne
+    // enableRotation: true,
   },
   debug: {
     showAxes: true,
   },
 });
 
-//viz.zoomToFit(obj, 5 /* zoom offset */);
+// viz.zoomToFit(obj, 5 /* zoom offset */);
 
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(jdStart);
@@ -96,7 +96,7 @@ viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
 
 // Add some light.
-//viz.createLight([0, 0, 0]);
+// viz.createLight([0, 0, 0]);
 viz.createLight();
 viz.createAmbientLight();
 
@@ -104,8 +104,8 @@ const scene = viz.getScene();
 
 function addSphere(x, y, z, color) {
   const geometry = new THREE.SphereGeometry(0.04, 32, 32);
-  const material = new THREE.MeshBasicMaterial( {color: color} );
-  const sphere = new THREE.Mesh( geometry, material );
+  const material = new THREE.MeshBasicMaterial({ color });
+  const sphere = new THREE.Mesh(geometry, material);
   sphere.position.set(x, y, z);
   scene.add(sphere);
 }

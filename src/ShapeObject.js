@@ -25,30 +25,27 @@ function wikipedia(l, b, r) {
   ];
 }
 
-THREE.Object3D.prototype.rotateAroundWorldAxis = function() {
+THREE.Object3D.prototype.rotateAroundWorldAxis = (function () {
   // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
 
   // rotate object around axis in world space (the axis passes through point)
   // axis is assumed to be normalized
   // assumes object does not have a rotated parent
 
-  var q = new THREE.Quaternion();
+  const q = new THREE.Quaternion();
 
-  return function rotateAroundWorldAxis( point, axis, angle ) {
+  return function rotateAroundWorldAxis(point, axis, angle) {
+    q.setFromAxisAngle(axis, angle);
 
-    q.setFromAxisAngle( axis, angle );
+    this.applyQuaternion(q);
 
-    this.applyQuaternion( q );
-
-    this.position.sub( point );
-    this.position.applyQuaternion( q );
-    this.position.add( point );
+    this.position.sub(point);
+    this.position.applyQuaternion(q);
+    this.position.add(point);
 
     return this;
-
-  }
-
-}();
+  };
+}());
 
 export class ShapeObject extends SpaceObject {
   /**
@@ -169,14 +166,14 @@ export class ShapeObject extends SpaceObject {
     const phi0 = 0 * deg2rad;
 
     // Asteroid rotation
-    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
+    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
+    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
 
     // Adjust Z axis according to time.
-    const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1/2 * YORP * Math.pow(JD - JD0, 2);
-    this._obj.rotateY(-(PI/2 - beta));
+    const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1 / 2 * YORP * Math.pow(JD - JD0, 2);
+    this._obj.rotateY(-(PI / 2 - beta));
     this._obj.rotateZ(-lambda);
-    //this._obj.rotateZ(zAdjust);
+    // this._obj.rotateZ(zAdjust);
 
     const eclipticOrigin = new THREE.Object3D();
     /*
@@ -194,9 +191,9 @@ export class ShapeObject extends SpaceObject {
     pointOfAries.getWorldPosition(poleProjectionPoint);
     */
     this._eclipticOrigin = eclipticOrigin;
-    //this._obj.lookAt(poleProjectionPoint);
+    // this._obj.lookAt(poleProjectionPoint);
 
-    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
+    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
   }
 
   getAxes() {
@@ -208,8 +205,8 @@ export class ShapeObject extends SpaceObject {
   }
 
   getAxis(src, dst, color) {
-    const geom = new THREE.Geometry()
-    const mat = new THREE.LineBasicMaterial({ linewidth: 3, color: color });
+    const geom = new THREE.Geometry();
+    const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
     geom.vertices.push(src.clone());
     geom.vertices.push(dst.clone());
@@ -242,10 +239,10 @@ export class ShapeObject extends SpaceObject {
       this._obj.rotation.x %= 360;
     }
     if (this._axisOfRotation) {
-      //this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
+      // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
     }
-    //this._obj.rotateZ(0.015)
-    //this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
+    // this._obj.rotateZ(0.015)
+    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
     // TODO(ian): Update position if there is an associated orbit
   }
 }

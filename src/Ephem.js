@@ -73,7 +73,7 @@ export class Ephem {
     }
 
     if (typeof this._attrs.GM === 'undefined') {
-      this._attrs['GM'] = GM.SUN;
+      this._attrs.GM = GM.SUN;
     }
     this.fill();
   }
@@ -229,7 +229,7 @@ export const EphemPresets = {
     L: 100.46435,
     */
 
-   // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+    // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
     epoch: 2451545.0,
     a: 1.00000261,
     e: 0.01671123,

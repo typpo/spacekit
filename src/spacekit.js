@@ -5,3 +5,5 @@ export * from './Simulation';
 export * from './Skybox';
 export * from './SpaceObject';
 export * from './SpaceParticles';
+export * from './Coordinates';
+export * from './Units';

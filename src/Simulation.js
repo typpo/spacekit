@@ -15,9 +15,9 @@ import { SpaceParticles } from './SpaceParticles';
  * @example
  * const sim = new Spacekit.Simulation('my-container', {
  *  startDate: Date.now(),
- *  jed: 0.0,
- *  jedDelta: 10.0,
- *  jedPerSecond: 100.0,  // overrides jedDelta
+ *  jd: 0.0,
+ *  jdDelta: 10.0,
+ *  jdPerSecond: 100.0,  // overrides jdDelta
  *  startPaused: false,
  *  maxNumParticles: 2**16,
  *  camera: {
@@ -37,12 +37,12 @@ export class Simulation {
    * @param {Object} options for simulation
    * @param {Date} options.startDate The start date and time for this
    * simulation.
-   * @param {Number} options.jed The JED date of this simulation.
+   * @param {Number} options.jd The JD date of this simulation.
    * Defaults to 0
-   * @param {Number} options.jedDelta The number of JED to add every tick of
+   * @param {Number} options.jdDelta The number of JD to add every tick of
    * the simulation.
-   * @param {Number} options.jedPerSecond The number of jed to add every
-   * second. Use this instead of `jedDelta` for constant motion that does not
+   * @param {Number} options.jdPerSecond The number of jd to add every
+   * second. Use this instead of `jdDelta` for constant motion that does not
    * vary with framerate. Defaults to 100
    * @param {boolean} options.startPaused Whether the simulation should start
    * in a paused state.
@@ -66,9 +66,9 @@ export class Simulation {
     this._simulationElt = simulationElt;
     this._options = options || {};
 
-    this._jed = this._options.jed || julian.toJulianDay(this._options.startDate) || 0;
-    this._jedDelta = this._options.jedDelta;
-    this._jedPerSecond = this._options.jedPerSecond || 100;
+    this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
+    this._jdDelta = this._options.jdDelta;
+    this._jdPerSecond = this._options.jdPerSecond || 100;
     this._isPaused = options.startPaused || false;
     this.onTick = null;
 
@@ -155,7 +155,7 @@ export class Simulation {
     // Orbit particle system must be initialized after scene is created.
     this._particles = new SpaceParticles({
       textureUrl: '{{assets}}/sprites/smallparticle.png',
-      jed: this._jed,
+      jd: this._jd,
       maxNumParticles: this._options.maxNumParticles,
     }, this);
   }
@@ -181,7 +181,7 @@ export class Simulation {
   update() {
     for (const objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {
-        this._subscribedObjects[objId].update(this._jed);
+        this._subscribedObjects[objId].update(this._jd);
       }
     }
   }
@@ -212,11 +212,11 @@ export class Simulation {
     }
 
     if (!this._isPaused) {
-      if (this._jedDelta) {
-        this._jed += this._jedDelta;
+      if (this._jdDelta) {
+        this._jd += this._jdDelta;
       } else {
-        // N jed per second
-        this._jed += (this._jedPerSecond) / this._fps;
+        // N jd per second
+        this._jd += (this._jdPerSecond) / this._fps;
       }
 
       const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
@@ -453,19 +453,19 @@ export class Simulation {
   }
 
   /**
-   * Gets the current JED date of the simulation
-   * @return {Number} JED date
+   * Gets the current JD date of the simulation
+   * @return {Number} JD date
    */
-  getJed() {
-    return this._jed;
+  getJd() {
+    return this._jd;
   }
 
   /**
-   * Sets the JED date of the simulation.
-   * @param {Number} val JED date
+   * Sets the JD date of the simulation.
+   * @param {Number} val JD date
    */
-  setJed(val) {
-    this._jed = val;
+  setJd(val) {
+    this._jd = val;
   }
 
   /**
@@ -473,7 +473,7 @@ export class Simulation {
    * @return {Date} Date of simulation
    */
   getDate() {
-    return julian.toDate(this._jed);
+    return julian.toDate(this._jd);
   }
 
   /**
@@ -481,49 +481,49 @@ export class Simulation {
    * @param {Date} date Date of simulation
    */
   setDate(date) {
-    this.setJed(julian.toJulianDay(date));
+    this.setJd(julian.toJulianDay(date));
   }
 
   /**
-   * Get the JED per frame of the visualization.
+   * Get the JD per frame of the visualization.
    */
-  getJedDelta() {
-    if (!this._jedDelta) {
-      return this._jedPerSecond / this._fps;
+  getJdDelta() {
+    if (!this._jdDelta) {
+      return this._jdPerSecond / this._fps;
     }
-    return this._jedDelta;
+    return this._jdDelta;
   }
 
   /**
-   * Set the JED per frame of the visualization. This will override any
-   * existing "JED per second" setting.
-   * @param {Number} delta JED per frame
+   * Set the JD per frame of the visualization. This will override any
+   * existing "JD per second" setting.
+   * @param {Number} delta JD per frame
    */
-  setJedDelta(delta) {
-    this._jedDelta = delta;
+  setJdDelta(delta) {
+    this._jdDelta = delta;
   }
 
   /**
-   * Get the JED change per second of the visualization.
-   * @return {Number} JED per second
+   * Get the JD change per second of the visualization.
+   * @return {Number} JD per second
    */
-  getJedPerSecond() {
-    if (this._jedDelta) {
-      // Jed per second can vary
+  getJdPerSecond() {
+    if (this._jdDelta) {
+      // Jd per second can vary
       return undefined;
     }
-    return this._jedPerSecond;
+    return this._jdPerSecond;
   }
 
   /**
-   * Set the JED change per second of the visualization.
-   * @return {Number} x JED per second
+   * Set the JD change per second of the visualization.
+   * @return {Number} x JD per second
    */
-  setJedPerSecond(x) {
-    // Delta overrides jed per second, so unset it.
-    this._jedDelta = undefined;
+  setJdPerSecond(x) {
+    // Delta overrides jd per second, so unset it.
+    this._jdDelta = undefined;
 
-    this._jedPerSecond = x;
+    this._jdPerSecond = x;
   }
 
   /**

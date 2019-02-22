@@ -50,7 +50,7 @@ export class Ephem {
    * @param {Number} initialValues.a Semimajor axis
    * @param {Number} initialValues.e Eccentricity
    * @param {Number} initialValues.i Inclination
-   * @param {Number} initialValues.epoch Epoch in JED
+   * @param {Number} initialValues.epoch Epoch in JD
    * @param {Number} initialValues.period Period in days
    * @param {Number} initialValues.ma Mean anomaly
    * @param {Number} initialValues.n Mean motion

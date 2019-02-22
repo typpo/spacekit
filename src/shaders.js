@@ -15,7 +15,7 @@ export const ORBIT_SHADER_FRAGMENT = `
  * @ignore
  */
 export const ORBIT_SHADER_VERTEX = `
-    uniform float jed;
+    uniform float jd;
 
     attribute vec3 fuzzColor;
     varying vec3 vColor;
@@ -39,7 +39,7 @@ export const ORBIT_SHADER_VERTEX = `
       float ma_rad = ma;
       float n_rad = n;
 
-      float d = jed - epoch;
+      float d = jd - epoch;
       float M = ma_rad + n_rad * d;
 
       // Estimate eccentric and true anom using iterative approximation (this
@@ -71,7 +71,7 @@ export const ORBIT_SHADER_VERTEX = `
     }
 
     vec3 getAstroPosFast() {
-      float M1 = ma + (jed - epoch) * n;
+      float M1 = ma + (jd - epoch) * n;
       float theta = M1 + 2. * e * sin(M1);
 
       float cosT = cos(theta);

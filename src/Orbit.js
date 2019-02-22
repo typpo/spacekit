@@ -88,12 +88,12 @@ export class Orbit {
   }
 
   /**
-   * Get heliocentric position of object at a given JED.
-   * @param {Number} jed Date value in JED.
+   * Get heliocentric position of object at a given JD.
+   * @param {Number} jd Date value in JD.
    * @param {boolean} debug Set true for debug output.
    * @return {Array.<Number>} [X, Y, Z] coordinates
    */
-  getPositionAtTime(jed, debug) {
+  getPositionAtTime(jd, debug) {
     // Note: logic below must match the vertex shader.
 
     const pi = Math.PI;
@@ -111,10 +111,10 @@ export class Orbit {
     // Mean anomaly
     const ma = eph.get('ma', 'rad');
 
-    // Calculate mean anomaly at jed
+    // Calculate mean anomaly at jd
     const n = eph.get('n', 'rad');
     const epoch = eph.get('epoch');
-    const d = jed - epoch;
+    const d = jd - epoch;
 
     let M = ma + n * d;
     if (debug) {

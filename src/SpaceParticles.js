@@ -14,7 +14,7 @@ export class SpaceParticles {
    * @param {Object} options Options container
    * @param {Object} options.textureUrl Template url for sprite
    * @param {Object} options.assetPath Base path for assets
-   * @param {Number} options.jed JED date value
+   * @param {Number} options.jd JD date value
    * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
    * @param {Object} contextOrSimulation Simulation context or object
    */
@@ -69,7 +69,7 @@ export class SpaceParticles {
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
-      jed: { value: this._options.jed || 0 },
+      jd: { value: this._options.jd || 0 },
       texture: { value: defaultMapTexture },
     };
 
@@ -158,10 +158,10 @@ export class SpaceParticles {
 
   /**
    * Update the position for all particles
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    */
-  update(jed) {
-    this._uniforms.jed.value = jed;
+  update(jd) {
+    this._uniforms.jd.value = jd;
   }
 
   /**

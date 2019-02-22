@@ -1,17 +1,17 @@
 // 1998 XO94
-//const jedStart = 2451162.0;
+//const jdStart = 2451162.0;
 
 // Cacus
-const jedTest = 2443568.0;
-const jedEquinox = 2458563.415278;
-const jed2000 = 2451545.0;
+const jdTest = 2443568.0;
+const jdEquinox = 2458563.415278;
+const jd2000 = 2451545.0;
 
-const jedStart = jedTest;
+const jdStart = jdTest;
 
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
-  jed: jedStart,
+  jd: jdStart,
   //startDate: Date.now(),
   startPaused: true,
   camera: {
@@ -72,7 +72,7 @@ const ephemAmphitrite = new Spacekit.Ephem({
 const orb = new Spacekit.Orbit(ephemCacus);
 //const orb = new Spacekit.Orbit(ephemAriadne);
 //const orb = new Spacekit.Orbit(ephemAmphitrite);
-const astpos = orb.getPositionAtTime(jedStart);
+const astpos = orb.getPositionAtTime(jdStart);
 const obj = viz.createShape('myobj', {
   position: astpos,
   shape: {
@@ -91,7 +91,7 @@ const obj = viz.createShape('myobj', {
 //viz.zoomToFit(obj, 5 /* zoom offset */);
 
 // Set up camera
-const earthpos = earth.getOrbit().getPositionAtTime(jedStart);
+const earthpos = earth.getOrbit().getPositionAtTime(jdStart);
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);
 viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
 
@@ -111,6 +111,6 @@ function addSphere(x, y, z, color) {
 }
 
 // equinox
-const equinoxPos = earth.getOrbit().getPositionAtTime(jedEquinox, true /* debug */);
+const equinoxPos = earth.getOrbit().getPositionAtTime(jdEquinox, true /* debug */);
 addSphere(equinoxPos[0], equinoxPos[1], equinoxPos[2], 0xff0000);
 addSphere(earthpos[0], earthpos[1], earthpos[2], 0x00ff00);

@@ -57,16 +57,16 @@ document.getElementById('btn-set-time').onclick = function () {
   viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
 };
 
-document.getElementById('btn-set-jed-per-second').onclick = function () {
-  viz.setJedPerSecond(parseInt(prompt('Enter jed per second'), 10));
+document.getElementById('btn-set-jd-per-second').onclick = function () {
+  viz.setJdPerSecond(parseInt(prompt('Enter jd per second'), 10));
 };
 
 document.getElementById('btn-faster').onclick = function () {
-  viz.setJedDelta(viz.getJedDelta() * 1.5);
+  viz.setJdDelta(viz.getJdDelta() * 1.5);
 };
 
 document.getElementById('btn-slower').onclick = function () {
-  viz.setJedDelta(viz.getJedDelta() * 0.5);
+  viz.setJdDelta(viz.getJdDelta() * 0.5);
 };
 
 const dateElt = document.getElementById('current-date');

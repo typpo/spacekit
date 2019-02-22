@@ -204,7 +204,7 @@ export class SpaceObject {
       color: 0xffffff,
     }));
     sprite.scale.set.apply(this, this._scale);
-    const position = this.getPosition(this._simulation.getJed());
+    const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
 
 
@@ -245,15 +245,15 @@ export class SpaceObject {
 
   /**
    * @private
-   * Determines whether to update the position of an update. Don't update if JED
+   * Determines whether to update the position of an update. Don't update if JD
    * threshold is less than a certain amount.
    * TODO(ian): This should also be a function of zoom level, because as you get
    * closer the chopiness gets more noticeable.
-   * @param {Number} afterJed Next JED
+   * @param {Number} afterJd Next JD
    * @return {boolean} Whether to update
    */
-  shouldUpdateObjectPosition(afterJed) {
-    const degMove = this._degreesPerDay * (afterJed - this._lastJedUpdated);
+  shouldUpdateObjectPosition(afterJd) {
+    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
     if (degMove < MIN_DEG_MOVE_PER_DAY) {
       return false;
     }
@@ -275,17 +275,17 @@ export class SpaceObject {
 
   /**
    * Gets the visualization coordinates of this object at a given time.
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    * @return {Array.<Number>} [X, Y,Z] coordinates
    */
-  getPosition(jed) {
+  getPosition(jd) {
     const pos = this._position;
     if (!this._orbit) {
       // Default implementation, a static object.
       return pos;
     }
 
-    const posModified = this._orbit.getPositionAtTime(jed);
+    const posModified = this._orbit.getPositionAtTime(jd);
     return [
       pos[0] + posModified[0],
       pos[1] + posModified[1],
@@ -295,9 +295,9 @@ export class SpaceObject {
 
   /**
    * Updates the object and its label positions for a given time.
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    */
-  update(jed) {
+  update(jd) {
     if (this.isStaticObject()) {
       return;
     }
@@ -305,10 +305,10 @@ export class SpaceObject {
     let newpos;
     let shouldUpdateObjectPosition = false;
     if (this._object3js || this._label) {
-      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jed);
+      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
     }
     if (this._object3js && shouldUpdateObjectPosition) {
-      newpos = this.getPosition(jed);
+      newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
     }
 
@@ -316,12 +316,12 @@ export class SpaceObject {
     const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
     if (this._label && shouldUpdateLabelPos) {
       if (!newpos) {
-        newpos = this.getPosition(jed);
+        newpos = this.getPosition(jd);
       }
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
     }
-    this._lastJedUpdated = jed;
+    this._lastJdUpdated = jd;
   }
 
   /**

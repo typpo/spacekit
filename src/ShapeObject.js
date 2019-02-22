@@ -232,7 +232,7 @@ export class ShapeObject extends SpaceObject {
 
   /**
    * Updates the object and its label positions for a given time.
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    */
   update() {
     if (this._obj && this._options.shape.enableRotation) {

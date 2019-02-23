@@ -124,7 +124,7 @@ export class SpaceParticles {
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
-    attributes.size.set([options.particleSize || 15], offset);
+    attributes.size.set([options.particleSize || 12], offset);
     const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 

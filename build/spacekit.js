@@ -739,17 +739,17 @@ var Spacekit = (function (exports) {
     return val * 15.0;
   }
 
-  function hmsToDecimalRa(raHour, raMin, raSec) {
+  function sexagesimalToDecimalRa(raHour, raMin, raSec) {
     // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
     return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
   }
 
-  function hmsToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+  function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
     const posneg = isObserverBelowEquator ? -1 : 1;
     return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
   }
 
-  function decimalToHmsRa(decimal) {
+  function decimalToSexagesimalRa(decimal) {
     const val = parseFloat(decimal);
     const raHour = Math.trunc(val / 15.0);
     const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
@@ -757,7 +757,7 @@ var Spacekit = (function (exports) {
     return [raHour, raMin, raSec];
   }
 
-  function decimalToHmsDec(decimal, isObserverBelowEquator = false) {
+  function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
     const val = parseFloat(decimal);
     const posneg = isObserverBelowEquator ? -1 : 1;
 
@@ -766,9 +766,6 @@ var Spacekit = (function (exports) {
     const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
     return [decDeg, decMin, decSec];
   }
-
-  console.log(hmsToDecimalRa(17, 45, 40.04));
-  console.log(hmsToDecimalDec(-29, 0, 28.1));
 
   const J2000 = 2451545.0;
 
@@ -990,6 +987,7 @@ var Spacekit = (function (exports) {
       textureUrl: '{{assets}}/skybox/eso_lite.png',
     },
     NASA_TYCHO: {
+      // from https://svs.gsfc.nasa.gov/3895
       textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
     },
   };
@@ -2429,10 +2427,10 @@ var Spacekit = (function (exports) {
   exports.rad = rad;
   exports.deg = deg;
   exports.hoursToDeg = hoursToDeg;
-  exports.hmsToDecimalRa = hmsToDecimalRa;
-  exports.hmsToDecimalDec = hmsToDecimalDec;
-  exports.decimalToHmsRa = decimalToHmsRa;
-  exports.decimalToHmsDec = decimalToHmsDec;
+  exports.sexagesimalToDecimalRa = sexagesimalToDecimalRa;
+  exports.sexagesimalToDecimalDec = sexagesimalToDecimalDec;
+  exports.decimalToSexagesimalRa = decimalToSexagesimalRa;
+  exports.decimalToSexagesimalDec = decimalToSexagesimalDec;
 
   return exports;
 

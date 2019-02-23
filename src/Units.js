@@ -10,17 +10,17 @@ export function hoursToDeg(val) {
   return val * 15.0;
 }
 
-export function hmsToDecimalRa(raHour, raMin, raSec) {
+export function sexagesimalToDecimalRa(raHour, raMin, raSec) {
   // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
   return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
 }
 
-export function hmsToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+export function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
   const posneg = isObserverBelowEquator ? -1 : 1;
   return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
 }
 
-export function decimalToHmsRa(decimal) {
+export function decimalToSexagesimalRa(decimal) {
   const val = parseFloat(decimal);
   const raHour = Math.trunc(val / 15.0);
   const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
@@ -28,7 +28,7 @@ export function decimalToHmsRa(decimal) {
   return [raHour, raMin, raSec];
 }
 
-export function decimalToHmsDec(decimal, isObserverBelowEquator = false) {
+export function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
   const val = parseFloat(decimal);
   const posneg = isObserverBelowEquator ? -1 : 1;
 
@@ -37,6 +37,3 @@ export function decimalToHmsDec(decimal, isObserverBelowEquator = false) {
   const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
   return [decDeg, decMin, decSec];
 }
-
-console.log(hmsToDecimalRa(17, 45, 40.04))
-console.log(hmsToDecimalDec(-29, 0, 28.1))

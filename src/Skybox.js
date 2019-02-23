@@ -1,7 +1,10 @@
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullTextureUrl } from './util';
-import { rad, hoursToDeg } from './Units';
+import { rad, hoursToDeg, sexagesimalToDecimalRa, sexagesimalToDecimalDec } from './Units';
 import { sphericalToCartesian, equatorialToEcliptic_Cartesian } from './Coordinates';
+
+const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
+const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);
 
 /**
  * Maps spectral class to star color
@@ -173,6 +176,7 @@ export const SkyboxPresets = {
     textureUrl: '{{assets}}/skybox/eso_lite.png',
   },
   NASA_TYCHO: {
+    // from https://svs.gsfc.nasa.gov/3895
     textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
   },
 };

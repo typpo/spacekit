@@ -2,7 +2,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
   //jd: 2458461.459,
-  startDate: new Date(2019, 5, 1),
+  startDate: new Date(2019, 5, 21),
   startPaused: true,
   debug: {
     showAxes: true,

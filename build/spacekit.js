@@ -29,6 +29,100 @@ var Spacekit = (function (exports) {
     }
   }
 
+  function rad(val) {
+    return val * Math.PI / 180;
+  }
+
+  function deg(val) {
+    return val * 180 / Math.PI;
+  }
+
+  function hoursToDeg(val) {
+    return val * 15.0;
+  }
+
+  function sexagesimalToDecimalRa(raHour, raMin, raSec) {
+    // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
+    return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
+  }
+
+  function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+    const posneg = isObserverBelowEquator ? -1 : 1;
+    return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
+  }
+
+  function decimalToSexagesimalRa(decimal) {
+    const val = parseFloat(decimal);
+    const raHour = Math.trunc(val / 15.0);
+    const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
+    const raSec = (val - raHour * 15.0 - raMin / 4.0) * 240.0;
+    return [raHour, raMin, raSec];
+  }
+
+  function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
+    const val = parseFloat(decimal);
+    const posneg = isObserverBelowEquator ? -1 : 1;
+
+    const decDeg = Math.trunc(val);
+    const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
+    const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
+    return [decDeg, decMin, decSec];
+  }
+
+  const J2000 = 2451545.0;
+
+  function sphericalToCartesian(ra, dec, dist) {
+    // See http://www.stargazing.net/kepler/rectang.html
+    return [
+      dist * Math.cos(ra) * Math.cos(dec),
+      dist * Math.sin(ra) * Math.cos(dec),
+      dist * Math.sin(dec),
+    ];
+  }
+
+  function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
+    const obliquity = getObliquity(jd);
+
+    return [
+      x,
+      Math.cos(obliquity) * y + Math.sin(obliquity) * z,
+      -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+    ];
+  }
+
+  /**
+   * Get Earth's obliquity and nutation at a given date.
+   * @param {Number} jd JD date
+   * @return {Object} Object with attributes "obliquity" and "nutation" provided
+   * in radians
+   */
+  function getNutationAndObliquity(jd = J2000) {
+    const t = (jd - J2000) / 36525;
+    const omega = rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
+    const Lsun = rad(280.4665 + 36000.7698 * t);
+    const Lmoon = rad(218.3165 + 481267.8813 * t);
+
+    const nutation = (-17.20 / 3600) * Math.sin(omega) - (-1.32 / 3600) * Math.sin(2 * Lsun) - (0.23 / 3600) * Math.sin(2 * Lmoon) + deg((0.21 / 3600) * Math.sin(2 * omega));
+
+    const obliquity_zero = 23 + 26.0 / 60 + 21.448 / 3600 - (46.8150 / 3600) * t - (0.00059 / 3600) * t * t + (0.001813 / 3600) * t * t * t;
+    const obliquity_delta = (9.20 / 3600) * Math.cos(omega) + (0.57 / 3600) * Math.cos(2 * Lsun) + (0.10 / 3600) * Math.cos(2 * Lmoon) - (0.09 / 3600) * Math.cos(2 * omega);
+    const obliquity = obliquity_zero + obliquity_delta;
+
+    return {
+      nutation: rad(nutation),
+      obliquity: rad(obliquity),
+    };
+  }
+
+  /**
+   * Get Earth's obliquity at a given date.
+   * @param {Number} jd JD date
+   * @return {Number} Obliquity in radians
+   */
+  function getObliquity(jd = J2000) {
+    return getNutationAndObliquity(jd).obliquity;
+  }
+
   const METERS_IN_AU = 149597870700;
   const SECONDS_IN_DAY = 86400;
 
@@ -587,410 +681,32 @@ var Spacekit = (function (exports) {
   /**
    * @ignore
    */
-  const ORBIT_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    uniform sampler2D texture;
-
-    void main() {
-      gl_FragColor = vec4(vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-    }
-`;
-
-  /**
-   * @ignore
-   */
-  const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
-
-    attribute vec3 fuzzColor;
-    varying vec3 vColor;
-
-    attribute float size;
-
-    attribute float a;
-    attribute float e;
-    attribute float i;
-    attribute float om;
-    attribute float ma;
-    attribute float n;
-    attribute float w;
-    attribute float wBar;
-    attribute float epoch;
-
-    vec3 getAstroPos() {
-      float i_rad = i;
-      float o_rad = om;
-      float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
-
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
-
-      // Estimate eccentric and true anom using iterative approximation (this
-      // is normally an intergral).
-      float E0 = M;
-      float E1 = M + e * sin(E0);
-      float lastdiff = abs(E1-E0);
-      E0 = E1;
-      for (int foo=0; foo < 25; foo++) {
-        E1 = M + e * sin(E0);
-        lastdiff = abs(E1-E0);
-        E0 = E1;
-        if (lastdiff < 0.0000001) {
-          break;
-        }
-      }
-
-      float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
-
-      // Compute radius vector.
-      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
-
-      // Compute heliocentric coords.
-      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
-      return vec3(X, Y, Z);
-    }
-
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
-    }
-
-    void main() {
-      vColor = fuzzColor;
-
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
-      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = size;
-    }
-`;
-
-  const STAR_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    void main() {
-        gl_FragColor = vec4(vColor, 1.0);
-    }
-`;
-
-  const STAR_SHADER_VERTEX = `
-    attribute float size;
-    varying vec3 vColor;
-
-    void main() {
-        vColor = color;
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size;
-        gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-  /**
-   * @ignore
-   */
   const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
 
   /**
    * Returns the complete URL to a texture given a basepath and a template url.
    * @param {String} template URL containing optional template parameters
-   * @param {String} assetPath Base path for assets.
+   * @param {String} basePath Base path for simulation data and assets.
    * @example
    * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
    * => '/path/to/assets/images/mysprite.png'
    */
-  function getFullTextureUrl(template, assetPath) {
-    return (template || DEFAULT_TEXTURE_URL).replace('{{assets}}', assetPath);
-  }
-
-  function rad(val) {
-    return val * Math.PI / 180;
-  }
-
-  function deg(val) {
-    return val * 180 / Math.PI;
-  }
-
-  function hoursToDeg(val) {
-    return val * 15.0;
-  }
-
-  function sexagesimalToDecimalRa(raHour, raMin, raSec) {
-    // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
-    return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
-  }
-
-  function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
-    const posneg = isObserverBelowEquator ? -1 : 1;
-    return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
-  }
-
-  function decimalToSexagesimalRa(decimal) {
-    const val = parseFloat(decimal);
-    const raHour = Math.trunc(val / 15.0);
-    const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
-    const raSec = (val - raHour * 15.0 - raMin / 4.0) * 240.0;
-    return [raHour, raMin, raSec];
-  }
-
-  function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
-    const val = parseFloat(decimal);
-    const posneg = isObserverBelowEquator ? -1 : 1;
-
-    const decDeg = Math.trunc(val);
-    const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-    const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
-    return [decDeg, decMin, decSec];
-  }
-
-  const J2000 = 2451545.0;
-
-  function sphericalToCartesian(ra, dec, dist) {
-    // See http://www.stargazing.net/kepler/rectang.html
-    return [
-      dist * Math.cos(ra) * Math.cos(dec),
-      dist * Math.sin(ra) * Math.cos(dec),
-      dist * Math.sin(dec),
-    ];
-  }
-
-  function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
-    const obliquity = getObliquity(jd);
-
-    return [
-      x,
-      Math.cos(obliquity) * y + Math.sin(obliquity) * z,
-      -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
-    ];
+  function getFullTextureUrl(template, basePath) {
+    return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
   }
 
   /**
-   * Get Earth's obliquity and nutation at a given date.
-   * @param {Number} jd JD date
-   * @return {Object} Object with attributes "obliquity" and "nutation" provided
-   * in radians
-   */
-  function getNutationAndObliquity(jd = J2000) {
-    const t = (jd - J2000) / 36525;
-    const omega = rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
-    const Lsun = rad(280.4665 + 36000.7698 * t);
-    const Lmoon = rad(218.3165 + 481267.8813 * t);
-
-    const nutation = (-17.20 / 3600) * Math.sin(omega) - (-1.32 / 3600) * Math.sin(2 * Lsun) - (0.23 / 3600) * Math.sin(2 * Lmoon) + deg((0.21 / 3600) * Math.sin(2 * omega));
-
-    const obliquity_zero = 23 + 26.0 / 60 + 21.448 / 3600 - (46.8150 / 3600) * t - (0.00059 / 3600) * t * t + (0.001813 / 3600) * t * t * t;
-    const obliquity_delta = (9.20 / 3600) * Math.cos(omega) + (0.57 / 3600) * Math.cos(2 * Lsun) + (0.10 / 3600) * Math.cos(2 * Lmoon) - (0.09 / 3600) * Math.cos(2 * omega);
-    const obliquity = obliquity_zero + obliquity_delta;
-
-    return {
-      nutation: rad(nutation),
-      obliquity: rad(obliquity),
-    };
-  }
-
-  /**
-   * Get Earth's obliquity at a given date.
-   * @param {Number} jd JD date
-   * @return {Number} Obliquity in radians
-   */
-  function getObliquity(jd = J2000) {
-    return getNutationAndObliquity(jd).obliquity;
-  }
-
-  /**
-   * Maps spectral class to star color
-   * @param temperature {Number} Star temperature in Kelvin
-   * @return {Number} Color for star of given spectral class
-   */
-  function getColorForStar(temp) {
-    if (temp >= 30000) return 0x92B5FF;
-    if (temp >= 10000) return 0xA2C0FF;
-    if (temp >= 7500) return 0xd5e0ff;
-    if (temp >= 6000) return 0xf9f5ff;
-    if (temp >= 5200) return 0xffede3;
-    if (temp >= 3700) return 0xffdab5;
-    if (temp >= 2400) return 0xffb56c;
-    return 0xffb56c;
-  }
-
-  function getSizeForStar(mag) {
-    if (mag < 2.0) return 4;
-    if (mag < 4.0) return 2;
-    if (mag < 6.0) return 1;
-    return 1;
-  }
-
-  /**
-   * A class that adds a skybox (technically a skysphere) to a visualization.
-   */
-  class Skybox {
-    /**
-     * @param {Object} options Options
-     * @param {String} options.textureUrl Texture to use
-     * @param {String} options.assetPath Base path to assets
-     * @param {Object} contextOrSimulation Simulation context or simulation
-     * object
-     */
-    constructor(options, contextOrSimulation) {
-      // TODO(ian): Support for actual box instead of sphere...
-      this._options = options;
-      this._id = `__skybox_${new Date().getTime()}`;
-
-      // if (contextOrSimulation instanceOf Simulation) {
-      {
-        // User passed in Simulation
-        this._simulation = contextOrSimulation;
-        this._context = contextOrSimulation.getContext();
-      }
-
-      this._mesh = undefined;
-      this._stars = undefined;
-
-      this.init();
-    }
-
-    /**
-     * @private
-     */
-    init() {
-      const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
-
-      const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-        this._context.options.assetPath);
-      const texture = new THREE.TextureLoader().load(fullTextureUrl);
-
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.BackSide,
-      });
-
-      const sky = new THREE.Mesh(geometry, material);
-
-      // See this thread on orientation of milky way:
-      // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
-      sky.rotation.x = 0;
-      sky.rotation.y = -1 / 12 * Math.PI;
-      sky.rotation.z = 8 / 5 * Math.PI;
-
-      // We're on the inside of the skybox, so invert it to correct it.
-      sky.scale.set(-1, 1, 1);
-
-      this._mesh = sky;
-
-      this.loadStars();
-    }
-
-    loadStars() {
-      fetch('../../src/data/bsc_processed.json').then(resp => resp.json()).then(library => {
-        const n = library.length;
-
-        const geometry = new THREE.BufferGeometry();
-
-        const positions = new Float32Array(n * 3);
-        const colors = new Float32Array(n * 3);
-        const sizes = new Float32Array(n);
-
-        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
-        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-        library.forEach((star, idx) => {
-          const [ ra, dec, temp, mag ] = star;
-
-          const raRad = rad(hoursToDeg(ra));
-          const decRad = rad(dec);
-
-          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
-          const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
-
-          positions.set(pos, idx * 3);
-
-          const color = new THREE.Color(getColorForStar(temp));
-          colors.set(color.toArray(), idx * 3);
-
-          if (idx < 1) {
-            sizes[idx] = 50;
-            colors.set([1, 0, 0], idx * 3);
-          } else {
-            sizes[idx] = getSizeForStar(mag);
-          }
-        });
-
-        const material = new THREE.ShaderMaterial({
-          uniforms: {},
-          vertexShader: STAR_SHADER_VERTEX,
-          fragmentShader: STAR_SHADER_FRAGMENT,
-          transparent: true,
-          vertexColors: THREE.VertexColors,
-        });
-
-        this._stars = new THREE.Points(geometry, material);
-
-        if (this._simulation) {
-          this._simulation.addObject(this, true /* noUpdate */);
-        }
-      });
-    }
-
-    /**
-     * A list of THREE.js objects that are used to compose the skybox.
-     * @return {THREE.Object} Skybox mesh
-     */
-    get3jsObjects() {
-      return [/*this._mesh,*/ this._stars];
-    }
-
-    /**
-     * Get the unique ID of this object.
-     * @return {String} id
-     */
-    getId() {
-      return this._id;
-    }
-  }
-
-  /**
-   * Preset skybox objects that you can use to add a skybox to your
-   * visualization.
+   * Returns the complete URL to a texture given a basepath and a template url.
+   * @param {String} template URL containing optional template parameters
+   * @param {String} basePath Base path
    * @example
-   * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+   * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+   * => '/path/to/assets/images/mysprite.png'
    */
-  const SkyboxPresets = {
-    ESO_GIGAGALAXY: {
-      textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
-    },
-    ESO_LITE: {
-      textureUrl: '{{assets}}/skybox/eso_lite.png',
-    },
-    NASA_TYCHO: {
-      // from https://svs.gsfc.nasa.gov/3895
-      textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
-    },
-  };
+  function getFullUrl(template, basePath) {
+    return template.replace('{{assets}}', `${basePath}/assets`)
+                   .replace('{{data}}', `${basePath}/data`);
+  }
 
   /**
    * @private
@@ -1030,7 +746,7 @@ var Spacekit = (function (exports) {
    *   hideOrbit: false,
    *   ephem: new Spacekit.Ephem({...}),
    *   textureUrl: '/path/to/spriteTexture.png',
-   *   assetPath: '/base/assets',
+   *   basePath: '/base',
    *   ecliptic: {
    *     lineColor: 0xCCCCCC,
    *     displayLines: false,
@@ -1050,7 +766,7 @@ var Spacekit = (function (exports) {
      * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
      * @param {Ephem} options.ephem Ephemerides for this orbit
      * @param {String} options.textureUrl Texture for sprite
-     * @param {String} options.assetPath Base path for texture urls
+     * @param {String} options.basePath Base path for simulation assets and data
      * @param {Object} options.ecliptic Contains settings related to ecliptic
      * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
      * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
@@ -1181,7 +897,7 @@ var Spacekit = (function (exports) {
     createSprite() {
       const fullTextureUrl = getFullTextureUrl(
         this._options.textureUrl,
-        this._context.options.assetPath,
+        this._context.options.basePath,
       );
       const texture = new THREE.TextureLoader().load(fullTextureUrl);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -1653,6 +1369,229 @@ var Spacekit = (function (exports) {
     }
   }
 
+  /**
+   * A class that adds a skybox (technically a skysphere) to a visualization.
+   */
+  class Skybox {
+    /**
+     * @param {Object} options Options
+     * @param {String} options.textureUrl Texture to use
+     * @param {String} options.basePath Base path to simulation supporting files
+     * @param {Object} contextOrSimulation Simulation context or simulation
+     * object
+     */
+    constructor(options, contextOrSimulation) {
+      // TODO(ian): Support for actual box instead of sphere...
+      this._options = options;
+      this._id = `__skybox_${new Date().getTime()}`;
+
+      // if (contextOrSimulation instanceOf Simulation) {
+      {
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
+      }
+
+      this._mesh = undefined;
+
+      this.init();
+    }
+
+    /**
+     * @private
+     */
+    init() {
+      const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
+
+      const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
+        this._context.options.basePath);
+      const texture = new THREE.TextureLoader().load(fullTextureUrl);
+
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide,
+      });
+
+      const sky = new THREE.Mesh(geometry, material);
+
+      // See this thread on orientation of milky way:
+      // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
+      sky.rotation.x = 0;
+      sky.rotation.y = -1 / 12 * Math.PI;
+      sky.rotation.z = 8 / 5 * Math.PI;
+
+      // We're on the inside of the skybox, so invert it to correct it.
+      sky.scale.set(-1, 1, 1);
+
+      this._mesh = sky;
+
+      if (this._simulation) {
+        this._simulation.addObject(this, true /* noUpdate */);
+      }
+    }
+
+    /**
+     * A list of THREE.js objects that are used to compose the skybox.
+     * @return {THREE.Object} Skybox mesh
+     */
+    get3jsObjects() {
+      return [this._mesh];
+    }
+
+    /**
+     * Get the unique ID of this object.
+     * @return {String} id
+     */
+    getId() {
+      return this._id;
+    }
+  }
+
+  /**
+   * Preset skybox objects that you can use to add a skybox to your
+   * visualization.
+   * @example
+   * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+   */
+  const SkyboxPresets = {
+    ESO_GIGAGALAXY: {
+      textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+    },
+    ESO_LITE: {
+      textureUrl: '{{assets}}/skybox/eso_lite.png',
+    },
+    NASA_TYCHO: {
+      // from https://svs.gsfc.nasa.gov/3895
+      textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
+    },
+  };
+
+  /**
+   * @ignore
+   */
+  const ORBIT_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    uniform sampler2D texture;
+
+    void main() {
+      gl_FragColor = vec4(vColor, 1.0);
+      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+    }
+`;
+
+  /**
+   * @ignore
+   */
+  const ORBIT_SHADER_VERTEX = `
+    uniform float jd;
+
+    attribute vec3 fuzzColor;
+    varying vec3 vColor;
+
+    attribute float size;
+
+    attribute float a;
+    attribute float e;
+    attribute float i;
+    attribute float om;
+    attribute float ma;
+    attribute float n;
+    attribute float w;
+    attribute float wBar;
+    attribute float epoch;
+
+    vec3 getAstroPos() {
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float ma_rad = ma;
+      float n_rad = n;
+
+      float d = jd - epoch;
+      float M = ma_rad + n_rad * d;
+
+      // Estimate eccentric and true anom using iterative approximation (this
+      // is normally an intergral).
+      float E0 = M;
+      float E1 = M + e * sin(E0);
+      float lastdiff = abs(E1-E0);
+      E0 = E1;
+      for (int foo=0; foo < 25; foo++) {
+        E1 = M + e * sin(E0);
+        lastdiff = abs(E1-E0);
+        E0 = E1;
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+
+      float E = E0;
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
+
+      // Compute radius vector.
+      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
+
+      // Compute heliocentric coords.
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getAstroPosFast() {
+      float M1 = ma + (jd - epoch) * n;
+      float theta = M1 + 2. * e * sin(M1);
+
+      float cosT = cos(theta);
+
+      float r = a * (1. - e * e) / (1. + e * cosT);
+      float v0 = r * cosT;
+      float v1 = r * sin(theta);
+
+      float sinOm = sin(om);
+      float cosOm = cos(om);
+      float sinW = sin(w);
+      float cosW = cos(w);
+      float sinI = sin(i);
+      float cosI = cos(i);
+
+      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
+      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
+      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
+
+      return vec3(X, Y, Z);
+    }
+
+    void main() {
+      vColor = fuzzColor;
+
+      //vec3 newpos = getAstroPosFast();
+      vec3 newpos = getAstroPos();
+      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      gl_PointSize = size;
+    }
+`;
+
+  const STAR_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+`;
+
+  const STAR_SHADER_VERTEX = `
+    attribute float size;
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size;
+        gl_Position = projectionMatrix * mvPosition;
+    }
+`;
+
   const DEFAULT_PARTICLE_COUNT = 1024;
 
   /**
@@ -1664,7 +1603,7 @@ var Spacekit = (function (exports) {
     /**
      * @param {Object} options Options container
      * @param {Object} options.textureUrl Template url for sprite
-     * @param {Object} options.assetPath Base path for assets
+     * @param {Object} options.basePath Base path for simulation supporting files
      * @param {Number} options.jd JD date value
      * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
      * @param {Object} contextOrSimulation Simulation context or object
@@ -1711,7 +1650,7 @@ var Spacekit = (function (exports) {
     createParticleSystem() {
       const fullTextureUrl = getFullTextureUrl(
         this._options.textureUrl,
-        this._context.options.assetPath,
+        this._context.options.basePath,
       );
       const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
@@ -1831,6 +1770,118 @@ var Spacekit = (function (exports) {
   SpaceParticles.instanceCount = 0;
 
   /**
+   * Maps spectral class to star color
+   * @param temperature {Number} Star temperature in Kelvin
+   * @return {Number} Color for star of given spectral class
+   */
+  function getColorForStar(temp) {
+    if (temp >= 30000) return 0x92B5FF;
+    if (temp >= 10000) return 0xA2C0FF;
+    if (temp >= 7500) return 0xd5e0ff;
+    if (temp >= 6000) return 0xf9f5ff;
+    if (temp >= 5200) return 0xffede3;
+    if (temp >= 3700) return 0xffdab5;
+    if (temp >= 2400) return 0xffb56c;
+    return 0xffb56c;
+  }
+
+  function getSizeForStar(mag) {
+    if (mag < 2.0) return 4;
+    if (mag < 4.0) return 2;
+    if (mag < 6.0) return 1;
+    return 1;
+  }
+
+  class Stars {
+    constructor(options, contextOrSimulation) {
+      this._options = options;
+      this._id = `__stars_${new Date().getTime()}`;
+
+      // if (contextOrSimulation instanceOf Simulation) {
+      {
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
+      }
+
+      this._stars = undefined;
+
+      this.init();
+    }
+
+    init() {
+      const dataUrl = getFullUrl('{{data}}/bsc_processed.json',
+        this._context.options.dataPath);
+
+      fetch('../../src/data/bsc_processed.json').then(resp => resp.json()).then(library => {
+        const n = library.length;
+
+        const geometry = new THREE.BufferGeometry();
+
+        const positions = new Float32Array(n * 3);
+        const colors = new Float32Array(n * 3);
+        const sizes = new Float32Array(n);
+
+        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        library.forEach((star, idx) => {
+          const [ ra, dec, temp, mag ] = star;
+
+          const raRad = rad(hoursToDeg(ra));
+          const decRad = rad(dec);
+
+          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
+          const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
+
+          positions.set(pos, idx * 3);
+
+          const color = new THREE.Color(getColorForStar(temp));
+          colors.set(color.toArray(), idx * 3);
+
+          if (idx < 1) {
+            sizes[idx] = 50;
+            colors.set([1, 0, 0], idx * 3);
+          } else {
+            sizes[idx] = getSizeForStar(mag);
+          }
+        });
+
+        const material = new THREE.ShaderMaterial({
+          uniforms: {},
+          vertexShader: STAR_SHADER_VERTEX,
+          fragmentShader: STAR_SHADER_FRAGMENT,
+          transparent: true,
+          vertexColors: THREE.VertexColors,
+        });
+
+        this._stars = new THREE.Points(geometry, material);
+
+        if (this._simulation) {
+          this._simulation.addObject(this, true /* noUpdate */);
+        }
+      });
+    }
+
+    /**
+     * A list of THREE.js objects that are used to compose the skybox.
+     * @return {THREE.Object} Skybox mesh
+     */
+    get3jsObjects() {
+      return [this._stars];
+    }
+
+    /**
+     * Get the unique ID of this object.
+     * @return {String} id
+     */
+    getId() {
+      return this._id;
+    }
+  }
+
+  /**
    * The main entrypoint of a visualization.
    *
    * This class wraps a THREE.js scene, controls, skybox, etc in an animated
@@ -1859,6 +1910,7 @@ var Spacekit = (function (exports) {
     /**
      * @param {HTMLElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
+     * @param {String} basePath Path to simulation assets and data
      * @param {Date} options.startDate The start date and time for this
      * simulation.
      * @param {Number} options.jd The JD date of this simulation.
@@ -2124,6 +2176,19 @@ var Spacekit = (function (exports) {
      */
     createSkybox(...args) {
       return new Skybox(...args, this);
+    }
+
+    /**
+     * Shortcut for creating a new Stars object belonging to this visualization.
+     * Takes any Stars arguments.
+     * @see Stars
+     */
+    createStars(...args) {
+      if (args.length) {
+        return new Stars(...args, this);
+      }
+      // No arguments supplied
+      return new Stars({}, this);
     }
 
     /**
@@ -2410,6 +2475,10 @@ var Spacekit = (function (exports) {
   }
 
   exports.Camera = Camera;
+  exports.sphericalToCartesian = sphericalToCartesian;
+  exports.equatorialToEcliptic_Cartesian = equatorialToEcliptic_Cartesian;
+  exports.getNutationAndObliquity = getNutationAndObliquity;
+  exports.getObliquity = getObliquity;
   exports.Ephem = Ephem;
   exports.GM = GM;
   exports.EphemPresets = EphemPresets;
@@ -2420,10 +2489,7 @@ var Spacekit = (function (exports) {
   exports.SpaceObject = SpaceObject;
   exports.SpaceObjectPresets = SpaceObjectPresets;
   exports.SpaceParticles = SpaceParticles;
-  exports.sphericalToCartesian = sphericalToCartesian;
-  exports.equatorialToEcliptic_Cartesian = equatorialToEcliptic_Cartesian;
-  exports.getNutationAndObliquity = getNutationAndObliquity;
-  exports.getObliquity = getObliquity;
+  exports.Stars = Stars;
   exports.rad = rad;
   exports.deg = deg;
   exports.hoursToDeg = hoursToDeg;

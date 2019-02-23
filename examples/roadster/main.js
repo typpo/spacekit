@@ -1,6 +1,6 @@
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  assetPath: '../../src/assets',
+  basePath: '../../src',
   //jd: 2458461.459,
   startDate: new Date(2019, 5, 21),
   startPaused: true,
@@ -11,7 +11,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a skybox using NASA TYCHO artwork.
-viz.createSkybox(Spacekit.SkyboxPresets.ESO_LITE);
+viz.createStars();
 
 // Create our first object - the sun - using a preset space object.
 viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);

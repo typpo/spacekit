@@ -1,6 +1,6 @@
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  assetPath: '../../src/assets',
+  basePath: '../../src',
   jd: 2458454.5,
   maxNumParticles: 2 ** 16,
   debug: {

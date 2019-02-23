@@ -1,10 +1,11 @@
 import julian from 'julian';
 
 import { Camera } from './Camera';
-import { Skybox } from './Skybox';
 import { ShapeObject } from './ShapeObject';
+import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SpaceParticles } from './SpaceParticles';
+import { Stars } from './Stars';
 
 /**
  * The main entrypoint of a visualization.
@@ -35,6 +36,7 @@ export class Simulation {
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
+   * @param {String} basePath Path to simulation assets and data
    * @param {Date} options.startDate The start date and time for this
    * simulation.
    * @param {Number} options.jd The JD date of this simulation.
@@ -300,6 +302,19 @@ export class Simulation {
    */
   createSkybox(...args) {
     return new Skybox(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new Stars object belonging to this visualization.
+   * Takes any Stars arguments.
+   * @see Stars
+   */
+  createStars(...args) {
+    if (args.length) {
+      return new Stars(...args, this);
+    }
+    // No arguments supplied
+    return new Stars({}, this);
   }
 
   /**

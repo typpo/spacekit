@@ -13,7 +13,7 @@ export class SpaceParticles {
   /**
    * @param {Object} options Options container
    * @param {Object} options.textureUrl Template url for sprite
-   * @param {Object} options.assetPath Base path for assets
+   * @param {Object} options.basePath Base path for simulation supporting files
    * @param {Number} options.jd JD date value
    * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
    * @param {Object} contextOrSimulation Simulation context or object
@@ -64,7 +64,7 @@ export class SpaceParticles {
   createParticleSystem() {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
-      this._context.options.assetPath,
+      this._context.options.basePath,
     );
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 

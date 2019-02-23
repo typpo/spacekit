@@ -40,7 +40,7 @@ function toScreenXY(position, camera, canvas) {
  *   hideOrbit: false,
  *   ephem: new Spacekit.Ephem({...}),
  *   textureUrl: '/path/to/spriteTexture.png',
- *   assetPath: '/base/assets',
+ *   basePath: '/base',
  *   ecliptic: {
  *     lineColor: 0xCCCCCC,
  *     displayLines: false,
@@ -60,7 +60,7 @@ export class SpaceObject {
    * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
    * @param {Ephem} options.ephem Ephemerides for this orbit
    * @param {String} options.textureUrl Texture for sprite
-   * @param {String} options.assetPath Base path for texture urls
+   * @param {String} options.basePath Base path for simulation assets and data
    * @param {Object} options.ecliptic Contains settings related to ecliptic
    * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
    * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
@@ -195,7 +195,7 @@ export class SpaceObject {
   createSprite() {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
-      this._context.options.assetPath,
+      this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({

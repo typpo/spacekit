@@ -1785,14 +1785,18 @@ var Spacekit = (function (exports) {
     return 0xffb56c;
   }
 
-  function getSizeForStar(mag) {
-    if (mag < 2.0) return 4;
-    if (mag < 4.0) return 2;
-    if (mag < 6.0) return 1;
+  function getSizeForStar(mag, minSize) {
+    if (mag < 2.0) return minSize * 4;
+    if (mag < 4.0) return minSize * 2;
+    if (mag < 6.0) return minSize;
     return 1;
   }
 
   class Stars {
+    /**
+     * @param {Number} options.minimumStarSize The size of the smallest stars.
+     * Defaults to 0.5
+     */
     constructor(options, contextOrSimulation) {
       this._options = options;
       this._id = `__stars_${new Date().getTime()}`;
@@ -1843,7 +1847,7 @@ var Spacekit = (function (exports) {
             sizes[idx] = 50;
             colors.set([1, 0, 0], idx * 3);
           } else {
-            sizes[idx] = getSizeForStar(mag);
+            sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.5 /* minSize */);
           }
         });
 

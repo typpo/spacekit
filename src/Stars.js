@@ -51,10 +51,9 @@ export class Stars {
   }
 
   init() {
-    const dataUrl = getFullUrl('{{data}}/bsc_processed.json',
-      this._context.options.dataPath);
+    const dataUrl = getFullUrl('{{data}}/bsc_processed.json', this._context.options.basePath);
 
-    fetch('../../src/data/bsc_processed.json').then(resp => resp.json()).then(library => {
+    fetch(dataUrl).then(resp => resp.json()).then(library => {
       const n = library.length;
 
       const geometry = new THREE.BufferGeometry();

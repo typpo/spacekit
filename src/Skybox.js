@@ -5,27 +5,25 @@ import { sphericalToCartesian, equatorialToEcliptic_Cartesian } from './Coordina
 
 /**
  * Maps spectral class to star color
- * @param spectralClass {String} Star temperature classification
+ * @param temperature {Number} Star temperature in Kelvin
  * @return {Number} Color for star of given spectral class
  */
-function getColorForStar(spectralClass) {
-  switch (spectralClass) {
-    case 'O':
-      return 0xc8c8ff;
-    case 'B':
-      return 0xe3e3ff;
-    case 'A':
-      return 0xffffff;
-    case 'F':
-      return 0xffffe3;
-    case 'G':
-      return 0xffffc8;
-    case 'K':
-      return 0xffe3c8;
-    case 'M':
-      return 0xffc8c8;
-  }
-  return 0xffffff;
+function getColorForStar(temp) {
+  if (temp >= 30000) return 0x92B5FF;
+  if (temp >= 10000) return 0xA2C0FF;
+  if (temp >= 7500) return 0xd5e0ff;
+  if (temp >= 6000) return 0xf9f5ff;
+  if (temp >= 5200) return 0xffede3;
+  if (temp >= 3700) return 0xffdab5;
+  if (temp >= 2400) return 0xffb56c;
+  return 0xffb56c;
+}
+
+function getSizeForStar(mag) {
+  if (mag < 2.0) return 4;
+  if (mag < 4.0) return 2;
+  if (mag < 6.0) return 1;
+  return 1;
 }
 
 /**
@@ -65,7 +63,7 @@ export class Skybox {
    * @private
    */
   init() {
-    const geometry = new THREE.SphereBufferGeometry(99000, 32, 32);
+    const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
       this._context.options.assetPath);
@@ -93,9 +91,7 @@ export class Skybox {
   }
 
   loadStars() {
-    fetch('../../src/data/bsc_short.json').then(resp => resp.json()).then((result) => {
-      const library = result.BSC;
-
+    fetch('../../src/data/bsc_processed.json').then(resp => resp.json()).then(library => {
       const n = library.length;
 
       const geometry = new THREE.BufferGeometry();
@@ -109,24 +105,25 @@ export class Skybox {
       geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
       library.forEach((star, idx) => {
-        const spectralClass = star.Sp.slice(0, 1);
+        const [ ra, dec, temp, mag ] = star;
 
-        const raRad = rad(hoursToDeg(star.RAh));
-        const decRad = rad(star.DEd);
+        const raRad = rad(hoursToDeg(ra));
+        const decRad = rad(dec);
 
-        const cartesianSpherical = sphericalToCartesian(raRad, decRad, 98000);
+        const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
         const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
 
-        positions[idx] = pos[0];
-        positions[idx + 1] = pos[1];
-        positions[idx + 2] = pos[2];
+        positions.set(pos, idx * 3);
 
-        const color = new THREE.Color(getColorForStar(spectralClass));
-        colors[idx] = color.r;
-        colors[idx + 1] = color.g;
-        colors[idx + 2] = color.b;
+        const color = new THREE.Color(getColorForStar(temp));
+        colors.set(color.toArray(), idx * 3);
 
-        sizes[idx] = Math.random() * 5;
+        if (idx < 1) {
+          sizes[idx] = 50;
+          colors.set([1, 0, 0], idx * 3);
+        } else {
+          sizes[idx] = getSizeForStar(mag);
+        }
       });
 
       const material = new THREE.ShaderMaterial({
@@ -134,6 +131,7 @@ export class Skybox {
         vertexShader: STAR_SHADER_VERTEX,
         fragmentShader: STAR_SHADER_FRAGMENT,
         transparent: true,
+        vertexColors: THREE.VertexColors,
       });
 
       this._stars = new THREE.Points(geometry, material);
@@ -149,7 +147,7 @@ export class Skybox {
    * @return {THREE.Object} Skybox mesh
    */
   get3jsObjects() {
-    return [this._mesh, this._stars];
+    return [/*this._mesh,*/ this._stars];
   }
 
   /**

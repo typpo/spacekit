@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.001, 100000);
+      this._camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.001, 100000);
     }
 
     /**
@@ -699,7 +699,6 @@ var Spacekit = (function (exports) {
 `;
 
   const STAR_SHADER_VERTEX = `
-    attribute vec3 color;
     attribute float size;
     varying vec3 vColor;
 
@@ -740,6 +739,37 @@ var Spacekit = (function (exports) {
     return val * 15.0;
   }
 
+  function hmsToDecimalRa(raHour, raMin, raSec) {
+    // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
+    return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
+  }
+
+  function hmsToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+    const posneg = isObserverBelowEquator ? -1 : 1;
+    return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
+  }
+
+  function decimalToHmsRa(decimal) {
+    const val = parseFloat(decimal);
+    const raHour = Math.trunc(val / 15.0);
+    const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
+    const raSec = (val - raHour * 15.0 - raMin / 4.0) * 240.0;
+    return [raHour, raMin, raSec];
+  }
+
+  function decimalToHmsDec(decimal, isObserverBelowEquator = false) {
+    const val = parseFloat(decimal);
+    const posneg = isObserverBelowEquator ? -1 : 1;
+
+    const decDeg = Math.trunc(val);
+    const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
+    const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
+    return [decDeg, decMin, decSec];
+  }
+
+  console.log(hmsToDecimalRa(17, 45, 40.04));
+  console.log(hmsToDecimalDec(-29, 0, 28.1));
+
   const J2000 = 2451545.0;
 
   function sphericalToCartesian(ra, dec, dist) {
@@ -747,7 +777,7 @@ var Spacekit = (function (exports) {
     return [
       dist * Math.cos(ra) * Math.cos(dec),
       dist * Math.sin(ra) * Math.cos(dec),
-      dist * Math.sin(ra),
+      dist * Math.sin(dec),
     ];
   }
 
@@ -796,27 +826,25 @@ var Spacekit = (function (exports) {
 
   /**
    * Maps spectral class to star color
-   * @param spectralClass {String} Star temperature classification
+   * @param temperature {Number} Star temperature in Kelvin
    * @return {Number} Color for star of given spectral class
    */
-  function getColorForStar(spectralClass) {
-    switch (spectralClass) {
-      case 'O':
-        return 0xc8c8ff;
-      case 'B':
-        return 0xe3e3ff;
-      case 'A':
-        return 0xffffff;
-      case 'F':
-        return 0xffffe3;
-      case 'G':
-        return 0xffffc8;
-      case 'K':
-        return 0xffe3c8;
-      case 'M':
-        return 0xffc8c8;
-    }
-    return 0xffffff;
+  function getColorForStar(temp) {
+    if (temp >= 30000) return 0x92B5FF;
+    if (temp >= 10000) return 0xA2C0FF;
+    if (temp >= 7500) return 0xd5e0ff;
+    if (temp >= 6000) return 0xf9f5ff;
+    if (temp >= 5200) return 0xffede3;
+    if (temp >= 3700) return 0xffdab5;
+    if (temp >= 2400) return 0xffb56c;
+    return 0xffb56c;
+  }
+
+  function getSizeForStar(mag) {
+    if (mag < 2.0) return 4;
+    if (mag < 4.0) return 2;
+    if (mag < 6.0) return 1;
+    return 1;
   }
 
   /**
@@ -852,7 +880,7 @@ var Spacekit = (function (exports) {
      * @private
      */
     init() {
-      const geometry = new THREE.SphereBufferGeometry(99000, 32, 32);
+      const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
       const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
         this._context.options.assetPath);
@@ -880,9 +908,7 @@ var Spacekit = (function (exports) {
     }
 
     loadStars() {
-      fetch('../../src/data/bsc_short.json').then(resp => resp.json()).then((result) => {
-        const library = result.BSC;
-
+      fetch('../../src/data/bsc_processed.json').then(resp => resp.json()).then(library => {
         const n = library.length;
 
         const geometry = new THREE.BufferGeometry();
@@ -896,24 +922,25 @@ var Spacekit = (function (exports) {
         geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         library.forEach((star, idx) => {
-          const spectralClass = star.Sp.slice(0, 1);
+          const [ ra, dec, temp, mag ] = star;
 
-          const raRad = rad(hoursToDeg(star.RAh));
-          const decRad = rad(star.DEd);
+          const raRad = rad(hoursToDeg(ra));
+          const decRad = rad(dec);
 
-          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 98000);
+          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
           const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
 
-          positions[idx] = pos[0];
-          positions[idx + 1] = pos[1];
-          positions[idx + 2] = pos[2];
+          positions.set(pos, idx * 3);
 
-          const color = new THREE.Color(getColorForStar(spectralClass));
-          colors[idx] = color.r;
-          colors[idx + 1] = color.g;
-          colors[idx + 2] = color.b;
+          const color = new THREE.Color(getColorForStar(temp));
+          colors.set(color.toArray(), idx * 3);
 
-          sizes[idx] = Math.random() * 5;
+          if (idx < 1) {
+            sizes[idx] = 50;
+            colors.set([1, 0, 0], idx * 3);
+          } else {
+            sizes[idx] = getSizeForStar(mag);
+          }
         });
 
         const material = new THREE.ShaderMaterial({
@@ -921,6 +948,7 @@ var Spacekit = (function (exports) {
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
           transparent: true,
+          vertexColors: THREE.VertexColors,
         });
 
         this._stars = new THREE.Points(geometry, material);
@@ -936,7 +964,7 @@ var Spacekit = (function (exports) {
      * @return {THREE.Object} Skybox mesh
      */
     get3jsObjects() {
-      return [this._mesh, this._stars];
+      return [/*this._mesh,*/ this._stars];
     }
 
     /**
@@ -2401,6 +2429,10 @@ var Spacekit = (function (exports) {
   exports.rad = rad;
   exports.deg = deg;
   exports.hoursToDeg = hoursToDeg;
+  exports.hmsToDecimalRa = hmsToDecimalRa;
+  exports.hmsToDecimalDec = hmsToDecimalDec;
+  exports.decimalToHmsRa = decimalToHmsRa;
+  exports.decimalToHmsDec = decimalToHmsDec;
 
   return exports;
 

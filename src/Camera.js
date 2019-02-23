@@ -15,7 +15,7 @@ export class Camera {
   init() {
     const containerWidth = this._context.container.width;
     const containerHeight = this._context.container.height;
-    this._camera = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 0.001, 100000);
+    this._camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.001, 100000);
   }
 
   /**

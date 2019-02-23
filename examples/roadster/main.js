@@ -1,9 +1,11 @@
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   assetPath: '../../src/assets',
-  jd: 2458461.459,
+  //jd: 2458461.459,
+  startDate: new Date(2019, 5, 1),
+  startPaused: true,
   debug: {
-    showAxesHelper: true,
+    showAxes: true,
     showStats: true,
   },
 });

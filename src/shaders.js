@@ -113,7 +113,6 @@ export const STAR_SHADER_FRAGMENT = `
 `;
 
 export const STAR_SHADER_VERTEX = `
-    attribute vec3 color;
     attribute float size;
     varying vec3 vColor;
 

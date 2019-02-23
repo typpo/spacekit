@@ -7,7 +7,7 @@ export function sphericalToCartesian(ra, dec, dist) {
   return [
     dist * Math.cos(ra) * Math.cos(dec),
     dist * Math.sin(ra) * Math.cos(dec),
-    dist * Math.sin(ra),
+    dist * Math.sin(dec),
   ];
 }
 

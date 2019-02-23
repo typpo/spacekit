@@ -25,5 +25,5 @@ export function getFullTextureUrl(template, basePath) {
  */
 export function getFullUrl(template, basePath) {
   return template.replace('{{assets}}', `${basePath}/assets`)
-                 .replace('{{data}}', `${basePath}/data`);
+    .replace('{{data}}', `${basePath}/data`);
 }

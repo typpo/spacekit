@@ -705,7 +705,7 @@ var Spacekit = (function (exports) {
    */
   function getFullUrl(template, basePath) {
     return template.replace('{{assets}}', `${basePath}/assets`)
-                   .replace('{{data}}', `${basePath}/data`);
+      .replace('{{data}}', `${basePath}/data`);
   }
 
   /**
@@ -1812,7 +1812,7 @@ var Spacekit = (function (exports) {
     init() {
       const dataUrl = getFullUrl('{{data}}/bsc_processed.json', this._context.options.basePath);
 
-      fetch(dataUrl).then(resp => resp.json()).then(library => {
+      fetch(dataUrl).then(resp => resp.json()).then((library) => {
         const n = library.length;
 
         const geometry = new THREE.BufferGeometry();
@@ -1826,7 +1826,7 @@ var Spacekit = (function (exports) {
         geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         library.forEach((star, idx) => {
-          const [ ra, dec, temp, mag ] = star;
+          const [ra, dec, temp, mag] = star;
 
           const raRad = rad(hoursToDeg(ra));
           const decRad = rad(dec);

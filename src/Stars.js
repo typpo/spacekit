@@ -86,7 +86,7 @@ export class Stars {
         const color = new THREE.Color(getColorForStar(temp));
         colors.set(color.toArray(), idx * 3);
 
-        sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.5 /* minSize */);
+        sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.75 /* minSize */);
       });
 
       const material = new THREE.ShaderMaterial({

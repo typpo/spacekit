@@ -1710,7 +1710,7 @@ var Spacekit = (function (exports) {
       const attributes = this._attributes;
       const offset = this._particleCount++;
 
-      attributes.size.set([options.particleSize || 12], offset);
+      attributes.size.set([options.particleSize || 15], offset);
       const color = new THREE.Color(options.color || 0xffffff);
       attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 
@@ -1843,7 +1843,7 @@ var Spacekit = (function (exports) {
           const color = new THREE.Color(getColorForStar(temp));
           colors.set(color.toArray(), idx * 3);
 
-          sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.5 /* minSize */);
+          sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.75 /* minSize */);
         });
 
         const material = new THREE.ShaderMaterial({

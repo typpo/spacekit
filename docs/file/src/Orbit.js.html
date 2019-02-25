@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -103,7 +119,9 @@ export class Orbit {
     const eph = this._ephem;
 
     const period = eph.get(&apos;period&apos;);
-    const numSegments = Math.max(period / 10, 50);
+    const ecc = eph.get(&apos;e&apos;);
+    const minSegments = ecc &gt; 0.4 ? 100 : 50;
+    const numSegments = Math.max(period / 2, minSegments);
     const step = period / numSegments;
 
     const pts = [];
@@ -111,7 +129,7 @@ export class Orbit {
     for (let time = 0; time &lt; period; time += step) {
       const pos = this.getPositionAtTime(time);
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-        console.error(&apos;NaN position value - you may have bad data in the following ephemeris:&apos;);
+        console.error(&apos;NaN position value - you may have bad or incomplete data in the following ephemeris:&apos;);
         console.error(eph);
       }
       const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
@@ -134,37 +152,42 @@ export class Orbit {
   }
 
   /**
-   * Get heliocentric position of object at a given JED.
-   * @param {Number} jed Date value in JED.
+   * Get heliocentric position of object at a given JD.
+   * @param {Number} jd Date value in JD.
+   * @param {boolean} debug Set true for debug output.
    * @return {Array.&lt;Number&gt;} [X, Y, Z] coordinates
    */
-  getPositionAtTime(jed) {
+  getPositionAtTime(jd, debug) {
+    // Note: logic below must match the vertex shader.
+
     const pi = Math.PI;
     const sin = Math.sin;
     const cos = Math.cos;
 
     const eph = this._ephem;
 
-    // Note: logic below must match the vertex shader.
     // This position calculation is used to create orbital ellipses.
-    const e = eph.get(&apos;e&apos;);
-    const a = eph.get(&apos;a&apos;);
-    const i = eph.get(&apos;i&apos;, &apos;rad&apos;);
+    let e = eph.get(&apos;e&apos;);
+    if (e &gt;= 1) {
+      e = 0.999999999999;
+    }
 
-    // longitude of ascending node
-    const o = eph.get(&apos;om&apos;, &apos;rad&apos;);
-
-    // LONGITUDE of perihelion
-    const p = eph.get(&apos;w_bar&apos;, &apos;rad&apos;);
-
+    // Mean anomaly
     const ma = eph.get(&apos;ma&apos;, &apos;rad&apos;);
-    let M;
 
-    // Calculate mean anomaly at jed
+    // Calculate mean anomaly at jd
     const n = eph.get(&apos;n&apos;, &apos;rad&apos;);
     const epoch = eph.get(&apos;epoch&apos;);
-    const d = jed - epoch;
-    M = ma + n * d;
+    const d = jd - epoch;
+
+    const M = ma + n * d;
+    if (debug) {
+      console.info(&apos;period=&apos;, eph.get(&apos;period&apos;));
+      console.info(&apos;n=&apos;, n);
+      console.info(&apos;ma=&apos;, ma);
+      console.info(&apos;d=&apos;, d);
+      console.info(&apos;M=&apos;, M);
+    }
 
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;
@@ -178,7 +201,13 @@ export class Orbit {
     const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
     // Radius vector, in AU
+    const a = eph.get(&apos;a&apos;);
     const r = a * (1 - e * e) / (1 + e * cos(v));
+
+    // Inclination, Longitude of ascending node, Longitude of perihelion
+    const i = eph.get(&apos;i&apos;, &apos;rad&apos;);
+    const o = eph.get(&apos;om&apos;, &apos;rad&apos;);
+    const p = eph.get(&apos;wBar&apos;, &apos;rad&apos;);
 
     // Heliocentric coords
     const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));

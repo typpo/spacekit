@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -90,7 +106,7 @@
   hideOrbit: false,
   ephem: new Spacekit.Ephem({...}),
   textureUrl: &apos;/path/to/spriteTexture.png&apos;,
-  assetPath: &apos;/base/assets&apos;,
+  basePath: &apos;/base&apos;,
   ecliptic: {
     lineColor: 0xCCCCCC,
     displayLines: false,
@@ -279,7 +295,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-getPosition">getPosition</a></span></span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-getPosition">getPosition</a></span></span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
         </p>
       </div>
       <div>
@@ -315,6 +331,35 @@
         
         
         <div data-ice="description"><p>Initializes label and three.js objects.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-isReady">isReady</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Determines whether object is ready to be measured or added to scene.</p>
 </div>
       </div>
     </td>
@@ -396,7 +441,7 @@ its position can be updated (ie, it has ephemeris)</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-update">update</a></span></span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-update">update</a></span></span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
         </p>
       </div>
       <div>
@@ -509,10 +554,10 @@ its position can be updated (ie, it has ephemeris)</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.assetPath</td>
+      <td data-ice="name" class="code" data-depth="1">options.basePath</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Base path for texture urls</p>
+      <td data-ice="description"><p>Base path for simulation assets and data</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
@@ -603,7 +648,7 @@ you must call init() manually.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber330">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber331">source</a></span></span>
     </span>
   </h3>
 
@@ -660,7 +705,7 @@ you must call init() manually.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber349">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber350">source</a></span></span>
     </span>
   </h3>
 
@@ -718,7 +763,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber368">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber369">source</a></span></span>
     </span>
   </h3>
 
@@ -775,7 +820,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber360">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber361">source</a></span></span>
     </span>
   </h3>
 
@@ -828,11 +873,11 @@ the dot representing the object as well as its orbit.</p>
     
     
     
-    <span class="code" data-ice="name">getPosition</span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
+    <span class="code" data-ice="name">getPosition</span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber280">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber281">source</a></span></span>
     </span>
   </h3>
 
@@ -853,10 +898,10 @@ the dot representing the object as well as its orbit.</p>
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">jed</td>
+      <td data-ice="name" class="code" data-depth="0">jd</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>JED date</p>
+      <td data-ice="description"><p>JD date</p>
 </td>
     </tr>
 </tbody>
@@ -953,6 +998,63 @@ child classes).</p>
   
 </div>
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-isReady">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">isReady</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber386">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>Determines whether object is ready to be measured or added to scene.</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>True if ready</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-isStaticObject">
     <span class="access" data-ice="access">public</span>
     
@@ -964,7 +1066,7 @@ child classes).</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber377">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber378">source</a></span></span>
     </span>
   </h3>
 
@@ -1022,7 +1124,7 @@ its position can be updated (ie, it has ephemeris)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber269">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber270">source</a></span></span>
     </span>
   </h3>
 
@@ -1094,11 +1196,11 @@ sprite and not a particle type.</p>
     
     
     
-    <span class="code" data-ice="name">update</span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+    <span class="code" data-ice="name">update</span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber299">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber300">source</a></span></span>
     </span>
   </h3>
 
@@ -1119,10 +1221,10 @@ sprite and not a particle type.</p>
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">jed</td>
+      <td data-ice="name" class="code" data-depth="0">jd</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>JED date</p>
+      <td data-ice="description"><p>JD date</p>
 </td>
     </tr>
 </tbody>

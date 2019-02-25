@@ -417,7 +417,7 @@ export class Simulation {
   /**
    * @private
    * Perform the actual zoom to fit behavior.
-   * @param {SpaceObject} spaceObj Object to fit within viewport.
+   * @param {SpaceObject} obj Object to fit within viewport.
    * @param {Number} offset Add some extra room in the viewport. Increase to be
    * further zoomed out, decrease to be closer. Default 3.0.
    */

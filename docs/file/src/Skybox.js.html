@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -55,7 +71,7 @@ export class Skybox {
   /**
    * @param {Object} options Options
    * @param {String} options.textureUrl Texture to use
-   * @param {String} options.assetPath Base path to assets
+   * @param {String} options.basePath Base path to simulation supporting files
    * @param {Object} contextOrSimulation Simulation context or simulation
    * object
    */
@@ -75,7 +91,7 @@ export class Skybox {
       this._context = contextOrSimulation;
     }
 
-    this._mesh = null;
+    this._mesh = undefined;
 
     this.init();
   }
@@ -84,10 +100,10 @@ export class Skybox {
    * @private
    */
   init() {
-    const geometry = new THREE.SphereBufferGeometry(4000);
+    const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-      this._context.options.assetPath);
+      this._context.options.basePath);
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
     const material = new THREE.MeshBasicMaterial({
@@ -140,7 +156,11 @@ export const SkyboxPresets = {
   ESO_GIGAGALAXY: {
     textureUrl: &apos;{{assets}}/skybox/eso_milkyway.jpg&apos;,
   },
+  ESO_LITE: {
+    textureUrl: &apos;{{assets}}/skybox/eso_lite.png&apos;,
+  },
   NASA_TYCHO: {
+    // from https://svs.gsfc.nasa.gov/3895
     textureUrl: &apos;{{assets}}/skybox/nasa_tycho.jpg&apos;,
   },
 };

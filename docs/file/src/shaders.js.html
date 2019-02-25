@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -63,7 +79,7 @@ export const ORBIT_SHADER_FRAGMENT = `
  * @ignore
  */
 export const ORBIT_SHADER_VERTEX = `
-    uniform float jed;
+    uniform float jd;
 
     attribute vec3 fuzzColor;
     varying vec3 vColor;
@@ -77,17 +93,17 @@ export const ORBIT_SHADER_VERTEX = `
     attribute float ma;
     attribute float n;
     attribute float w;
-    attribute float w_bar;
+    attribute float wBar;
     attribute float epoch;
 
     vec3 getAstroPos() {
       float i_rad = i;
       float o_rad = om;
-      float p_rad = w_bar;
+      float p_rad = wBar;
       float ma_rad = ma;
       float n_rad = n;
 
-      float d = jed - epoch;
+      float d = jd - epoch;
       float M = ma_rad + n_rad * d;
 
       // Estimate eccentric and true anom using iterative approximation (this
@@ -119,7 +135,7 @@ export const ORBIT_SHADER_VERTEX = `
     }
 
     vec3 getAstroPosFast() {
-      float M1 = ma + (jed - epoch) * n;
+      float M1 = ma + (jd - epoch) * n;
       float theta = M1 + 2. * e * sin(M1);
 
       float cosT = cos(theta);
@@ -150,6 +166,25 @@ export const ORBIT_SHADER_VERTEX = `
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;
+    }
+`;
+
+export const STAR_SHADER_FRAGMENT = `
+    varying vec3 vColor;
+    void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+`;
+
+export const STAR_SHADER_VERTEX = `
+    attribute float size;
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size;
+        gl_Position = projectionMatrix * mvPosition;
     }
 `;
 </code></pre>

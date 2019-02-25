@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 570,
+  "end": 1054,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 17,
+      "line": 30,
       "column": 0
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 570,
+    "end": 1054,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 17,
+        "line": 30,
         "column": 0
       }
     },
@@ -136,9 +136,9 @@
           "trailingComments": [
             {
               "type": "CommentBlock",
-              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
               "start": 95,
-              "end": 433,
+              "end": 452,
               "loc": {
                 "start": {
                   "line": 6,
@@ -173,9 +173,9 @@
         "trailingComments": [
           {
             "type": "CommentBlock",
-            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
             "start": 95,
-            "end": 433,
+            "end": 452,
             "loc": {
               "start": {
                 "line": 6,
@@ -191,8 +191,8 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 434,
-        "end": 569,
+        "start": 453,
+        "end": 574,
         "loc": {
           "start": {
             "line": 14,
@@ -207,8 +207,8 @@
         "source": null,
         "declaration": {
           "type": "FunctionDeclaration",
-          "start": 441,
-          "end": 569,
+          "start": 460,
+          "end": 574,
           "loc": {
             "start": {
               "line": 14,
@@ -221,8 +221,8 @@
           },
           "id": {
             "type": "Identifier",
-            "start": 450,
-            "end": 467,
+            "start": 469,
+            "end": 486,
             "loc": {
               "start": {
                 "line": 14,
@@ -243,8 +243,8 @@
           "params": [
             {
               "type": "Identifier",
-              "start": 468,
-              "end": 476,
+              "start": 487,
+              "end": 495,
               "loc": {
                 "start": {
                   "line": 14,
@@ -260,8 +260,8 @@
             },
             {
               "type": "Identifier",
-              "start": 478,
-              "end": 487,
+              "start": 497,
+              "end": 505,
               "loc": {
                 "start": {
                   "line": 14,
@@ -269,21 +269,21 @@
                 },
                 "end": {
                   "line": 14,
-                  "column": 53
+                  "column": 52
                 },
-                "identifierName": "assetPath"
+                "identifierName": "basePath"
               },
-              "name": "assetPath"
+              "name": "basePath"
             }
           ],
           "body": {
             "type": "BlockStatement",
-            "start": 489,
-            "end": 569,
+            "start": 507,
+            "end": 574,
             "loc": {
               "start": {
                 "line": 14,
-                "column": 55
+                "column": 54
               },
               "end": {
                 "line": 16,
@@ -293,8 +293,8 @@
             "body": [
               {
                 "type": "ReturnStatement",
-                "start": 493,
-                "end": 567,
+                "start": 511,
+                "end": 572,
                 "loc": {
                   "start": {
                     "line": 15,
@@ -302,13 +302,13 @@
                   },
                   "end": {
                     "line": 15,
-                    "column": 76
+                    "column": 63
                   }
                 },
                 "argument": {
                   "type": "CallExpression",
-                  "start": 500,
-                  "end": 566,
+                  "start": 518,
+                  "end": 571,
                   "loc": {
                     "start": {
                       "line": 15,
@@ -316,13 +316,13 @@
                     },
                     "end": {
                       "line": 15,
-                      "column": 75
+                      "column": 62
                     }
                   },
                   "callee": {
-                    "type": "MemberExpression",
-                    "start": 500,
-                    "end": 541,
+                    "type": "Identifier",
+                    "start": 518,
+                    "end": 528,
                     "loc": {
                       "start": {
                         "line": 15,
@@ -330,35 +330,39 @@
                       },
                       "end": {
                         "line": 15,
-                        "column": 50
-                      }
+                        "column": 19
+                      },
+                      "identifierName": "getFullUrl"
                     },
-                    "object": {
+                    "name": "getFullUrl"
+                  },
+                  "arguments": [
+                    {
                       "type": "LogicalExpression",
-                      "start": 501,
-                      "end": 532,
+                      "start": 529,
+                      "end": 560,
                       "loc": {
                         "start": {
                           "line": 15,
-                          "column": 10
+                          "column": 20
                         },
                         "end": {
                           "line": 15,
-                          "column": 41
+                          "column": 51
                         }
                       },
                       "left": {
                         "type": "Identifier",
-                        "start": 501,
-                        "end": 509,
+                        "start": 529,
+                        "end": 537,
                         "loc": {
                           "start": {
                             "line": 15,
-                            "column": 10
+                            "column": 20
                           },
                           "end": {
                             "line": 15,
-                            "column": 18
+                            "column": 28
                           },
                           "identifierName": "template"
                         },
@@ -367,95 +371,52 @@
                       "operator": "||",
                       "right": {
                         "type": "Identifier",
-                        "start": 513,
-                        "end": 532,
+                        "start": 541,
+                        "end": 560,
                         "loc": {
                           "start": {
                             "line": 15,
-                            "column": 22
+                            "column": 32
                           },
                           "end": {
                             "line": 15,
-                            "column": 41
+                            "column": 51
                           },
                           "identifierName": "DEFAULT_TEXTURE_URL"
                         },
                         "name": "DEFAULT_TEXTURE_URL"
-                      },
-                      "extra": {
-                        "parenthesized": true,
-                        "parenStart": 500
                       }
                     },
-                    "property": {
-                      "type": "Identifier",
-                      "start": 534,
-                      "end": 541,
-                      "loc": {
-                        "start": {
-                          "line": 15,
-                          "column": 43
-                        },
-                        "end": {
-                          "line": 15,
-                          "column": 50
-                        },
-                        "identifierName": "replace"
-                      },
-                      "name": "replace"
-                    },
-                    "computed": false
-                  },
-                  "arguments": [
-                    {
-                      "type": "StringLiteral",
-                      "start": 542,
-                      "end": 554,
-                      "loc": {
-                        "start": {
-                          "line": 15,
-                          "column": 51
-                        },
-                        "end": {
-                          "line": 15,
-                          "column": 63
-                        }
-                      },
-                      "extra": {
-                        "rawValue": "{{assets}}",
-                        "raw": "'{{assets}}'"
-                      },
-                      "value": "{{assets}}"
-                    },
                     {
                       "type": "Identifier",
-                      "start": 556,
-                      "end": 565,
+                      "start": 562,
+                      "end": 570,
                       "loc": {
                         "start": {
                           "line": 15,
-                          "column": 65
+                          "column": 53
                         },
                         "end": {
                           "line": 15,
-                          "column": 74
+                          "column": 61
                         },
-                        "identifierName": "assetPath"
+                        "identifierName": "basePath"
                       },
-                      "name": "assetPath"
+                      "name": "basePath"
                     }
                   ]
                 }
               }
             ],
-            "directives": []
+            "directives": [],
+            "trailingComments": null
           },
           "leadingComments": [
             {
               "type": "CommentBlock",
-              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
               "start": 95,
-              "end": 433,
+              "end": 452,
               "loc": {
                 "start": {
                   "line": 6,
@@ -468,14 +429,31 @@
               }
             }
           ],
-          "trailingComments": []
+          "trailingComments": [
+            {
+              "type": "CommentBlock",
+              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+              "start": 576,
+              "end": 894,
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 0
+                },
+                "end": {
+                  "line": 25,
+                  "column": 3
+                }
+              }
+            }
+          ]
         },
         "leadingComments": [
           {
             "type": "CommentBlock",
-            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
             "start": 95,
-            "end": 433,
+            "end": 452,
             "loc": {
               "start": {
                 "line": 6,
@@ -483,6 +461,492 @@
               },
               "end": {
                 "line": 13,
+                "column": 3
+              }
+            }
+          }
+        ],
+        "trailingComments": [
+          {
+            "type": "CommentBlock",
+            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+            "start": 576,
+            "end": 894,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 0
+              },
+              "end": {
+                "line": 25,
+                "column": 3
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 895,
+        "end": 1053,
+        "loc": {
+          "start": {
+            "line": 26,
+            "column": 0
+          },
+          "end": {
+            "line": 29,
+            "column": 1
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "FunctionDeclaration",
+          "start": 902,
+          "end": 1053,
+          "loc": {
+            "start": {
+              "line": 26,
+              "column": 7
+            },
+            "end": {
+              "line": 29,
+              "column": 1
+            }
+          },
+          "id": {
+            "type": "Identifier",
+            "start": 911,
+            "end": 921,
+            "loc": {
+              "start": {
+                "line": 26,
+                "column": 16
+              },
+              "end": {
+                "line": 26,
+                "column": 26
+              },
+              "identifierName": "getFullUrl"
+            },
+            "name": "getFullUrl",
+            "leadingComments": null
+          },
+          "generator": false,
+          "expression": false,
+          "async": false,
+          "params": [
+            {
+              "type": "Identifier",
+              "start": 922,
+              "end": 930,
+              "loc": {
+                "start": {
+                  "line": 26,
+                  "column": 27
+                },
+                "end": {
+                  "line": 26,
+                  "column": 35
+                },
+                "identifierName": "template"
+              },
+              "name": "template"
+            },
+            {
+              "type": "Identifier",
+              "start": 932,
+              "end": 940,
+              "loc": {
+                "start": {
+                  "line": 26,
+                  "column": 37
+                },
+                "end": {
+                  "line": 26,
+                  "column": 45
+                },
+                "identifierName": "basePath"
+              },
+              "name": "basePath"
+            }
+          ],
+          "body": {
+            "type": "BlockStatement",
+            "start": 942,
+            "end": 1053,
+            "loc": {
+              "start": {
+                "line": 26,
+                "column": 47
+              },
+              "end": {
+                "line": 29,
+                "column": 1
+              }
+            },
+            "body": [
+              {
+                "type": "ReturnStatement",
+                "start": 946,
+                "end": 1051,
+                "loc": {
+                  "start": {
+                    "line": 27,
+                    "column": 2
+                  },
+                  "end": {
+                    "line": 28,
+                    "column": 45
+                  }
+                },
+                "argument": {
+                  "type": "CallExpression",
+                  "start": 953,
+                  "end": 1050,
+                  "loc": {
+                    "start": {
+                      "line": 27,
+                      "column": 9
+                    },
+                    "end": {
+                      "line": 28,
+                      "column": 44
+                    }
+                  },
+                  "callee": {
+                    "type": "MemberExpression",
+                    "start": 953,
+                    "end": 1018,
+                    "loc": {
+                      "start": {
+                        "line": 27,
+                        "column": 9
+                      },
+                      "end": {
+                        "line": 28,
+                        "column": 12
+                      }
+                    },
+                    "object": {
+                      "type": "CallExpression",
+                      "start": 953,
+                      "end": 1005,
+                      "loc": {
+                        "start": {
+                          "line": 27,
+                          "column": 9
+                        },
+                        "end": {
+                          "line": 27,
+                          "column": 61
+                        }
+                      },
+                      "callee": {
+                        "type": "MemberExpression",
+                        "start": 953,
+                        "end": 969,
+                        "loc": {
+                          "start": {
+                            "line": 27,
+                            "column": 9
+                          },
+                          "end": {
+                            "line": 27,
+                            "column": 25
+                          }
+                        },
+                        "object": {
+                          "type": "Identifier",
+                          "start": 953,
+                          "end": 961,
+                          "loc": {
+                            "start": {
+                              "line": 27,
+                              "column": 9
+                            },
+                            "end": {
+                              "line": 27,
+                              "column": 17
+                            },
+                            "identifierName": "template"
+                          },
+                          "name": "template"
+                        },
+                        "property": {
+                          "type": "Identifier",
+                          "start": 962,
+                          "end": 969,
+                          "loc": {
+                            "start": {
+                              "line": 27,
+                              "column": 18
+                            },
+                            "end": {
+                              "line": 27,
+                              "column": 25
+                            },
+                            "identifierName": "replace"
+                          },
+                          "name": "replace"
+                        },
+                        "computed": false
+                      },
+                      "arguments": [
+                        {
+                          "type": "StringLiteral",
+                          "start": 970,
+                          "end": 982,
+                          "loc": {
+                            "start": {
+                              "line": 27,
+                              "column": 26
+                            },
+                            "end": {
+                              "line": 27,
+                              "column": 38
+                            }
+                          },
+                          "extra": {
+                            "rawValue": "{{assets}}",
+                            "raw": "'{{assets}}'"
+                          },
+                          "value": "{{assets}}"
+                        },
+                        {
+                          "type": "TemplateLiteral",
+                          "start": 984,
+                          "end": 1004,
+                          "loc": {
+                            "start": {
+                              "line": 27,
+                              "column": 40
+                            },
+                            "end": {
+                              "line": 27,
+                              "column": 60
+                            }
+                          },
+                          "expressions": [
+                            {
+                              "type": "Identifier",
+                              "start": 987,
+                              "end": 995,
+                              "loc": {
+                                "start": {
+                                  "line": 27,
+                                  "column": 43
+                                },
+                                "end": {
+                                  "line": 27,
+                                  "column": 51
+                                },
+                                "identifierName": "basePath"
+                              },
+                              "name": "basePath"
+                            }
+                          ],
+                          "quasis": [
+                            {
+                              "type": "TemplateElement",
+                              "start": 985,
+                              "end": 985,
+                              "loc": {
+                                "start": {
+                                  "line": 27,
+                                  "column": 41
+                                },
+                                "end": {
+                                  "line": 27,
+                                  "column": 41
+                                }
+                              },
+                              "value": {
+                                "raw": "",
+                                "cooked": ""
+                              },
+                              "tail": false
+                            },
+                            {
+                              "type": "TemplateElement",
+                              "start": 996,
+                              "end": 1003,
+                              "loc": {
+                                "start": {
+                                  "line": 27,
+                                  "column": 52
+                                },
+                                "end": {
+                                  "line": 27,
+                                  "column": 59
+                                }
+                              },
+                              "value": {
+                                "raw": "/assets",
+                                "cooked": "/assets"
+                              },
+                              "tail": true
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "property": {
+                      "type": "Identifier",
+                      "start": 1011,
+                      "end": 1018,
+                      "loc": {
+                        "start": {
+                          "line": 28,
+                          "column": 5
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 12
+                        },
+                        "identifierName": "replace"
+                      },
+                      "name": "replace"
+                    },
+                    "computed": false
+                  },
+                  "arguments": [
+                    {
+                      "type": "StringLiteral",
+                      "start": 1019,
+                      "end": 1029,
+                      "loc": {
+                        "start": {
+                          "line": 28,
+                          "column": 13
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 23
+                        }
+                      },
+                      "extra": {
+                        "rawValue": "{{data}}",
+                        "raw": "'{{data}}'"
+                      },
+                      "value": "{{data}}"
+                    },
+                    {
+                      "type": "TemplateLiteral",
+                      "start": 1031,
+                      "end": 1049,
+                      "loc": {
+                        "start": {
+                          "line": 28,
+                          "column": 25
+                        },
+                        "end": {
+                          "line": 28,
+                          "column": 43
+                        }
+                      },
+                      "expressions": [
+                        {
+                          "type": "Identifier",
+                          "start": 1034,
+                          "end": 1042,
+                          "loc": {
+                            "start": {
+                              "line": 28,
+                              "column": 28
+                            },
+                            "end": {
+                              "line": 28,
+                              "column": 36
+                            },
+                            "identifierName": "basePath"
+                          },
+                          "name": "basePath"
+                        }
+                      ],
+                      "quasis": [
+                        {
+                          "type": "TemplateElement",
+                          "start": 1032,
+                          "end": 1032,
+                          "loc": {
+                            "start": {
+                              "line": 28,
+                              "column": 26
+                            },
+                            "end": {
+                              "line": 28,
+                              "column": 26
+                            }
+                          },
+                          "value": {
+                            "raw": "",
+                            "cooked": ""
+                          },
+                          "tail": false
+                        },
+                        {
+                          "type": "TemplateElement",
+                          "start": 1043,
+                          "end": 1048,
+                          "loc": {
+                            "start": {
+                              "line": 28,
+                              "column": 37
+                            },
+                            "end": {
+                              "line": 28,
+                              "column": 42
+                            }
+                          },
+                          "value": {
+                            "raw": "/data",
+                            "cooked": "/data"
+                          },
+                          "tail": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "directives": []
+          },
+          "leadingComments": [
+            {
+              "type": "CommentBlock",
+              "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+              "start": 576,
+              "end": 894,
+              "loc": {
+                "start": {
+                  "line": 18,
+                  "column": 0
+                },
+                "end": {
+                  "line": 25,
+                  "column": 3
+                }
+              }
+            }
+          ],
+          "trailingComments": []
+        },
+        "leadingComments": [
+          {
+            "type": "CommentBlock",
+            "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+            "start": 576,
+            "end": 894,
+            "loc": {
+              "start": {
+                "line": 18,
+                "column": 0
+              },
+              "end": {
+                "line": 25,
                 "column": 3
               }
             }
@@ -511,9 +975,9 @@
     },
     {
       "type": "CommentBlock",
-      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
       "start": 95,
-      "end": 433,
+      "end": 452,
       "loc": {
         "start": {
           "line": 6,
@@ -521,6 +985,22 @@
         },
         "end": {
           "line": 13,
+          "column": 3
+        }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+      "start": 576,
+      "end": 894,
+      "loc": {
+        "start": {
+          "line": 18,
+          "column": 0
+        },
+        "end": {
+          "line": 25,
           "column": 3
         }
       }
@@ -707,9 +1187,9 @@
     },
     {
       "type": "CommentBlock",
-      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} assetPath Base path for assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path for simulation data and assets.\n * @example\n * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
       "start": 95,
-      "end": 433,
+      "end": 452,
       "loc": {
         "start": {
           "line": 6,
@@ -736,8 +1216,8 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 434,
-      "end": 440,
+      "start": 453,
+      "end": 459,
       "loc": {
         "start": {
           "line": 14,
@@ -763,8 +1243,8 @@
         "binop": null
       },
       "value": "function",
-      "start": 441,
-      "end": 449,
+      "start": 460,
+      "end": 468,
       "loc": {
         "start": {
           "line": 14,
@@ -789,8 +1269,8 @@
         "binop": null
       },
       "value": "getFullTextureUrl",
-      "start": 450,
-      "end": 467,
+      "start": 469,
+      "end": 486,
       "loc": {
         "start": {
           "line": 14,
@@ -814,8 +1294,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 467,
-      "end": 468,
+      "start": 486,
+      "end": 487,
       "loc": {
         "start": {
           "line": 14,
@@ -840,8 +1320,8 @@
         "binop": null
       },
       "value": "template",
-      "start": 468,
-      "end": 476,
+      "start": 487,
+      "end": 495,
       "loc": {
         "start": {
           "line": 14,
@@ -866,8 +1346,8 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 476,
-      "end": 477,
+      "start": 495,
+      "end": 496,
       "loc": {
         "start": {
           "line": 14,
@@ -891,9 +1371,9 @@
         "postfix": false,
         "binop": null
       },
-      "value": "assetPath",
-      "start": 478,
-      "end": 487,
+      "value": "basePath",
+      "start": 497,
+      "end": 505,
       "loc": {
         "start": {
           "line": 14,
@@ -901,7 +1381,7 @@
         },
         "end": {
           "line": 14,
-          "column": 53
+          "column": 52
         }
       }
     },
@@ -917,16 +1397,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 487,
-      "end": 488,
+      "start": 505,
+      "end": 506,
       "loc": {
         "start": {
           "line": 14,
-          "column": 53
+          "column": 52
         },
         "end": {
           "line": 14,
-          "column": 54
+          "column": 53
         }
       }
     },
@@ -942,16 +1422,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 489,
-      "end": 490,
+      "start": 507,
+      "end": 508,
       "loc": {
         "start": {
           "line": 14,
-          "column": 55
+          "column": 54
         },
         "end": {
           "line": 14,
-          "column": 56
+          "column": 55
         }
       }
     },
@@ -970,8 +1450,8 @@
         "updateContext": null
       },
       "value": "return",
-      "start": 493,
-      "end": 499,
+      "start": 511,
+      "end": 517,
       "loc": {
         "start": {
           "line": 15,
@@ -980,6 +1460,32 @@
         "end": {
           "line": 15,
           "column": 8
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "getFullUrl",
+      "start": 518,
+      "end": 528,
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 9
+        },
+        "end": {
+          "line": 15,
+          "column": 19
         }
       }
     },
@@ -995,16 +1501,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 500,
-      "end": 501,
+      "start": 528,
+      "end": 529,
       "loc": {
         "start": {
           "line": 15,
-          "column": 9
+          "column": 19
         },
         "end": {
           "line": 15,
-          "column": 10
+          "column": 20
         }
       }
     },
@@ -1021,16 +1527,16 @@
         "binop": null
       },
       "value": "template",
-      "start": 501,
-      "end": 509,
+      "start": 529,
+      "end": 537,
       "loc": {
         "start": {
           "line": 15,
-          "column": 10
+          "column": 20
         },
         "end": {
           "line": 15,
-          "column": 18
+          "column": 28
         }
       }
     },
@@ -1048,16 +1554,16 @@
         "updateContext": null
       },
       "value": "||",
-      "start": 510,
-      "end": 512,
+      "start": 538,
+      "end": 540,
       "loc": {
         "start": {
           "line": 15,
-          "column": 19
+          "column": 29
         },
         "end": {
           "line": 15,
-          "column": 21
+          "column": 31
         }
       }
     },
@@ -1074,16 +1580,68 @@
         "binop": null
       },
       "value": "DEFAULT_TEXTURE_URL",
-      "start": 513,
-      "end": 532,
+      "start": 541,
+      "end": 560,
       "loc": {
         "start": {
           "line": 15,
-          "column": 22
+          "column": 32
         },
         "end": {
           "line": 15,
-          "column": 41
+          "column": 51
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ",",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 560,
+      "end": 561,
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 51
+        },
+        "end": {
+          "line": 15,
+          "column": 52
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "basePath",
+      "start": 562,
+      "end": 570,
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 53
+        },
+        "end": {
+          "line": 15,
+          "column": 61
         }
       }
     },
@@ -1099,16 +1657,371 @@
         "postfix": false,
         "binop": null
       },
-      "start": 532,
-      "end": 533,
+      "start": 570,
+      "end": 571,
       "loc": {
         "start": {
           "line": 15,
-          "column": 41
+          "column": 61
         },
         "end": {
           "line": 15,
-          "column": 42
+          "column": 62
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 571,
+      "end": 572,
+      "loc": {
+        "start": {
+          "line": 15,
+          "column": 62
+        },
+        "end": {
+          "line": 15,
+          "column": 63
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "}",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 573,
+      "end": 574,
+      "loc": {
+        "start": {
+          "line": 16,
+          "column": 0
+        },
+        "end": {
+          "line": 16,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\n * Returns the complete URL to a texture given a basepath and a template url.\n * @param {String} template URL containing optional template parameters\n * @param {String} basePath Base path\n * @example\n * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')\n * => '/path/to/assets/images/mysprite.png'\n ",
+      "start": 576,
+      "end": 894,
+      "loc": {
+        "start": {
+          "line": 18,
+          "column": 0
+        },
+        "end": {
+          "line": 25,
+          "column": 3
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 895,
+      "end": 901,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 0
+        },
+        "end": {
+          "line": 26,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "function",
+        "keyword": "function",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "function",
+      "start": 902,
+      "end": 910,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 7
+        },
+        "end": {
+          "line": 26,
+          "column": 15
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "getFullUrl",
+      "start": 911,
+      "end": 921,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 16
+        },
+        "end": {
+          "line": 26,
+          "column": 26
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "(",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 921,
+      "end": 922,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 26
+        },
+        "end": {
+          "line": 26,
+          "column": 27
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "template",
+      "start": 922,
+      "end": 930,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 27
+        },
+        "end": {
+          "line": 26,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ",",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 930,
+      "end": 931,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 35
+        },
+        "end": {
+          "line": 26,
+          "column": 36
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "basePath",
+      "start": 932,
+      "end": 940,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 37
+        },
+        "end": {
+          "line": 26,
+          "column": 45
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ")",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 940,
+      "end": 941,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 45
+        },
+        "end": {
+          "line": 26,
+          "column": 46
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "{",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 942,
+      "end": 943,
+      "loc": {
+        "start": {
+          "line": 26,
+          "column": 47
+        },
+        "end": {
+          "line": 26,
+          "column": 48
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "return",
+        "keyword": "return",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "return",
+      "start": 946,
+      "end": 952,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 2
+        },
+        "end": {
+          "line": 27,
+          "column": 8
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "template",
+      "start": 953,
+      "end": 961,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 9
+        },
+        "end": {
+          "line": 27,
+          "column": 17
         }
       }
     },
@@ -1125,16 +2038,16 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 533,
-      "end": 534,
+      "start": 961,
+      "end": 962,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 42
+          "line": 27,
+          "column": 17
         },
         "end": {
-          "line": 15,
-          "column": 43
+          "line": 27,
+          "column": 18
         }
       }
     },
@@ -1151,16 +2064,16 @@
         "binop": null
       },
       "value": "replace",
-      "start": 534,
-      "end": 541,
+      "start": 962,
+      "end": 969,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 43
+          "line": 27,
+          "column": 18
         },
         "end": {
-          "line": 15,
-          "column": 50
+          "line": 27,
+          "column": 25
         }
       }
     },
@@ -1176,16 +2089,16 @@
         "postfix": false,
         "binop": null
       },
-      "start": 541,
-      "end": 542,
+      "start": 969,
+      "end": 970,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 50
+          "line": 27,
+          "column": 25
         },
         "end": {
-          "line": 15,
-          "column": 51
+          "line": 27,
+          "column": 26
         }
       }
     },
@@ -1203,16 +2116,16 @@
         "updateContext": null
       },
       "value": "{{assets}}",
-      "start": 542,
-      "end": 554,
+      "start": 970,
+      "end": 982,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 51
+          "line": 27,
+          "column": 26
         },
         "end": {
-          "line": 15,
-          "column": 63
+          "line": 27,
+          "column": 38
         }
       }
     },
@@ -1229,16 +2142,93 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 554,
-      "end": 555,
+      "start": 982,
+      "end": 983,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 63
+          "line": 27,
+          "column": 38
         },
         "end": {
-          "line": 15,
-          "column": 64
+          "line": 27,
+          "column": 39
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 984,
+      "end": 985,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 40
+        },
+        "end": {
+          "line": 27,
+          "column": 41
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "",
+      "start": 985,
+      "end": 985,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 41
+        },
+        "end": {
+          "line": 27,
+          "column": 41
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "${",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 985,
+      "end": 987,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 41
+        },
+        "end": {
+          "line": 27,
+          "column": 43
         }
       }
     },
@@ -1254,17 +2244,94 @@
         "postfix": false,
         "binop": null
       },
-      "value": "assetPath",
-      "start": 556,
-      "end": 565,
+      "value": "basePath",
+      "start": 987,
+      "end": 995,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 65
+          "line": 27,
+          "column": 43
         },
         "end": {
-          "line": 15,
-          "column": 74
+          "line": 27,
+          "column": 51
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "}",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 995,
+      "end": 996,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 51
+        },
+        "end": {
+          "line": 27,
+          "column": 52
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "/assets",
+      "start": 996,
+      "end": 1003,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 52
+        },
+        "end": {
+          "line": 27,
+          "column": 59
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1003,
+      "end": 1004,
+      "loc": {
+        "start": {
+          "line": 27,
+          "column": 59
+        },
+        "end": {
+          "line": 27,
+          "column": 60
         }
       }
     },
@@ -1280,16 +2347,351 @@
         "postfix": false,
         "binop": null
       },
-      "start": 565,
-      "end": 566,
+      "start": 1004,
+      "end": 1005,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 74
+          "line": 27,
+          "column": 60
         },
         "end": {
-          "line": 15,
-          "column": 75
+          "line": 27,
+          "column": 61
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ".",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 1010,
+      "end": 1011,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 4
+        },
+        "end": {
+          "line": 28,
+          "column": 5
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "replace",
+      "start": 1011,
+      "end": 1018,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 5
+        },
+        "end": {
+          "line": 28,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "(",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1018,
+      "end": 1019,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 12
+        },
+        "end": {
+          "line": 28,
+          "column": 13
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "string",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "{{data}}",
+      "start": 1019,
+      "end": 1029,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 13
+        },
+        "end": {
+          "line": 28,
+          "column": 23
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ",",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 1029,
+      "end": 1030,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 23
+        },
+        "end": {
+          "line": 28,
+          "column": 24
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1031,
+      "end": 1032,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 25
+        },
+        "end": {
+          "line": 28,
+          "column": 26
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "",
+      "start": 1032,
+      "end": 1032,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 26
+        },
+        "end": {
+          "line": 28,
+          "column": 26
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "${",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1032,
+      "end": 1034,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 26
+        },
+        "end": {
+          "line": 28,
+          "column": 28
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "basePath",
+      "start": 1034,
+      "end": 1042,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 28
+        },
+        "end": {
+          "line": 28,
+          "column": 36
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "}",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1042,
+      "end": 1043,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 36
+        },
+        "end": {
+          "line": 28,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "/data",
+      "start": 1043,
+      "end": 1048,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 37
+        },
+        "end": {
+          "line": 28,
+          "column": 42
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1048,
+      "end": 1049,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 42
+        },
+        "end": {
+          "line": 28,
+          "column": 43
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ")",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 1049,
+      "end": 1050,
+      "loc": {
+        "start": {
+          "line": 28,
+          "column": 43
+        },
+        "end": {
+          "line": 28,
+          "column": 44
         }
       }
     },
@@ -1306,16 +2708,16 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 566,
-      "end": 567,
+      "start": 1050,
+      "end": 1051,
       "loc": {
         "start": {
-          "line": 15,
-          "column": 75
+          "line": 28,
+          "column": 44
         },
         "end": {
-          "line": 15,
-          "column": 76
+          "line": 28,
+          "column": 45
         }
       }
     },
@@ -1331,15 +2733,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 568,
-      "end": 569,
+      "start": 1052,
+      "end": 1053,
       "loc": {
         "start": {
-          "line": 16,
+          "line": 29,
           "column": 0
         },
         "end": {
-          "line": 16,
+          "line": 29,
           "column": 1
         }
       }
@@ -1357,15 +2759,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 570,
-      "end": 570,
+      "start": 1054,
+      "end": 1054,
       "loc": {
         "start": {
-          "line": 17,
+          "line": 30,
           "column": 0
         },
         "end": {
-          "line": 17,
+          "line": 30,
           "column": 0
         }
       }

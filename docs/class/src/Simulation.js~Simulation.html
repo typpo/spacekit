@@ -37,22 +37,38 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber30">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber35">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber30">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber35">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -87,14 +103,18 @@ Simulation.</p>
       
       <pre class="prettyprint source-code"><code data-ice="exampleCode">const sim = new Spacekit.Simulation(&apos;my-container&apos;, {
  startDate: Date.now(),
- jed: 0.0,
- jedDelta: 10.0,
- jedPerSecond: 100.0,  // overrides jedDelta
+ jd: 0.0,
+ jdDelta: 10.0,
+ jdPerSecond: 100.0,  // overrides jdDelta
  startPaused: false,
  maxNumParticles: 2**16,
- enableCameraDrift: true,
+ camera: {
+   position: [0, -10, 5],
+   enableDrift: false,
+ },
  debug: {
-   showAxesHelper: false,
+   showAxes: false,
+   showGrid: false,
    showStats: false,
  },
 });</code></pre>
@@ -126,7 +146,7 @@ Simulation.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(simulationElt: <span>HTMLElement</span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(simulationElt: <span>HTMLElement</span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, basePath: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>)</span>
         </p>
       </div>
       <div>
@@ -370,6 +390,35 @@ Simulation.</p>
           
           
           
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-createStars">createStars</a></span></span><span class="code" data-ice="signature">(args: ...<span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Shortcut for creating a new Stars object belonging to this visualization.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
           <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getCamera">getCamera</a></span></span><span class="code" data-ice="signature">(): <span>THREE.Camera</span></span>
         </p>
       </div>
@@ -428,6 +477,35 @@ Simulation.</p>
           
           
           
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getControls">getControls</a></span></span><span class="code" data-ice="signature">(): <span>THREE.TrackballControls</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Get the three.js controls</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
           <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getDate">getDate</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a></span></span>
         </p>
       </div>
@@ -457,13 +535,13 @@ Simulation.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJed">getJed</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJd">getJd</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Gets the current JED date of the simulation</p>
+        <div data-ice="description"><p>Gets the current JD date of the simulation</p>
 </div>
       </div>
     </td>
@@ -486,13 +564,13 @@ Simulation.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJedDelta">getJedDelta</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJdDelta">getJdDelta</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Get the JED per frame of the visualization.</p>
+        <div data-ice="description"><p>Get the JD per frame of the visualization.</p>
 </div>
       </div>
     </td>
@@ -515,13 +593,42 @@ Simulation.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJedPerSecond">getJedPerSecond</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getJdPerSecond">getJdPerSecond</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Get the JED change per second of the visualization.</p>
+        <div data-ice="description"><p>Get the JD change per second of the visualization.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-getScene">getScene</a></span></span><span class="code" data-ice="signature">(): <span>THREE.Scene</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Get the three.js scene object</p>
 </div>
       </div>
     </td>
@@ -691,13 +798,13 @@ in the user&apos;s viewport.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJed">setJed</a></span></span><span class="code" data-ice="signature">(val: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJd">setJd</a></span></span><span class="code" data-ice="signature">(val: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Sets the JED date of the simulation.</p>
+        <div data-ice="description"><p>Sets the JD date of the simulation.</p>
 </div>
       </div>
     </td>
@@ -720,13 +827,13 @@ in the user&apos;s viewport.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJedDelta">setJedDelta</a></span></span><span class="code" data-ice="signature">(delta: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJdDelta">setJdDelta</a></span></span><span class="code" data-ice="signature">(delta: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Set the JED per frame of the visualization.</p>
+        <div data-ice="description"><p>Set the JD per frame of the visualization.</p>
 </div>
       </div>
     </td>
@@ -749,13 +856,13 @@ in the user&apos;s viewport.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJedPerSecond">setJedPerSecond</a></span></span><span class="code" data-ice="signature">(x: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/Simulation.js~Simulation.html#instance-method-setJdPerSecond">setJdPerSecond</a></span></span><span class="code" data-ice="signature">(x: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Set the JED change per second of the visualization.</p>
+        <div data-ice="description"><p>Set the JD change per second of the visualization.</p>
 </div>
       </div>
     </td>
@@ -869,11 +976,11 @@ in the user&apos;s viewport.</p>
     
     
     
-    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(simulationElt: <span>HTMLElement</span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(simulationElt: <span>HTMLElement</span>, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, basePath: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber57">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber67">source</a></span></span>
     </span>
   </h3>
 
@@ -906,6 +1013,13 @@ in the user&apos;s viewport.</p>
       <td data-ice="description"><p>for simulation</p>
 </td>
     </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">basePath</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Path to simulation assets and data</p>
+</td>
+    </tr>
 <tr data-ice="property" data-depth="1">
       <td data-ice="name" class="code" data-depth="1">options.startDate</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">Date</a></span></td>
@@ -915,27 +1029,27 @@ simulation.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.jed</td>
+      <td data-ice="name" class="code" data-depth="1">options.jd</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The JED date of this simulation.
+      <td data-ice="description"><p>The JD date of this simulation.
 Defaults to 0</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.jedDelta</td>
+      <td data-ice="name" class="code" data-depth="1">options.jdDelta</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The number of JED to add every tick of
+      <td data-ice="description"><p>The number of JD to add every tick of
 the simulation.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.jedPerSecond</td>
+      <td data-ice="name" class="code" data-depth="1">options.jdPerSecond</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The number of jed to add every
-second. Use this instead of <code>jedDelta</code> for constant motion that does not
+      <td data-ice="description"><p>The number of jd to add every
+second. Use this instead of <code>jdDelta</code> for constant motion that does not
 vary with framerate. Defaults to 100</p>
 </td>
     </tr>
@@ -959,11 +1073,26 @@ thousands+), you don&apos;t need to worry about this.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.enableCameraDrift</td>
+      <td data-ice="name" class="code" data-depth="1">options.camera</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Options for camera</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="2">
+      <td data-ice="name" class="code" data-depth="2">options.camera.initialPosition</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Initial X, Y, Z
+coordinates of the camera. Defaults to [0, -10, 5].</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="2">
+      <td data-ice="name" class="code" data-depth="2">options.camera.enableDrift</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"><p>Set true to have the camera
-float around slightly. True by default.</p>
+float around slightly. False by default.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
@@ -974,10 +1103,17 @@ float around slightly. True by default.</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="2">
-      <td data-ice="name" class="code" data-depth="2">options.debug.showAxesHelper</td>
+      <td data-ice="name" class="code" data-depth="2">options.debug.showAxes</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"><p>Show X, Y, and Z axes</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="2">
+      <td data-ice="name" class="code" data-depth="2">options.debug.showGrid</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Show grid on XY plane</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="2">
@@ -1025,7 +1161,7 @@ float around slightly. True by default.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber65">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber75">source</a></span></span>
     </span>
   </h3>
 
@@ -1071,7 +1207,7 @@ float around slightly. True by default.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber229">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber256">source</a></span></span>
     </span>
   </h3>
 
@@ -1140,7 +1276,7 @@ animated.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber285">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber325">source</a></span></span>
     </span>
   </h3>
 
@@ -1202,7 +1338,7 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber296">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber336">source</a></span></span>
     </span>
   </h3>
 
@@ -1235,7 +1371,7 @@ with camera.</p>
       <td data-ice="name" class="code" data-depth="0">color</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Color of light, default 0xCCCCCC</p>
+      <td data-ice="description"><p>Color of light, default 0xFFFFFF</p>
 </td>
     </tr>
 </tbody>
@@ -1272,7 +1408,7 @@ with camera.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber258">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber285">source</a></span></span>
     </span>
   </h3>
 
@@ -1345,7 +1481,7 @@ Takes any SpaceObject arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber267">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber294">source</a></span></span>
     </span>
   </h3>
 
@@ -1418,7 +1554,7 @@ Takes any ShapeObject arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber276">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber303">source</a></span></span>
     </span>
   </h3>
 
@@ -1480,6 +1616,79 @@ any Skybox arguments.</p>
   
 </div>
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-createStars">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">createStars</span><span class="code" data-ice="signature">(args: ...<span>*</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber312">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>Shortcut for creating a new Stars object belonging to this visualization.
+Takes any Stars arguments.</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">args</td>
+      <td data-ice="type" class="code">...<span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <div data-ice="see"><h4>See:</h4><ul><li><span><a href="Stars">Stars</a></span></li></ul></div>
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-getCamera">
     <span class="access" data-ice="access">public</span>
     
@@ -1491,7 +1700,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber505">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber574">source</a></span></span>
     </span>
   </h3>
 
@@ -1548,7 +1757,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber479">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber548">source</a></span></span>
     </span>
   </h3>
 
@@ -1594,6 +1803,63 @@ any Skybox arguments.</p>
   
 </div>
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-getControls">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">getControls</span><span class="code" data-ice="signature">(): <span>THREE.TrackballControls</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber590">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>Get the three.js controls</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>THREE.TrackballControls</span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>THREE.js controls object</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-getDate">
     <span class="access" data-ice="access">public</span>
     
@@ -1605,7 +1871,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber421">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber490">source</a></span></span>
     </span>
   </h3>
 
@@ -1651,25 +1917,25 @@ any Skybox arguments.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-getJed">
+  <h3 data-ice="anchor" id="instance-method-getJd">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">getJed</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="code" data-ice="name">getJd</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber405">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber474">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Gets the current JED date of the simulation</p>
+  <div data-ice="description"><p>Gets the current JD date of the simulation</p>
 </div>
 
   
@@ -1683,7 +1949,7 @@ any Skybox arguments.</p>
       <tbody>
         <tr>
           <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>JED date</p>
+          <td class="return-desc" data-ice="returnDescription"><p>JD date</p>
 </td>
         </tr>
       </tbody>
@@ -1708,25 +1974,25 @@ any Skybox arguments.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-getJedDelta">
+  <h3 data-ice="anchor" id="instance-method-getJdDelta">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">getJedDelta</span><span class="code" data-ice="signature">(): <span>*</span></span>
+    <span class="code" data-ice="name">getJdDelta</span><span class="code" data-ice="signature">(): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber436">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber505">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Get the JED per frame of the visualization.</p>
+  <div data-ice="description"><p>Get the JD per frame of the visualization.</p>
 </div>
 
   
@@ -1764,25 +2030,25 @@ any Skybox arguments.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-getJedPerSecond">
+  <h3 data-ice="anchor" id="instance-method-getJdPerSecond">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">getJedPerSecond</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="code" data-ice="name">getJdPerSecond</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber456">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber525">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Get the JED change per second of the visualization.</p>
+  <div data-ice="description"><p>Get the JD change per second of the visualization.</p>
 </div>
 
   
@@ -1796,7 +2062,64 @@ any Skybox arguments.</p>
       <tbody>
         <tr>
           <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>JED per second</p>
+          <td class="return-desc" data-ice="returnDescription"><p>JD per second</p>
+</td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-getScene">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">getScene</span><span class="code" data-ice="signature">(): <span>THREE.Scene</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber582">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  <div data-ice="description"><p>Get the three.js scene object</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>THREE.Scene</span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>The THREE.js scene object</p>
 </td>
         </tr>
       </tbody>
@@ -1832,7 +2155,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber497">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber566">source</a></span></span>
     </span>
   </h3>
 
@@ -1889,7 +2212,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber244">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber271">source</a></span></span>
     </span>
   </h3>
 
@@ -1950,7 +2273,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber315">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber354">source</a></span></span>
     </span>
   </h3>
 
@@ -1996,7 +2319,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber513">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber598">source</a></span></span>
     </span>
   </h3>
 
@@ -2057,7 +2380,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber429">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber498">source</a></span></span>
     </span>
   </h3>
 
@@ -2107,25 +2430,25 @@ in the user&apos;s viewport.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-setJed">
+  <h3 data-ice="anchor" id="instance-method-setJd">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">setJed</span><span class="code" data-ice="signature">(val: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+    <span class="code" data-ice="name">setJd</span><span class="code" data-ice="signature">(val: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber413">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber482">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Sets the JED date of the simulation.</p>
+  <div data-ice="description"><p>Sets the JD date of the simulation.</p>
 </div>
 
   
@@ -2142,7 +2465,7 @@ in the user&apos;s viewport.</p>
       <td data-ice="name" class="code" data-depth="0">val</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>JED date</p>
+      <td data-ice="description"><p>JD date</p>
 </td>
     </tr>
 </tbody>
@@ -2168,26 +2491,26 @@ in the user&apos;s viewport.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-setJedDelta">
+  <h3 data-ice="anchor" id="instance-method-setJdDelta">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">setJedDelta</span><span class="code" data-ice="signature">(delta: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
+    <span class="code" data-ice="name">setJdDelta</span><span class="code" data-ice="signature">(delta: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber448">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber517">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Set the JED per frame of the visualization. This will override any
-existing &quot;JED per second&quot; setting.</p>
+  <div data-ice="description"><p>Set the JD per frame of the visualization. This will override any
+existing &quot;JD per second&quot; setting.</p>
 </div>
 
   
@@ -2204,7 +2527,7 @@ existing &quot;JED per second&quot; setting.</p>
       <td data-ice="name" class="code" data-depth="0">delta</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>JED per frame</p>
+      <td data-ice="description"><p>JD per frame</p>
 </td>
     </tr>
 </tbody>
@@ -2230,25 +2553,25 @@ existing &quot;JED per second&quot; setting.</p>
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-setJedPerSecond">
+  <h3 data-ice="anchor" id="instance-method-setJdPerSecond">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">setJedPerSecond</span><span class="code" data-ice="signature">(x: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
+    <span class="code" data-ice="name">setJdPerSecond</span><span class="code" data-ice="signature">(x: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber468">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber537">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Set the JED change per second of the visualization.</p>
+  <div data-ice="description"><p>Set the JD change per second of the visualization.</p>
 </div>
 
   
@@ -2278,7 +2601,7 @@ existing &quot;JED per second&quot; setting.</p>
       <tbody>
         <tr>
           <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>x JED per second</p>
+          <td class="return-desc" data-ice="returnDescription"><p>x JD per second</p>
 </td>
         </tr>
       </tbody>
@@ -2314,7 +2637,7 @@ existing &quot;JED per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber389">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber458">source</a></span></span>
     </span>
   </h3>
 
@@ -2358,7 +2681,7 @@ existing &quot;JED per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber397">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber466">source</a></span></span>
     </span>
   </h3>
 
@@ -2402,7 +2725,7 @@ existing &quot;JED per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber356">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber395">source</a></span></span>
     </span>
   </h3>
 

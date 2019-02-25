@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 2788,
+  "end": 3203,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 107,
+      "line": 126,
       "column": 0
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 2788,
+    "end": 3203,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 107,
+        "line": 126,
         "column": 0
       }
     },
@@ -210,7 +210,7 @@
       {
         "type": "ExportNamedDeclaration",
         "start": 273,
-        "end": 2787,
+        "end": 2782,
         "loc": {
           "start": {
             "line": 17,
@@ -226,7 +226,7 @@
         "declaration": {
           "type": "VariableDeclaration",
           "start": 280,
-          "end": 2787,
+          "end": 2782,
           "loc": {
             "start": {
               "line": 17,
@@ -241,7 +241,7 @@
             {
               "type": "VariableDeclarator",
               "start": 286,
-              "end": 2786,
+              "end": 2781,
               "loc": {
                 "start": {
                   "line": 17,
@@ -273,7 +273,7 @@
               "init": {
                 "type": "TemplateLiteral",
                 "start": 308,
-                "end": 2786,
+                "end": 2781,
                 "loc": {
                   "start": {
                     "line": 17,
@@ -289,7 +289,7 @@
                   {
                     "type": "TemplateElement",
                     "start": 309,
-                    "end": 2785,
+                    "end": 2780,
                     "loc": {
                       "start": {
                         "line": 17,
@@ -301,8 +301,8 @@
                       }
                     },
                     "value": {
-                      "raw": "\n    uniform float jed;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float w_bar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = w_bar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jed - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jed - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n",
-                      "cooked": "\n    uniform float jed;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float w_bar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = w_bar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jed - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jed - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n"
+                      "raw": "\n    uniform float jd;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float wBar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jd - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jd - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n",
+                      "cooked": "\n    uniform float jd;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float wBar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jd - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jd - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n"
                     },
                     "tail": true
                   }
@@ -350,6 +350,220 @@
             }
           }
         ]
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 2784,
+        "end": 2915,
+        "loc": {
+          "start": {
+            "line": 108,
+            "column": 0
+          },
+          "end": {
+            "line": 113,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 2791,
+          "end": 2915,
+          "loc": {
+            "start": {
+              "line": 108,
+              "column": 7
+            },
+            "end": {
+              "line": 113,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 2797,
+              "end": 2914,
+              "loc": {
+                "start": {
+                  "line": 108,
+                  "column": 13
+                },
+                "end": {
+                  "line": 113,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 2797,
+                "end": 2817,
+                "loc": {
+                  "start": {
+                    "line": 108,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 108,
+                    "column": 33
+                  },
+                  "identifierName": "STAR_SHADER_FRAGMENT"
+                },
+                "name": "STAR_SHADER_FRAGMENT"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 2820,
+                "end": 2914,
+                "loc": {
+                  "start": {
+                    "line": 108,
+                    "column": 36
+                  },
+                  "end": {
+                    "line": 113,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 2821,
+                    "end": 2913,
+                    "loc": {
+                      "start": {
+                        "line": 108,
+                        "column": 37
+                      },
+                      "end": {
+                        "line": 113,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n    varying vec3 vColor;\n    void main() {\n        gl_FragColor = vec4(vColor, 1.0);\n    }\n",
+                      "cooked": "\n    varying vec3 vColor;\n    void main() {\n        gl_FragColor = vec4(vColor, 1.0);\n    }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 2917,
+        "end": 3202,
+        "loc": {
+          "start": {
+            "line": 115,
+            "column": 0
+          },
+          "end": {
+            "line": 125,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 2924,
+          "end": 3202,
+          "loc": {
+            "start": {
+              "line": 115,
+              "column": 7
+            },
+            "end": {
+              "line": 125,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 2930,
+              "end": 3201,
+              "loc": {
+                "start": {
+                  "line": 115,
+                  "column": 13
+                },
+                "end": {
+                  "line": 125,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 2930,
+                "end": 2948,
+                "loc": {
+                  "start": {
+                    "line": 115,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 115,
+                    "column": 31
+                  },
+                  "identifierName": "STAR_SHADER_VERTEX"
+                },
+                "name": "STAR_SHADER_VERTEX"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 2951,
+                "end": 3201,
+                "loc": {
+                  "start": {
+                    "line": 115,
+                    "column": 34
+                  },
+                  "end": {
+                    "line": 125,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 2952,
+                    "end": 3200,
+                    "loc": {
+                      "start": {
+                        "line": 115,
+                        "column": 35
+                      },
+                      "end": {
+                        "line": 125,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n",
+                      "cooked": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
       }
     ],
     "directives": []
@@ -780,9 +994,9 @@
         "binop": null,
         "updateContext": null
       },
-      "value": "\n    uniform float jed;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float w_bar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = w_bar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jed - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jed - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n",
+      "value": "\n    uniform float jd;\n\n    attribute vec3 fuzzColor;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float ma;\n    attribute float n;\n    attribute float w;\n    attribute float wBar;\n    attribute float epoch;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n      float ma_rad = ma;\n      float n_rad = n;\n\n      float d = jd - epoch;\n      float M = ma_rad + n_rad * d;\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 25; foo++) {\n        E1 = M + e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jd - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast();\n      vec3 newpos = getAstroPos();\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n",
       "start": 309,
-      "end": 2785,
+      "end": 2780,
       "loc": {
         "start": {
           "line": 17,
@@ -806,8 +1020,8 @@
         "postfix": false,
         "binop": null
       },
-      "start": 2785,
-      "end": 2786,
+      "start": 2780,
+      "end": 2781,
       "loc": {
         "start": {
           "line": 106,
@@ -832,8 +1046,8 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 2786,
-      "end": 2787,
+      "start": 2781,
+      "end": 2782,
       "loc": {
         "start": {
           "line": 106,
@@ -841,6 +1055,430 @@
         },
         "end": {
           "line": 106,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 2784,
+      "end": 2790,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 0
+        },
+        "end": {
+          "line": 108,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 2791,
+      "end": 2796,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 7
+        },
+        "end": {
+          "line": 108,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "STAR_SHADER_FRAGMENT",
+      "start": 2797,
+      "end": 2817,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 13
+        },
+        "end": {
+          "line": 108,
+          "column": 33
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 2818,
+      "end": 2819,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 34
+        },
+        "end": {
+          "line": 108,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 2820,
+      "end": 2821,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 36
+        },
+        "end": {
+          "line": 108,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n    varying vec3 vColor;\n    void main() {\n        gl_FragColor = vec4(vColor, 1.0);\n    }\n",
+      "start": 2821,
+      "end": 2913,
+      "loc": {
+        "start": {
+          "line": 108,
+          "column": 37
+        },
+        "end": {
+          "line": 113,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 2913,
+      "end": 2914,
+      "loc": {
+        "start": {
+          "line": 113,
+          "column": 0
+        },
+        "end": {
+          "line": 113,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 2914,
+      "end": 2915,
+      "loc": {
+        "start": {
+          "line": 113,
+          "column": 1
+        },
+        "end": {
+          "line": 113,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 2917,
+      "end": 2923,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 0
+        },
+        "end": {
+          "line": 115,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 2924,
+      "end": 2929,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 7
+        },
+        "end": {
+          "line": 115,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "STAR_SHADER_VERTEX",
+      "start": 2930,
+      "end": 2948,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 13
+        },
+        "end": {
+          "line": 115,
+          "column": 31
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 2949,
+      "end": 2950,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 32
+        },
+        "end": {
+          "line": 115,
+          "column": 33
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 2951,
+      "end": 2952,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 34
+        },
+        "end": {
+          "line": 115,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n",
+      "start": 2952,
+      "end": 3200,
+      "loc": {
+        "start": {
+          "line": 115,
+          "column": 35
+        },
+        "end": {
+          "line": 125,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 3200,
+      "end": 3201,
+      "loc": {
+        "start": {
+          "line": 125,
+          "column": 0
+        },
+        "end": {
+          "line": 125,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 3201,
+      "end": 3202,
+      "loc": {
+        "start": {
+          "line": 125,
+          "column": 1
+        },
+        "end": {
+          "line": 125,
           "column": 2
         }
       }
@@ -858,15 +1496,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 2788,
-      "end": 2788,
+      "start": 3203,
+      "end": 3203,
       "loc": {
         "start": {
-          "line": 107,
+          "line": 126,
           "column": 0
         },
         "end": {
-          "line": 107,
+          "line": 126,
           "column": 0
         }
       }

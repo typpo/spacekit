@@ -10,7 +10,7 @@ const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);
 
 /**
  * Maps spectral class to star color
- * @param temperature {Number} Star temperature in Kelvin
+ * @param temp {Number} Star temperature in Kelvin
  * @return {Number} Color for star of given spectral class
  */
 function getColorForStar(temp) {

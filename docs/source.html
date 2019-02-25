@@ -37,15 +37,31 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1>Source <img data-ice="coverageBadge" src="./badge.svg"><span data-ice="totalCoverageCount" class="total-coverage-count">92/154</span></h1>
+<div class="content" data-ice="content"><h1>Source <img data-ice="coverageBadge" src="./badge.svg"><span data-ice="totalCoverageCount" class="total-coverage-count">108/204</span></h1>
 
 <table class="files-summary" data-ice="files" data-use-coverage="true">
   <thead>
@@ -61,95 +77,131 @@
   <tbody>
     
   <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/Camera.js.html#errorLines=10,15,21">src/Camera.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/Camera.js.html#errorLines=10,15,18">src/Camera.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></td>
       <td class="coverage"><span data-ice="coverage">50 %</span><span data-ice="coverageCount" class="coverage-count">3/6</span></td>
-      <td style="display: none;" data-ice="size">697 byte</td>
-      <td style="display: none;" data-ice="lines">30</td>
-      <td style="display: none;" data-ice="updated">2019-02-01 17:29:20 (UTC)</td>
+      <td style="display: none;" data-ice="size">613 byte</td>
+      <td style="display: none;" data-ice="lines">27</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/Ephem.js.html#errorLines=21,3,56">src/Ephem.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/Coordinates.js.html#errorLines=14,3,5">src/Coordinates.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span>
+<span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span>
+<span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span>
+<span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></td>
+      <td class="coverage"><span data-ice="coverage">40 %</span><span data-ice="coverageCount" class="coverage-count">2/5</span></td>
+      <td style="display: none;" data-ice="size">1842 byte</td>
+      <td style="display: none;" data-ice="lines">55</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
+    </tr>
+<tr data-ice="file">
+      <td data-ice="filePath"><span><a href="file/src/Ephem.js.html#errorLines=1,2,24,29,6,66">src/Ephem.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span>
-<span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></td>
-      <td class="coverage"><span data-ice="coverage">66 %</span><span data-ice="coverageCount" class="coverage-count">6/9</span></td>
-      <td style="display: none;" data-ice="size">6468 byte</td>
-      <td style="display: none;" data-ice="lines">228</td>
-      <td style="display: none;" data-ice="updated">2019-02-01 17:29:20 (UTC)</td>
+<span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span>
+<span><a href="variable/index.html#static-variable-GM">GM</a></span></td>
+      <td class="coverage"><span data-ice="coverage">53 %</span><span data-ice="coverageCount" class="coverage-count">7/13</span></td>
+      <td style="display: none;" data-ice="size">8553 byte</td>
+      <td style="display: none;" data-ice="lines">296</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/Orbit.js.html">src/Orbit.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></td>
       <td class="coverage"><span data-ice="coverage">100 %</span><span data-ice="coverageCount" class="coverage-count">14/14</span></td>
-      <td style="display: none;" data-ice="size">5748 byte</td>
-      <td style="display: none;" data-ice="lines">213</td>
-      <td style="display: none;" data-ice="updated">2019-01-02 18:09:24 (UTC)</td>
+      <td style="display: none;" data-ice="size">6163 byte</td>
+      <td style="display: none;" data-ice="lines">226</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/ShapeObject.js.html#errorLines=20,23,28,3,55,61">src/ShapeObject.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/ShapeObject.js.html#errorLines=136,142,17,199,207,3,4,50,6,70,71,74,75,78">src/ShapeObject.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/ShapeObject.js~ShapeObject.html">ShapeObject</a></span></td>
-      <td class="coverage"><span data-ice="coverage">14 %</span><span data-ice="coverageCount" class="coverage-count">1/7</span></td>
-      <td style="display: none;" data-ice="size">2082 byte</td>
-      <td style="display: none;" data-ice="lines">68</td>
-      <td style="display: none;" data-ice="updated">2019-02-01 19:13:47 (UTC)</td>
+      <td class="coverage"><span data-ice="coverage">22 %</span><span data-ice="coverageCount" class="coverage-count">4/18</span></td>
+      <td style="display: none;" data-ice="size">7894 byte</td>
+      <td style="display: none;" data-ice="lines">248</td>
+      <td style="display: none;" data-ice="updated">2019-02-02 15:00:49 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/Simulation.js.html#errorLines=58,59,61,62,63,64,65,67,68,70,71,72,73,75,76,78,79,82,83,84">src/Simulation.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/Simulation.js.html#errorLines=68,69,71,72,73,74,75,77,78,80,81,87,88,90,91,93,94,97,98,99">src/Simulation.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/Simulation.js~Simulation.html">Simulation</a></span></td>
-      <td class="coverage"><span data-ice="coverage">60 %</span><span data-ice="coverageCount" class="coverage-count">30/50</span></td>
-      <td style="display: none;" data-ice="size">14456 byte</td>
-      <td style="display: none;" data-ice="lines">516</td>
-      <td style="display: none;" data-ice="updated">2019-02-01 19:30:09 (UTC)</td>
+      <td class="coverage"><span data-ice="coverage">62 %</span><span data-ice="coverageCount" class="coverage-count">34/54</span></td>
+      <td style="display: none;" data-ice="size">16764 byte</td>
+      <td style="display: none;" data-ice="lines">601</td>
+      <td style="display: none;" data-ice="updated">2019-02-02 15:01:08 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/Skybox.js.html#errorLines=16,17,22,23,30">src/Skybox.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span>
 <span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></td>
       <td class="coverage"><span data-ice="coverage">54 %</span><span data-ice="coverageCount" class="coverage-count">6/11</span></td>
-      <td style="display: none;" data-ice="size">2555 byte</td>
-      <td style="display: none;" data-ice="lines">98</td>
-      <td style="display: none;" data-ice="updated">2019-01-05 18:26:19 (UTC)</td>
+      <td style="display: none;" data-ice="size">2699 byte</td>
+      <td style="display: none;" data-ice="lines">102</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/SpaceObject.js.html#errorLines=112,121,323,382,74,75,80,81,88,89,91,92,96">src/SpaceObject.js</a></span></td>
+      <td data-ice="filePath"><span><a href="file/src/SpaceObject.js.html#errorLines=112,121,324,391,74,75,80,81,88,89,91,92,96,98">src/SpaceObject.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span>
 <span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></td>
-      <td class="coverage"><span data-ice="coverage">60 %</span><span data-ice="coverageCount" class="coverage-count">20/33</span></td>
-      <td style="display: none;" data-ice="size">13198 byte</td>
-      <td style="display: none;" data-ice="lines">450</td>
-      <td style="display: none;" data-ice="updated">2019-02-01 19:13:40 (UTC)</td>
+      <td class="coverage"><span data-ice="coverage">60 %</span><span data-ice="coverageCount" class="coverage-count">21/35</span></td>
+      <td style="display: none;" data-ice="size">13401 byte</td>
+      <td style="display: none;" data-ice="lines">459</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 20:02:06 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/SpaceParticles.js.html#errorLines=22,24,29,30,40,43,45,46,47,48,49,5">src/SpaceParticles.js</a></span></td>
       <td data-ice="identifier" class="identifiers"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></td>
       <td class="coverage"><span data-ice="coverage">40 %</span><span data-ice="coverageCount" class="coverage-count">8/20</span></td>
-      <td style="display: none;" data-ice="size">5975 byte</td>
+      <td style="display: none;" data-ice="size">5982 byte</td>
       <td style="display: none;" data-ice="lines">184</td>
-      <td style="display: none;" data-ice="updated">2019-01-02 18:09:24 (UTC)</td>
+      <td style="display: none;" data-ice="updated">2019-02-02 14:59:11 (UTC)</td>
     </tr>
 <tr data-ice="file">
-      <td data-ice="filePath"><span><a href="file/src/shaders.js.html">src/shaders.js</a></span></td>
-      <td data-ice="identifier" class="identifiers">-</td>
-      <td class="coverage"><span data-ice="coverage">100 %</span><span data-ice="coverageCount" class="coverage-count">2/2</span></td>
-      <td style="display: none;" data-ice="size">2788 byte</td>
-      <td style="display: none;" data-ice="lines">106</td>
-      <td style="display: none;" data-ice="updated">2019-01-06 05:27:39 (UTC)</td>
+      <td data-ice="filePath"><span><a href="file/src/Stars.js.html#errorLines=27,34,40,41,46,47,54,59,8,9">src/Stars.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></td>
+      <td class="coverage"><span data-ice="coverage">28 %</span><span data-ice="coverageCount" class="coverage-count">4/14</span></td>
+      <td style="display: none;" data-ice="size">3644 byte</td>
+      <td style="display: none;" data-ice="lines">123</td>
+      <td style="display: none;" data-ice="updated">2019-02-02 15:01:17 (UTC)</td>
+    </tr>
+<tr data-ice="file">
+      <td data-ice="filePath"><span><a href="file/src/Units.js.html#errorLines=1,13,18,23,31,5,9">src/Units.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span>
+<span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span>
+<span><a href="function/index.html#static-function-deg">deg</a></span>
+<span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span>
+<span><a href="function/index.html#static-function-rad">rad</a></span>
+<span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span>
+<span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></td>
+      <td class="coverage"><span data-ice="coverage">0 %</span><span data-ice="coverageCount" class="coverage-count">0/7</span></td>
+      <td style="display: none;" data-ice="size">1274 byte</td>
+      <td style="display: none;" data-ice="lines">39</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
+    </tr>
+<tr data-ice="file">
+      <td data-ice="filePath"><span><a href="file/src/shaders.js.html#errorLines=108,115">src/shaders.js</a></span></td>
+      <td data-ice="identifier" class="identifiers"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span>
+<span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></td>
+      <td class="coverage"><span data-ice="coverage">50 %</span><span data-ice="coverageCount" class="coverage-count">2/4</span></td>
+      <td style="display: none;" data-ice="size">3203 byte</td>
+      <td style="display: none;" data-ice="lines">125</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/spacekit.js.html">src/spacekit.js</a></span></td>
       <td data-ice="identifier" class="identifiers">-</td>
       <td class="coverage"><span data-ice="coverage">-</span></td>
-      <td style="display: none;" data-ice="size">197 byte</td>
-      <td style="display: none;" data-ice="lines">7</td>
-      <td style="display: none;" data-ice="updated">2019-01-05 16:00:16 (UTC)</td>
+      <td style="display: none;" data-ice="size">278 byte</td>
+      <td style="display: none;" data-ice="lines">10</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:17:45 (UTC)</td>
     </tr>
 <tr data-ice="file">
       <td data-ice="filePath"><span><a href="file/src/util.js.html">src/util.js</a></span></td>
-      <td data-ice="identifier" class="identifiers"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></td>
-      <td class="coverage"><span data-ice="coverage">100 %</span><span data-ice="coverageCount" class="coverage-count">2/2</span></td>
-      <td style="display: none;" data-ice="size">570 byte</td>
-      <td style="display: none;" data-ice="lines">16</td>
-      <td style="display: none;" data-ice="updated">2019-01-02 18:09:24 (UTC)</td>
+      <td data-ice="identifier" class="identifiers"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span>
+<span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></td>
+      <td class="coverage"><span data-ice="coverage">100 %</span><span data-ice="coverageCount" class="coverage-count">3/3</span></td>
+      <td style="display: none;" data-ice="size">1054 byte</td>
+      <td style="display: none;" data-ice="lines">29</td>
+      <td style="display: none;" data-ice="updated">2019-02-07 16:24:45 (UTC)</td>
     </tr>
 </tbody>
 </table>

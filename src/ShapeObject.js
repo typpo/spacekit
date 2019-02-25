@@ -231,7 +231,7 @@ export class ShapeObject extends SpaceObject {
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
    */
-  update() {
+  update(jd) {
     if (this._obj && this._options.shape.enableRotation) {
       // For now, just rotate on X axis.
       const speed = this._options.shape.rotationSpeed || 0.5;

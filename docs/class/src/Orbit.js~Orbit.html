@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -241,13 +257,13 @@ the ecliptic plane of the solar system.</p>
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTime">getPositionAtTime</a></span></span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
+          <span class="code" data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTime">getPositionAtTime</a></span></span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, debug: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Get heliocentric position of object at a given JED.</p>
+        <div data-ice="description"><p>Get heliocentric position of object at a given JD.</p>
 </div>
       </div>
     </td>
@@ -450,7 +466,7 @@ perpendicular to the ecliptic in order to illustrate depth (defaults to
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber145">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber158">source</a></span></span>
     </span>
   </h3>
 
@@ -506,7 +522,7 @@ perpendicular to the ecliptic in order to illustrate depth (defaults to
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber185">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber198">source</a></span></span>
     </span>
   </h3>
 
@@ -563,7 +579,7 @@ perpendicular to the ecliptic in order to illustrate depth (defaults to
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber163">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber176">source</a></span></span>
     </span>
   </h3>
 
@@ -619,18 +635,18 @@ plane.</p>
     
     
     
-    <span class="code" data-ice="name">getPositionAtTime</span><span class="code" data-ice="signature">(jed: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
+    <span class="code" data-ice="name">getPositionAtTime</span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, debug: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber93">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber96">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Get heliocentric position of object at a given JED.</p>
+  <div data-ice="description"><p>Get heliocentric position of object at a given JD.</p>
 </div>
 
   
@@ -644,10 +660,17 @@ plane.</p>
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">jed</td>
+      <td data-ice="name" class="code" data-depth="0">jd</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Date value in JED.</p>
+      <td data-ice="description"><p>Date value in JD.</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">debug</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Set true for debug output.</p>
 </td>
     </tr>
 </tbody>
@@ -697,7 +720,7 @@ plane.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber202">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber215">source</a></span></span>
     </span>
   </h3>
 
@@ -756,7 +779,7 @@ underlying Scene and Simultation.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber192">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber205">source</a></span></span>
     </span>
   </h3>
 
@@ -828,7 +851,7 @@ underlying Scene and Simultation.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber210">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber223">source</a></span></span>
     </span>
   </h3>
 

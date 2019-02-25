@@ -37,10 +37,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Skybox.js~Skybox.html">Skybox</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SpaceParticles.js~SpaceParticles.html">SpaceParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-deg">deg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -61,7 +77,7 @@ const MIN_DEG_MOVE_PER_DAY = 0.5;
  * @private
  * Number of milliseconds between label position updates.
  */
-const LABEL_UPDATE_MS = 100;
+const LABEL_UPDATE_MS = 30;
 
 /**
  * @private
@@ -88,7 +104,7 @@ function toScreenXY(position, camera, canvas) {
  *   hideOrbit: false,
  *   ephem: new Spacekit.Ephem({...}),
  *   textureUrl: &apos;/path/to/spriteTexture.png&apos;,
- *   assetPath: &apos;/base/assets&apos;,
+ *   basePath: &apos;/base&apos;,
  *   ecliptic: {
  *     lineColor: 0xCCCCCC,
  *     displayLines: false,
@@ -108,7 +124,7 @@ export class SpaceObject {
    * @param {boolean} options.hideOrbit If true, don&apos;t show an orbital ellipse. Defaults false.
    * @param {Ephem} options.ephem Ephemerides for this orbit
    * @param {String} options.textureUrl Texture for sprite
-   * @param {String} options.assetPath Base path for texture urls
+   * @param {String} options.basePath Base path for simulation assets and data
    * @param {Object} options.ecliptic Contains settings related to ecliptic
    * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
    * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
@@ -143,9 +159,9 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem ? this._options.ephem.get(&apos;n&apos;, &apos;deg&apos;) : Number.MAX_VALUE;
 
+    this._initialized = false;
     if (autoInit &amp;&amp; !this.init()) {
       console.warn(`SpaceObject ${id}: failed to initialize`);
-      return;
     }
   }
 
@@ -185,6 +201,7 @@ export class SpaceObject {
       this._simulation.getSimulationElement().appendChild(labelElt);
       this._label = labelElt;
     }
+    this._initialized = true;
     return true;
   }
 
@@ -242,7 +259,7 @@ export class SpaceObject {
   createSprite() {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
-      this._context.options.assetPath,
+      this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -251,7 +268,7 @@ export class SpaceObject {
       color: 0xffffff,
     }));
     sprite.scale.set.apply(this, this._scale);
-    const position = this.getPosition(this._simulation.getJed());
+    const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
 
 
@@ -292,15 +309,15 @@ export class SpaceObject {
 
   /**
    * @private
-   * Determines whether to update the position of an update. Don&apos;t update if JED
+   * Determines whether to update the position of an update. Don&apos;t update if JD
    * threshold is less than a certain amount.
    * TODO(ian): This should also be a function of zoom level, because as you get
    * closer the chopiness gets more noticeable.
-   * @param {Number} afterJed Next JED
+   * @param {Number} afterJd Next JD
    * @return {boolean} Whether to update
    */
-  shouldUpdateObjectPosition(afterJed) {
-    const degMove = this._degreesPerDay * (afterJed - this._lastJedUpdated);
+  shouldUpdateObjectPosition(afterJd) {
+    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
     if (degMove &lt; MIN_DEG_MOVE_PER_DAY) {
       return false;
     }
@@ -322,17 +339,17 @@ export class SpaceObject {
 
   /**
    * Gets the visualization coordinates of this object at a given time.
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    * @return {Array.&lt;Number&gt;} [X, Y,Z] coordinates
    */
-  getPosition(jed) {
+  getPosition(jd) {
     const pos = this._position;
     if (!this._orbit) {
       // Default implementation, a static object.
       return pos;
     }
 
-    const posModified = this._orbit.getPositionAtTime(jed);
+    const posModified = this._orbit.getPositionAtTime(jd);
     return [
       pos[0] + posModified[0],
       pos[1] + posModified[1],
@@ -342,9 +359,9 @@ export class SpaceObject {
 
   /**
    * Updates the object and its label positions for a given time.
-   * @param {Number} jed JED date
+   * @param {Number} jd JD date
    */
-  update(jed) {
+  update(jd) {
     if (this.isStaticObject()) {
       return;
     }
@@ -352,10 +369,10 @@ export class SpaceObject {
     let newpos;
     let shouldUpdateObjectPosition = false;
     if (this._object3js || this._label) {
-      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jed);
+      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
     }
     if (this._object3js &amp;&amp; shouldUpdateObjectPosition) {
-      newpos = this.getPosition(jed);
+      newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
     }
 
@@ -363,12 +380,12 @@ export class SpaceObject {
     const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS;
     if (this._label &amp;&amp; shouldUpdateLabelPos) {
       if (!newpos) {
-        newpos = this.getPosition(jed);
+        newpos = this.getPosition(jd);
       }
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
     }
-    this._lastJedUpdated = jed;
+    this._lastJdUpdated = jd;
   }
 
   /**
@@ -424,6 +441,14 @@ export class SpaceObject {
    */
   isStaticObject() {
     return !this._options.ephem;
+  }
+
+  /**
+   * Determines whether object is ready to be measured or added to scene.
+   * @return {boolean} True if ready
+   */
+  isReady() {
+    return this._initialized;
   }
 }
 

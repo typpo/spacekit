@@ -18,10 +18,28 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
+    "spacekit/src/ephem.js~gm",
+    "variable/index.html#static-variable-GM",
+    "<span>GM</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",
+    "variable"
+  ],
+  [
     "spacekit/src/orbit.js~orbit",
     "class/src/Orbit.js~Orbit.html",
     "<span>Orbit</span> <span class=\"search-result-import-path\">spacekit/src/Orbit.js</span>",
     "class"
+  ],
+  [
+    "spacekit/src/shaders.js~star_shader_fragment",
+    "variable/index.html#static-variable-STAR_SHADER_FRAGMENT",
+    "<span>STAR_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
+    "spacekit/src/shaders.js~star_shader_vertex",
+    "variable/index.html#static-variable-STAR_SHADER_VERTEX",
+    "<span>STAR_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
   ],
   [
     "spacekit/src/shapeobject.js~shapeobject",
@@ -66,9 +84,87 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/stars.js~stars",
+    "class/src/Stars.js~Stars.html",
+    "<span>Stars</span> <span class=\"search-result-import-path\">spacekit/src/Stars.js</span>",
+    "class"
+  ],
+  [
+    "spacekit/src/units.js~decimaltosexagesimaldec",
+    "function/index.html#static-function-decimalToSexagesimalDec",
+    "<span>decimalToSexagesimalDec</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~decimaltosexagesimalra",
+    "function/index.html#static-function-decimalToSexagesimalRa",
+    "<span>decimalToSexagesimalRa</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~deg",
+    "function/index.html#static-function-deg",
+    "<span>deg</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/coordinates.js~equatorialtoecliptic_cartesian",
+    "function/index.html#static-function-equatorialToEcliptic_Cartesian",
+    "<span>equatorialToEcliptic_Cartesian</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/util.js~getfulltextureurl",
     "function/index.html#static-function-getFullTextureUrl",
     "<span>getFullTextureUrl</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/util.js~getfullurl",
+    "function/index.html#static-function-getFullUrl",
+    "<span>getFullUrl</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/coordinates.js~getnutationandobliquity",
+    "function/index.html#static-function-getNutationAndObliquity",
+    "<span>getNutationAndObliquity</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/coordinates.js~getobliquity",
+    "function/index.html#static-function-getObliquity",
+    "<span>getObliquity</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~hourstodeg",
+    "function/index.html#static-function-hoursToDeg",
+    "<span>hoursToDeg</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~rad",
+    "function/index.html#static-function-rad",
+    "<span>rad</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~sexagesimaltodecimaldec",
+    "function/index.html#static-function-sexagesimalToDecimalDec",
+    "<span>sexagesimalToDecimalDec</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/units.js~sexagesimaltodecimalra",
+    "function/index.html#static-function-sexagesimalToDecimalRa",
+    "<span>sexagesimalToDecimalRa</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/coordinates.js~sphericaltocartesian",
+    "function/index.html#static-function-sphericalToCartesian",
+    "<span>sphericalToCartesian</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
     "function"
   ],
   [
@@ -378,6 +474,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/coordinates.js",
+    "file/src/Coordinates.js.html",
+    "src/Coordinates.js",
+    "file"
+  ],
+  [
     "src/ephem.js",
     "file/src/Ephem.js.html",
     "src/Ephem.js",
@@ -474,9 +576,21 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/shapeobject.js~shapeobject#init",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-init",
-    "src/ShapeObject.js~ShapeObject#init",
+    "src/shapeobject.js~shapeobject#getaxes",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-getAxes",
+    "src/ShapeObject.js~ShapeObject#getAxes",
+    "method"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#getaxis",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-getAxis",
+    "src/ShapeObject.js~ShapeObject#getAxis",
+    "method"
+  ],
+  [
+    "src/shapeobject.js~shapeobject#initrotation",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-initRotation",
+    "src/ShapeObject.js~ShapeObject#initRotation",
     "method"
   ],
   [
@@ -534,6 +648,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#createstars",
+    "class/src/Simulation.js~Simulation.html#instance-method-createStars",
+    "src/Simulation.js~Simulation#createStars",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#getcamera",
     "class/src/Simulation.js~Simulation.html#instance-method-getCamera",
     "src/Simulation.js~Simulation#getCamera",
@@ -546,27 +666,39 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#getcontrols",
+    "class/src/Simulation.js~Simulation.html#instance-method-getControls",
+    "src/Simulation.js~Simulation#getControls",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#getdate",
     "class/src/Simulation.js~Simulation.html#instance-method-getDate",
     "src/Simulation.js~Simulation#getDate",
     "method"
   ],
   [
-    "src/simulation.js~simulation#getjed",
-    "class/src/Simulation.js~Simulation.html#instance-method-getJed",
-    "src/Simulation.js~Simulation#getJed",
+    "src/simulation.js~simulation#getjd",
+    "class/src/Simulation.js~Simulation.html#instance-method-getJd",
+    "src/Simulation.js~Simulation#getJd",
     "method"
   ],
   [
-    "src/simulation.js~simulation#getjeddelta",
-    "class/src/Simulation.js~Simulation.html#instance-method-getJedDelta",
-    "src/Simulation.js~Simulation#getJedDelta",
+    "src/simulation.js~simulation#getjddelta",
+    "class/src/Simulation.js~Simulation.html#instance-method-getJdDelta",
+    "src/Simulation.js~Simulation#getJdDelta",
     "method"
   ],
   [
-    "src/simulation.js~simulation#getjedpersecond",
-    "class/src/Simulation.js~Simulation.html#instance-method-getJedPerSecond",
-    "src/Simulation.js~Simulation#getJedPerSecond",
+    "src/simulation.js~simulation#getjdpersecond",
+    "class/src/Simulation.js~Simulation.html#instance-method-getJdPerSecond",
+    "src/Simulation.js~Simulation#getJdPerSecond",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#getscene",
+    "class/src/Simulation.js~Simulation.html#instance-method-getScene",
+    "src/Simulation.js~Simulation#getScene",
     "method"
   ],
   [
@@ -606,21 +738,21 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/simulation.js~simulation#setjed",
-    "class/src/Simulation.js~Simulation.html#instance-method-setJed",
-    "src/Simulation.js~Simulation#setJed",
+    "src/simulation.js~simulation#setjd",
+    "class/src/Simulation.js~Simulation.html#instance-method-setJd",
+    "src/Simulation.js~Simulation#setJd",
     "method"
   ],
   [
-    "src/simulation.js~simulation#setjeddelta",
-    "class/src/Simulation.js~Simulation.html#instance-method-setJedDelta",
-    "src/Simulation.js~Simulation#setJedDelta",
+    "src/simulation.js~simulation#setjddelta",
+    "class/src/Simulation.js~Simulation.html#instance-method-setJdDelta",
+    "src/Simulation.js~Simulation#setJdDelta",
     "method"
   ],
   [
-    "src/simulation.js~simulation#setjedpersecond",
-    "class/src/Simulation.js~Simulation.html#instance-method-setJedPerSecond",
-    "src/Simulation.js~Simulation#setJedPerSecond",
+    "src/simulation.js~simulation#setjdpersecond",
+    "class/src/Simulation.js~Simulation.html#instance-method-setJdPerSecond",
+    "src/Simulation.js~Simulation#setJdPerSecond",
     "method"
   ],
   [
@@ -714,6 +846,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/spaceobject.js~spaceobject#isready",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-isReady",
+    "src/SpaceObject.js~SpaceObject#isReady",
+    "method"
+  ],
+  [
     "src/spaceobject.js~spaceobject#isstaticobject",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-isStaticObject",
     "src/SpaceObject.js~SpaceObject#isStaticObject",
@@ -766,6 +904,42 @@ window.esdocSearchIndex = [
     "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-update",
     "src/SpaceParticles.js~SpaceParticles#update",
     "method"
+  ],
+  [
+    "src/stars.js",
+    "file/src/Stars.js.html",
+    "src/Stars.js",
+    "file"
+  ],
+  [
+    "src/stars.js~stars#constructor",
+    "class/src/Stars.js~Stars.html#instance-constructor-constructor",
+    "src/Stars.js~Stars#constructor",
+    "method"
+  ],
+  [
+    "src/stars.js~stars#get3jsobjects",
+    "class/src/Stars.js~Stars.html#instance-method-get3jsObjects",
+    "src/Stars.js~Stars#get3jsObjects",
+    "method"
+  ],
+  [
+    "src/stars.js~stars#getid",
+    "class/src/Stars.js~Stars.html#instance-method-getId",
+    "src/Stars.js~Stars#getId",
+    "method"
+  ],
+  [
+    "src/stars.js~stars#init",
+    "class/src/Stars.js~Stars.html#instance-method-init",
+    "src/Stars.js~Stars#init",
+    "method"
+  ],
+  [
+    "src/units.js",
+    "file/src/Units.js.html",
+    "src/Units.js",
+    "file"
   ],
   [
     "src/shaders.js",

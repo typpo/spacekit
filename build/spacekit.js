@@ -743,6 +743,7 @@ var Spacekit = (function (exports) {
    *   position: [0, 0, 0],
    *   scale: [1, 1, 1],
    *   labelText: 'My object',
+   *   labelUrl: 'http://...',
    *   hideOrbit: false,
    *   ephem: new Spacekit.Ephem({...}),
    *   textureUrl: '/path/to/spriteTexture.png',
@@ -763,6 +764,7 @@ var Spacekit = (function (exports) {
      * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]
      * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]
      * @param {String} options.labelText Text label to display above object (set undefined for no label)
+     * @param {String} options.labelUrl Label becomes a link that goes to this url.
      * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
      * @param {Ephem} options.ephem Ephemerides for this orbit
      * @param {String} options.textureUrl Texture for sprite
@@ -851,7 +853,13 @@ var Spacekit = (function (exports) {
     createLabel() {
       const text = document.createElement('div');
       text.className = 'spacekit__object-label';
-      text.innerHTML = `<div>${this._options.labelText}</div>`;
+
+      const { labelText, labelUrl } = this._options;
+      if (this._options.labelUrl) {
+        text.innerHTML = `<div><a target="_blank" href="${labelUrl}">${labelText}</a></div>`;
+      } else {
+        text.innerHTML = `<div>${labelText}</div>`;
+      }
       text.style.fontFamily = 'Arial';
       text.style.fontSize = '12px';
       text.style.color = '#fff';
@@ -1355,7 +1363,7 @@ var Spacekit = (function (exports) {
      * Updates the object and its label positions for a given time.
      * @param {Number} jd JD date
      */
-    update() {
+    update(jd) {
       if (this._obj && this._options.shape.enableRotation) {
         // For now, just rotate on X axis.
         const speed = this._options.shape.rotationSpeed || 0.5;
@@ -1771,7 +1779,7 @@ var Spacekit = (function (exports) {
 
   /**
    * Maps spectral class to star color
-   * @param temperature {Number} Star temperature in Kelvin
+   * @param temp {Number} Star temperature in Kelvin
    * @return {Number} Color for star of given spectral class
    */
   function getColorForStar(temp) {
@@ -2289,7 +2297,7 @@ var Spacekit = (function (exports) {
     /**
      * @private
      * Perform the actual zoom to fit behavior.
-     * @param {SpaceObject} spaceObj Object to fit within viewport.
+     * @param {SpaceObject} obj Object to fit within viewport.
      * @param {Number} offset Add some extra room in the viewport. Increase to be
      * further zoomed out, decrease to be closer. Default 3.0.
      */

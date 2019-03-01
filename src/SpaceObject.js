@@ -37,6 +37,7 @@ function toScreenXY(position, camera, canvas) {
  *   position: [0, 0, 0],
  *   scale: [1, 1, 1],
  *   labelText: 'My object',
+ *   labelUrl: 'http://...',
  *   hideOrbit: false,
  *   ephem: new Spacekit.Ephem({...}),
  *   textureUrl: '/path/to/spriteTexture.png',
@@ -57,6 +58,7 @@ export class SpaceObject {
    * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]
    * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]
    * @param {String} options.labelText Text label to display above object (set undefined for no label)
+   * @param {String} options.labelUrl Label becomes a link that goes to this url.
    * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
    * @param {Ephem} options.ephem Ephemerides for this orbit
    * @param {String} options.textureUrl Texture for sprite
@@ -149,7 +151,13 @@ export class SpaceObject {
   createLabel() {
     const text = document.createElement('div');
     text.className = 'spacekit__object-label';
-    text.innerHTML = `<div>${this._options.labelText}</div>`;
+
+    const { labelText, labelUrl } = this._options;
+    if (this._options.labelUrl) {
+      text.innerHTML = `<div><a target="_blank" href="${labelUrl}">${labelText}</a></div>`;
+    } else {
+      text.innerHTML = `<div>${labelText}</div>`;
+    }
     text.style.fontFamily = 'Arial';
     text.style.fontSize = '12px';
     text.style.color = '#fff';

@@ -790,6 +790,7 @@ var Spacekit = (function (exports) {
       }
 
       this._label = null;
+      this._showLabel = false;
       this._lastLabelUpdate = 0;
 
       this._position = this._options.position || [0, 0, 0];
@@ -840,6 +841,7 @@ var Spacekit = (function (exports) {
         const labelElt = this.createLabel();
         this._simulation.getSimulationElement().appendChild(labelElt);
         this._label = labelElt;
+        this._showLabel = true;
       }
       this._initialized = true;
       return true;
@@ -1023,7 +1025,7 @@ var Spacekit = (function (exports) {
       }
 
       // TODO(ian): Determine this based on orbit and camera position change.
-      const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+      const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
       if (this._label && shouldUpdateLabelPos) {
         if (!newpos) {
           newpos = this.getPosition(jd);
@@ -1070,6 +1072,28 @@ var Spacekit = (function (exports) {
      */
     getOrbit() {
       return this._orbit;
+    }
+
+    /**
+     * Gets label visilibity status.
+     * @return {boolean} Whether label is visible.
+     */
+    getLabelVisibility() {
+      return this._showLabel;
+    }
+
+    /**
+     * Toggle the visilibity of the label.
+     * @param {boolean} val Whether to show or hide.
+     */
+    setLabelVisibility(val) {
+      if (val) {
+        this._showLabel = true;
+        this._label.style.display = 'block';
+      } else {
+        this._showLabel = false;
+        this._label.style.display = 'none';
+      }
     }
 
     /**

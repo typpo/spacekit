@@ -1,7 +1,7 @@
 {
-  "coverage": "52.94%",
-  "expectCount": 204,
-  "actualCount": 108,
+  "coverage": "53.14%",
+  "expectCount": 207,
+  "actualCount": 110,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -96,23 +96,24 @@
       ]
     },
     "src/SpaceObject.js": {
-      "expectCount": 35,
-      "actualCount": 21,
+      "expectCount": 38,
+      "actualCount": 23,
       "undocumentLines": [
-        74,
-        75,
-        80,
-        81,
-        88,
-        89,
+        76,
+        77,
+        82,
+        83,
+        90,
         91,
         92,
-        96,
-        98,
-        112,
-        121,
-        324,
-        391
+        94,
+        95,
+        99,
+        101,
+        115,
+        124,
+        334,
+        423
       ]
     },
     "src/SpaceParticles.js": {

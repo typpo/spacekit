@@ -828,6 +828,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/spaceobject.js~spaceobject#getlabelvisibility",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-getLabelVisibility",
+    "src/SpaceObject.js~SpaceObject#getLabelVisibility",
+    "method"
+  ],
+  [
     "src/spaceobject.js~spaceobject#getorbit",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-getOrbit",
     "src/SpaceObject.js~SpaceObject#getOrbit",
@@ -855,6 +861,12 @@ window.esdocSearchIndex = [
     "src/spaceobject.js~spaceobject#isstaticobject",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-isStaticObject",
     "src/SpaceObject.js~SpaceObject#isStaticObject",
+    "method"
+  ],
+  [
+    "src/spaceobject.js~spaceobject#setlabelvisibility",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-setLabelVisibility",
+    "src/SpaceObject.js~SpaceObject#setLabelVisibility",
     "method"
   ],
   [

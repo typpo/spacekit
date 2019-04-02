@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <base data-ice="baseUrl">
-  <title data-ice="title">Home | spacekit</title>
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Coordinates.js | spacekit</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -61,43 +61,64 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="spacekit">spacekit</h1><p>Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.</p>
-<p>You can check out a live example on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
-<p>See the <strong><a href="https://typpo.github.io/spacekit/">full documentation</a></strong></p>
-<p>Note that this library is a work in progress and the API is subject to change!</p>
-<h1 id="dependencies">Dependencies</h1><p>You&apos;ll need to include the following dependencies in production:</p>
-<ul>
-<li>THREE.js</li>
-<li>THREE.js TrackballControls</li>
-<li>Stats.js (optional)</li>
-</ul>
-<p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
-<h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/simple.html">http://localhost:8001/examples/simple.html</a> to load a simple example.</p>
-<p>If you&apos;re making changes to the code, run <code>yarn build</code> to update the build outputs.  <code>yarn build:watch</code> will continuously watch for your changes and update the build.</p>
-<h1 id="usage">Usage</h1><p>See the <a href="https://github.com/typpo/spacekit/tree/master/examples">examples</a> directory for full usage examples.  For now, here&apos;s some example code that will build an interactive visualization of a couple planets:</p>
-<pre><code class="lang-javascript"><code class="source-code prettyprint">// Create the visualization and put it in our div.
-const viz = new Spacekit.Simulation(document.getElementById(&apos;main-container&apos;), {
-  assetPath: &apos;../src/assets&apos;,
-});
+<div class="content" data-ice="content"><h1 data-ice="title">src/Coordinates.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { rad, deg } from &apos;./Units&apos;;
 
-// Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+const J2000 = 2451545.0;
 
-// Create our first object - the sun - using a preset space object.
-const sun = viz.createObject(&apos;sun&apos;, Spacekit.SpaceObjectPresets.SUN);
+export function sphericalToCartesian(ra, dec, dist) {
+  // See http://www.stargazing.net/kepler/rectang.html
+  return [
+    dist * Math.cos(ra) * Math.cos(dec),
+    dist * Math.sin(ra) * Math.cos(dec),
+    dist * Math.sin(dec),
+  ];
+}
 
-// Then add some planets
-viz.createObject(&apos;mercury&apos;, Spacekit.SpaceObjectPresets.MERCURY);
-viz.createObject(&apos;venus&apos;, Spacekit.SpaceObjectPresets.VENUS);
-viz.createObject(&apos;earth&apos;, Spacekit.SpaceObjectPresets.EARTH);
-viz.createObject(&apos;mars&apos;, Spacekit.SpaceObjectPresets.MARS);
-viz.createObject(&apos;jupiter&apos;, Spacekit.SpaceObjectPresets.JUPITER);
-viz.createObject(&apos;saturn&apos;, Spacekit.SpaceObjectPresets.SATURN);
-viz.createObject(&apos;uranus&apos;, Spacekit.SpaceObjectPresets.URANUS);
-viz.createObject(&apos;neptune&apos;, Spacekit.SpaceObjectPresets.NEPTUNE);</code>
+export function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
+  const obliquity = getObliquity(jd);
+
+  return [
+    x,
+    Math.cos(obliquity) * y + Math.sin(obliquity) * z,
+    -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+  ];
+}
+
+/**
+ * Get Earth&apos;s obliquity and nutation at a given date.
+ * @param {Number} jd JD date
+ * @return {Object} Object with attributes &quot;obliquity&quot; and &quot;nutation&quot; provided
+ * in radians
+ */
+export function getNutationAndObliquity(jd = J2000) {
+  const t = (jd - J2000) / 36525;
+  const omega = rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
+  const Lsun = rad(280.4665 + 36000.7698 * t);
+  const Lmoon = rad(218.3165 + 481267.8813 * t);
+
+  const nutation = (-17.20 / 3600) * Math.sin(omega) - (-1.32 / 3600) * Math.sin(2 * Lsun) - (0.23 / 3600) * Math.sin(2 * Lmoon) + deg((0.21 / 3600) * Math.sin(2 * omega));
+
+  const obliquity_zero = 23 + 26.0 / 60 + 21.448 / 3600 - (46.8150 / 3600) * t - (0.00059 / 3600) * t * t + (0.001813 / 3600) * t * t * t;
+  const obliquity_delta = (9.20 / 3600) * Math.cos(omega) + (0.57 / 3600) * Math.cos(2 * Lsun) + (0.10 / 3600) * Math.cos(2 * Lmoon) - (0.09 / 3600) * Math.cos(2 * omega);
+  const obliquity = obliquity_zero + obliquity_delta;
+
+  return {
+    nutation: rad(nutation),
+    obliquity: rad(obliquity),
+  };
+}
+
+/**
+ * Get Earth&apos;s obliquity at a given date.
+ * @param {Number} jd JD date
+ * @return {Number} Obliquity in radians
+ */
+export function getObliquity(jd = J2000) {
+  return getNutationAndObliquity(jd).obliquity;
+}
 </code></pre>
-<p><img src="https://i.imgur.com/WseTJidl.jpg" alt="example"></p>
-</div>
+
 </div>
 
 <footer class="footer">

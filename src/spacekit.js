@@ -5,6 +5,6 @@ export * from './Orbit';
 export * from './Simulation';
 export * from './Skybox';
 export * from './SpaceObject';
-export * from './SpaceParticles';
+export * from './KeplerParticles';
 export * from './Stars';
 export * from './Units';

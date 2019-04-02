@@ -9,7 +9,7 @@ const DEFAULT_PARTICLE_COUNT = 1024;
  * Primarily used by Simulation to render all non-static objects.
  * @see Simulation
  */
-export class SpaceParticles {
+export class KeplerParticles {
   /**
    * @param {Object} options Options container
    * @param {Object} options.textureUrl Template url for sprite
@@ -21,7 +21,7 @@ export class SpaceParticles {
   constructor(options, contextOrSimulation) {
     this._options = options;
 
-    this._id = `SpaceParticles__${SpaceParticles.instanceCount}`;
+    this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;
 
     // TODO(ian): Add to ctx
     if (true) {
@@ -181,4 +181,4 @@ export class SpaceParticles {
   }
 }
 
-SpaceParticles.instanceCount = 0;
+KeplerParticles.instanceCount = 0;

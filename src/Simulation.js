@@ -4,7 +4,7 @@ import { Camera } from './Camera';
 import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
-import { SpaceParticles } from './SpaceParticles';
+import { KeplerParticles } from './KeplerParticles';
 import { Stars } from './Stars';
 
 /**
@@ -155,7 +155,7 @@ export class Simulation {
     }
 
     // Orbit particle system must be initialized after scene is created.
-    this._particles = new SpaceParticles({
+    this._particles = new KeplerParticles({
       textureUrl: '{{assets}}/sprites/smallparticle.png',
       jd: this._jd,
       maxNumParticles: this._options.maxNumParticles,

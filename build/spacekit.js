@@ -1631,7 +1631,7 @@ var Spacekit = (function (exports) {
    * Primarily used by Simulation to render all non-static objects.
    * @see Simulation
    */
-  class SpaceParticles {
+  class KeplerParticles {
     /**
      * @param {Object} options Options container
      * @param {Object} options.textureUrl Template url for sprite
@@ -1643,7 +1643,7 @@ var Spacekit = (function (exports) {
     constructor(options, contextOrSimulation) {
       this._options = options;
 
-      this._id = `SpaceParticles__${SpaceParticles.instanceCount}`;
+      this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;
 
       // TODO(ian): Add to ctx
       {
@@ -1799,7 +1799,7 @@ var Spacekit = (function (exports) {
     }
   }
 
-  SpaceParticles.instanceCount = 0;
+  KeplerParticles.instanceCount = 0;
 
   /**
    * Maps spectral class to star color
@@ -2059,7 +2059,7 @@ var Spacekit = (function (exports) {
       }
 
       // Orbit particle system must be initialized after scene is created.
-      this._particles = new SpaceParticles({
+      this._particles = new KeplerParticles({
         textureUrl: '{{assets}}/sprites/smallparticle.png',
         jd: this._jd,
         maxNumParticles: this._options.maxNumParticles,
@@ -2518,7 +2518,7 @@ var Spacekit = (function (exports) {
   exports.SkyboxPresets = SkyboxPresets;
   exports.SpaceObject = SpaceObject;
   exports.SpaceObjectPresets = SpaceObjectPresets;
-  exports.SpaceParticles = SpaceParticles;
+  exports.KeplerParticles = KeplerParticles;
   exports.Stars = Stars;
   exports.rad = rad;
   exports.deg = deg;

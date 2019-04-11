@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 3203,
+  "end": 3881,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 126,
+      "line": 149,
       "column": 0
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 3203,
+    "end": 3881,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 126,
+        "line": 149,
         "column": 0
       }
     },
@@ -553,6 +553,220 @@
                     "value": {
                       "raw": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n",
                       "cooked": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 3204,
+        "end": 3556,
+        "loc": {
+          "start": {
+            "line": 127,
+            "column": 0
+          },
+          "end": {
+            "line": 137,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 3211,
+          "end": 3556,
+          "loc": {
+            "start": {
+              "line": 127,
+              "column": 7
+            },
+            "end": {
+              "line": 137,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 3217,
+              "end": 3555,
+              "loc": {
+                "start": {
+                  "line": 127,
+                  "column": 13
+                },
+                "end": {
+                  "line": 137,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 3217,
+                "end": 3247,
+                "loc": {
+                  "start": {
+                    "line": 127,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 127,
+                    "column": 43
+                  },
+                  "identifierName": "GENERIC_PARTICLE_SHADER_VERTEX"
+                },
+                "name": "GENERIC_PARTICLE_SHADER_VERTEX"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 3250,
+                "end": 3555,
+                "loc": {
+                  "start": {
+                    "line": 127,
+                    "column": 46
+                  },
+                  "end": {
+                    "line": 137,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 3251,
+                    "end": 3554,
+                    "loc": {
+                      "start": {
+                        "line": 127,
+                        "column": 47
+                      },
+                      "end": {
+                        "line": 137,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n    attribute float size;\n    attribute vec3 customColor;\n    varying vec3 vColor;\n    void main() {\n      vColor = customColor;\n      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n      gl_PointSize = size * (300.0 / -mvPosition.z);\n      gl_Position = projectionMatrix * mvPosition;\n    }\n",
+                      "cooked": "\n    attribute float size;\n    attribute vec3 customColor;\n    varying vec3 vColor;\n    void main() {\n      vColor = customColor;\n      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n      gl_PointSize = size * (300.0 / -mvPosition.z);\n      gl_Position = projectionMatrix * mvPosition;\n    }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 3558,
+        "end": 3880,
+        "loc": {
+          "start": {
+            "line": 139,
+            "column": 0
+          },
+          "end": {
+            "line": 148,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 3565,
+          "end": 3880,
+          "loc": {
+            "start": {
+              "line": 139,
+              "column": 7
+            },
+            "end": {
+              "line": 148,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 3571,
+              "end": 3879,
+              "loc": {
+                "start": {
+                  "line": 139,
+                  "column": 13
+                },
+                "end": {
+                  "line": 148,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 3571,
+                "end": 3603,
+                "loc": {
+                  "start": {
+                    "line": 139,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 139,
+                    "column": 45
+                  },
+                  "identifierName": "GENERIC_PARTICLE_SHADER_FRAGMENT"
+                },
+                "name": "GENERIC_PARTICLE_SHADER_FRAGMENT"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 3606,
+                "end": 3879,
+                "loc": {
+                  "start": {
+                    "line": 139,
+                    "column": 48
+                  },
+                  "end": {
+                    "line": 148,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 3607,
+                    "end": 3878,
+                    "loc": {
+                      "start": {
+                        "line": 139,
+                        "column": 49
+                      },
+                      "end": {
+                        "line": 148,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n",
+                      "cooked": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n"
                     },
                     "tail": true
                   }
@@ -1485,6 +1699,430 @@
     },
     {
       "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 3204,
+      "end": 3210,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 0
+        },
+        "end": {
+          "line": 127,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 3211,
+      "end": 3216,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 7
+        },
+        "end": {
+          "line": 127,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "GENERIC_PARTICLE_SHADER_VERTEX",
+      "start": 3217,
+      "end": 3247,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 13
+        },
+        "end": {
+          "line": 127,
+          "column": 43
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 3248,
+      "end": 3249,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 44
+        },
+        "end": {
+          "line": 127,
+          "column": 45
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 3250,
+      "end": 3251,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 46
+        },
+        "end": {
+          "line": 127,
+          "column": 47
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n    attribute float size;\n    attribute vec3 customColor;\n    varying vec3 vColor;\n    void main() {\n      vColor = customColor;\n      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n      gl_PointSize = size * (300.0 / -mvPosition.z);\n      gl_Position = projectionMatrix * mvPosition;\n    }\n",
+      "start": 3251,
+      "end": 3554,
+      "loc": {
+        "start": {
+          "line": 127,
+          "column": 47
+        },
+        "end": {
+          "line": 137,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 3554,
+      "end": 3555,
+      "loc": {
+        "start": {
+          "line": 137,
+          "column": 0
+        },
+        "end": {
+          "line": 137,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 3555,
+      "end": 3556,
+      "loc": {
+        "start": {
+          "line": 137,
+          "column": 1
+        },
+        "end": {
+          "line": 137,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 3558,
+      "end": 3564,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 0
+        },
+        "end": {
+          "line": 139,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 3565,
+      "end": 3570,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 7
+        },
+        "end": {
+          "line": 139,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "GENERIC_PARTICLE_SHADER_FRAGMENT",
+      "start": 3571,
+      "end": 3603,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 13
+        },
+        "end": {
+          "line": 139,
+          "column": 45
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 3604,
+      "end": 3605,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 46
+        },
+        "end": {
+          "line": 139,
+          "column": 47
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 3606,
+      "end": 3607,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 48
+        },
+        "end": {
+          "line": 139,
+          "column": 49
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n",
+      "start": 3607,
+      "end": 3878,
+      "loc": {
+        "start": {
+          "line": 139,
+          "column": 49
+        },
+        "end": {
+          "line": 148,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 3878,
+      "end": 3879,
+      "loc": {
+        "start": {
+          "line": 148,
+          "column": 0
+        },
+        "end": {
+          "line": 148,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 3879,
+      "end": 3880,
+      "loc": {
+        "start": {
+          "line": 148,
+          "column": 1
+        },
+        "end": {
+          "line": 148,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
         "label": "eof",
         "beforeExpr": false,
         "startsExpr": false,
@@ -1496,15 +2134,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 3203,
-      "end": 3203,
+      "start": 3881,
+      "end": 3881,
       "loc": {
         "start": {
-          "line": 126,
+          "line": 149,
           "column": 0
         },
         "end": {
-          "line": 126,
+          "line": 149,
           "column": 0
         }
       }

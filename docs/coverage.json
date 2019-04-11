@@ -1,6 +1,6 @@
 {
-  "coverage": "53.14%",
-  "expectCount": 207,
+  "coverage": "50%",
+  "expectCount": 220,
   "actualCount": 110,
   "files": {
     "src/Camera.js": {
@@ -33,6 +33,24 @@
         66
       ]
     },
+    "src/KeplerParticles.js": {
+      "expectCount": 20,
+      "actualCount": 8,
+      "undocumentLines": [
+        5,
+        22,
+        24,
+        29,
+        30,
+        40,
+        43,
+        45,
+        46,
+        47,
+        48,
+        49
+      ]
+    },
     "src/Orbit.js": {
       "expectCount": 14,
       "actualCount": 14,
@@ -62,26 +80,26 @@
       "expectCount": 54,
       "actualCount": 34,
       "undocumentLines": [
-        68,
-        69,
+        70,
         71,
-        72,
         73,
         74,
         75,
+        76,
         77,
-        78,
+        79,
         80,
-        81,
-        87,
-        88,
+        82,
+        83,
+        89,
         90,
-        91,
+        92,
         93,
-        94,
-        97,
-        98,
-        99
+        95,
+        96,
+        99,
+        100,
+        101
       ]
     },
     "src/Skybox.js": {
@@ -116,24 +134,6 @@
         423
       ]
     },
-    "src/SpaceParticles.js": {
-      "expectCount": 20,
-      "actualCount": 8,
-      "undocumentLines": [
-        5,
-        22,
-        24,
-        29,
-        30,
-        40,
-        43,
-        45,
-        46,
-        47,
-        48,
-        49
-      ]
-    },
     "src/Stars.js": {
       "expectCount": 14,
       "actualCount": 4,
@@ -150,6 +150,23 @@
         59
       ]
     },
+    "src/StaticParticles.js": {
+      "expectCount": 11,
+      "actualCount": 0,
+      "undocumentLines": [
+        3,
+        5,
+        7,
+        8,
+        9,
+        11,
+        16,
+        17,
+        25,
+        27,
+        32
+      ]
+    },
     "src/Units.js": {
       "expectCount": 7,
       "actualCount": 0,
@@ -164,11 +181,13 @@
       ]
     },
     "src/shaders.js": {
-      "expectCount": 4,
+      "expectCount": 6,
       "actualCount": 2,
       "undocumentLines": [
         108,
-        115
+        115,
+        127,
+        139
       ]
     },
     "src/util.js": {

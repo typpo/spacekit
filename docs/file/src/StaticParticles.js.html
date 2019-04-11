@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/shaders.js | spacekit</title>
+  <title data-ice="title">src/StaticParticles.js | spacekit</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -64,155 +64,71 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/shaders.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
- * @ignore
- */
-export const ORBIT_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    uniform sampler2D texture;
+<div class="content" data-ice="content"><h1 data-ice="title">src/StaticParticles.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { GENERIC_PARTICLE_SHADER_VERTEX, GENERIC_PARTICLE_SHADER_FRAGMENT } from &apos;./shaders&apos;;
 
-    void main() {
-      gl_FragColor = vec4(vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-    }
-`;
+const DEFAULT_PARTICLE_COUNT = 1024;
 
-/**
- * @ignore
- */
-export const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
+const PARTICLE_SIZE = 5.0;
 
-    attribute vec3 fuzzColor;
-    varying vec3 vColor;
+export class StaticParticles {
+  constructor(options, contextOrSimulation) {
+    this._options = options;
 
-    attribute float size;
+    this._id = `StaticParticles__${StaticParticles.instanceCount}`;
 
-    attribute float a;
-    attribute float e;
-    attribute float i;
-    attribute float om;
-    attribute float ma;
-    attribute float n;
-    attribute float w;
-    attribute float wBar;
-    attribute float epoch;
-
-    vec3 getAstroPos() {
-      float i_rad = i;
-      float o_rad = om;
-      float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
-
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
-
-      // Estimate eccentric and true anom using iterative approximation (this
-      // is normally an intergral).
-      float E0 = M;
-      float E1 = M + e * sin(E0);
-      float lastdiff = abs(E1-E0);
-      E0 = E1;
-      for (int foo=0; foo &lt; 25; foo++) {
-        E1 = M + e * sin(E0);
-        lastdiff = abs(E1-E0);
-        E0 = E1;
-        if (lastdiff &lt; 0.0000001) {
-          break;
-        }
-      }
-
-      float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
-
-      // Compute radius vector.
-      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
-
-      // Compute heliocentric coords.
-      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
-      return vec3(X, Y, Z);
+    // TODO(ian): Add to ctx
+    if (true) {
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
+    } else {
+      // User just passed in options
+      this._simulation = null;
+      this._context = contextOrSimulation;
     }
 
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
+    // Number of particles in the scene.
+    this._particleCount = 0;
 
-      float cosT = cos(theta);
+    this._points = undefined;
 
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
+    this.init();
+  }
 
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
+  init() {
+    const positions = new Float32Array(vertices.length * 3);
+    const colors = new Float32Array(vertices.length * 3);
+    const sizes = new Float32Array(vertices.length);
 
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
+    for (let i = 0, l = vertices.length; i &lt; l; i++) {
+      const vertex = vertices[i];
+      vertex.toArray(positions, i * 3);
+      color.setHSL(0.01 + 0.1 * (i / l), 1.0, 0.5);
+      color.toArray(colors, i * 3);
+      sizes[i] = PARTICLE_SIZE * 0.5;
     }
 
-    void main() {
-      vColor = fuzzColor;
+    const geometry = new THREE.BufferGeometry();
+    geometry.addAttribute(&apos;position&apos;, new THREE.BufferAttribute(positions, 3));
+    geometry.addAttribute(&apos;customColor&apos;, new THREE.BufferAttribute(colors, 3));
+    geometry.addAttribute(&apos;size&apos;, new THREE.BufferAttribute(sizes, 1));
 
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
-      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = size;
-    }
-`;
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        color: {value: new THREE.Color(0xffffff)},
+        //texture: { value: new THREE.TextureLoader().load( &quot;textures/sprites/disc.png&quot; ) }
+      },
+      vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
+      fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
+      alphaTest: 0.9
+    });
 
-export const STAR_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    void main() {
-        gl_FragColor = vec4(vColor, 1.0);
-    }
-`;
+    this._points = new THREE.Points(geometry, material);
+  }
+}
 
-export const STAR_SHADER_VERTEX = `
-    attribute float size;
-    varying vec3 vColor;
-
-    void main() {
-        vColor = color;
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size;
-        gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_VERTEX = `
-    attribute float size;
-    attribute vec3 customColor;
-    varying vec3 vColor;
-    void main() {
-      vColor = customColor;
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = size * (300.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
-    uniform vec3 color;
-    uniform sampler2D texture;
-    varying vec3 vColor;
-    void main() {
-      gl_FragColor = vec4(color * vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-      if (gl_FragColor.a &lt; ALPHATEST) discard;
-    }
-`;
+StaticParticles.instanceCount = 0;
 </code></pre>
 
 </div>

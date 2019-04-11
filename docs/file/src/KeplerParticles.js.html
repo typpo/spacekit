@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/shaders.js | spacekit</title>
+  <title data-ice="title">src/KeplerParticles.js | spacekit</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -64,155 +64,191 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/shaders.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
- * @ignore
- */
-export const ORBIT_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    uniform sampler2D texture;
+<div class="content" data-ice="content"><h1 data-ice="title">src/KeplerParticles.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { getFullTextureUrl } from &apos;./util&apos;;
 
-    void main() {
-      gl_FragColor = vec4(vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-    }
-`;
+import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from &apos;./shaders&apos;;
+
+const DEFAULT_PARTICLE_COUNT = 1024;
 
 /**
- * @ignore
+ * An efficient way to render many objects in space with Kepler orbits.
+ * Primarily used by Simulation to render all non-static objects.
+ * @see Simulation
  */
-export const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
+export class KeplerParticles {
+  /**
+   * @param {Object} options Options container
+   * @param {Object} options.textureUrl Template url for sprite
+   * @param {Object} options.basePath Base path for simulation supporting files
+   * @param {Number} options.jd JD date value
+   * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
+   * @param {Object} contextOrSimulation Simulation context or object
+   */
+  constructor(options, contextOrSimulation) {
+    this._options = options;
 
-    attribute vec3 fuzzColor;
-    varying vec3 vColor;
+    this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;
 
-    attribute float size;
+    // TODO(ian): Add to ctx
+    if (true) {
+      // User passed in Simulation
+      this._simulation = contextOrSimulation;
+      this._context = contextOrSimulation.getContext();
+    } else {
+      // User just passed in options
+      this._simulation = null;
+      this._context = contextOrSimulation;
+    }
 
-    attribute float a;
-    attribute float e;
-    attribute float i;
-    attribute float om;
-    attribute float ma;
-    attribute float n;
-    attribute float w;
-    attribute float wBar;
-    attribute float epoch;
+    // Whether Points object has been added to the Simulation/Scene. This
+    // happens lazily when the first data point is added in order to prevent
+    // WebGL render warnings.
+    this._addedToScene = false;
 
-    vec3 getAstroPos() {
-      float i_rad = i;
-      float o_rad = om;
-      float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
+    // Number of particles in the scene.
+    this._particleCount = 0;
 
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
+    this._attributes = null;
+    this._uniforms = null;
+    this._geometry = null;
+    this._shaderMaterial = null;
+    this._particleSystem = null;
 
-      // Estimate eccentric and true anom using iterative approximation (this
-      // is normally an intergral).
-      float E0 = M;
-      float E1 = M + e * sin(E0);
-      float lastdiff = abs(E1-E0);
-      E0 = E1;
-      for (int foo=0; foo &lt; 25; foo++) {
-        E1 = M + e * sin(E0);
-        lastdiff = abs(E1-E0);
-        E0 = E1;
-        if (lastdiff &lt; 0.0000001) {
-          break;
-        }
+    this.init();
+  }
+
+  /**
+   * @private
+   */
+  init() {
+    this.createParticleSystem();
+  }
+
+  /**
+   * @private
+   */
+  createParticleSystem() {
+    const fullTextureUrl = getFullTextureUrl(
+      this._options.textureUrl,
+      this._context.options.basePath,
+    );
+    const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
+
+    this._uniforms = {
+      jd: { value: this._options.jd || 0 },
+      texture: { value: defaultMapTexture },
+    };
+
+    const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+    this._attributes = {
+      size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
+      fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
+
+      a: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      e: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      i: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      om: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      ma: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+    };
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setDrawRange(0, 0);
+    Object.keys(this._attributes).forEach((attributeName) =&gt; {
+      const attribute = this._attributes[attributeName];
+      // attribute.setDynamic(true);
+      geometry.addAttribute(attributeName, attribute);
+    });
+
+    const shader = new THREE.ShaderMaterial({
+      uniforms: this._uniforms,
+      vertexShader: ORBIT_SHADER_VERTEX,
+      fragmentShader: ORBIT_SHADER_FRAGMENT,
+
+      depthTest: false,
+      transparent: true,
+    });
+
+
+    this._shaderMaterial = shader;
+    this._geometry = geometry;
+    this._particleSystem = new THREE.Points(geometry, shader);
+  }
+
+  /**
+   * Add a particle to this particle system.
+   * @param {Ephem} ephem Kepler ephemeris
+   * @param {Object} options Options container
+   * @param {Number} options.particleSize Size of particles
+   * @param {Number} options.color Color of particles
+   */
+  addParticle(ephem, options = {}) {
+    const attributes = this._attributes;
+    const offset = this._particleCount++;
+
+    attributes.size.set([options.particleSize || 15], offset);
+    const color = new THREE.Color(options.color || 0xffffff);
+    attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
+
+    attributes.a.set([ephem.get(&apos;a&apos;)], offset);
+    attributes.e.set([ephem.get(&apos;e&apos;)], offset);
+    attributes.i.set([ephem.get(&apos;i&apos;, &apos;rad&apos;)], offset);
+    attributes.om.set([ephem.get(&apos;om&apos;, &apos;rad&apos;)], offset);
+    attributes.ma.set([ephem.get(&apos;ma&apos;, &apos;rad&apos;)], offset);
+    attributes.n.set([ephem.get(&apos;n&apos;, &apos;rad&apos;)], offset);
+    attributes.w.set([ephem.get(&apos;w&apos;, &apos;rad&apos;)], offset);
+    attributes.wBar.set([ephem.get(&apos;wBar&apos;, &apos;rad&apos;)], offset);
+    attributes.epoch.set([ephem.get(&apos;epoch&apos;)], offset);
+
+    // TODO(ian): Set the update range
+    for (const attributeKey in attributes) {
+      if (attributes.hasOwnProperty(attributeKey)) {
+        attributes[attributeKey].needsUpdate = true;
       }
-
-      float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
-
-      // Compute radius vector.
-      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
-
-      // Compute heliocentric coords.
-      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
-      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
-      return vec3(X, Y, Z);
     }
+    this._shaderMaterial.needsUpdate = true;
+    this._geometry.setDrawRange(0, this._particleCount);
+    this._geometry.needsUpdate = true;
 
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
+    if (!this._addedToScene &amp;&amp; this._simulation) {
+      // This happens lazily when the first data point is added in order to
+      // prevent WebGL render warnings.
+      this._simulation.addObject(this);
+      this._addedToScene = true;
     }
+  }
 
-    void main() {
-      vColor = fuzzColor;
+  /**
+   * Update the position for all particles
+   * @param {Number} jd JD date
+   */
+  update(jd) {
+    this._uniforms.jd.value = jd;
+  }
 
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
-      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = size;
-    }
-`;
+  /**
+   * Get THREE.js objects that comprise this point cloud
+   * @return {Array.&lt;THREE.Object&gt;} List of objects to add to THREE.js scene
+   */
+  get3jsObjects() {
+    return [this._particleSystem];
+  }
 
-export const STAR_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-    void main() {
-        gl_FragColor = vec4(vColor, 1.0);
-    }
-`;
+  /**
+   * Get unique id for this object.
+   * @return {String} Unique id
+   */
+  getId() {
+    return this._id;
+  }
+}
 
-export const STAR_SHADER_VERTEX = `
-    attribute float size;
-    varying vec3 vColor;
-
-    void main() {
-        vColor = color;
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size;
-        gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_VERTEX = `
-    attribute float size;
-    attribute vec3 customColor;
-    varying vec3 vColor;
-    void main() {
-      vColor = customColor;
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = size * (300.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
-    uniform vec3 color;
-    uniform sampler2D texture;
-    varying vec3 vColor;
-    void main() {
-      gl_FragColor = vec4(color * vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-      if (gl_FragColor.a &lt; ALPHATEST) discard;
-    }
-`;
+KeplerParticles.instanceCount = 0;
 </code></pre>
 
 </div>

@@ -18,10 +18,28 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
+    "spacekit/src/shaders.js~generic_particle_shader_fragment",
+    "variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT",
+    "<span>GENERIC_PARTICLE_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
+    "spacekit/src/shaders.js~generic_particle_shader_vertex",
+    "variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX",
+    "<span>GENERIC_PARTICLE_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
     "spacekit/src/ephem.js~gm",
     "variable/index.html#static-variable-GM",
     "<span>GM</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",
     "variable"
+  ],
+  [
+    "spacekit/src/keplerparticles.js~keplerparticles",
+    "class/src/KeplerParticles.js~KeplerParticles.html",
+    "<span>KeplerParticles</span> <span class=\"search-result-import-path\">spacekit/src/KeplerParticles.js</span>",
+    "class"
   ],
   [
     "spacekit/src/orbit.js~orbit",
@@ -78,15 +96,15 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
-    "spacekit/src/spaceparticles.js~spaceparticles",
-    "class/src/SpaceParticles.js~SpaceParticles.html",
-    "<span>SpaceParticles</span> <span class=\"search-result-import-path\">spacekit/src/SpaceParticles.js</span>",
-    "class"
-  ],
-  [
     "spacekit/src/stars.js~stars",
     "class/src/Stars.js~Stars.html",
     "<span>Stars</span> <span class=\"search-result-import-path\">spacekit/src/Stars.js</span>",
+    "class"
+  ],
+  [
+    "spacekit/src/staticparticles.js~staticparticles",
+    "class/src/StaticParticles.js~StaticParticles.html",
+    "<span>StaticParticles</span> <span class=\"search-result-import-path\">spacekit/src/StaticParticles.js</span>",
     "class"
   ],
   [
@@ -504,6 +522,42 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/keplerparticles.js",
+    "file/src/KeplerParticles.js.html",
+    "src/KeplerParticles.js",
+    "file"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#addparticle",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-addParticle",
+    "src/KeplerParticles.js~KeplerParticles#addParticle",
+    "method"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#constructor",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-constructor-constructor",
+    "src/KeplerParticles.js~KeplerParticles#constructor",
+    "method"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#get3jsobjects",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-get3jsObjects",
+    "src/KeplerParticles.js~KeplerParticles#get3jsObjects",
+    "method"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#getid",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-getId",
+    "src/KeplerParticles.js~KeplerParticles#getId",
+    "method"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#update",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-update",
+    "src/KeplerParticles.js~KeplerParticles#update",
+    "method"
+  ],
+  [
     "src/orbit.js",
     "file/src/Orbit.js.html",
     "src/Orbit.js",
@@ -882,42 +936,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/spaceparticles.js",
-    "file/src/SpaceParticles.js.html",
-    "src/SpaceParticles.js",
-    "file"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#addparticle",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-addParticle",
-    "src/SpaceParticles.js~SpaceParticles#addParticle",
-    "method"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#constructor",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-constructor-constructor",
-    "src/SpaceParticles.js~SpaceParticles#constructor",
-    "method"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#get3jsobjects",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-get3jsObjects",
-    "src/SpaceParticles.js~SpaceParticles#get3jsObjects",
-    "method"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#getid",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-getId",
-    "src/SpaceParticles.js~SpaceParticles#getId",
-    "method"
-  ],
-  [
-    "src/spaceparticles.js~spaceparticles#update",
-    "class/src/SpaceParticles.js~SpaceParticles.html#instance-method-update",
-    "src/SpaceParticles.js~SpaceParticles#update",
-    "method"
-  ],
-  [
     "src/stars.js",
     "file/src/Stars.js.html",
     "src/Stars.js",
@@ -945,6 +963,24 @@ window.esdocSearchIndex = [
     "src/stars.js~stars#init",
     "class/src/Stars.js~Stars.html#instance-method-init",
     "src/Stars.js~Stars#init",
+    "method"
+  ],
+  [
+    "src/staticparticles.js",
+    "file/src/StaticParticles.js.html",
+    "src/StaticParticles.js",
+    "file"
+  ],
+  [
+    "src/staticparticles.js~staticparticles#constructor",
+    "class/src/StaticParticles.js~StaticParticles.html#instance-constructor-constructor",
+    "src/StaticParticles.js~StaticParticles#constructor",
+    "method"
+  ],
+  [
+    "src/staticparticles.js~staticparticles#init",
+    "class/src/StaticParticles.js~StaticParticles.html#instance-method-init",
+    "src/StaticParticles.js~StaticParticles#init",
     "method"
   ],
   [

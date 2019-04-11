@@ -33,8 +33,8 @@ function getSizeForStar(mag, minSize) {
 
 export class Stars {
   /**
-   * @param {Number} options.minimumStarSize The size of the smallest stars.
-   * Defaults to 0.5
+   * @param {Number} options.minSize The size of the smallest star.
+   * Defaults to 0.75
    */
   constructor(options, contextOrSimulation) {
     this._options = options;
@@ -86,7 +86,7 @@ export class Stars {
         const color = new THREE.Color(getColorForStar(temp));
         colors.set(color.toArray(), idx * 3);
 
-        sizes[idx] = getSizeForStar(mag, this._options.minimumStarSize || 0.75 /* minSize */);
+        sizes[idx] = getSizeForStar(mag, this._options.minSize || 0.75 /* minSize */);
       });
 
       const material = new THREE.ShaderMaterial({

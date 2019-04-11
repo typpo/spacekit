@@ -53,6 +53,8 @@ export class Simulation {
    * particles, but not too much larger. It's usually good enough to choose the
    * next highest power of 2. If you're not showing many particles (tens of
    * thousands+), you don't need to worry about this.
+   * @param {String} options.particleTextureUrl The texture for the default
+   * particle system.
    * @param {Object} options.camera Options for camera
    * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
    * coordinates of the camera. Defaults to [0, -10, 5].
@@ -156,7 +158,7 @@ export class Simulation {
 
     // Orbit particle system must be initialized after scene is created.
     this._particles = new KeplerParticles({
-      textureUrl: '{{assets}}/sprites/smallparticle.png',
+      textureUrl: this._options.particleTextureUrl || '{{assets}}/sprites/smallparticle.png',
       jd: this._jd,
       maxNumParticles: this._options.maxNumParticles,
     }, this);

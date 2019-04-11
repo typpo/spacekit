@@ -1,59 +1,13 @@
 import { SpaceObject } from './SpaceObject';
-
-const deg2rad = Math.PI / 180;
-const rad2deg = 180 / Math.PI;
-
-function polarToCartesian(angleV, angleH, radius) {
-  // From https://gamedev.stackexchange.com/questions/164806/combine-rotation-xz-horizontal-with-yz-vertical-math-formula
-  const phi = (90 * deg2rad) - angleV;
-  const theta = angleH + (180 * deg2rad);
-  return [
-    -(radius * Math.sin(phi) * Math.sin(theta)),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.cos(theta),
-  ];
-}
-
-function wikipedia(l, b, r) {
-  // See also https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Rectangular_coordinates
-  const lRad = l;
-  const bRad = b;
-  return [
-    r * Math.cos(bRad) * Math.cos(lRad),
-    r * Math.cos(bRad) * Math.sin(lRad),
-    r * Math.sin(bRad),
-  ];
-}
-
-THREE.Object3D.prototype.rotateAroundWorldAxis = (function () {
-  // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
-
-  // rotate object around axis in world space (the axis passes through point)
-  // axis is assumed to be normalized
-  // assumes object does not have a rotated parent
-
-  const q = new THREE.Quaternion();
-
-  return function rotateAroundWorldAxis(point, axis, angle) {
-    q.setFromAxisAngle(axis, angle);
-
-    this.applyQuaternion(q);
-
-    this.position.sub(point);
-    this.position.applyQuaternion(q);
-    this.position.add(point);
-
-    return this;
-  };
-}());
+import { rad } from './Units';
 
 export class ShapeObject extends SpaceObject {
   /**
    * @param {Object} options.shape Shape specification
    * @param {String} options.shape.url Path to shapefile
    * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
-   * @param {boolean} options.shape.enableRotation Show rotation of object
-   * @param {Number} options.shape.rotationSpeed Factor that determines
+   * @param {boolean} options.shape.enableRotation Rotate the object
+   * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
    * @param {Object} options.shape.debug Debug options
    * @param {boolean} options.shape.debug.showAxes Show axes
    * rotation speed. Default 0.5
@@ -75,7 +29,7 @@ export class ShapeObject extends SpaceObject {
     this._axisOfRotation = undefined;
 
     // Keep track of materials that comprise this object.
-    this._asteroidMaterials = [];
+    this._materials = [];
 
     this.init();
   }
@@ -102,7 +56,7 @@ export class ShapeObject extends SpaceObject {
           child.geometry.computeVertexNormals();
           child.geometry.computeBoundingBox();
          */
-          this._asteroidMaterials.push(material);
+          this._materials.push(material);
         }
       });
 
@@ -153,17 +107,17 @@ export class ShapeObject extends SpaceObject {
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
     // Latitude
-    const lambda = 251 * deg2rad;
+    const lambda = rad(251);
 
     // Longitude
-    const beta = -63 * deg2rad;
+    const beta = rad(-63);
 
     // Other
     const P = 3.755067;
     const YORP = 1.9e-8;
     const JD = 2443568.0;
     const JD0 = 2443568.0;
-    const phi0 = 0 * deg2rad;
+    const phi0 = rad(0);
 
     // Asteroid rotation
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
@@ -225,6 +179,20 @@ export class ShapeObject extends SpaceObject {
     ret.push(this._obj);
     ret.push(this._eclipticOrigin);
     return ret;
+  }
+
+  /**
+   * Begin rotating this object.
+   */
+  startRotation() {
+    this._options.shape.enableRotation = true;
+  }
+
+  /**
+   * Stop rotation of this object.
+   */
+  stopRotation() {
+    this._options.shape.enableRotation = false;
   }
 
   /**

@@ -1192,38 +1192,13 @@ var Spacekit = (function (exports) {
     },
   };
 
-  const deg2rad = Math.PI / 180;
-  const rad2deg = 180 / Math.PI;
-
-  THREE.Object3D.prototype.rotateAroundWorldAxis = (function () {
-    // https://stackoverflow.com/questions/31953608/rotate-object-on-specific-axis-anywhere-in-three-js-including-outside-of-mesh
-
-    // rotate object around axis in world space (the axis passes through point)
-    // axis is assumed to be normalized
-    // assumes object does not have a rotated parent
-
-    const q = new THREE.Quaternion();
-
-    return function rotateAroundWorldAxis(point, axis, angle) {
-      q.setFromAxisAngle(axis, angle);
-
-      this.applyQuaternion(q);
-
-      this.position.sub(point);
-      this.position.applyQuaternion(q);
-      this.position.add(point);
-
-      return this;
-    };
-  }());
-
   class ShapeObject extends SpaceObject {
     /**
      * @param {Object} options.shape Shape specification
      * @param {String} options.shape.url Path to shapefile
      * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
-     * @param {boolean} options.shape.enableRotation Show rotation of object
-     * @param {Number} options.shape.rotationSpeed Factor that determines
+     * @param {boolean} options.shape.enableRotation Rotate the object
+     * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
      * @param {Object} options.shape.debug Debug options
      * @param {boolean} options.shape.debug.showAxes Show axes
      * rotation speed. Default 0.5
@@ -1245,7 +1220,7 @@ var Spacekit = (function (exports) {
       this._axisOfRotation = undefined;
 
       // Keep track of materials that comprise this object.
-      this._asteroidMaterials = [];
+      this._materials = [];
 
       this.init();
     }
@@ -1272,7 +1247,7 @@ var Spacekit = (function (exports) {
             child.geometry.computeVertexNormals();
             child.geometry.computeBoundingBox();
            */
-            this._asteroidMaterials.push(material);
+            this._materials.push(material);
           }
         });
 
@@ -1323,10 +1298,11 @@ var Spacekit = (function (exports) {
       // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
       // Latitude
-      const lambda = 251 * deg2rad;
+      const lambda = rad(251);
 
       // Longitude
-      const beta = -63 * deg2rad;
+      const beta = rad(-63);
+      const phi0 = rad(0);
       this._obj.rotateY(-(PI / 2 - beta));
       this._obj.rotateZ(-lambda);
       // this._obj.rotateZ(zAdjust);
@@ -1381,6 +1357,20 @@ var Spacekit = (function (exports) {
       ret.push(this._obj);
       ret.push(this._eclipticOrigin);
       return ret;
+    }
+
+    /**
+     * Begin rotating this object.
+     */
+    startRotation() {
+      this._options.shape.enableRotation = true;
+    }
+
+    /**
+     * Stop rotation of this object.
+     */
+    stopRotation() {
+      this._options.shape.enableRotation = false;
     }
 
     /**
@@ -1817,6 +1807,12 @@ var Spacekit = (function (exports) {
     return 0xffb56c;
   }
 
+  /**
+   * Returns the pixel size of a star.
+   * @param mag {Number} Absolute magnitude of star
+   * @param minSize {Number} Pixel size of the smallest star
+   * @return {Number} Pixel size of star.
+   */
   function getSizeForStar(mag, minSize) {
     if (mag < 2.0) return minSize * 4;
     if (mag < 4.0) return minSize * 2;
@@ -1824,6 +1820,10 @@ var Spacekit = (function (exports) {
     return 1;
   }
 
+  /**
+   * Builds a starry background that is accurate for the Earth's position in
+   * space.
+   */
   class Stars {
     /**
      * @param {Number} options.minSize The size of the smallest star.

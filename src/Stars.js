@@ -24,6 +24,12 @@ function getColorForStar(temp) {
   return 0xffb56c;
 }
 
+/**
+ * Returns the pixel size of a star.
+ * @param mag {Number} Absolute magnitude of star
+ * @param minSize {Number} Pixel size of the smallest star
+ * @return {Number} Pixel size of star.
+ */
 function getSizeForStar(mag, minSize) {
   if (mag < 2.0) return minSize * 4;
   if (mag < 4.0) return minSize * 2;
@@ -31,6 +37,10 @@ function getSizeForStar(mag, minSize) {
   return 1;
 }
 
+/**
+ * Builds a starry background that is accurate for the Earth's position in
+ * space.
+ */
 export class Stars {
   /**
    * @param {Number} options.minSize The size of the smallest star.

@@ -1192,13 +1192,18 @@ var Spacekit = (function (exports) {
     },
   };
 
+  const NUM_SPHERE_SEGMENTS = 32;
+
   class ShapeObject extends SpaceObject {
     /**
      * @param {Object} options.shape Shape specification
-     * @param {String} options.shape.url Path to shapefile
+     * @param {String} options.shape.type Type of object ("custom" or "sphere")
+     * @param {String} options.shape.shapeUrl Path to shapefile if type is "custom"
+     * @param {Number} options.shape.textureUrl Optional texture map for shape
      * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
      * @param {boolean} options.shape.enableRotation Rotate the object
      * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
+     * @param {Number} options.shape.radius Radius, if applicable. Defaults to 1
      * @param {Object} options.shape.debug Debug options
      * @param {boolean} options.shape.debug.showAxes Show axes
      * rotation speed. Default 0.5
@@ -1229,12 +1234,62 @@ var Spacekit = (function (exports) {
      * @private
      */
     init() {
+      if (this._options.shape.type === 'sphere') {
+        this.initSphere();
+      } else {
+        this.initCustom();
+      }
+    }
+
+    /**
+     * @private
+     */
+    initSphere() {
+      let map = undefined;
+      if (this._options.shape.textureUrl) {
+        map = THREE.ImageUtils.loadTexture(img);
+        map.minFilter = THREE.LinearFilter;
+      }
+
+      const sphereGeometry = new THREE.SphereGeometry(this._options.shape.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
+      const mesh = new THREE.Mesh(
+        sphereGeometry,
+        //new THREE.MeshPhongMaterial({
+        new THREE.MeshBasicMaterial({
+          //map:         map,
+          color: 0xbbbbbb,
+          //specular: 0x111111,
+          //shininess: 1,
+          //shininess: 0,
+          //bumpMap:     map,
+          //bumpScale:   0.02,
+          //specularMap: map,
+          //specular:    new THREE.Color('grey')
+          //bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
+          //bumpScale:   0.005,
+        })
+      );
+      this._obj = mesh;
+
+      if (this._simulation) {
+        // Add it all to visualization.
+        this._simulation.addObject(this, false /* noUpdate */);
+      }
+
+      this._initialized = true;
+    }
+
+    /**
+     * @private
+     */
+    initCustom() {
       const manager = new THREE.LoadingManager();
       manager.onProgress = (item, loaded, total) => {
         console.info(this._id, item, 'loading progress:', loaded, '/', total);
       };
       const loader = new THREE.OBJLoader(manager);
-      loader.load(this._options.shape.url, (object) => {
+      // TODO(ian): Make shapeurl follow assetpath logic.
+      loader.load(this._options.shape.shapeUrl, (object) => {
         object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({
@@ -1355,7 +1410,9 @@ var Spacekit = (function (exports) {
     get3jsObjects() {
       const ret = super.get3jsObjects();
       ret.push(this._obj);
-      ret.push(this._eclipticOrigin);
+      if (this._eclipticOrigin) {
+        ret.push(this._eclipticOrigin);
+      }
       return ret;
     }
 

@@ -13,7 +13,7 @@ viz.createAmbientLight();
 // Create an object for 1998 XO94
 const obj = viz.createShape('myobj', {
   shape: {
-    url: './1998_XO94.obj',
+    shapeUrl: './1998_XO94.obj',
     enableRotation: true,
   },
 });

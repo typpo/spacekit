@@ -48,6 +48,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/rotatingobject.js~rotatingobject",
+    "class/src/RotatingObject.js~RotatingObject.html",
+    "<span>RotatingObject</span> <span class=\"search-result-import-path\">spacekit/src/RotatingObject.js</span>",
+    "class"
+  ],
+  [
     "spacekit/src/shaders.js~star_shader_fragment",
     "variable/index.html#static-variable-STAR_SHADER_FRAGMENT",
     "<span>STAR_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
@@ -94,6 +100,12 @@ window.esdocSearchIndex = [
     "variable/index.html#static-variable-SpaceObjectPresets",
     "<span>SpaceObjectPresets</span> <span class=\"search-result-import-path\">spacekit/src/SpaceObject.js</span>",
     "variable"
+  ],
+  [
+    "spacekit/src/sphereobject.js~sphereobject",
+    "class/src/SphereObject.js~SphereObject.html",
+    "<span>SphereObject</span> <span class=\"search-result-import-path\">spacekit/src/SphereObject.js</span>",
+    "class"
   ],
   [
     "spacekit/src/stars.js~stars",
@@ -612,6 +624,54 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/rotatingobject.js",
+    "file/src/RotatingObject.js.html",
+    "src/RotatingObject.js",
+    "file"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#constructor",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-constructor-constructor",
+    "src/RotatingObject.js~RotatingObject#constructor",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#get3jsobjects",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-get3jsObjects",
+    "src/RotatingObject.js~RotatingObject#get3jsObjects",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#init",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-init",
+    "src/RotatingObject.js~RotatingObject#init",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#initrotation",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-initRotation",
+    "src/RotatingObject.js~RotatingObject#initRotation",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#startrotation",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-startRotation",
+    "src/RotatingObject.js~RotatingObject#startRotation",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#stoprotation",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-stopRotation",
+    "src/RotatingObject.js~RotatingObject#stopRotation",
+    "method"
+  ],
+  [
+    "src/rotatingobject.js~rotatingobject#update",
+    "class/src/RotatingObject.js~RotatingObject.html#instance-method-update",
+    "src/RotatingObject.js~RotatingObject#update",
+    "method"
+  ],
+  [
     "src/shapeobject.js",
     "file/src/ShapeObject.js.html",
     "src/ShapeObject.js",
@@ -624,33 +684,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/shapeobject.js~shapeobject#get3jsobjects",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-get3jsObjects",
-    "src/ShapeObject.js~ShapeObject#get3jsObjects",
-    "method"
-  ],
-  [
-    "src/shapeobject.js~shapeobject#getaxes",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-getAxes",
-    "src/ShapeObject.js~ShapeObject#getAxes",
-    "method"
-  ],
-  [
-    "src/shapeobject.js~shapeobject#getaxis",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-getAxis",
-    "src/ShapeObject.js~ShapeObject#getAxis",
-    "method"
-  ],
-  [
-    "src/shapeobject.js~shapeobject#initrotation",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-initRotation",
-    "src/ShapeObject.js~ShapeObject#initRotation",
-    "method"
-  ],
-  [
-    "src/shapeobject.js~shapeobject#update",
-    "class/src/ShapeObject.js~ShapeObject.html#instance-method-update",
-    "src/ShapeObject.js~ShapeObject#update",
+    "src/shapeobject.js~shapeobject#getboundingobject",
+    "class/src/ShapeObject.js~ShapeObject.html#instance-method-getBoundingObject",
+    "src/ShapeObject.js~ShapeObject#getBoundingObject",
     "method"
   ],
   [
@@ -699,6 +735,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#createskybox",
     "class/src/Simulation.js~Simulation.html#instance-method-createSkybox",
     "src/Simulation.js~Simulation#createSkybox",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#createsphere",
+    "class/src/Simulation.js~Simulation.html#instance-method-createSphere",
+    "src/Simulation.js~Simulation#createSphere",
     "method"
   ],
   [
@@ -870,6 +912,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/spaceobject.js~spaceobject#getboundingobject",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-getBoundingObject",
+    "src/SpaceObject.js~SpaceObject#getBoundingObject",
+    "method"
+  ],
+  [
     "src/spaceobject.js~spaceobject#getcolor",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-getColor",
     "src/SpaceObject.js~SpaceObject#getColor",
@@ -933,6 +981,24 @@ window.esdocSearchIndex = [
     "src/spaceobject.js~spaceobject#update",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-update",
     "src/SpaceObject.js~SpaceObject#update",
+    "method"
+  ],
+  [
+    "src/sphereobject.js",
+    "file/src/SphereObject.js.html",
+    "src/SphereObject.js",
+    "file"
+  ],
+  [
+    "src/sphereobject.js~sphereobject#constructor",
+    "class/src/SphereObject.js~SphereObject.html#instance-constructor-constructor",
+    "src/SphereObject.js~SphereObject#constructor",
+    "method"
+  ],
+  [
+    "src/sphereobject.js~sphereobject#initsphere",
+    "class/src/SphereObject.js~SphereObject.html#instance-method-initSphere",
+    "src/SphereObject.js~SphereObject#initSphere",
     "method"
   ],
   [

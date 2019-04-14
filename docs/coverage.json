@@ -1,7 +1,7 @@
 {
-  "coverage": "50%",
-  "expectCount": 220,
-  "actualCount": 110,
+  "coverage": "51.96%",
+  "expectCount": 229,
+  "actualCount": 119,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -56,50 +56,55 @@
       "actualCount": 14,
       "undocumentLines": []
     },
-    "src/ShapeObject.js": {
-      "expectCount": 18,
+    "src/RotatingObject.js": {
+      "expectCount": 14,
       "actualCount": 4,
       "undocumentLines": [
-        3,
         4,
-        6,
-        17,
-        50,
-        70,
-        71,
-        74,
-        75,
-        78,
-        136,
-        142,
-        199,
-        207
+        12,
+        24,
+        30,
+        34,
+        37,
+        38,
+        41,
+        46,
+        58
+      ]
+    },
+    "src/ShapeObject.js": {
+      "expectCount": 6,
+      "actualCount": 3,
+      "undocumentLines": [
+        3,
+        24,
+        70
       ]
     },
     "src/Simulation.js": {
-      "expectCount": 54,
-      "actualCount": 34,
+      "expectCount": 55,
+      "actualCount": 35,
       "undocumentLines": [
-        70,
         71,
-        73,
+        72,
         74,
         75,
         76,
         77,
-        79,
+        78,
         80,
-        82,
+        81,
         83,
-        89,
+        84,
         90,
-        92,
+        91,
         93,
-        95,
+        94,
         96,
-        99,
+        97,
         100,
-        101
+        101,
+        102
       ]
     },
     "src/Skybox.js": {
@@ -114,8 +119,8 @@
       ]
     },
     "src/SpaceObject.js": {
-      "expectCount": 38,
-      "actualCount": 23,
+      "expectCount": 39,
+      "actualCount": 24,
       "undocumentLines": [
         76,
         77,
@@ -131,23 +136,30 @@
         115,
         124,
         334,
-        423
+        432
+      ]
+    },
+    "src/SphereObject.js": {
+      "expectCount": 5,
+      "actualCount": 2,
+      "undocumentLines": [
+        3,
+        30,
+        62
       ]
     },
     "src/Stars.js": {
       "expectCount": 14,
-      "actualCount": 4,
+      "actualCount": 6,
       "undocumentLines": [
         8,
         9,
-        27,
-        34,
-        40,
-        41,
-        46,
-        47,
-        54,
-        59
+        50,
+        51,
+        56,
+        57,
+        64,
+        69
       ]
     },
     "src/StaticParticles.js": {

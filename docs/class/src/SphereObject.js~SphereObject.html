@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">ShapeObject | spacekit</title>
+  <title data-ice="title">SphereObject | spacekit</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -67,23 +67,23 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ShapeObject} from &apos;<span><a href="file/src/ShapeObject.js.html#lineNumber3">spacekit/src/ShapeObject.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SphereObject} from &apos;<span><a href="file/src/SphereObject.js.html#lineNumber8">spacekit/src/SphereObject.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/ShapeObject.js.html#lineNumber3">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/SphereObject.js.html#lineNumber8">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
-  <h1 data-ice="name">ShapeObject</h1>
+  <h1 data-ice="name">SphereObject</h1>
 
   
 
   
   
-  <div class="flat-list" data-ice="extendsChain"><h4>Extends:</h4><div><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span> &#x2192; <span><a href="class/src/RotatingObject.js~RotatingObject.html">RotatingObject</a></span> &#x2192; ShapeObject</div></div>
+  <div class="flat-list" data-ice="extendsChain"><h4>Extends:</h4><div><span><a href="class/src/SpaceObject.js~SpaceObject.html">SpaceObject</a></span> &#x2192; <span><a href="class/src/RotatingObject.js~RotatingObject.html">RotatingObject</a></span> &#x2192; SphereObject</div></div>
   
   
   
@@ -93,7 +93,8 @@
 
   
   
-  
+  <div class="description" data-ice="description"><p>Simulates a planet or other object as a perfect sphere.</p>
+</div>
   
 
   
@@ -125,7 +126,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/ShapeObject.js~ShapeObject.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">()</span>
+          <span class="code" data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(textureUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, bumpMapUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, specularMapUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, color: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
         </p>
       </div>
       <div>
@@ -161,14 +162,13 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/ShapeObject.js~ShapeObject.html#instance-method-getBoundingObject">getBoundingObject</a></span></span><span class="code" data-ice="signature">(): <span>THREE.Object3D</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html#instance-method-initSphere">initSphere</a></span></span><span class="code" data-ice="signature">()</span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Specifies the object that is used to compute the bounding box.</p>
-</div>
+        
       </div>
     </td>
     <td>
@@ -757,11 +757,11 @@ its position can be updated (ie, it has ephemeris)</p>
     
     
     
-    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">()</span>
+    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(textureUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, bumpMapUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, specularMapUrl: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, color: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/ShapeObject.js.html#lineNumber17">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SphereObject.js.html#lineNumber20">source</a></span></span>
     </span>
   </h3>
 
@@ -780,46 +780,39 @@ its position can be updated (ie, it has ephemeris)</p>
     </thead>
     <tbody>
     
-    <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.shape</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Shape specification</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="2">
-      <td data-ice="name" class="code" data-depth="2">options.shape.type</td>
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">textureUrl</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Type of object (&quot;custom&quot; or &quot;sphere&quot;)</p>
+      <td data-ice="description"><p>Path to basic texture (optional)</p>
 </td>
     </tr>
-<tr data-ice="property" data-depth="2">
-      <td data-ice="name" class="code" data-depth="2">options.shape.shapeUrl</td>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">bumpMapUrl</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Path to shapefile if type is &quot;custom&quot;</p>
+      <td data-ice="description"><p>Path to bump map (optional)</p>
 </td>
     </tr>
-<tr data-ice="property" data-depth="2">
-      <td data-ice="name" class="code" data-depth="2">options.shape.textureUrl</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">specularMapUrl</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Optional texture map for shape</p>
+      <td data-ice="description"><p>Path to specular map (optional)</p>
 </td>
     </tr>
-<tr data-ice="property" data-depth="2">
-      <td data-ice="name" class="code" data-depth="2">options.shape.color</td>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">color</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Color of shape materials. Default 0xcccccc</p>
+      <td data-ice="description"><p>Hex color of the sphere</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="2">
       <td data-ice="name" class="code" data-depth="2">options.shape.radius</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Radius, if applicable. Defaults to 1</p>
+      <td data-ice="description"><p>Radius of sphere. Defaults to 1</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="2">
@@ -833,8 +826,7 @@ its position can be updated (ie, it has ephemeris)</p>
       <td data-ice="name" class="code" data-depth="3">options.shape.debug.showAxes</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Show axes
-rotation speed. Default 0.5</p>
+      <td data-ice="description"><p>Show axes</p>
 </td>
     </tr>
 </tbody>
@@ -865,46 +857,32 @@ rotation speed. Default 0.5</p>
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-getBoundingObject">
+  <h3 data-ice="anchor" id="instance-method-initSphere">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">getBoundingObject</span><span class="code" data-ice="signature">(): <span>THREE.Object3D</span></span>
+    <span class="code" data-ice="name">initSphere</span><span class="code" data-ice="signature">()</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/ShapeObject.js.html#lineNumber80">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SphereObject.js.html#lineNumber30">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Specifies the object that is used to compute the bounding box.</p>
-</div>
+  
 
-  <div data-ice="override"><h4>Override:</h4><span><a href="class/src/SpaceObject.js~SpaceObject.html#instance-method-getBoundingObject">SpaceObject#getBoundingObject</a></span></div>
+  
 
   <div data-ice="properties">
 </div>
 
-  <div class="return-params" data-ice="returnParams">
-    <h4>Return:</h4>
-    <table>
-      <tbody>
-        <tr>
-          <td class="return-type code" data-ice="returnType"><span>THREE.Object3D</span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>THREE.js object</p>
-</td>
-        </tr>
-      </tbody>
-    </table>
-    <div data-ice="returnProperties">
-</div>
-  </div>
+  
 
   
 

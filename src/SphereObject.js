@@ -7,10 +7,10 @@ const NUM_SPHERE_SEGMENTS = 32;
  */
 export class SphereObject extends RotatingObject {
   /**
-   * @param {String} textureUrl Path to basic texture (optional)
-   * @param {String} bumpMapUrl Path to bump map (optional)
-   * @param {String} specularMapUrl Path to specular map (optional)
-   * @param {Number} color Hex color of the sphere
+   * @param {String} options.textureUrl Path to basic texture (optional)
+   * @param {String} options.bumpMapUrl Path to bump map (optional)
+   * @param {String} options.specularMapUrl Path to specular map (optional)
+   * @param {Number} options.color Hex color of the sphere
    * @param {Number} options.radius Radius of sphere. Defaults to 1
    * @param {Object} options.debug Debug options
    * @param {boolean} options.debug.showAxes Show axes
@@ -26,17 +26,19 @@ export class SphereObject extends RotatingObject {
   initSphere() {
     let map;
     if (this._options.textureUrl) {
-      map = THREE.ImageUtils.loadTexture(img);
+      map = THREE.ImageUtils.loadTexture(this._options.textureUrl);
       map.minFilter = THREE.LinearFilter;
     }
+
+    // TODO(ian): Clouds and rings
 
     const sphereGeometry = new THREE.SphereGeometry(this._options.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
     const mesh = new THREE.Mesh(
       sphereGeometry,
       // new THREE.MeshPhongMaterial({
       new THREE.MeshBasicMaterial({
-        // map:         map,
-        color: 0xbbbbbb,
+         map:         map,
+        color: this._options.color || 0xbbbbbb,
         // specular: 0x111111,
         // shininess: 1,
         // shininess: 0,

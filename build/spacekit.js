@@ -1526,12 +1526,14 @@ var Spacekit = (function (exports) {
 
   class RotatingObject extends SpaceObject {
     /*
-     * @param {boolean} options.shape.enableRotation Rotate the object
-     * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
+     * @param {boolean} options.rotation.enable Rotate the object
+     * @param {Number} options.rotation.speed Factor that determines speed of rotation
      * @see SpaceObject
      */
     constructor(id, options, contextOrSimulation) {
       super(id, options, contextOrSimulation, false /* autoInit */);
+
+      this._options.rotation = this._options.rotation || {};
 
       // The THREE.js object
       this._obj = new THREE.Object3D();
@@ -1600,9 +1602,9 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      if (this._obj && this._options.shape.enableRotation) {
+      if (this._obj && this._options.rotation && this._options.rotation.enable) {
         // For now, just rotate on X axis.
-        const speed = this._options.shape.rotationSpeed || 0.5;
+        const speed = this._options.rotation.speed || 0.5;
         this._obj.rotation.x += (speed * (Math.PI / 180));
         this._obj.rotation.x %= 360;
       }
@@ -1626,14 +1628,14 @@ var Spacekit = (function (exports) {
      * Begin rotating this object.
      */
     startRotation() {
-      this._options.shape.enableRotation = true;
+      this._options.rotation.enable = true;
     }
 
     /**
      * Stop rotation of this object.
      */
     stopRotation() {
-      this._options.shape.enableRotation = false;
+      this._options.rotation.enable = false;
     }
   }
 
@@ -1827,30 +1829,26 @@ var Spacekit = (function (exports) {
      * @param {String} bumpMapUrl Path to bump map (optional)
      * @param {String} specularMapUrl Path to specular map (optional)
      * @param {Number} color Hex color of the sphere
-     * @param {Number} options.shape.radius Radius of sphere. Defaults to 1
-     * @param {Object} options.shape.debug Debug options
-     * @param {boolean} options.shape.debug.showAxes Show axes
+     * @param {Number} options.radius Radius of sphere. Defaults to 1
+     * @param {Object} options.debug Debug options
+     * @param {boolean} options.debug.showAxes Show axes
      * @see SpaceObject
      * @see RotatingObject
      */
     constructor(id, options, contextOrSimulation) {
       super(id, options, contextOrSimulation, false /* autoInit */);
-      if (!options.shape) {
-        console.error('ShapeObject requires an options.shape object');
-        return;
-      }
 
       this.initSphere();
     }
 
     initSphere() {
       let map;
-      if (this._options.shape.textureUrl) {
+      if (this._options.textureUrl) {
         map = THREE.ImageUtils.loadTexture(img);
         map.minFilter = THREE.LinearFilter;
       }
 
-      const sphereGeometry = new THREE.SphereGeometry(this._options.shape.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
+      const sphereGeometry = new THREE.SphereGeometry(this._options.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
       const mesh = new THREE.Mesh(
         sphereGeometry,
         // new THREE.MeshPhongMaterial({

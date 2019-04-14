@@ -11,30 +11,26 @@ export class SphereObject extends RotatingObject {
    * @param {String} bumpMapUrl Path to bump map (optional)
    * @param {String} specularMapUrl Path to specular map (optional)
    * @param {Number} color Hex color of the sphere
-   * @param {Number} options.shape.radius Radius of sphere. Defaults to 1
-   * @param {Object} options.shape.debug Debug options
-   * @param {boolean} options.shape.debug.showAxes Show axes
+   * @param {Number} options.radius Radius of sphere. Defaults to 1
+   * @param {Object} options.debug Debug options
+   * @param {boolean} options.debug.showAxes Show axes
    * @see SpaceObject
    * @see RotatingObject
    */
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
-    if (!options.shape) {
-      console.error('ShapeObject requires an options.shape object');
-      return;
-    }
 
     this.initSphere();
   }
 
   initSphere() {
     let map;
-    if (this._options.shape.textureUrl) {
+    if (this._options.textureUrl) {
       map = THREE.ImageUtils.loadTexture(img);
       map.minFilter = THREE.LinearFilter;
     }
 
-    const sphereGeometry = new THREE.SphereGeometry(this._options.shape.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
+    const sphereGeometry = new THREE.SphereGeometry(this._options.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
     const mesh = new THREE.Mesh(
       sphereGeometry,
       // new THREE.MeshPhongMaterial({

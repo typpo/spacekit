@@ -6,10 +6,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 viz.createStars();
 
 viz.createSphere('earth', {
-  shape: {
-    type: 'sphere',
-    debug: {
-      showAxes: true,
-    },
+  debug: {
+    showAxes: true,
   },
 });

@@ -23,12 +23,14 @@ function getAxis(src, dst, color) {
 
 export class RotatingObject extends SpaceObject {
   /*
-   * @param {boolean} options.shape.enableRotation Rotate the object
-   * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
+   * @param {boolean} options.rotation.enable Rotate the object
+   * @param {Number} options.rotation.speed Factor that determines speed of rotation
    * @see SpaceObject
    */
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
+
+    this._options.rotation = this._options.rotation || {};
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -97,9 +99,9 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} jd JD date
    */
   update(jd) {
-    if (this._obj && this._options.shape.enableRotation) {
+    if (this._obj && this._options.rotation && this._options.rotation.enable) {
       // For now, just rotate on X axis.
-      const speed = this._options.shape.rotationSpeed || 0.5;
+      const speed = this._options.rotation.speed || 0.5;
       this._obj.rotation.x += (speed * (Math.PI / 180));
       this._obj.rotation.x %= 360;
     }
@@ -125,13 +127,13 @@ export class RotatingObject extends SpaceObject {
    * Begin rotating this object.
    */
   startRotation() {
-    this._options.shape.enableRotation = true;
+    this._options.rotation.enable = true;
   }
 
   /**
    * Stop rotation of this object.
    */
   stopRotation() {
-    this._options.shape.enableRotation = false;
+    this._options.rotation.enable = false;
   }
 }

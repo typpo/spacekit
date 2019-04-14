@@ -1,22 +1,18 @@
-import { SpaceObject } from './SpaceObject';
-import { rad } from './Units';
+import { RotatingObject } from './RotatingObject';
 
-const NUM_SPHERE_SEGMENTS = 32;
-
-export class ShapeObject extends SpaceObject {
+export class ShapeObject extends RotatingObject {
   /**
    * @param {Object} options.shape Shape specification
    * @param {String} options.shape.type Type of object ("custom" or "sphere")
    * @param {String} options.shape.shapeUrl Path to shapefile if type is "custom"
    * @param {Number} options.shape.textureUrl Optional texture map for shape
    * @param {Number} options.shape.color Color of shape materials. Default 0xcccccc
-   * @param {boolean} options.shape.enableRotation Rotate the object
-   * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
    * @param {Number} options.shape.radius Radius, if applicable. Defaults to 1
    * @param {Object} options.shape.debug Debug options
    * @param {boolean} options.shape.debug.showAxes Show axes
    * rotation speed. Default 0.5
    * @see SpaceObject
+   * @see RotatingObject
    */
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
@@ -25,73 +21,15 @@ export class ShapeObject extends SpaceObject {
       return;
     }
 
-    // The THREE.js object
-    this._obj = undefined;
-    this._eclipticOrigin = undefined;
+    this._shapeObj = undefined;
 
-    // Offset of axis angle
-    this._axisRotationAngleOffset = 0;
-    this._axisOfRotation = undefined;
-
-    // Keep track of materials that comprise this object.
-    this._materials = [];
-
-    this.init();
+    this.initShape();
   }
 
   /**
    * @private
    */
-  init() {
-    if (this._options.shape.type === 'sphere') {
-      this.initSphere();
-    } else {
-      this.initCustom();
-    }
-  }
-
-  /**
-   * @private
-   */
-  initSphere() {
-    let map = undefined;
-    if (this._options.shape.textureUrl) {
-      map = THREE.ImageUtils.loadTexture(img);
-      map.minFilter = THREE.LinearFilter;
-    }
-
-    const sphereGeometry = new THREE.SphereGeometry(this._options.shape.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
-    const mesh = new THREE.Mesh(
-      sphereGeometry,
-      //new THREE.MeshPhongMaterial({
-      new THREE.MeshBasicMaterial({
-        //map:         map,
-        color: 0xbbbbbb,
-        //specular: 0x111111,
-        //shininess: 1,
-        //shininess: 0,
-        //bumpMap:     map,
-        //bumpScale:   0.02,
-        //specularMap: map,
-        //specular:    new THREE.Color('grey')
-        //bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
-        //bumpScale:   0.005,
-      })
-    );
-    this._obj = mesh;
-
-    if (this._simulation) {
-      // Add it all to visualization.
-      this._simulation.addObject(this, false /* noUpdate */);
-    }
-
-    this._initialized = true;
-  }
-
-  /**
-   * @private
-   */
-  initCustom() {
+  initShape() {
     const manager = new THREE.LoadingManager();
     manager.onProgress = (item, loaded, total) => {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -115,23 +53,10 @@ export class ShapeObject extends SpaceObject {
         }
       });
 
-      const parent = new THREE.Object3D();
-      parent.add(object);
+      this._shapeObj = object;
+      this._obj.add(object);
 
-      if (this._options.debug && this._options.debug.showAxes) {
-        this.getAxes().forEach(axis => parent.add(axis));
-
-        const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
-        gridHelper.geometry.rotateX(Math.PI / 2);
-        parent.add(gridHelper);
-      }
-
-      this._obj = parent;
-
-      // Initialize the rotation at 0,0,0.
-      this.initRotation();
-
-      // Then move the object to its position.
+      // Move the object to its position.
       const pos = this._options.position;
       if (pos) {
         this._obj.position.set(pos[0], pos[1], pos[2]);
@@ -148,126 +73,11 @@ export class ShapeObject extends SpaceObject {
     // TODO(ian): Create an orbit if applicable
   }
 
-  initRotation() {
-    // Formula
-    // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
-
-    // Testing this asteroid:
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
-    // Model 2691
-    const PI = Math.PI;
-
-    // Cacus
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
-
-    // Latitude
-    const lambda = rad(251);
-
-    // Longitude
-    const beta = rad(-63);
-
-    // Other
-    const P = 3.755067;
-    const YORP = 1.9e-8;
-    const JD = 2443568.0;
-    const JD0 = 2443568.0;
-    const phi0 = rad(0);
-
-    // Asteroid rotation
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-
-    // Adjust Z axis according to time.
-    const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1 / 2 * YORP * Math.pow(JD - JD0, 2);
-    this._obj.rotateY(-(PI / 2 - beta));
-    this._obj.rotateZ(-lambda);
-    // this._obj.rotateZ(zAdjust);
-
-    const eclipticOrigin = new THREE.Object3D();
-    /*
-    // Set up ecliptic
-    const geometry = new THREE.SphereGeometry(0.05, 32, 32);
-    const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-    const pointOfAries = new THREE.Mesh( geometry, material );
-    //pointOfAries.position.set(5, 0, 0);
-    eclipticOrigin.add(pointOfAries);
-    eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-    eclipticOrigin.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -beta);
-
-    eclipticOrigin.updateMatrixWorld();
-    const poleProjectionPoint = new THREE.Vector3();
-    pointOfAries.getWorldPosition(poleProjectionPoint);
-    */
-    this._eclipticOrigin = eclipticOrigin;
-    // this._obj.lookAt(poleProjectionPoint);
-
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zAdjust + PI);
-  }
-
-  getAxes() {
-    return [
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-      this.getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
-    ];
-  }
-
-  getAxis(src, dst, color) {
-    const geom = new THREE.Geometry();
-    const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
-
-    geom.vertices.push(src.clone());
-    geom.vertices.push(dst.clone());
-
-    const axis = new THREE.Line(geom, mat, THREE.LineSegments);
-    axis.computeLineDistances();
-    return axis;
-  }
-
   /**
-   * Gets the THREE.js objects that represent this SpaceObject.
-   * @return {Array.<THREE.Object>} A list of THREE.js objects
+   * Specifies the object that is used to compute the bounding box.
+   * @return {THREE.Object3D} THREE.js object
    */
-  get3jsObjects() {
-    const ret = super.get3jsObjects();
-    ret.push(this._obj);
-    if (this._eclipticOrigin) {
-      ret.push(this._eclipticOrigin);
-    }
-    return ret;
-  }
-
-  /**
-   * Begin rotating this object.
-   */
-  startRotation() {
-    this._options.shape.enableRotation = true;
-  }
-
-  /**
-   * Stop rotation of this object.
-   */
-  stopRotation() {
-    this._options.shape.enableRotation = false;
-  }
-
-  /**
-   * Updates the object and its label positions for a given time.
-   * @param {Number} jd JD date
-   */
-  update(jd) {
-    if (this._obj && this._options.shape.enableRotation) {
-      // For now, just rotate on X axis.
-      const speed = this._options.shape.rotationSpeed || 0.5;
-      this._obj.rotation.x += (speed * (Math.PI / 180));
-      this._obj.rotation.x %= 360;
-    }
-    if (this._axisOfRotation) {
-      // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
-    }
-    // this._obj.rotateZ(0.015)
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
-    // TODO(ian): Update position if there is an associated orbit
+  getBoundingObject() {
+    return this._shapeObj;
   }
 }

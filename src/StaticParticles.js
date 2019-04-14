@@ -49,12 +49,12 @@ export class StaticParticles {
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        color: {value: new THREE.Color(0xffffff)},
-        //texture: { value: new THREE.TextureLoader().load( "textures/sprites/disc.png" ) }
+        color: { value: new THREE.Color(0xffffff) },
+        // texture: { value: new THREE.TextureLoader().load( "textures/sprites/disc.png" ) }
       },
       vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
       fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
-      alphaTest: 0.9
+      alphaTest: 0.9,
     });
 
     this._points = new THREE.Points(geometry, material);

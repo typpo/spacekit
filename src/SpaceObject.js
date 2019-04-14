@@ -1,4 +1,4 @@
-import { EphemPresets, Ephem } from './Ephem';
+import { EphemPresets } from './Ephem';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 
@@ -350,6 +350,15 @@ export class SpaceObject {
       }
     }
     return ret;
+  }
+
+  /**
+   * Specifies the object that is used to compute the bounding box. By default,
+   * this will be the first THREE.js object in this class's list of objects.
+   * @return {THREE.Object3D} THREE.js object
+   */
+  getBoundingObject() {
+    return this.get3jsObjects()[0];
   }
 
   /**

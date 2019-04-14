@@ -1,10 +1,11 @@
 import julian from 'julian';
 
 import { Camera } from './Camera';
+import { KeplerParticles } from './KeplerParticles';
 import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
-import { KeplerParticles } from './KeplerParticles';
+import { SphereObject } from './SphereObject';
 import { Stars } from './Stars';
 
 /**
@@ -256,6 +257,7 @@ export class Simulation {
    * animated.
    */
   addObject(obj, noUpdate = false) {
+    console.log('adding', obj.get3jsObjects());
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
@@ -295,6 +297,15 @@ export class Simulation {
    */
   createShape(...args) {
     return new ShapeObject(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new SphereOjbect belonging to this visualization.
+   * Takes any SphereObject arguments.
+   * @see SphereObject
+   */
+  createSphere(...args) {
+    return new SphereObject(...args, this);
   }
 
   /**
@@ -397,7 +408,7 @@ export class Simulation {
   zoomToFit(spaceObj, offset = 3.0) {
     const checkZoomFit = () => {
       const orbit = spaceObj.getOrbit();
-      const obj = orbit ? orbit.getEllipse() : spaceObj.get3jsObjects()[0];
+      const obj = orbit ? orbit.getEllipse() : spaceObj.getBoundingObject();
       if (obj) {
         this.doZoomToFit(obj, offset);
         return true;

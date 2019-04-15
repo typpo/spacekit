@@ -1524,10 +1524,22 @@ var Spacekit = (function (exports) {
     return axis;
   }
 
+  /**
+   * This class simulates an object that spins according to provided rotational
+   * parameters.
+   */
   class RotatingObject extends SpaceObject {
     /*
+     * FIXME(ian): This implementation is still WIP! Rotational parameters are not
+     * used right now.
      * @param {boolean} options.rotation.enable Rotate the object
      * @param {Number} options.rotation.speed Factor that determines speed of rotation
+     * @param {Number} options.rotation.lambdaDeg Ecliptic longitude lambda, in degrees
+     * @param {Number} options.rotation.betaDeg Ecliptic longitude beta, in degrees
+     * @param {Number} options.rotation.period Rotational period, in JD
+     * @param {Number} options.rotation.yorp YORP coefficient, if any (defaults to 0)
+     * @param {Number} options.rotation.phi0 Initial rotation phi, in degrees (defaults to 0)
+     * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
      * @see SpaceObject
      */
     constructor(id, options, contextOrSimulation) {

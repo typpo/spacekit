@@ -1887,6 +1887,10 @@ var Spacekit = (function (exports) {
           // bumpScale:   0.005,
         }),
       );
+
+      // Change the coordinate system to have Z-axis pointed up.
+      mesh.rotation.x = Math.PI / 2;
+
       this._obj.add(mesh);
 
       if (this._simulation) {

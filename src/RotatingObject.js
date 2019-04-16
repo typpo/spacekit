@@ -101,7 +101,6 @@ export class RotatingObject extends SpaceObject {
     const phi0 = rad(rotation.phi0);
     const JD = this._simulation.getJd();
     const JD0 = rotation.jd0;
-    console.log(JD, JD0)
 
     // Asteroid rotation
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);

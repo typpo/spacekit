@@ -37,7 +37,7 @@ export class SphereObject extends RotatingObject {
       sphereGeometry,
       // new THREE.MeshPhongMaterial({
       new THREE.MeshBasicMaterial({
-         map:         map,
+        map,
         color: this._options.color || 0xbbbbbb,
         // specular: 0x111111,
         // shininess: 1,

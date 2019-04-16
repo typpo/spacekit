@@ -1545,7 +1545,10 @@ var Spacekit = (function (exports) {
     constructor(id, options, contextOrSimulation) {
       super(id, options, contextOrSimulation, false /* autoInit */);
 
-      this._options.rotation = this._options.rotation || {};
+      this._objectIsRotatable = false;
+      if (this._options.rotation) {
+        this._objectIsRotatable = true;
+      }
 
       // The THREE.js object
       this._obj = new THREE.Object3D();
@@ -1561,7 +1564,9 @@ var Spacekit = (function (exports) {
     }
 
     init() {
-      this.initRotation();
+      if (this._objectIsRotatable) {
+        this.initRotation();
+      }
 
       if (this._options.debug && this._options.debug.showAxes) {
         getAxes().forEach(axis => this._obj.add(axis));
@@ -1585,18 +1590,21 @@ var Spacekit = (function (exports) {
       // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
       // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
+      const rotation = this._options.rotation;
+
       // Latitude
-      const lambda = rad(251);
+      const lambda = rad(rotation.lambdaDeg);
 
       // Longitude
-      const beta = rad(-63);
+      const beta = rad(rotation.betaDeg);
 
       // Other
-      const P = 3.755067;
-      const YORP = 1.9e-8;
-      const JD = 2443568.0;
-      const JD0 = 2443568.0;
-      const phi0 = rad(0);
+      const P = rotation.period;
+      const YORP = rotation.yorp;
+      const phi0 = rad(rotation.phi0);
+      const JD = this._simulation.getJd();
+      const JD0 = rotation.jd0;
+      console.log(JD, JD0);
 
       // Asteroid rotation
       // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
@@ -1614,11 +1622,11 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      if (this._obj && this._options.rotation && this._options.rotation.enable) {
+      if (this._obj && this._objectIsRotatable && this._options.rotation && this._options.rotation.enable) {
         // For now, just rotate on X axis.
         const speed = this._options.rotation.speed || 0.5;
-        this._obj.rotation.x += (speed * (Math.PI / 180));
-        this._obj.rotation.x %= 360;
+        this._obj.rotation.z += (speed * (Math.PI / 180));
+        this._obj.rotation.z %= 360;
       }
       if (this._axisOfRotation) ;
       // this._obj.rotateZ(0.015)

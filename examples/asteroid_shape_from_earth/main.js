@@ -83,6 +83,14 @@ const obj = viz.createShape('myobj', {
     // shapeUrl: './A122.M1825.obj',   // Ariadne
     // enableRotation: true,
   },
+  rotation: {
+    lambdaDeg: 251,
+    betaDeg: -63,
+    period: 3.755067,
+    yorp: 1.9e-8,
+    phi0: 0,
+    jd0: 2443568.0,
+  },
   debug: {
     showAxes: true,
   },

@@ -1,7 +1,7 @@
 {
-  "coverage": "51.96%",
-  "expectCount": 229,
-  "actualCount": 119,
+  "coverage": "52.17%",
+  "expectCount": 230,
+  "actualCount": 120,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -57,19 +57,19 @@
       "undocumentLines": []
     },
     "src/RotatingObject.js": {
-      "expectCount": 14,
-      "actualCount": 4,
+      "expectCount": 15,
+      "actualCount": 5,
       "undocumentLines": [
         4,
         12,
-        24,
-        30,
-        34,
-        37,
-        38,
-        41,
-        46,
-        58
+        42,
+        45,
+        51,
+        54,
+        55,
+        58,
+        63,
+        77
       ]
     },
     "src/ShapeObject.js": {
@@ -144,8 +144,8 @@
       "actualCount": 2,
       "undocumentLines": [
         3,
-        30,
-        62
+        26,
+        64
       ]
     },
     "src/Stars.js": {

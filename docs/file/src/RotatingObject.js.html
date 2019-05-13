@@ -90,14 +90,31 @@ function getAxis(src, dst, color) {
   return axis;
 }
 
+/**
+ * This class simulates an object that spins according to provided rotational
+ * parameters.
+ */
 export class RotatingObject extends SpaceObject {
   /*
-   * @param {boolean} options.shape.enableRotation Rotate the object
-   * @param {Number} options.shape.rotationSpeed Factor that determines speed of rotation
+   * FIXME(ian): This implementation is still WIP! Rotational parameters are not
+   * used right now.
+   * @param {boolean} options.rotation.enable Rotate the object
+   * @param {Number} options.rotation.speed Factor that determines speed of rotation
+   * @param {Number} options.rotation.lambdaDeg Ecliptic longitude lambda, in degrees
+   * @param {Number} options.rotation.betaDeg Ecliptic longitude beta, in degrees
+   * @param {Number} options.rotation.period Rotational period, in JD
+   * @param {Number} options.rotation.yorp YORP coefficient, if any (defaults to 0)
+   * @param {Number} options.rotation.phi0 Initial rotation phi, in degrees (defaults to 0)
+   * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
+
+    this._objectIsRotatable = false;
+    if (this._options.rotation) {
+      this._objectIsRotatable = true;
+    }
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -113,7 +130,9 @@ export class RotatingObject extends SpaceObject {
   }
 
   init() {
-    this.initRotation();
+    if (this._objectIsRotatable) {
+      this.initRotation();
+    }
 
     if (this._options.debug &amp;&amp; this._options.debug.showAxes) {
       getAxes().forEach(axis =&gt; this._obj.add(axis));
@@ -137,18 +156,20 @@ export class RotatingObject extends SpaceObject {
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&amp;model_id=1863&amp;jd=2443568.0
 
+    const rotation = this._options.rotation;
+
     // Latitude
-    const lambda = rad(251);
+    const lambda = rad(rotation.lambdaDeg);
 
     // Longitude
-    const beta = rad(-63);
+    const beta = rad(rotation.betaDeg);
 
     // Other
-    const P = 3.755067;
-    const YORP = 1.9e-8;
-    const JD = 2443568.0;
-    const JD0 = 2443568.0;
-    const phi0 = rad(0);
+    const P = rotation.period;
+    const YORP = rotation.yorp;
+    const phi0 = rad(rotation.phi0);
+    const JD = this._simulation.getJd();
+    const JD0 = rotation.jd0;
 
     // Asteroid rotation
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
@@ -166,11 +187,11 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} jd JD date
    */
   update(jd) {
-    if (this._obj &amp;&amp; this._options.shape.enableRotation) {
+    if (this._obj &amp;&amp; this._objectIsRotatable &amp;&amp; this._options.rotation &amp;&amp; this._options.rotation.enable) {
       // For now, just rotate on X axis.
-      const speed = this._options.shape.rotationSpeed || 0.5;
-      this._obj.rotation.x += (speed * (Math.PI / 180));
-      this._obj.rotation.x %= 360;
+      const speed = this._options.rotation.speed || 0.5;
+      this._obj.rotation.z += (speed * (Math.PI / 180));
+      this._obj.rotation.z %= 360;
     }
     if (this._axisOfRotation) {
       // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
@@ -194,14 +215,14 @@ export class RotatingObject extends SpaceObject {
    * Begin rotating this object.
    */
   startRotation() {
-    this._options.shape.enableRotation = true;
+    this._options.rotation.enable = true;
   }
 
   /**
    * Stop rotation of this object.
    */
   stopRotation() {
-    this._options.shape.enableRotation = false;
+    this._options.rotation.enable = false;
   }
 }
 </code></pre>

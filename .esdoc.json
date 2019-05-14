@@ -6,7 +6,10 @@
     {
       "name": "esdoc-standard-plugin",
       "option": {
-        "accessor": {"access": ["public", "protected"], "autoPrivate": true}
+        "accessor": {"access": ["public", "protected"], "autoPrivate": true},
+        "brand": {
+          "title": "spacekit.js"
+        }
       }
     }
   ]

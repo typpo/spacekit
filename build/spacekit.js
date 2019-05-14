@@ -1957,7 +1957,7 @@ var Spacekit = (function (exports) {
     }
 
     init() {
-      const dataUrl = getFullUrl('{{data}}/bsc_processed.json', this._context.options.basePath);
+      const dataUrl = getFullUrl('{{data}}/processed/bsc.json', this._context.options.basePath);
 
       fetch(dataUrl).then(resp => resp.json()).then((library) => {
         const n = library.length;

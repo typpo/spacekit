@@ -3744,10 +3744,10 @@
                                   }
                                 },
                                 "extra": {
-                                  "rawValue": "{{data}}/bsc_processed.json",
-                                  "raw": "'{{data}}/bsc_processed.json'"
+                                  "rawValue": "{{data}}/processed/bsc.json",
+                                  "raw": "'{{data}}/processed/bsc.json'"
                                 },
-                                "value": "{{data}}/bsc_processed.json"
+                                "value": "{{data}}/processed/bsc.json"
                               },
                               {
                                 "type": "MemberExpression",
@@ -15867,7 +15867,7 @@
         "binop": null,
         "updateContext": null
       },
-      "value": "{{data}}/bsc_processed.json",
+      "value": "{{data}}/processed/bsc.json",
       "start": 2026,
       "end": 2055,
       "loc": {

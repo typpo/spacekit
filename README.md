@@ -8,6 +8,22 @@ See the **[full documentation](https://typpo.github.io/spacekit/)**
 
 Note that this library is a work in progress and the API might change!
 
+# Terminology and components
+
+  - `Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it.
+
+  - `Skybox`: the image background of the visualization.  The "universe" of the visualization is contained within a large sphere, so "skysphere" may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho.
+
+  - `Stars`: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.
+
+  - `SpaceObject`: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply "Object").  SpaceObjects can orbit, rotate, etc.  Subclasses include `RotatingObject` (has a defined spin axis), `ShapeObject` (has a 3D shapefile), and `SphereObject` (is spherical, like the Earth).
+
+  - `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
+  
+# How to get started
+
+To be written...
+
 # Dependencies
 
 You'll need to include the following dependencies in production:

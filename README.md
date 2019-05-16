@@ -10,15 +10,108 @@ Note that this library is a work in progress and the API might change!
 
 # Terminology and components
 
-  - `Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it.
+`Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it. See [documentation](https://typpo.github.io/spacekit/class/src/Simulation.js~Simulation.html) for full options.
+```javascript
+const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
+ // Required
+ basePath: '../path/to/asset',
+ // Optional
+ camera: {
+   position: [0, -10, 5],
+   enableDrift: false,
+ },
+ debug: {
+   showAxes: false,
+   showGrid: false,
+   showStats: false,
+ },
+});
+```
 
-  - `Skybox`: the image background of the visualization.  The "universe" of the visualization is contained within a large sphere, so "skysphere" may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho.
+`Skybox`: the image background of the visualization.  The "universe" of the visualization is contained within a large sphere, so "skysphere" may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho. See [documentation](https://typpo.github.io/spacekit/variable/index.html#static-variable-SkyboxPresets) for full preset options.
+```javascript
+// Use an existing skybox preset.
+const skybox = sim.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
 
-  - `Stars`: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.
+// Add a skybox preset
+const skybox = sim.createSkybox({
+  textureUrl: '../path/to/image.png'
+});
+```
 
-  - `SpaceObject`: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply "Object").  SpaceObjects can orbit, rotate, etc.  Subclasses include `RotatingObject` (has a defined spin axis), `ShapeObject` (has a 3D shapefile), and `SphereObject` (is spherical, like the Earth).
+`Stars`: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.
+```javascript
+// Use an existing skybox preset.
+const skybox = sim.createStars({minSize /* optional */: 0.75 /* default */});
 
-  - `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
+// Add a skybox preset
+const skybox = sim.createSkybox({
+  textureUrl: '../path/to/image.png'
+});
+```
+
+`SpaceObject`: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply "Object").  SpaceObjects can orbit, rotate, etc.  Subclasses include `RotatingObject` (has a defined spin axis), `ShapeObject` (has a 3D shapefile), and `SphereObject` (is spherical, like the Earth).
+```javascript
+// Create objects using presets. The presets include scientific ephem params and/or position.
+const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
+viz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);
+viz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);
+
+// Create a stationary object at [3, 1, -5] position.
+const obj = viz.createObject('myobj', {
+  position: [3, 1, -5],
+};
+
+// Create an object that orbits.
+
+// Ephem is a class representing Kepler ephemerides, which defines the trajectory of astronomical objects as well
+// as artificial satellites in the sky, i.e., the position (and possibly velocity) over time.
+const ephem = new Spacekit.Ephem({
+  epoch: 2458600.5,
+  a: 5.38533,
+  e: 0.19893,
+  i: 22.11137,
+  om: 294.42992,
+  w: 314.28890,
+  ma: 229.14238,
+}, 'deg');
+
+const asteroid = sim.createObject('Asteroid Aci', {
+  ephem,
+});
+
+// Create a shape object
+const obj = viz.createShape('myobj', {
+  position: [3, 1, -5],
+  shape: {
+    // Example shape file -
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
+    shapeUrl: '../path/to/shape.obj', // Cacus
+  },
+  rotation: {
+    lambdaDeg: 251,
+    betaDeg: -63,
+    period: 3.755067,
+    yorp: 1.9e-8,
+    phi0: 0,
+    jd0: 2443568.0,
+  },
+  debug: {
+    showAxes: true,
+  },
+});
+
+// Create a sphere object
+sim.createSphere('earth', {
+  textureUrl: './earth_66mya.jpg',
+  radius: 2 /* default to 1 */
+  debug: {
+    showAxes: true,
+  },
+});
+```
+
+`KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
   
 # How to get started
 
@@ -31,6 +124,8 @@ You'll need to include the following dependencies in production:
   - THREE.js
   - THREE.js TrackballControls
   - Stats.js (optional)
+  - Spacekit asset directory [TODO: link to asset and data file]
+  - Spacekit data directory
 
 If you want to contribute to this project, you will also need to install Python (2.7 or 3).
 
@@ -47,7 +142,7 @@ See the [examples](https://github.com/typpo/spacekit/tree/master/examples) direc
 ```javascript
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  basePath: '../src',
+  assetPath: '../src/assets',
 });
 
 // Create a skybox using NASA TYCHO artwork.

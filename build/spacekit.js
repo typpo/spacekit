@@ -2029,7 +2029,8 @@ var Spacekit = (function (exports) {
    * Simulation.
    *
    * @example
-   * const sim = new Spacekit.Simulation('my-container', {
+   * const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
+   *  basePath: '../path/to/assets',
    *  startDate: Date.now(),
    *  jd: 0.0,
    *  jdDelta: 10.0,
@@ -2051,7 +2052,7 @@ var Spacekit = (function (exports) {
     /**
      * @param {HTMLElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
-     * @param {String} basePath Path to simulation assets and data
+     * @param {String} options.basePath Path to simulation assets and data
      * @param {Date} options.startDate The start date and time for this
      * simulation.
      * @param {Number} options.jd The JD date of this simulation.
@@ -2084,6 +2085,7 @@ var Spacekit = (function (exports) {
     constructor(simulationElt, options) {
       this._simulationElt = simulationElt;
       this._options = options || {};
+      this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
       this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
       this._jdDelta = this._options.jdDelta;

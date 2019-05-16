@@ -71,6 +71,7 @@ export class Simulation {
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
+    this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
     this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
     this._jdDelta = this._options.jdDelta;

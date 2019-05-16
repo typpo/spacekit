@@ -84,7 +84,8 @@ import { Stars } from &apos;./Stars&apos;;
  * Simulation.
  *
  * @example
- * const sim = new Spacekit.Simulation(&apos;my-container&apos;, {
+ * const sim = new Spacekit.Simulation(document.getElementById(&apos;my-container&apos;), {
+ *  basePath: &apos;../path/to/assets&apos;,
  *  startDate: Date.now(),
  *  jd: 0.0,
  *  jdDelta: 10.0,
@@ -106,7 +107,7 @@ export class Simulation {
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
-   * @param {String} basePath Path to simulation assets and data
+   * @param {String} options.basePath Path to simulation assets and data
    * @param {Date} options.startDate The start date and time for this
    * simulation.
    * @param {Number} options.jd The JD date of this simulation.
@@ -139,6 +140,7 @@ export class Simulation {
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
+    this._options.basePath = this._options.basePath || &apos;https://typpo.github.io/spacekit/src&apos;;
 
     this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
     this._jdDelta = this._options.jdDelta;

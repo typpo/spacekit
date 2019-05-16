@@ -67,14 +67,111 @@
 </nav>
 
 <div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="spacekit">spacekit</h1><p>Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.</p>
-<p>You can check out an editable live example on <a href="https://jsfiddle.net/typpo/x9nv8jg0/2/">jsfiddle</a>, or look at a variety of live examples on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
+<p>You can check out an editable live example on <a href="https://jsfiddle.net/typpo/x9nv8jg0/6/">jsfiddle</a>, or look at a variety of live examples on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
 <p>See the <strong><a href="https://typpo.github.io/spacekit/">full documentation</a></strong></p>
 <p>Note that this library is a work in progress and the API might change!</p>
+<h1 id="terminology-and-components">Terminology and components</h1><p><code>Simulation</code>: the main container for your visualization.  A simulation is comprised by a <code>Camera</code> plus whatever you choose to put in it. See <a href="https://typpo.github.io/spacekit/class/src/Simulation.js~Simulation.html">documentation</a> for full options.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">const sim = new Spacekit.Simulation(document.getElementById(&apos;my-container&apos;), {
+ // Required
+ basePath: &apos;../path/to/asset&apos;,
+ // Optional
+ camera: {
+   position: [0, -10, 5],
+   enableDrift: false,
+ },
+ debug: {
+   showAxes: false,
+   showGrid: false,
+   showStats: false,
+ },
+});</code>
+</code></pre>
+<p><code>Skybox</code>: the image background of the visualization.  The &quot;universe&quot; of the visualization is contained within a large sphere, so &quot;skysphere&quot; may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho. See <a href="https://typpo.github.io/spacekit/variable/index.html#static-variable-SkyboxPresets">documentation</a> for full preset options.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// Use an existing skybox preset.
+const skybox = sim.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+
+// Add a skybox preset
+const skybox = sim.createSkybox({
+  textureUrl: &apos;../path/to/image.png&apos;
+});</code>
+</code></pre>
+<p><code>Stars</code>: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// Use an existing skybox preset.
+const skybox = sim.createStars({minSize /* optional */: 0.75 /* default */});
+
+// Add a skybox preset
+const skybox = sim.createSkybox({
+  textureUrl: &apos;../path/to/image.png&apos;
+});</code>
+</code></pre>
+<p><code>SpaceObject</code>: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply &quot;Object&quot;).  SpaceObjects can orbit, rotate, etc.  Subclasses include <code>RotatingObject</code> (has a defined spin axis), <code>ShapeObject</code> (has a 3D shapefile), and <code>SphereObject</code> (is spherical, like the Earth).</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">// Create objects using presets. The presets include scientific ephem params and/or position.
+const sun = viz.createObject(&apos;sun&apos;, Spacekit.SpaceObjectPresets.SUN);
+viz.createObject(&apos;mercury&apos;, Spacekit.SpaceObjectPresets.MERCURY);
+viz.createObject(&apos;venus&apos;, Spacekit.SpaceObjectPresets.VENUS);
+
+// Create a stationary object at [3, 1, -5] position.
+const obj = viz.createObject(&apos;myobj&apos;, {
+  position: [3, 1, -5],
+};
+
+// Create an object that orbits.
+
+// Ephem is a class representing Kepler ephemerides, which defines the trajectory of astronomical objects as well
+// as artificial satellites in the sky, i.e., the position (and possibly velocity) over time.
+const ephem = new Spacekit.Ephem({
+  epoch: 2458600.5,
+  a: 5.38533,
+  e: 0.19893,
+  i: 22.11137,
+  om: 294.42992,
+  w: 314.28890,
+  ma: 229.14238,
+}, &apos;deg&apos;);
+
+const asteroid = sim.createObject(&apos;Asteroid Aci&apos;, {
+  ephem,
+});
+
+// Create a shape object
+const obj = viz.createShape(&apos;myobj&apos;, {
+  position: [3, 1, -5],
+  shape: {
+    // Example shape file -
+    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046
+    shapeUrl: &apos;../path/to/shape.obj&apos;, // Cacus
+  },
+  rotation: {
+    lambdaDeg: 251,
+    betaDeg: -63,
+    period: 3.755067,
+    yorp: 1.9e-8,
+    phi0: 0,
+    jd0: 2443568.0,
+  },
+  debug: {
+    showAxes: true,
+  },
+});
+
+// Create a sphere object
+sim.createSphere(&apos;earth&apos;, {
+  textureUrl: &apos;./earth_66mya.jpg&apos;,
+  radius: 2 /* default to 1 */
+  debug: {
+    showAxes: true,
+  },
+});</code>
+</code></pre>
+<p><code>KeplerParticles</code>: an optimized class for creating many particles that follow Kepler orbits.  These particles don&apos;t have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.</p>
+<h1 id="how-to-get-started">How to get started</h1><p>To be written...</p>
 <h1 id="dependencies">Dependencies</h1><p>You&apos;ll need to include the following dependencies in production:</p>
 <ul>
 <li>THREE.js</li>
 <li>THREE.js TrackballControls</li>
 <li>Stats.js (optional)</li>
+<li>Spacekit asset directory [TODO: link to asset and data file]</li>
+<li>Spacekit data directory</li>
 </ul>
 <p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
 <h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/simple.html">http://localhost:8001/examples/simple.html</a> to load a simple example.</p>

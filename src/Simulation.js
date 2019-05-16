@@ -15,7 +15,8 @@ import { Stars } from './Stars';
  * Simulation.
  *
  * @example
- * const sim = new Spacekit.Simulation('my-container', {
+ * const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
+ *  basePath: '../path/to/assets',
  *  startDate: Date.now(),
  *  jd: 0.0,
  *  jdDelta: 10.0,
@@ -37,7 +38,7 @@ export class Simulation {
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
-   * @param {String} basePath Path to simulation assets and data
+   * @param {String} options.basePath Path to simulation assets and data
    * @param {Date} options.startDate The start date and time for this
    * simulation.
    * @param {Number} options.jd The JD date of this simulation.

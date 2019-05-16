@@ -47,7 +47,7 @@ See the [examples](https://github.com/typpo/spacekit/tree/master/examples) direc
 ```javascript
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  assetPath: '../src/assets',
+  basePath: '../src',
 });
 
 // Create a skybox using NASA TYCHO artwork.

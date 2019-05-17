@@ -1582,6 +1582,10 @@ var Spacekit = (function (exports) {
     }
 
     initRotation() {
+      if (!this._options.rotation.jd0) {
+        return;
+      }
+
       // Formula
       // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
 

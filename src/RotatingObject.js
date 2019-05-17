@@ -42,13 +42,13 @@ export class RotatingObject extends SpaceObject {
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
 
+    // The THREE.js object
+    this._obj = new THREE.Object3D();
+
     this._objectIsRotatable = false;
     if (this._options.rotation) {
       this._objectIsRotatable = true;
     }
-
-    // The THREE.js object
-    this._obj = new THREE.Object3D();
 
     // Offset of axis angle
     this._axisRotationAngleOffset = 0;
@@ -65,12 +65,16 @@ export class RotatingObject extends SpaceObject {
       this.initRotation();
     }
 
-    if (this._options.debug && this._options.debug.showAxes) {
-      getAxes().forEach(axis => this._obj.add(axis));
+    if (this._options.debug) {
+      if (this._options.debug.showAxes) {
+        getAxes().forEach(axis => this._obj.add(axis));
+      }
 
-      const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
-      gridHelper.geometry.rotateX(Math.PI / 2);
-      this._obj.add(gridHelper);
+      if (this._options.debug.showGrid) {
+        const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
+        gridHelper.geometry.rotateX(Math.PI / 2);
+        this._obj.add(gridHelper);
+      }
     }
   }
 

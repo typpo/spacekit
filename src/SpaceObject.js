@@ -345,6 +345,20 @@ export class SpaceObject {
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
     }
 
+    if (this._orbitAround) {
+      const parentPos = this._orbitAround.getPosition(jd);
+      this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+      if (!this._options.hideOrbit) {
+        this._orbit.getEllipse().position.set(parentPos[0], parentPos[1], parentPos[2]);
+      }
+      if (!newpos) {
+        newpos = this.getPosition(jd);
+      }
+      newpos[0] += parentPos[0];
+      newpos[1] += parentPos[1];
+      newpos[2] += parentPos[2];
+    }
+
     // TODO(ian): Determine this based on orbit and camera position change.
     const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
     if (this._label && shouldUpdateLabelPos) {
@@ -353,14 +367,6 @@ export class SpaceObject {
       }
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
-    }
-
-    if (this._orbitAround) {
-      const parentPos = this._orbitAround.getPosition(jd);
-      this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
-      if (!this._options.hideOrbit) {
-        this._orbit.getEllipse().position.set(parentPos[0], parentPos[1], parentPos[2]);
-      }
     }
 
     this._lastJdUpdated = jd;

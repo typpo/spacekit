@@ -20,7 +20,10 @@ viz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);
 viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 viz.createObject('pluto', Spacekit.SpaceObjectPresets.PLUTO);
 
-const earth = viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
+const earth = viz.createObject('earth', Object.assign(Spacekit.SpaceObjectPresets.EARTH, {
+  labelText: 'Earth',
+
+}));
 const moon = viz.createObject('moon', Spacekit.SpaceObjectPresets.MOON);
 
 moon.orbitAround(earth);

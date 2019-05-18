@@ -119,8 +119,8 @@ export class Simulation {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     // Scene
-   const scene = new THREE.Scene();
-   this._scene = scene;
+    const scene = new THREE.Scene();
+    this._scene = scene;
 
 
     // Camera

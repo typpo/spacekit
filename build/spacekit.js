@@ -721,18 +721,6 @@ var Spacekit = (function (exports) {
   /**
    * Returns the complete URL to a texture given a basepath and a template url.
    * @param {String} template URL containing optional template parameters
-   * @param {String} basePath Base path for simulation data and assets.
-   * @example
-   * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
-   * => '/path/to/assets/images/mysprite.png'
-   */
-  function getFullTextureUrl(template, basePath) {
-    return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
-  }
-
-  /**
-   * Returns the complete URL to a texture given a basepath and a template url.
-   * @param {String} template URL containing optional template parameters
    * @param {String} basePath Base path
    * @example
    * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
@@ -741,6 +729,18 @@ var Spacekit = (function (exports) {
   function getFullUrl(template, basePath) {
     return template.replace('{{assets}}', `${basePath}/assets`)
       .replace('{{data}}', `${basePath}/data`);
+  }
+
+  /**
+   * Returns the complete URL to a texture given a basepath and a template url.
+   * @param {String} template URL containing optional template parameters
+   * @param {String} basePath Base path for simulation data and assets.
+   * @example
+   * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+   * => '/path/to/assets/images/mysprite.png'
+   */
+  function getFullTextureUrl(template, basePath) {
+    return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
   }
 
   /**
@@ -1616,14 +1616,6 @@ var Spacekit = (function (exports) {
     },
   };
 
-  function getAxes() {
-    return [
-      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
-    ];
-  }
-
   function getAxis(src, dst, color) {
     const geom = new THREE.Geometry();
     const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
@@ -1634,6 +1626,14 @@ var Spacekit = (function (exports) {
     const axis = new THREE.Line(geom, mat, THREE.LineSegments);
     axis.computeLineDistances();
     return axis;
+  }
+
+  function getAxes() {
+    return [
+      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
+      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
+      getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
+    ];
   }
 
   /**
@@ -2253,8 +2253,8 @@ var Spacekit = (function (exports) {
       THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
       // Scene
-     const scene = new THREE.Scene();
-     this._scene = scene;
+      const scene = new THREE.Scene();
+      this._scene = scene;
 
 
       // Camera

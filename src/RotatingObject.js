@@ -1,14 +1,6 @@
 import { SpaceObject } from './SpaceObject';
 import { rad } from './Units';
 
-function getAxes() {
-  return [
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
-  ];
-}
-
 function getAxis(src, dst, color) {
   const geom = new THREE.Geometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
@@ -19,6 +11,14 @@ function getAxis(src, dst, color) {
   const axis = new THREE.Line(geom, mat, THREE.LineSegments);
   axis.computeLineDistances();
   return axis;
+}
+
+function getAxes() {
+  return [
+    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
+    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
+    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
+  ];
 }
 
 /**

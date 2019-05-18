@@ -462,6 +462,13 @@ export const SpaceObjectPresets = {
     },
     ephem: EphemPresets.EARTH,
   },
+  MOON: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xCCCCCC,
+    },
+    ephem: EphemPresets.MOON,
+  },
   MARS: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {

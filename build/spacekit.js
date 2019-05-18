@@ -1255,7 +1255,7 @@ var Spacekit = (function (exports) {
       const simulationElt = this._simulation.getSimulationElement();
       const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
       const loc = {
-        left: pos.x - 30, top: pos.y - 15, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
       };
       if (loc.left > 0 && loc.right < simulationElt.clientWidth
           && loc.top > 0 && loc.bottom < simulationElt.clientHeight) {

@@ -249,9 +249,11 @@ export const EphemPresets = {
      */
   }, 'deg'),
   MOON: new Ephem({
+    // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
     GM: 0.39860e6,
 
     // Geocentric
+    // https://ssd.jpl.nasa.gov/horizons.cgi#results
     epoch: 2458621.500000000,
     a: 2.582517063772124E-03,
     e: 4.582543645168888E-02,
@@ -314,5 +316,14 @@ export const EphemPresets = {
     om: 1.318695882492132E+02,
     w: 2.586226409499831E+02,
     ma: 3.152804988924479E+02,
+  }, 'deg'),
+  PLUTO: new Ephem({
+    epoch: 2454000.5,
+    a: 39.4450697257,
+    e: 0.250248713478,
+    i: 17.0890009196,
+    om: 110.376957955,
+    w: 112.597141677,
+    ma: 25.2471897122,
   }, 'deg'),
 };

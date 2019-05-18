@@ -76,6 +76,7 @@ export class KeplerParticles {
     const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
     this._attributes = {
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
       position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
       fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
 
@@ -119,6 +120,7 @@ export class KeplerParticles {
    * @param {Object} options Options container
    * @param {Number} options.particleSize Size of particles
    * @param {Number} options.color Color of particles
+   * @return {Number} The index of this article in the attribute list.
    */
   addParticle(ephem, options = {}) {
     const attributes = this._attributes;
@@ -127,6 +129,8 @@ export class KeplerParticles {
     attributes.size.set([options.particleSize || 15], offset);
     const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
+
+    attributes.origin.set([0, 0, 0], offset * 3);
 
     attributes.a.set([ephem.get('a')], offset);
     attributes.e.set([ephem.get('e')], offset);
@@ -144,9 +148,7 @@ export class KeplerParticles {
         attributes[attributeKey].needsUpdate = true;
       }
     }
-    this._shaderMaterial.needsUpdate = true;
     this._geometry.setDrawRange(0, this._particleCount);
-    this._geometry.needsUpdate = true;
 
     if (!this._addedToScene && this._simulation) {
       // This happens lazily when the first data point is added in order to
@@ -154,6 +156,18 @@ export class KeplerParticles {
       this._simulation.addObject(this);
       this._addedToScene = true;
     }
+
+    return offset;
+  }
+
+  /**
+   * Change the `origin` attribute of a particle.
+   * @param {Number} offset The location of this particle in the attributes * array.
+   * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.
+   */
+  setParticleOrigin(offset, newOrigin) {
+    this._attributes.origin.set(newOrigin, offset * 3);
+    this._attributes.origin.needsUpdate = true;
   }
 
   /**

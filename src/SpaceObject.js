@@ -57,6 +57,7 @@ export class SpaceObject {
    * @param {Object} options Options container
    * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]
    * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]
+   * @param {Number} options.particleSize Size of particle if this object is a Kepler object being represented as a particle.
    * @param {String} options.labelText Text label to display above object (set undefined for no label)
    * @param {String} options.labelUrl Label becomes a link that goes to this url.
    * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
@@ -92,7 +93,14 @@ export class SpaceObject {
     this._lastLabelUpdate = 0;
 
     this._position = this._options.position || [0, 0, 0];
+    this._orbitAround = undefined;
     this._scale = this._options.scale || [1, 1, 1];
+
+    // The method of rendering used for this object (e.g. SPRITE, PARTICLESYSTEM).
+    this._renderMethod = undefined;
+
+    // The index of this particle in the KeplerParticles system, if applicable.
+    this._particleIndex = undefined;
 
     // Number of degrees moved per day. Used to limit the number of orbit
     // updates for very slow moving objects.
@@ -117,6 +125,7 @@ export class SpaceObject {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);
       }
+      this._renderMethod = 'SPRITE';
     } else {
       if (!this._options.hideOrbit) {
         // Orbit is initialized before sprite because sprite may be positioned
@@ -130,10 +139,11 @@ export class SpaceObject {
       }
 
       // Don't create a sprite - do it on the GPU instead.
-      this._context.objects.particles.addParticle(this._options.ephem, {
+      this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
         particleSize: this._options.particleSize,
         color: this.getColor(),
       });
+      this._renderMethod = 'PARTICLESYSTEM';
     }
     if (this._options.labelText) {
       const labelElt = this.createLabel();
@@ -271,6 +281,19 @@ export class SpaceObject {
   }
 
   /**
+   * Make this object orbit another orbit.
+   * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
+   */
+  orbitAround(spaceObj) {
+    if (this._renderMethod !== 'PARTICLESYSTEM') {
+      console.error(`"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`);
+      return;
+    }
+
+    this._orbitAround = spaceObj;
+  }
+
+  /**
    * Updates the position of this object. Applicable only if this object is a
    * sprite and not a particle type.
    * @param {Number} x X position
@@ -331,6 +354,12 @@ export class SpaceObject {
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
     }
+
+    if (this._orbitAround) {
+      const parentPos = this._orbitAround.getPosition(jd);
+      this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+    }
+
     this._lastJdUpdated = jd;
   }
 
@@ -465,9 +494,12 @@ export const SpaceObjectPresets = {
   MOON: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0xCCCCCC,
+      color: 0xFFD700,
     },
     ephem: EphemPresets.MOON,
+
+    // Special params
+    particleSize: 6,
   },
   MARS: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
@@ -503,5 +535,12 @@ export const SpaceObjectPresets = {
       color: 0x3333FF,
     },
     ephem: EphemPresets.NEPTUNE,
+  },
+  PLUTO: {
+    textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+    theme: {
+      color: 0xccc0b0,
+    },
+    ephem: EphemPresets.PLUTO,
   },
 };

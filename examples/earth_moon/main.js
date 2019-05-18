@@ -1,6 +1,7 @@
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
+  jdPerSecond: 5,
 });
 
 // Create a skybox using NASA TYCHO artwork.
@@ -17,8 +18,9 @@ viz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);
 viz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);
 viz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);
 viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
+viz.createObject('pluto', Spacekit.SpaceObjectPresets.PLUTO);
 
 const earth = viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
 const moon = viz.createObject('moon', Spacekit.SpaceObjectPresets.MOON);
 
-
+moon.orbitAround(earth);

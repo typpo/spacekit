@@ -18,6 +18,7 @@ export const ORBIT_SHADER_VERTEX = `
     uniform float jd;
 
     attribute vec3 fuzzColor;
+    attribute vec3 origin;
     varying vec3 vColor;
 
     attribute float size;
@@ -97,8 +98,8 @@ export const ORBIT_SHADER_VERTEX = `
     void main() {
       vColor = fuzzColor;
 
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
+      //vec3 newpos = getAstroPosFast() + origin;
+      vec3 newpos = getAstroPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;

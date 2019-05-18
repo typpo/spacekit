@@ -18,7 +18,7 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.001, 100000);
+      this._camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.00001, 2000);
     }
 
     /**
@@ -374,9 +374,11 @@ var Spacekit = (function (exports) {
        */
     }, 'deg'),
     MOON: new Ephem({
+      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
       GM: 0.39860e6,
 
       // Geocentric
+      // https://ssd.jpl.nasa.gov/horizons.cgi#results
       epoch: 2458621.500000000,
       a: 2.582517063772124E-03,
       e: 4.582543645168888E-02,
@@ -439,6 +441,15 @@ var Spacekit = (function (exports) {
       om: 1.318695882492132E+02,
       w: 2.586226409499831E+02,
       ma: 3.152804988924479E+02,
+    }, 'deg'),
+    PLUTO: new Ephem({
+      epoch: 2454000.5,
+      a: 39.4450697257,
+      e: 0.250248713478,
+      i: 17.0890009196,
+      om: 110.376957955,
+      w: 112.597141677,
+      ma: 25.2471897122,
     }, 'deg'),
   };
 
@@ -750,6 +761,7 @@ var Spacekit = (function (exports) {
     uniform float jd;
 
     attribute vec3 fuzzColor;
+    attribute vec3 origin;
     varying vec3 vColor;
 
     attribute float size;
@@ -829,8 +841,8 @@ var Spacekit = (function (exports) {
     void main() {
       vColor = fuzzColor;
 
-      //vec3 newpos = getAstroPosFast();
-      vec3 newpos = getAstroPos();
+      //vec3 newpos = getAstroPosFast() + origin;
+      vec3 newpos = getAstroPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;
@@ -926,6 +938,7 @@ var Spacekit = (function (exports) {
       const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
       this._attributes = {
         size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
         position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
         fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
 
@@ -969,6 +982,7 @@ var Spacekit = (function (exports) {
      * @param {Object} options Options container
      * @param {Number} options.particleSize Size of particles
      * @param {Number} options.color Color of particles
+     * @return {Number} The index of this article in the attribute list.
      */
     addParticle(ephem, options = {}) {
       const attributes = this._attributes;
@@ -977,6 +991,8 @@ var Spacekit = (function (exports) {
       attributes.size.set([options.particleSize || 15], offset);
       const color = new THREE.Color(options.color || 0xffffff);
       attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
+
+      attributes.origin.set([0, 0, 0], offset * 3);
 
       attributes.a.set([ephem.get('a')], offset);
       attributes.e.set([ephem.get('e')], offset);
@@ -994,9 +1010,7 @@ var Spacekit = (function (exports) {
           attributes[attributeKey].needsUpdate = true;
         }
       }
-      this._shaderMaterial.needsUpdate = true;
       this._geometry.setDrawRange(0, this._particleCount);
-      this._geometry.needsUpdate = true;
 
       if (!this._addedToScene && this._simulation) {
         // This happens lazily when the first data point is added in order to
@@ -1004,6 +1018,18 @@ var Spacekit = (function (exports) {
         this._simulation.addObject(this);
         this._addedToScene = true;
       }
+
+      return offset;
+    }
+
+    /**
+     * Change the `origin` attribute of a particle.
+     * @param {Number} offset The location of this particle in the attributes * array.
+     * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.
+     */
+    setParticleOrigin(offset, newOrigin) {
+      this._attributes.origin.set(newOrigin, offset * 3);
+      this._attributes.origin.needsUpdate = true;
     }
 
     /**
@@ -1088,6 +1114,7 @@ var Spacekit = (function (exports) {
      * @param {Object} options Options container
      * @param {Array.<Number>} options.position [X, Y, Z] heliocentric coordinates of object. Defaults to [0, 0, 0]
      * @param {Array.<Number>} options.scale Scale of object on each [X, Y, Z] axis. Defaults to [1, 1, 1]
+     * @param {Number} options.particleSize Size of particle if this object is a Kepler object being represented as a particle.
      * @param {String} options.labelText Text label to display above object (set undefined for no label)
      * @param {String} options.labelUrl Label becomes a link that goes to this url.
      * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
@@ -1119,7 +1146,14 @@ var Spacekit = (function (exports) {
       this._lastLabelUpdate = 0;
 
       this._position = this._options.position || [0, 0, 0];
+      this._orbitAround = undefined;
       this._scale = this._options.scale || [1, 1, 1];
+
+      // The method of rendering used for this object (e.g. SPRITE, PARTICLESYSTEM).
+      this._renderMethod = undefined;
+
+      // The index of this particle in the KeplerParticles system, if applicable.
+      this._particleIndex = undefined;
 
       // Number of degrees moved per day. Used to limit the number of orbit
       // updates for very slow moving objects.
@@ -1144,6 +1178,7 @@ var Spacekit = (function (exports) {
           // Add it all to visualization.
           this._simulation.addObject(this, false /* noUpdate */);
         }
+        this._renderMethod = 'SPRITE';
       } else {
         if (!this._options.hideOrbit) {
           // Orbit is initialized before sprite because sprite may be positioned
@@ -1157,10 +1192,11 @@ var Spacekit = (function (exports) {
         }
 
         // Don't create a sprite - do it on the GPU instead.
-        this._context.objects.particles.addParticle(this._options.ephem, {
+        this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
           particleSize: this._options.particleSize,
           color: this.getColor(),
         });
+        this._renderMethod = 'PARTICLESYSTEM';
       }
       if (this._options.labelText) {
         const labelElt = this.createLabel();
@@ -1298,6 +1334,19 @@ var Spacekit = (function (exports) {
     }
 
     /**
+     * Make this object orbit another orbit.
+     * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
+     */
+    orbitAround(spaceObj) {
+      if (this._renderMethod !== 'PARTICLESYSTEM') {
+        console.error(`"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`);
+        return;
+      }
+
+      this._orbitAround = spaceObj;
+    }
+
+    /**
      * Updates the position of this object. Applicable only if this object is a
      * sprite and not a particle type.
      * @param {Number} x X position
@@ -1358,6 +1407,12 @@ var Spacekit = (function (exports) {
         this.updateLabelPosition(newpos);
         this._lastLabelUpdate = +new Date();
       }
+
+      if (this._orbitAround) {
+        const parentPos = this._orbitAround.getPosition(jd);
+        this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+      }
+
       this._lastJdUpdated = jd;
     }
 
@@ -1492,9 +1547,12 @@ var Spacekit = (function (exports) {
     MOON: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0xCCCCCC,
+        color: 0xFFD700,
       },
       ephem: EphemPresets.MOON,
+
+      // Special params
+      particleSize: 6,
     },
     MARS: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
@@ -1530,6 +1588,13 @@ var Spacekit = (function (exports) {
         color: 0x3333FF,
       },
       ephem: EphemPresets.NEPTUNE,
+    },
+    PLUTO: {
+      textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+      theme: {
+        color: 0xccc0b0,
+      },
+      ephem: EphemPresets.PLUTO,
     },
   };
 

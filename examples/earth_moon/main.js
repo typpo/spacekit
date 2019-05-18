@@ -5,7 +5,8 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a skybox using NASA TYCHO artwork.
-viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+//viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+viz.createStars();
 
 // Create our first object - the sun - using a preset space object.
 viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);

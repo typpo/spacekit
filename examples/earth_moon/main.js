@@ -33,7 +33,7 @@ const spaceship = viz.createObject('my spaceship', {
   ephem: new Spacekit.Ephem({
     // These parameters define orbit shape.
     a: 0.3,
-    e: 0,
+    e: 1,
     i: 52,
 
     // These parameters define the orientation of the orbit.

@@ -18,6 +18,8 @@ const EPHEM_VALID_ATTRS = new Set([
   'om', // Longitude of Ascending Node
   'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
   'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+
+  'GM', // Gravitational constant of more massive body
 ]);
 
 // Which of these are angular measurements.

@@ -105,7 +105,7 @@ export class Orbit {
     // This position calculation is used to create orbital ellipses.
     let e = eph.get('e');
     if (e >= 1) {
-      e = 0.999999999999;
+      e = 0.9;
     }
 
     // Mean anomaly

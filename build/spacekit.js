@@ -143,6 +143,8 @@ var Spacekit = (function (exports) {
     'om', // Longitude of Ascending Node
     'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
     'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+
+    'GM', // Gravitational constant of more massive body
   ]);
 
   // Which of these are angular measurements.
@@ -560,7 +562,7 @@ var Spacekit = (function (exports) {
       // This position calculation is used to create orbital ellipses.
       let e = eph.get('e');
       if (e >= 1) {
-        e = 0.999999999999;
+        e = 0.9;
       }
 
       // Mean anomaly
@@ -786,14 +788,19 @@ var Spacekit = (function (exports) {
       float d = jd - epoch;
       float M = ma_rad + n_rad * d;
 
+      float adjusted_e = e;
+      if (e >= 1.0) {
+        adjusted_e = 0.9;
+      }
+
       // Estimate eccentric and true anom using iterative approximation (this
       // is normally an intergral).
       float E0 = M;
-      float E1 = M + e * sin(E0);
+      float E1 = M + adjusted_e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
       for (int foo=0; foo < 25; foo++) {
-        E1 = M + e * sin(E0);
+        E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
         if (lastdiff < 0.0000001) {
@@ -802,10 +809,10 @@ var Spacekit = (function (exports) {
       }
 
       float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
+      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
 
       // Compute radius vector.
-      float r = a * (1.0 - e*e) / (1.0 + e * cos(v));
+      float r = a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));

@@ -358,6 +358,9 @@ export class SpaceObject {
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
       this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+      if (!this._options.hideOrbit) {
+        this._orbit.getEllipse().position.set(parentPos[0], parentPos[1], parentPos[2]);
+      }
     }
 
     this._lastJdUpdated = jd;

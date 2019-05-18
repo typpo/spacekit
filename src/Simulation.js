@@ -119,7 +119,9 @@ export class Simulation {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     // Scene
-    this._scene = new THREE.Scene();
+   const scene = new THREE.Scene();
+   this._scene = scene;
+
 
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
@@ -174,6 +176,7 @@ export class Simulation {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
     });
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
 

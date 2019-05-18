@@ -221,9 +221,11 @@ export class SpaceObject {
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: texture,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
       color: 0xffffff,
     }));
-    sprite.scale.set.apply(this, this._scale);
+    const scale = this._scale;
+    sprite.scale.set(scale[0], scale[1], scale[2]);
     const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
 
@@ -476,7 +478,7 @@ const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
  */
 export const SpaceObjectPresets = {
   SUN: {
-    textureUrl: '{{assets}}/sprites/sunsprite.png',
+    textureUrl: '{{assets}}/sprites/lensflare0.png',
     position: [0, 0, 0],
   },
   MERCURY: {

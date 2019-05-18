@@ -71,9 +71,11 @@ export class Simulation {
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
-    this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
+    this._options.basePath =
+      this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
-    this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
+    this._jd =
+      this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
     this._isPaused = options.startPaused || false;
@@ -86,7 +88,8 @@ export class Simulation {
     this._cameraDefaultPos = [0, -10, 5];
     if (this._options.camera) {
       this._enableCameraDrift = !!this._options.camera.enableDrift;
-      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+      this._cameraDefaultPos =
+        this._options.camera.initialPosition || this._cameraDefaultPos;
     }
 
     this._camera = null;
@@ -122,18 +125,22 @@ export class Simulation {
     const scene = new THREE.Scene();
     this._scene = scene;
 
-
     // Camera
     this._camera = new Camera(this.getContext()).get3jsCamera();
-    this._camera.position.set(this._cameraDefaultPos[0],
+    this._camera.position.set(
+      this._cameraDefaultPos[0],
       this._cameraDefaultPos[1],
-      this._cameraDefaultPos[2]);
+      this._cameraDefaultPos[2],
+    );
     window.cam = this._camera;
 
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
+    this._cameraControls = new THREE.TrackballControls(
+      this._camera,
+      this._simulationElt,
+    );
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
 
@@ -162,11 +169,16 @@ export class Simulation {
     }
 
     // Orbit particle system must be initialized after scene is created.
-    this._particles = new KeplerParticles({
-      textureUrl: this._options.particleTextureUrl || '{{assets}}/sprites/smallparticle.png',
-      jd: this._jd,
-      maxNumParticles: this._options.maxNumParticles,
-    }, this);
+    this._particles = new KeplerParticles(
+      {
+        textureUrl:
+          this._options.particleTextureUrl ||
+          '{{assets}}/sprites/smallparticle.png',
+        jd: this._jd,
+        maxNumParticles: this._options.maxNumParticles,
+      },
+      this,
+    );
   }
 
   /**
@@ -178,7 +190,10 @@ export class Simulation {
     });
 
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
+    renderer.setSize(
+      this._simulationElt.offsetWidth,
+      this._simulationElt.offsetHeight,
+    );
 
     this._simulationElt.appendChild(renderer.domElement);
 
@@ -203,8 +218,8 @@ export class Simulation {
     // Follow floating path around
     const timer = 0.0001 * Date.now();
     const pos = this._cameraDefaultPos;
-    this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1) / 3;
-    this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1) / 3;
+    this._camera.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
+    this._camera.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
   }
 
   /**
@@ -226,12 +241,12 @@ export class Simulation {
         this._jd += this._jdDelta;
       } else {
         // N jd per second
-        this._jd += (this._jdPerSecond) / this._fps;
+        this._jd += this._jdPerSecond / this._fps;
       }
 
       const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
       this._lastUpdatedTime = Date.now();
-      this._fps = (1 / timeDelta) || 1;
+      this._fps = 1 / timeDelta || 1;
     }
 
     // Update objects in this simulation
@@ -263,7 +278,7 @@ export class Simulation {
    */
   addObject(obj, noUpdate = false) {
     console.log('adding', obj.get3jsObjects());
-    obj.get3jsObjects().map((x) => {
+    obj.get3jsObjects().map(x => {
       this._scene.add(x);
     });
 
@@ -279,7 +294,7 @@ export class Simulation {
    */
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
-    obj.get3jsObjects().map((x) => {
+    obj.get3jsObjects().map(x => {
       this._scene.remove(x);
     });
 
@@ -351,7 +366,7 @@ export class Simulation {
    * with camera.
    * @param {Number} color Color of light, default 0xFFFFFF
    */
-  createLight(pos = undefined, color = 0xFFFFFF) {
+  createLight(pos = undefined, color = 0xffffff) {
     const pointLight = new THREE.PointLight(color, 1, 0, 2);
     if (typeof pos !== 'undefined') {
       pointLight.position.set(pos[0], pos[1], pos[2]);
@@ -373,12 +388,15 @@ export class Simulation {
     let previouslyInView = true;
     const isInView = () => {
       const rect = this._simulationElt.getBoundingClientRect();
-      const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
-      const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
-      const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0);
-      const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0);
+      const windowHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth =
+        window.innerWidth || document.documentElement.clientWidth;
+      const vertInView =
+        rect.top <= windowHeight && rect.top + rect.height >= 0;
+      const horInView = rect.left <= windowWidth && rect.left + rect.width >= 0;
 
-      return (vertInView && horInView);
+      return vertInView && horInView;
     };
 
     window.addEventListener('scroll', () => {
@@ -452,11 +470,11 @@ export class Simulation {
     const camera = this._camera;
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = camera.fov * (Math.PI / 180);
-    const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
+    const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
 
     const objectWorldPosition = new THREE.Vector3();
     obj.getWorldPosition(objectWorldPosition);
-    const directionVector = camera.position.sub(objectWorldPosition); 	// Get vector from camera to object
+    const directionVector = camera.position.sub(objectWorldPosition); // Get vector from camera to object
     const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
 
     const newpos = unitDirectionVector.multiplyScalar(cameraZ);

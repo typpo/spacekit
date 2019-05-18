@@ -18,7 +18,12 @@ var Spacekit = (function (exports) {
     init() {
       const containerWidth = this._context.container.width;
       const containerHeight = this._context.container.height;
-      this._camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.00001, 2000);
+      this._camera = new THREE.PerspectiveCamera(
+        50,
+        containerWidth / containerHeight,
+        0.00001,
+        2000,
+      );
     }
 
     /**
@@ -30,11 +35,11 @@ var Spacekit = (function (exports) {
   }
 
   function rad(val) {
-    return val * Math.PI / 180;
+    return (val * Math.PI) / 180;
   }
 
   function deg(val) {
-    return val * 180 / Math.PI;
+    return (val * 180) / Math.PI;
   }
 
   function hoursToDeg(val) {
@@ -46,9 +51,14 @@ var Spacekit = (function (exports) {
     return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
   }
 
-  function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+  function sexagesimalToDecimalDec(
+    decDeg,
+    decMin,
+    decSec,
+    isObserverBelowEquator = false,
+  ) {
     const posneg = isObserverBelowEquator ? -1 : 1;
-    return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
+    return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
   }
 
   function decimalToSexagesimalRa(decimal) {
@@ -59,13 +69,17 @@ var Spacekit = (function (exports) {
     return [raHour, raMin, raSec];
   }
 
-  function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
+  function decimalToSexagesimalDec(
+    decimal,
+    isObserverBelowEquator = false,
+  ) {
     const val = parseFloat(decimal);
     const posneg = isObserverBelowEquator ? -1 : 1;
 
     const decDeg = Math.trunc(val);
     const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-    const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
+    const decSec =
+      (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
     return [decDeg, decMin, decSec];
   }
 
@@ -98,14 +112,30 @@ var Spacekit = (function (exports) {
    */
   function getNutationAndObliquity(jd = J2000) {
     const t = (jd - J2000) / 36525;
-    const omega = rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
+    const omega = rad(
+      125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000,
+    );
     const Lsun = rad(280.4665 + 36000.7698 * t);
     const Lmoon = rad(218.3165 + 481267.8813 * t);
 
-    const nutation = (-17.20 / 3600) * Math.sin(omega) - (-1.32 / 3600) * Math.sin(2 * Lsun) - (0.23 / 3600) * Math.sin(2 * Lmoon) + deg((0.21 / 3600) * Math.sin(2 * omega));
+    const nutation =
+      (-17.2 / 3600) * Math.sin(omega) -
+      (-1.32 / 3600) * Math.sin(2 * Lsun) -
+      (0.23 / 3600) * Math.sin(2 * Lmoon) +
+      deg((0.21 / 3600) * Math.sin(2 * omega));
 
-    const obliquity_zero = 23 + 26.0 / 60 + 21.448 / 3600 - (46.8150 / 3600) * t - (0.00059 / 3600) * t * t + (0.001813 / 3600) * t * t * t;
-    const obliquity_delta = (9.20 / 3600) * Math.cos(omega) + (0.57 / 3600) * Math.cos(2 * Lsun) + (0.10 / 3600) * Math.cos(2 * Lmoon) - (0.09 / 3600) * Math.cos(2 * omega);
+    const obliquity_zero =
+      23 +
+      26.0 / 60 +
+      21.448 / 3600 -
+      (46.815 / 3600) * t -
+      (0.00059 / 3600) * t * t +
+      (0.001813 / 3600) * t * t * t;
+    const obliquity_delta =
+      (9.2 / 3600) * Math.cos(omega) +
+      (0.57 / 3600) * Math.cos(2 * Lsun) +
+      (0.1 / 3600) * Math.cos(2 * Lmoon) -
+      (0.09 / 3600) * Math.cos(2 * omega);
     const obliquity = obliquity_zero + obliquity_delta;
 
     return {
@@ -148,9 +178,7 @@ var Spacekit = (function (exports) {
   ]);
 
   // Which of these are angular measurements.
-  const ANGLE_UNITS = new Set([
-    'i', 'ma', 'n', 'L', 'om', 'w', 'wBar',
-  ]);
+  const ANGLE_UNITS = new Set(['i', 'ma', 'n', 'L', 'om', 'w', 'wBar']);
 
   // Returns true if object is defined.
   function isDef(obj) {
@@ -220,7 +248,7 @@ var Spacekit = (function (exports) {
       // Store everything in radians.
       // TODO(ian): Make sure value can't be set with bogus units.
       if (units === 'deg') {
-        this._attrs[attr] = val * Math.PI / 180;
+        this._attrs[attr] = (val * Math.PI) / 180;
       } else {
         this._attrs[attr] = val;
       }
@@ -235,7 +263,7 @@ var Spacekit = (function (exports) {
      */
     get(attr, units = 'rad') {
       if (units === 'deg') {
-        return this._attrs[attr] * 180 / Math.PI;
+        return (this._attrs[attr] * 180) / Math.PI;
       }
       return this._attrs[attr];
     }
@@ -269,16 +297,18 @@ var Spacekit = (function (exports) {
       let period = this.get('period');
 
       if (!isDef(period) && isDef(a)) {
-        period = 2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM) / SECONDS_IN_DAY;
+        period =
+          (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+          SECONDS_IN_DAY;
         this.set('period', period);
       }
 
       if (isDef(period) && !isDef(n)) {
         // Set radians
-        const newN = 2.0 * Math.PI / period;
+        const newN = (2.0 * Math.PI) / period;
         this.set('n', newN);
       } else if (isDef(n) && !isDef(period)) {
-        this.set('period', 2.0 * Math.PI / n);
+        this.set('period', (2.0 * Math.PI) / n);
       }
 
       // Mean longitude
@@ -305,16 +335,16 @@ var Spacekit = (function (exports) {
    */
   const GM = {
     // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
-    SUN: 1.3271244004193938E+20,
-    MERCURY: 2.2031780000000021E+13,
-    VENUS: 3.2485859200000006E+14,
-    EARTH_MOON: 4.0350323550225981E+14,
-    MARS: 4.2828375214000022E+13,
-    JUPITER: 1.2671276480000021E+17,
-    SATURN: 3.7940585200000003E+16,
-    URANUS: 5.7945486000000080E+15,
-    NEPTUNE: 6.8365271005800236E+15,
-    PLUTO_CHARON: 9.7700000000000068E+11,
+    SUN: 1.3271244004193938e20,
+    MERCURY: 2.2031780000000021e13,
+    VENUS: 3.2485859200000006e14,
+    EARTH_MOON: 4.0350323550225981e14,
+    MARS: 4.2828375214000022e13,
+    JUPITER: 1.2671276480000021e17,
+    SATURN: 3.7940585200000003e16,
+    URANUS: 5.794548600000008e15,
+    NEPTUNE: 6.8365271005800236e15,
+    PLUTO_CHARON: 9.7700000000000068e11,
   };
 
   /**
@@ -326,27 +356,34 @@ var Spacekit = (function (exports) {
    */
   const EphemPresets = {
     // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
-    MERCURY: new Ephem({
-      epoch: 2458426.500000000,
-      a: 3.870968969437096E-01,
-      e: 2.056515875393916E-01,
-      i: 7.003891682749818E+00,
-      om: 4.830774804443502E+01,
-      w: 2.917940253442659E+01,
-      ma: 2.561909752092730E+02,
-    }, 'deg'),
-    VENUS: new Ephem({
-      epoch: 2458426.500000000,
-      a: 7.233458663591554E-01,
-      e: 6.762510759617694E-03,
-      i: 3.394567787211735E+00,
-      om: 7.662534150657346E+01,
-      w: 5.474567447560867E+01,
-      ma: 2.756687596099721E+02,
-    }, 'deg'),
-    EARTH: new Ephem({
-      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
-      /*
+    MERCURY: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 3.870968969437096e-1,
+        e: 2.056515875393916e-1,
+        i: 7.003891682749818,
+        om: 4.830774804443502e1,
+        w: 2.917940253442659e1,
+        ma: 2.56190975209273e2,
+      },
+      'deg',
+    ),
+    VENUS: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 7.233458663591554e-1,
+        e: 6.762510759617694e-3,
+        i: 3.394567787211735,
+        om: 7.662534150657346e1,
+        w: 5.474567447560867e1,
+        ma: 2.756687596099721e2,
+      },
+      'deg',
+    ),
+    EARTH: new Ephem(
+      {
+        // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+        /*
       epoch: 2451545.0,
       a: 1.00000011,
       e: 0.01671022,
@@ -356,16 +393,16 @@ var Spacekit = (function (exports) {
       L: 100.46435,
       */
 
-      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
-      epoch: 2451545.0,
-      a: 1.00000261,
-      e: 0.01671123,
-      i: -0.00001531,
-      om: 0.0,
-      wBar: 102.93768193,
-      L: 100.46457166,
+        // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+        epoch: 2451545.0,
+        a: 1.00000261,
+        e: 0.01671123,
+        i: -0.00001531,
+        om: 0.0,
+        wBar: 102.93768193,
+        L: 100.46457166,
 
-      /*
+        /*
         epoch: 2458426.500000000,
         a: 1.000618919441359E+00,
         e: 1.676780871638673E-02,
@@ -374,21 +411,24 @@ var Spacekit = (function (exports) {
         w: 2.718307282052625E+02,
         ma: 3.021792498388233E+02,
        */
-    }, 'deg'),
-    MOON: new Ephem({
-      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-      GM: 0.39860e6,
+      },
+      'deg',
+    ),
+    MOON: new Ephem(
+      {
+        // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+        GM: 0.3986e6,
 
-      // Geocentric
-      // https://ssd.jpl.nasa.gov/horizons.cgi#results
-      epoch: 2458621.500000000,
-      a: 2.582517063772124E-03,
-      e: 4.582543645168888E-02,
-      i: 5.102060246928811E+00,
-      om: 1.085916732144811E+02,
-      w: 6.180561793729225E+01,
-      ma: 5.053270083636792E+01,
-      /*
+        // Geocentric
+        // https://ssd.jpl.nasa.gov/horizons.cgi#results
+        epoch: 2458621.5,
+        a: 2.582517063772124e-3,
+        e: 4.582543645168888e-2,
+        i: 5.102060246928811,
+        om: 1.085916732144811e2,
+        w: 6.180561793729225e1,
+        ma: 5.053270083636792e1,
+        /*
        * heliocentric
       epoch: 2458621.500000000,
       a: 1.078855621785179E+00,
@@ -398,61 +438,81 @@ var Spacekit = (function (exports) {
       w: 1.503642883585293E+02,
       ma: 1.666758688084831E+01,
      */
-    }, 'deg'),
-    MARS: new Ephem({
-      epoch: 2458426.500000000,
-      a: 1.523714015371070E+00,
-      e: 9.336741335309606E-02,
-      i: 1.848141099825311E+00,
-      om: 4.950420572080223E+01,
-      w: 2.866965847685386E+02,
-      ma: 2.538237617924876E+01,
-    }, 'deg'),
-    JUPITER: new Ephem({
-      epoch: 2458426.500000000,
-      a: 5.201803559110230E+00,
-      e: 4.899125582490060E-02,
-      i: 1.303560894624275E+00,
-      om: 1.005203828847816E+02,
-      w: 2.737363018454040E+02,
-      ma: 2.319395443894010E+02,
-    }, 'deg'),
-    SATURN: new Ephem({
-      epoch: 2458426.500000000,
-      a: 9.577177295536776E+00,
-      e: 5.101889921719987E-02,
-      i: 2.482782449972317E+00,
-      om: 1.136154964073247E+02,
-      w: 3.394422648650336E+02,
-      ma: 1.870970898012944E+02,
-    }, 'deg'),
-    URANUS: new Ephem({
-      epoch: 2458426.500000000,
-      a: 1.914496966635462E+01,
-      e: 4.832662948112808E-02,
-      i: 7.697511134483724E-01,
-      om: 7.414239045667875E+01,
-      w: 9.942704504702185E+01,
-      ma: 2.202603033874267E+02,
-    }, 'deg'),
-    NEPTUNE: new Ephem({
-      epoch: 2458426.500000000,
-      a: 3.009622263428050E+01,
-      e: 7.362571187193770E-03,
-      i: 1.774569249829094E+00,
-      om: 1.318695882492132E+02,
-      w: 2.586226409499831E+02,
-      ma: 3.152804988924479E+02,
-    }, 'deg'),
-    PLUTO: new Ephem({
-      epoch: 2454000.5,
-      a: 39.4450697257,
-      e: 0.250248713478,
-      i: 17.0890009196,
-      om: 110.376957955,
-      w: 112.597141677,
-      ma: 25.2471897122,
-    }, 'deg'),
+      },
+      'deg',
+    ),
+    MARS: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 1.52371401537107,
+        e: 9.336741335309606e-2,
+        i: 1.848141099825311,
+        om: 4.950420572080223e1,
+        w: 2.866965847685386e2,
+        ma: 2.538237617924876e1,
+      },
+      'deg',
+    ),
+    JUPITER: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 5.20180355911023,
+        e: 4.89912558249006e-2,
+        i: 1.303560894624275,
+        om: 1.005203828847816e2,
+        w: 2.73736301845404e2,
+        ma: 2.31939544389401e2,
+      },
+      'deg',
+    ),
+    SATURN: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 9.577177295536776,
+        e: 5.101889921719987e-2,
+        i: 2.482782449972317,
+        om: 1.136154964073247e2,
+        w: 3.394422648650336e2,
+        ma: 1.870970898012944e2,
+      },
+      'deg',
+    ),
+    URANUS: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 1.914496966635462e1,
+        e: 4.832662948112808e-2,
+        i: 7.697511134483724e-1,
+        om: 7.414239045667875e1,
+        w: 9.942704504702185e1,
+        ma: 2.202603033874267e2,
+      },
+      'deg',
+    ),
+    NEPTUNE: new Ephem(
+      {
+        epoch: 2458426.5,
+        a: 3.00962226342805e1,
+        e: 7.36257118719377e-3,
+        i: 1.774569249829094,
+        om: 1.318695882492132e2,
+        w: 2.586226409499831e2,
+        ma: 3.152804988924479e2,
+      },
+      'deg',
+    ),
+    PLUTO: new Ephem(
+      {
+        epoch: 2454000.5,
+        a: 39.4450697257,
+        e: 0.250248713478,
+        i: 17.0890009196,
+        om: 110.376957955,
+        w: 112.597141677,
+        ma: 25.2471897122,
+      },
+      'deg',
+    ),
   };
 
   /**
@@ -522,13 +582,19 @@ var Spacekit = (function (exports) {
       for (let time = 0; time < period; time += step) {
         const pos = this.getPositionAtTime(time);
         if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-          console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
+          console.error(
+            'NaN position value - you may have bad or incomplete data in the following ephemeris:',
+          );
           console.error(eph);
         }
         const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
-        if (prevPos && Math.abs(prevPos[0] - pos[0])
-                       + Math.abs(prevPos[1] - pos[1])
-                       + Math.abs(prevPos[2] - pos[2]) > 120) {
+        if (
+          prevPos &&
+          Math.abs(prevPos[0] - pos[0]) +
+            Math.abs(prevPos[1] - pos[1]) +
+            Math.abs(prevPos[2] - pos[2]) >
+            120
+        ) {
           // Don't render bogus or very large ellipses.
           points.vertices = [];
           return points;
@@ -595,7 +661,7 @@ var Spacekit = (function (exports) {
 
       // Radius vector, in AU
       const a = eph.get('a');
-      const r = a * (1 - e * e) / (1 + e * cos(v));
+      const r = (a * (1 - e * e)) / (1 + e * cos(v));
 
       // Inclination, Longitude of ascending node, Longitude of perihelion
       const i = eph.get('i', 'rad');
@@ -615,10 +681,13 @@ var Spacekit = (function (exports) {
     getEllipse() {
       if (!this._ellipse) {
         const pointGeometry = this.getOrbitPoints();
-        this._ellipse = new THREE.Line(pointGeometry,
+        this._ellipse = new THREE.Line(
+          pointGeometry,
           new THREE.LineBasicMaterial({
             color: this._options.color,
-          }), THREE.LineStrip);
+          }),
+          THREE.LineStrip,
+        );
       }
       return this._ellipse;
     }
@@ -634,7 +703,7 @@ var Spacekit = (function (exports) {
       const points = this.getOrbitPoints();
       const geometry = new THREE.Geometry();
 
-      points.vertices.forEach((vertex) => {
+      points.vertices.forEach(vertex => {
         geometry.vertices.push(vertex);
         geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
       });
@@ -660,7 +729,7 @@ var Spacekit = (function (exports) {
      * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
      */
     setHexColor(hexVal) {
-      return this._ellipse.material.color = new THREE.Color(hexVal);
+      return (this._ellipse.material.color = new THREE.Color(hexVal));
     }
 
     /**
@@ -678,7 +747,7 @@ var Spacekit = (function (exports) {
      * @param {boolean} val Whether to show the orbital ellipse.
      */
     setVisibility(val) {
-      return this._ellipse.visible = val;
+      return (this._ellipse.visible = val);
     }
   }
 
@@ -727,7 +796,8 @@ var Spacekit = (function (exports) {
    * => '/path/to/assets/images/mysprite.png'
    */
   function getFullUrl(template, basePath) {
-    return template.replace('{{assets}}', `${basePath}/assets`)
+    return template
+      .replace('{{assets}}', `${basePath}/assets`)
       .replace('{{data}}', `${basePath}/data`);
   }
 
@@ -942,12 +1012,19 @@ var Spacekit = (function (exports) {
         texture: { value: defaultMapTexture },
       };
 
-      const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+      const particleCount =
+        this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
       this._attributes = {
         size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
-        position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
-        fuzzColor: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
+        position: new THREE.BufferAttribute(
+          new Float32Array(particleCount * 3),
+          3,
+        ),
+        fuzzColor: new THREE.BufferAttribute(
+          new Float32Array(particleCount * 3),
+          3,
+        ),
 
         a: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         e: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
@@ -962,7 +1039,7 @@ var Spacekit = (function (exports) {
 
       const geometry = new THREE.BufferGeometry();
       geometry.setDrawRange(0, 0);
-      Object.keys(this._attributes).forEach((attributeName) => {
+      Object.keys(this._attributes).forEach(attributeName => {
         const attribute = this._attributes[attributeName];
         // attribute.setDynamic(true);
         geometry.addAttribute(attributeName, attribute);
@@ -976,7 +1053,6 @@ var Spacekit = (function (exports) {
         depthTest: false,
         transparent: true,
       });
-
 
       this._shaderMaterial = shader;
       this._geometry = geometry;
@@ -1086,11 +1162,14 @@ var Spacekit = (function (exports) {
   function toScreenXY(position, camera, canvas) {
     const pos = new THREE.Vector3(position[0], position[1], position[2]);
     const projScreenMat = new THREE.Matrix4();
-    projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    projScreenMat.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse,
+    );
     pos.applyMatrix4(projScreenMat);
     return {
-      x: (pos.x + 1) * canvas.clientWidth / 2,
-      y: (-pos.y + 1) * canvas.clientHeight / 2,
+      x: ((pos.x + 1) * canvas.clientWidth) / 2,
+      y: ((-pos.y + 1) * canvas.clientHeight) / 2,
     };
   }
 
@@ -1164,7 +1243,9 @@ var Spacekit = (function (exports) {
 
       // Number of degrees moved per day. Used to limit the number of orbit
       // updates for very slow moving objects.
-      this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
+      this._degreesPerDay = this._options.ephem
+        ? this._options.ephem.get('n', 'deg')
+        : Number.MAX_VALUE;
 
       this._initialized = false;
       if (autoInit && !this.init()) {
@@ -1199,10 +1280,13 @@ var Spacekit = (function (exports) {
         }
 
         // Don't create a sprite - do it on the GPU instead.
-        this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
-          particleSize: this._options.particleSize,
-          color: this.getColor(),
-        });
+        this._particleIndex = this._context.objects.particles.addParticle(
+          this._options.ephem,
+          {
+            particleSize: this._options.particleSize,
+            color: this.getColor(),
+          },
+        );
         this._renderMethod = 'PARTICLESYSTEM';
       }
       if (this._options.labelText) {
@@ -1255,10 +1339,17 @@ var Spacekit = (function (exports) {
       const simulationElt = this._simulation.getSimulationElement();
       const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
       const loc = {
-        left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+        left: pos.x - 30,
+        top: pos.y - 25,
+        right: pos.x + label.clientWidth - 20,
+        bottom: pos.y + label.clientHeight,
       };
-      if (loc.left > 0 && loc.right < simulationElt.clientWidth
-          && loc.top > 0 && loc.bottom < simulationElt.clientHeight) {
+      if (
+        loc.left > 0 &&
+        loc.right < simulationElt.clientWidth &&
+        loc.top > 0 &&
+        loc.bottom < simulationElt.clientHeight
+      ) {
         label.style.left = `${loc.left}px`;
         label.style.top = `${loc.top}px`;
         label.style.visibility = 'visible';
@@ -1278,17 +1369,18 @@ var Spacekit = (function (exports) {
         this._context.options.basePath,
       );
       const texture = new THREE.TextureLoader().load(fullTextureUrl);
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: texture,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        color: 0xffffff,
-      }));
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: texture,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          color: 0xffffff,
+        }),
+      );
       const scale = this._scale;
       sprite.scale.set(scale[0], scale[1], scale[2]);
       const position = this.getPosition(this._simulation.getJd());
       sprite.position.set(position[0], position[1], position[2]);
-
 
       if (this.isStaticObject()) {
         sprite.matrixAutoUpdate = false;
@@ -1321,7 +1413,9 @@ var Spacekit = (function (exports) {
       }
       return new Orbit(this._options.ephem, {
         color: this.getColor(),
-        eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,
+        eclipticLineColor: this._options.ecliptic
+          ? this._options.ecliptic.lineColor
+          : null,
       });
     }
 
@@ -1348,7 +1442,11 @@ var Spacekit = (function (exports) {
      */
     orbitAround(spaceObj) {
       if (this._renderMethod !== 'PARTICLESYSTEM') {
-        console.error(`"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`);
+        console.error(
+          `"${
+          this._renderMethod
+        }" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
+        );
         return;
       }
 
@@ -1409,9 +1507,14 @@ var Spacekit = (function (exports) {
 
       if (this._orbitAround) {
         const parentPos = this._orbitAround.getPosition(jd);
-        this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+        this._context.objects.particles.setParticleOrigin(
+          this._particleIndex,
+          parentPos,
+        );
         if (!this._options.hideOrbit) {
-          this._orbit.getEllipse().position.set(parentPos[0], parentPos[1], parentPos[2]);
+          this._orbit
+            .getEllipse()
+            .position.set(parentPos[0], parentPos[1], parentPos[2]);
         }
         if (!newpos) {
           newpos = this.getPosition(jd);
@@ -1422,7 +1525,8 @@ var Spacekit = (function (exports) {
       }
 
       // TODO(ian): Determine this based on orbit and camera position change.
-      const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+      const shouldUpdateLabelPos =
+        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
       if (this._label && shouldUpdateLabelPos) {
         if (!newpos) {
           newpos = this.getPosition(jd);
@@ -1544,28 +1648,28 @@ var Spacekit = (function (exports) {
     MERCURY: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0x913CEE,
+        color: 0x913cee,
       },
       ephem: EphemPresets.MERCURY,
     },
     VENUS: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0xFF7733,
+        color: 0xff7733,
       },
       ephem: EphemPresets.VENUS,
     },
     EARTH: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0x009ACD,
+        color: 0x009acd,
       },
       ephem: EphemPresets.EARTH,
     },
     MOON: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0xFFD700,
+        color: 0xffd700,
       },
       ephem: EphemPresets.MOON,
 
@@ -1575,14 +1679,14 @@ var Spacekit = (function (exports) {
     MARS: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0xA63A3A,
+        color: 0xa63a3a,
       },
       ephem: EphemPresets.MARS,
     },
     JUPITER: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0xFFB90F,
+        color: 0xffb90f,
       },
       ephem: EphemPresets.JUPITER,
     },
@@ -1596,14 +1700,14 @@ var Spacekit = (function (exports) {
     URANUS: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0x0099FF,
+        color: 0x0099ff,
       },
       ephem: EphemPresets.URANUS,
     },
     NEPTUNE: {
       textureUrl: DEFAULT_PLANET_TEXTURE_URL,
       theme: {
-        color: 0x3333FF,
+        color: 0x3333ff,
       },
       ephem: EphemPresets.NEPTUNE,
     },
@@ -1730,7 +1834,10 @@ var Spacekit = (function (exports) {
       // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
 
       // Adjust Z axis according to time.
-      const zAdjust = phi0 + 2 * PI / P * (JD - JD0) + 1 / 2 * YORP * Math.pow(JD - JD0, 2);
+      const zAdjust =
+        phi0 +
+        ((2 * PI) / P) * (JD - JD0) +
+        (1 / 2) * YORP * Math.pow(JD - JD0, 2);
       this._obj.rotateY(-(PI / 2 - beta));
       this._obj.rotateZ(-lambda);
       this._obj.rotateZ(zAdjust);
@@ -1741,10 +1848,15 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      if (this._obj && this._objectIsRotatable && this._options.rotation && this._options.rotation.enable) {
+      if (
+        this._obj &&
+        this._objectIsRotatable &&
+        this._options.rotation &&
+        this._options.rotation.enable
+      ) {
         // For now, just rotate on X axis.
         const speed = this._options.rotation.speed || 0.5;
-        this._obj.rotation.z += (speed * (Math.PI / 180));
+        this._obj.rotation.z += speed * (Math.PI / 180);
         this._obj.rotation.z %= 360;
       }
       if (this._axisOfRotation) ;
@@ -1814,8 +1926,8 @@ var Spacekit = (function (exports) {
       };
       const loader = new THREE.OBJLoader(manager);
       // TODO(ian): Make shapeurl follow assetpath logic.
-      loader.load(this._options.shape.shapeUrl, (object) => {
-        object.traverse((child) => {
+      loader.load(this._options.shape.shapeUrl, object => {
+        object.traverse(child => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({
               color: this._options.shape.color || 0xcccccc,
@@ -1894,8 +2006,10 @@ var Spacekit = (function (exports) {
     init() {
       const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
-      const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-        this._context.options.basePath);
+      const fullTextureUrl = getFullTextureUrl(
+        this._options.textureUrl,
+        this._context.options.basePath,
+      );
       const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
       const material = new THREE.MeshBasicMaterial({
@@ -1908,8 +2022,8 @@ var Spacekit = (function (exports) {
       // See this thread on orientation of milky way:
       // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
       sky.rotation.x = 0;
-      sky.rotation.y = -1 / 12 * Math.PI;
-      sky.rotation.z = 8 / 5 * Math.PI;
+      sky.rotation.y = (-1 / 12) * Math.PI;
+      sky.rotation.z = (8 / 5) * Math.PI;
 
       // We're on the inside of the skybox, so invert it to correct it.
       sky.scale.set(-1, 1, 1);
@@ -1989,7 +2103,11 @@ var Spacekit = (function (exports) {
 
       // TODO(ian): Clouds and rings
 
-      const sphereGeometry = new THREE.SphereGeometry(this._options.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
+      const sphereGeometry = new THREE.SphereGeometry(
+        this._options.radius || 1,
+        NUM_SPHERE_SEGMENTS,
+        NUM_SPHERE_SEGMENTS,
+      );
       const mesh = new THREE.Mesh(
         sphereGeometry,
         // new THREE.MeshPhongMaterial({
@@ -2028,8 +2146,8 @@ var Spacekit = (function (exports) {
    * @return {Number} Color for star of given spectral class
    */
   function getColorForStar(temp) {
-    if (temp >= 30000) return 0x92B5FF;
-    if (temp >= 10000) return 0xA2C0FF;
+    if (temp >= 30000) return 0x92b5ff;
+    if (temp >= 10000) return 0xa2c0ff;
     if (temp >= 7500) return 0xd5e0ff;
     if (temp >= 6000) return 0xf9f5ff;
     if (temp >= 5200) return 0xffede3;
@@ -2077,52 +2195,67 @@ var Spacekit = (function (exports) {
     }
 
     init() {
-      const dataUrl = getFullUrl('{{data}}/processed/bsc.json', this._context.options.basePath);
+      const dataUrl = getFullUrl(
+        '{{data}}/processed/bsc.json',
+        this._context.options.basePath,
+      );
 
-      fetch(dataUrl).then(resp => resp.json()).then((library) => {
-        const n = library.length;
+      fetch(dataUrl)
+        .then(resp => resp.json())
+        .then(library => {
+          const n = library.length;
 
-        const geometry = new THREE.BufferGeometry();
+          const geometry = new THREE.BufferGeometry();
 
-        const positions = new Float32Array(n * 3);
-        const colors = new Float32Array(n * 3);
-        const sizes = new Float32Array(n);
+          const positions = new Float32Array(n * 3);
+          const colors = new Float32Array(n * 3);
+          const sizes = new Float32Array(n);
 
-        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
-        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+          geometry.addAttribute(
+            'position',
+            new THREE.BufferAttribute(positions, 3),
+          );
+          geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+          geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        library.forEach((star, idx) => {
-          const [ra, dec, temp, mag] = star;
+          library.forEach((star, idx) => {
+            const [ra, dec, temp, mag] = star;
 
-          const raRad = rad(hoursToDeg(ra));
-          const decRad = rad(dec);
+            const raRad = rad(hoursToDeg(ra));
+            const decRad = rad(dec);
 
-          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
-          const pos = equatorialToEcliptic_Cartesian(cartesianSpherical[0], cartesianSpherical[1], cartesianSpherical[2]);
+            const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
+            const pos = equatorialToEcliptic_Cartesian(
+              cartesianSpherical[0],
+              cartesianSpherical[1],
+              cartesianSpherical[2],
+            );
 
-          positions.set(pos, idx * 3);
+            positions.set(pos, idx * 3);
 
-          const color = new THREE.Color(getColorForStar(temp));
-          colors.set(color.toArray(), idx * 3);
+            const color = new THREE.Color(getColorForStar(temp));
+            colors.set(color.toArray(), idx * 3);
 
-          sizes[idx] = getSizeForStar(mag, this._options.minSize || 0.75 /* minSize */);
+            sizes[idx] = getSizeForStar(
+              mag,
+              this._options.minSize || 0.75 /* minSize */,
+            );
+          });
+
+          const material = new THREE.ShaderMaterial({
+            uniforms: {},
+            vertexShader: STAR_SHADER_VERTEX,
+            fragmentShader: STAR_SHADER_FRAGMENT,
+            transparent: true,
+            vertexColors: THREE.VertexColors,
+          });
+
+          this._stars = new THREE.Points(geometry, material);
+
+          if (this._simulation) {
+            this._simulation.addObject(this, true /* noUpdate */);
+          }
         });
-
-        const material = new THREE.ShaderMaterial({
-          uniforms: {},
-          vertexShader: STAR_SHADER_VERTEX,
-          fragmentShader: STAR_SHADER_FRAGMENT,
-          transparent: true,
-          vertexColors: THREE.VertexColors,
-        });
-
-        this._stars = new THREE.Points(geometry, material);
-
-        if (this._simulation) {
-          this._simulation.addObject(this, true /* noUpdate */);
-        }
-      });
     }
 
     /**
@@ -2205,9 +2338,11 @@ var Spacekit = (function (exports) {
     constructor(simulationElt, options) {
       this._simulationElt = simulationElt;
       this._options = options || {};
-      this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
+      this._options.basePath =
+        this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
-      this._jd = this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
+      this._jd =
+        this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
       this._jdDelta = this._options.jdDelta;
       this._jdPerSecond = this._options.jdPerSecond || 100;
       this._isPaused = options.startPaused || false;
@@ -2220,7 +2355,8 @@ var Spacekit = (function (exports) {
       this._cameraDefaultPos = [0, -10, 5];
       if (this._options.camera) {
         this._enableCameraDrift = !!this._options.camera.enableDrift;
-        this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+        this._cameraDefaultPos =
+          this._options.camera.initialPosition || this._cameraDefaultPos;
       }
 
       this._camera = null;
@@ -2256,18 +2392,22 @@ var Spacekit = (function (exports) {
       const scene = new THREE.Scene();
       this._scene = scene;
 
-
       // Camera
       this._camera = new Camera(this.getContext()).get3jsCamera();
-      this._camera.position.set(this._cameraDefaultPos[0],
+      this._camera.position.set(
+        this._cameraDefaultPos[0],
         this._cameraDefaultPos[1],
-        this._cameraDefaultPos[2]);
+        this._cameraDefaultPos[2],
+      );
       window.cam = this._camera;
 
       // Controls
       // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
       // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-      this._cameraControls = new THREE.TrackballControls(this._camera, this._simulationElt);
+      this._cameraControls = new THREE.TrackballControls(
+        this._camera,
+        this._simulationElt,
+      );
       this._cameraControls.userPanSpeed = 20;
       this._cameraControls.rotateSpeed = 2;
 
@@ -2296,11 +2436,16 @@ var Spacekit = (function (exports) {
       }
 
       // Orbit particle system must be initialized after scene is created.
-      this._particles = new KeplerParticles({
-        textureUrl: this._options.particleTextureUrl || '{{assets}}/sprites/smallparticle.png',
-        jd: this._jd,
-        maxNumParticles: this._options.maxNumParticles,
-      }, this);
+      this._particles = new KeplerParticles(
+        {
+          textureUrl:
+            this._options.particleTextureUrl ||
+            '{{assets}}/sprites/smallparticle.png',
+          jd: this._jd,
+          maxNumParticles: this._options.maxNumParticles,
+        },
+        this,
+      );
     }
 
     /**
@@ -2312,7 +2457,10 @@ var Spacekit = (function (exports) {
       });
 
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(this._simulationElt.offsetWidth, this._simulationElt.offsetHeight);
+      renderer.setSize(
+        this._simulationElt.offsetWidth,
+        this._simulationElt.offsetHeight,
+      );
 
       this._simulationElt.appendChild(renderer.domElement);
 
@@ -2337,8 +2485,8 @@ var Spacekit = (function (exports) {
       // Follow floating path around
       const timer = 0.0001 * Date.now();
       const pos = this._cameraDefaultPos;
-      this._camera.position.x = pos[0] + pos[0] * (Math.cos(timer) + 1) / 3;
-      this._camera.position.z = pos[2] + pos[2] * (Math.sin(timer) + 1) / 3;
+      this._camera.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
+      this._camera.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
     }
 
     /**
@@ -2360,12 +2508,12 @@ var Spacekit = (function (exports) {
           this._jd += this._jdDelta;
         } else {
           // N jd per second
-          this._jd += (this._jdPerSecond) / this._fps;
+          this._jd += this._jdPerSecond / this._fps;
         }
 
         const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
         this._lastUpdatedTime = Date.now();
-        this._fps = (1 / timeDelta) || 1;
+        this._fps = 1 / timeDelta || 1;
       }
 
       // Update objects in this simulation
@@ -2397,7 +2545,7 @@ var Spacekit = (function (exports) {
      */
     addObject(obj, noUpdate = false) {
       console.log('adding', obj.get3jsObjects());
-      obj.get3jsObjects().map((x) => {
+      obj.get3jsObjects().map(x => {
         this._scene.add(x);
       });
 
@@ -2413,7 +2561,7 @@ var Spacekit = (function (exports) {
      */
     removeObject(obj) {
       // TODO(ian): test this and avoid memory leaks...
-      obj.get3jsObjects().map((x) => {
+      obj.get3jsObjects().map(x => {
         this._scene.remove(x);
       });
 
@@ -2485,7 +2633,7 @@ var Spacekit = (function (exports) {
      * with camera.
      * @param {Number} color Color of light, default 0xFFFFFF
      */
-    createLight(pos = undefined, color = 0xFFFFFF) {
+    createLight(pos = undefined, color = 0xffffff) {
       const pointLight = new THREE.PointLight(color, 1, 0, 2);
       if (typeof pos !== 'undefined') {
         pointLight.position.set(pos[0], pos[1], pos[2]);
@@ -2507,12 +2655,15 @@ var Spacekit = (function (exports) {
       let previouslyInView = true;
       const isInView = () => {
         const rect = this._simulationElt.getBoundingClientRect();
-        const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
-        const windowWidth = (window.innerWidth || document.documentElement.clientWidth);
-        const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) >= 0);
-        const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) >= 0);
+        const windowHeight =
+          window.innerHeight || document.documentElement.clientHeight;
+        const windowWidth =
+          window.innerWidth || document.documentElement.clientWidth;
+        const vertInView =
+          rect.top <= windowHeight && rect.top + rect.height >= 0;
+        const horInView = rect.left <= windowWidth && rect.left + rect.width >= 0;
 
-        return (vertInView && horInView);
+        return vertInView && horInView;
       };
 
       window.addEventListener('scroll', () => {
@@ -2586,11 +2737,11 @@ var Spacekit = (function (exports) {
       const camera = this._camera;
       const maxDim = Math.max(size.x, size.y, size.z);
       const fov = camera.fov * (Math.PI / 180);
-      const cameraZ = Math.abs(maxDim / 2 * Math.tan(fov * 2)) * offset;
+      const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
 
       const objectWorldPosition = new THREE.Vector3();
       obj.getWorldPosition(objectWorldPosition);
-      const directionVector = camera.position.sub(objectWorldPosition); 	// Get vector from camera to object
+      const directionVector = camera.position.sub(objectWorldPosition); // Get vector from camera to object
       const unitDirectionVector = directionVector.normalize(); // Convert to unit vector
 
       const newpos = unitDirectionVector.multiplyScalar(cameraZ);

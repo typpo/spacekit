@@ -22,11 +22,14 @@ const LABEL_UPDATE_MS = 30;
 function toScreenXY(position, camera, canvas) {
   const pos = new THREE.Vector3(position[0], position[1], position[2]);
   const projScreenMat = new THREE.Matrix4();
-  projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  projScreenMat.multiplyMatrices(
+    camera.projectionMatrix,
+    camera.matrixWorldInverse,
+  );
   pos.applyMatrix4(projScreenMat);
   return {
-    x: (pos.x + 1) * canvas.clientWidth / 2,
-    y: (-pos.y + 1) * canvas.clientHeight / 2,
+    x: ((pos.x + 1) * canvas.clientWidth) / 2,
+    y: ((-pos.y + 1) * canvas.clientHeight) / 2,
   };
 }
 
@@ -104,7 +107,9 @@ export class SpaceObject {
 
     // Number of degrees moved per day. Used to limit the number of orbit
     // updates for very slow moving objects.
-    this._degreesPerDay = this._options.ephem ? this._options.ephem.get('n', 'deg') : Number.MAX_VALUE;
+    this._degreesPerDay = this._options.ephem
+      ? this._options.ephem.get('n', 'deg')
+      : Number.MAX_VALUE;
 
     this._initialized = false;
     if (autoInit && !this.init()) {
@@ -139,10 +144,13 @@ export class SpaceObject {
       }
 
       // Don't create a sprite - do it on the GPU instead.
-      this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
-        particleSize: this._options.particleSize,
-        color: this.getColor(),
-      });
+      this._particleIndex = this._context.objects.particles.addParticle(
+        this._options.ephem,
+        {
+          particleSize: this._options.particleSize,
+          color: this.getColor(),
+        },
+      );
       this._renderMethod = 'PARTICLESYSTEM';
     }
     if (this._options.labelText) {
@@ -195,10 +203,17 @@ export class SpaceObject {
     const simulationElt = this._simulation.getSimulationElement();
     const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
     const loc = {
-      left: pos.x - 30, top: pos.y - 25, right: pos.x + label.clientWidth - 20, bottom: pos.y + label.clientHeight,
+      left: pos.x - 30,
+      top: pos.y - 25,
+      right: pos.x + label.clientWidth - 20,
+      bottom: pos.y + label.clientHeight,
     };
-    if (loc.left > 0 && loc.right < simulationElt.clientWidth
-        && loc.top > 0 && loc.bottom < simulationElt.clientHeight) {
+    if (
+      loc.left > 0 &&
+      loc.right < simulationElt.clientWidth &&
+      loc.top > 0 &&
+      loc.bottom < simulationElt.clientHeight
+    ) {
       label.style.left = `${loc.left}px`;
       label.style.top = `${loc.top}px`;
       label.style.visibility = 'visible';
@@ -218,17 +233,18 @@ export class SpaceObject {
       this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: texture,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      color: 0xffffff,
-    }));
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texture,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        color: 0xffffff,
+      }),
+    );
     const scale = this._scale;
     sprite.scale.set(scale[0], scale[1], scale[2]);
     const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
-
 
     if (this.isStaticObject()) {
       sprite.matrixAutoUpdate = false;
@@ -261,7 +277,9 @@ export class SpaceObject {
     }
     return new Orbit(this._options.ephem, {
       color: this.getColor(),
-      eclipticLineColor: this._options.ecliptic ? this._options.ecliptic.lineColor : null,
+      eclipticLineColor: this._options.ecliptic
+        ? this._options.ecliptic.lineColor
+        : null,
     });
   }
 
@@ -288,7 +306,11 @@ export class SpaceObject {
    */
   orbitAround(spaceObj) {
     if (this._renderMethod !== 'PARTICLESYSTEM') {
-      console.error(`"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`);
+      console.error(
+        `"${
+          this._renderMethod
+        }" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
+      );
       return;
     }
 
@@ -349,9 +371,14 @@ export class SpaceObject {
 
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
-      this._context.objects.particles.setParticleOrigin(this._particleIndex, parentPos);
+      this._context.objects.particles.setParticleOrigin(
+        this._particleIndex,
+        parentPos,
+      );
       if (!this._options.hideOrbit) {
-        this._orbit.getEllipse().position.set(parentPos[0], parentPos[1], parentPos[2]);
+        this._orbit
+          .getEllipse()
+          .position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -362,7 +389,8 @@ export class SpaceObject {
     }
 
     // TODO(ian): Determine this based on orbit and camera position change.
-    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+    const shouldUpdateLabelPos =
+      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
     if (this._label && shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -484,28 +512,28 @@ export const SpaceObjectPresets = {
   MERCURY: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0x913CEE,
+      color: 0x913cee,
     },
     ephem: EphemPresets.MERCURY,
   },
   VENUS: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0xFF7733,
+      color: 0xff7733,
     },
     ephem: EphemPresets.VENUS,
   },
   EARTH: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0x009ACD,
+      color: 0x009acd,
     },
     ephem: EphemPresets.EARTH,
   },
   MOON: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0xFFD700,
+      color: 0xffd700,
     },
     ephem: EphemPresets.MOON,
 
@@ -515,14 +543,14 @@ export const SpaceObjectPresets = {
   MARS: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0xA63A3A,
+      color: 0xa63a3a,
     },
     ephem: EphemPresets.MARS,
   },
   JUPITER: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0xFFB90F,
+      color: 0xffb90f,
     },
     ephem: EphemPresets.JUPITER,
   },
@@ -536,14 +564,14 @@ export const SpaceObjectPresets = {
   URANUS: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0x0099FF,
+      color: 0x0099ff,
     },
     ephem: EphemPresets.URANUS,
   },
   NEPTUNE: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,
     theme: {
-      color: 0x3333FF,
+      color: 0x3333ff,
     },
     ephem: EphemPresets.NEPTUNE,
   },

@@ -33,9 +33,9 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
   const ephem = new Spacekit.Ephem({
     a: rawEphem.a,
     e: rawEphem.e,
-    i: rawEphem.i * Math.PI / 180,
-    om: rawEphem.om * Math.PI / 180,
-    w: rawEphem.w * Math.PI / 180,
+    i: (rawEphem.i * Math.PI) / 180,
+    om: (rawEphem.om * Math.PI) / 180,
+    w: (rawEphem.w * Math.PI) / 180,
     ma: 0,
     epoch: Math.random() * 2500000,
   });

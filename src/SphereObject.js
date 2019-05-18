@@ -32,7 +32,11 @@ export class SphereObject extends RotatingObject {
 
     // TODO(ian): Clouds and rings
 
-    const sphereGeometry = new THREE.SphereGeometry(this._options.radius || 1, NUM_SPHERE_SEGMENTS, NUM_SPHERE_SEGMENTS);
+    const sphereGeometry = new THREE.SphereGeometry(
+      this._options.radius || 1,
+      NUM_SPHERE_SEGMENTS,
+      NUM_SPHERE_SEGMENTS,
+    );
     const mesh = new THREE.Mesh(
       sphereGeometry,
       // new THREE.MeshPhongMaterial({

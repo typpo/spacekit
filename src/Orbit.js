@@ -65,13 +65,19 @@ export class Orbit {
     for (let time = 0; time < period; time += step) {
       const pos = this.getPositionAtTime(time);
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-        console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
+        console.error(
+          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
+        );
         console.error(eph);
       }
       const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
-      if (prevPos && Math.abs(prevPos[0] - pos[0])
-                     + Math.abs(prevPos[1] - pos[1])
-                     + Math.abs(prevPos[2] - pos[2]) > 120) {
+      if (
+        prevPos &&
+        Math.abs(prevPos[0] - pos[0]) +
+          Math.abs(prevPos[1] - pos[1]) +
+          Math.abs(prevPos[2] - pos[2]) >
+          120
+      ) {
         // Don't render bogus or very large ellipses.
         points.vertices = [];
         return points;
@@ -138,7 +144,7 @@ export class Orbit {
 
     // Radius vector, in AU
     const a = eph.get('a');
-    const r = a * (1 - e * e) / (1 + e * cos(v));
+    const r = (a * (1 - e * e)) / (1 + e * cos(v));
 
     // Inclination, Longitude of ascending node, Longitude of perihelion
     const i = eph.get('i', 'rad');
@@ -158,10 +164,13 @@ export class Orbit {
   getEllipse() {
     if (!this._ellipse) {
       const pointGeometry = this.getOrbitPoints();
-      this._ellipse = new THREE.Line(pointGeometry,
+      this._ellipse = new THREE.Line(
+        pointGeometry,
         new THREE.LineBasicMaterial({
           color: this._options.color,
-        }), THREE.LineStrip);
+        }),
+        THREE.LineStrip,
+      );
     }
     return this._ellipse;
   }
@@ -177,7 +186,7 @@ export class Orbit {
     const points = this.getOrbitPoints();
     const geometry = new THREE.Geometry();
 
-    points.vertices.forEach((vertex) => {
+    points.vertices.forEach(vertex => {
       geometry.vertices.push(vertex);
       geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });
@@ -203,7 +212,7 @@ export class Orbit {
    * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
    */
   setHexColor(hexVal) {
-    return this._ellipse.material.color = new THREE.Color(hexVal);
+    return (this._ellipse.material.color = new THREE.Color(hexVal));
   }
 
   /**
@@ -221,6 +230,6 @@ export class Orbit {
    * @param {boolean} val Whether to show the orbital ellipse.
    */
   setVisibility(val) {
-    return this._ellipse.visible = val;
+    return (this._ellipse.visible = val);
   }
 }

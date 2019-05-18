@@ -12,7 +12,8 @@ export const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
  * => '/path/to/assets/images/mysprite.png'
  */
 export function getFullUrl(template, basePath) {
-  return template.replace('{{assets}}', `${basePath}/assets`)
+  return template
+    .replace('{{assets}}', `${basePath}/assets`)
     .replace('{{data}}', `${basePath}/data`);
 }
 

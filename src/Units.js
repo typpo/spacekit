@@ -1,9 +1,9 @@
 export function rad(val) {
-  return val * Math.PI / 180;
+  return (val * Math.PI) / 180;
 }
 
 export function deg(val) {
-  return val * 180 / Math.PI;
+  return (val * 180) / Math.PI;
 }
 
 export function hoursToDeg(val) {
@@ -15,9 +15,14 @@ export function sexagesimalToDecimalRa(raHour, raMin, raSec) {
   return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
 }
 
-export function sexagesimalToDecimalDec(decDeg, decMin, decSec, isObserverBelowEquator = false) {
+export function sexagesimalToDecimalDec(
+  decDeg,
+  decMin,
+  decSec,
+  isObserverBelowEquator = false,
+) {
   const posneg = isObserverBelowEquator ? -1 : 1;
-  return decDeg + decMin / 60.0 + posneg * decSec / 3600.0;
+  return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
 }
 
 export function decimalToSexagesimalRa(decimal) {
@@ -28,12 +33,16 @@ export function decimalToSexagesimalRa(decimal) {
   return [raHour, raMin, raSec];
 }
 
-export function decimalToSexagesimalDec(decimal, isObserverBelowEquator = false) {
+export function decimalToSexagesimalDec(
+  decimal,
+  isObserverBelowEquator = false,
+) {
   const val = parseFloat(decimal);
   const posneg = isObserverBelowEquator ? -1 : 1;
 
   const decDeg = Math.trunc(val);
   const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-  const decSec = (val - posneg * decDeg - posneg * decMin / 60.0) * 3600.0 * posneg;
+  const decSec =
+    (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
   return [decDeg, decMin, decSec];
 }

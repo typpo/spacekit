@@ -38,8 +38,10 @@ export class Skybox {
   init() {
     const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
-    const fullTextureUrl = getFullTextureUrl(this._options.textureUrl,
-      this._context.options.basePath);
+    const fullTextureUrl = getFullTextureUrl(
+      this._options.textureUrl,
+      this._context.options.basePath,
+    );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
     const material = new THREE.MeshBasicMaterial({
@@ -52,8 +54,8 @@ export class Skybox {
     // See this thread on orientation of milky way:
     // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
     sky.rotation.x = 0;
-    sky.rotation.y = -1 / 12 * Math.PI;
-    sky.rotation.z = 8 / 5 * Math.PI;
+    sky.rotation.y = (-1 / 12) * Math.PI;
+    sky.rotation.z = (8 / 5) * Math.PI;
 
     // We're on the inside of the skybox, so invert it to correct it.
     sky.scale.set(-1, 1, 1);

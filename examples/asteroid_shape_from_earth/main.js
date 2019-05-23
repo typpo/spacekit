@@ -105,6 +105,7 @@ const obj = viz.createShape('myobj', {
   },
   debug: {
     showAxes: true,
+    showGrid: true,
   },
 });
 

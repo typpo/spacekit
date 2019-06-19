@@ -1116,7 +1116,6 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      console.log(jd);
       this._uniforms.jd.value = jd;
     }
 

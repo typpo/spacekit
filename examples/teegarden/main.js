@@ -1,9 +1,8 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  basePath: 'https://typpo.github.io/spacekit/src',
   jd: 0,
   jdDelta: 0.025,
   camera: {
-    initialPosition: [0, -0.5, 0.2],
+    initialPosition: [0, 1.5, 0.6],
   },
 });
 
@@ -16,14 +15,15 @@ viz.createObject('sun', {
   position: [0, 0, 0],
   scale: [0.1, 0.1, 0.1],
   theme: {
-    color: 0xff7034,
+    color: 0xFDB813,
   },
 });
 
 // Then add some planets
-viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
+viz.createObject('earth', Object.assign(Spacekit.SpaceObjectPresets.EARTH, {
+  labelText: 'Earth',
+}));
 
-/*
 // http://exoplanet.eu/catalog/teegarden's_b/
 viz.createObject('b', {
   labelText: 'Teegarden b',
@@ -42,7 +42,6 @@ viz.createObject('b', {
     epoch: 0,
   }, 'deg'),
 });
-*/
 
 // http://exoplanet.eu/catalog/teegarden's_c/
 viz.createObject('c', {

@@ -2,7 +2,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jd: 0,
   jdDelta: 0.025,
   camera: {
-    initialPosition: [0, 1.5, 0.6],
+    initialPosition: [0.04, 0.16, 2.6],
   },
 });
 

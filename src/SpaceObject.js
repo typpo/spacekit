@@ -209,10 +209,10 @@ export class SpaceObject {
       bottom: pos.y + label.clientHeight,
     };
     if (
-      loc.left > 0 &&
-      loc.right < simulationElt.clientWidth &&
-      loc.top > 0 &&
-      loc.bottom < simulationElt.clientHeight
+      loc.left > 0
+      && loc.right < simulationElt.clientWidth
+      && loc.top > 0
+      && loc.bottom < simulationElt.clientHeight
     ) {
       label.style.left = `${loc.left}px`;
       label.style.top = `${loc.top}px`;
@@ -390,8 +390,7 @@ export class SpaceObject {
     }
 
     // TODO(ian): Determine this based on orbit and camera position change.
-    const shouldUpdateLabelPos =
-      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
     if (this._label && shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);

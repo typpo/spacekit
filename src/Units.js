@@ -42,7 +42,6 @@ export function decimalToSexagesimalDec(
 
   const decDeg = Math.trunc(val);
   const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-  const decSec =
-    (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+  const decSec = (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
   return [decDeg, decMin, decSec];
 }

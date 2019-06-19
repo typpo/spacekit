@@ -78,8 +78,7 @@ var Spacekit = (function (exports) {
 
     const decDeg = Math.trunc(val);
     const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-    const decSec =
-      (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+    const decSec = (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
     return [decDeg, decMin, decSec];
   }
 
@@ -118,24 +117,21 @@ var Spacekit = (function (exports) {
     const Lsun = rad(280.4665 + 36000.7698 * t);
     const Lmoon = rad(218.3165 + 481267.8813 * t);
 
-    const nutation =
-      (-17.2 / 3600) * Math.sin(omega) -
-      (-1.32 / 3600) * Math.sin(2 * Lsun) -
-      (0.23 / 3600) * Math.sin(2 * Lmoon) +
-      deg((0.21 / 3600) * Math.sin(2 * omega));
+    const nutation = (-17.2 / 3600) * Math.sin(omega)
+      - (-1.32 / 3600) * Math.sin(2 * Lsun)
+      - (0.23 / 3600) * Math.sin(2 * Lmoon)
+      + deg((0.21 / 3600) * Math.sin(2 * omega));
 
-    const obliquity_zero =
-      23 +
-      26.0 / 60 +
-      21.448 / 3600 -
-      (46.815 / 3600) * t -
-      (0.00059 / 3600) * t * t +
-      (0.001813 / 3600) * t * t * t;
-    const obliquity_delta =
-      (9.2 / 3600) * Math.cos(omega) +
-      (0.57 / 3600) * Math.cos(2 * Lsun) +
-      (0.1 / 3600) * Math.cos(2 * Lmoon) -
-      (0.09 / 3600) * Math.cos(2 * omega);
+    const obliquity_zero = 23
+      + 26.0 / 60
+      + 21.448 / 3600
+      - (46.815 / 3600) * t
+      - (0.00059 / 3600) * t * t
+      + (0.001813 / 3600) * t * t * t;
+    const obliquity_delta = (9.2 / 3600) * Math.cos(omega)
+      + (0.57 / 3600) * Math.cos(2 * Lsun)
+      + (0.1 / 3600) * Math.cos(2 * Lmoon)
+      - (0.09 / 3600) * Math.cos(2 * omega);
     const obliquity = obliquity_zero + obliquity_delta;
 
     return {
@@ -297,9 +293,8 @@ var Spacekit = (function (exports) {
       let period = this.get('period');
 
       if (!isDef(period) && isDef(a)) {
-        period =
-          (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
-          SECONDS_IN_DAY;
+        period = (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM))
+          / SECONDS_IN_DAY;
         this.set('period', period);
       }
 
@@ -589,11 +584,11 @@ var Spacekit = (function (exports) {
         }
         const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
         if (
-          prevPos &&
-          Math.abs(prevPos[0] - pos[0]) +
-            Math.abs(prevPos[1] - pos[1]) +
-            Math.abs(prevPos[2] - pos[2]) >
-            120
+          prevPos
+          && Math.abs(prevPos[0] - pos[0])
+            + Math.abs(prevPos[1] - pos[1])
+            + Math.abs(prevPos[2] - pos[2])
+            > 120
         ) {
           // Don't render bogus or very large ellipses.
           points.vertices = [];
@@ -703,7 +698,7 @@ var Spacekit = (function (exports) {
       const points = this.getOrbitPoints();
       const geometry = new THREE.Geometry();
 
-      points.vertices.forEach(vertex => {
+      points.vertices.forEach((vertex) => {
         geometry.vertices.push(vertex);
         geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
       });
@@ -1014,8 +1009,7 @@ var Spacekit = (function (exports) {
         texture: { value: defaultMapTexture },
       };
 
-      const particleCount =
-        this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+      const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
       this._attributes = {
         size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
@@ -1041,7 +1035,7 @@ var Spacekit = (function (exports) {
 
       const geometry = new THREE.BufferGeometry();
       geometry.setDrawRange(0, 0);
-      Object.keys(this._attributes).forEach(attributeName => {
+      Object.keys(this._attributes).forEach((attributeName) => {
         const attribute = this._attributes[attributeName];
         // attribute.setDynamic(true);
         geometry.addAttribute(attributeName, attribute);
@@ -1122,6 +1116,7 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
+      console.log(jd);
       this._uniforms.jd.value = jd;
     }
 
@@ -1347,10 +1342,10 @@ var Spacekit = (function (exports) {
         bottom: pos.y + label.clientHeight,
       };
       if (
-        loc.left > 0 &&
-        loc.right < simulationElt.clientWidth &&
-        loc.top > 0 &&
-        loc.bottom < simulationElt.clientHeight
+        loc.left > 0
+        && loc.right < simulationElt.clientWidth
+        && loc.top > 0
+        && loc.bottom < simulationElt.clientHeight
       ) {
         label.style.left = `${loc.left}px`;
         label.style.top = `${loc.top}px`;
@@ -1528,8 +1523,7 @@ var Spacekit = (function (exports) {
       }
 
       // TODO(ian): Determine this based on orbit and camera position change.
-      const shouldUpdateLabelPos =
-        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+      const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
       if (this._label && shouldUpdateLabelPos) {
         if (!newpos) {
           newpos = this.getPosition(jd);
@@ -1837,10 +1831,9 @@ var Spacekit = (function (exports) {
       // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
 
       // Adjust Z axis according to time.
-      const zAdjust =
-        phi0 +
-        ((2 * PI) / P) * (JD - JD0) +
-        (1 / 2) * YORP * Math.pow(JD - JD0, 2);
+      const zAdjust = phi0
+        + ((2 * PI) / P) * (JD - JD0)
+        + (1 / 2) * YORP * Math.pow(JD - JD0, 2);
       this._obj.rotateY(-(PI / 2 - beta));
       this._obj.rotateZ(-lambda);
       this._obj.rotateZ(zAdjust);
@@ -1852,10 +1845,10 @@ var Spacekit = (function (exports) {
      */
     update(jd) {
       if (
-        this._obj &&
-        this._objectIsRotatable &&
-        this._options.rotation &&
-        this._options.rotation.enable
+        this._obj
+        && this._objectIsRotatable
+        && this._options.rotation
+        && this._options.rotation.enable
       ) {
         // For now, just rotate on X axis.
         const speed = this._options.rotation.speed || 0.5;
@@ -1929,8 +1922,8 @@ var Spacekit = (function (exports) {
       };
       const loader = new THREE.OBJLoader(manager);
       // TODO(ian): Make shapeurl follow assetpath logic.
-      loader.load(this._options.shape.shapeUrl, object => {
-        object.traverse(child => {
+      loader.load(this._options.shape.shapeUrl, (object) => {
+        object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({
               color: this._options.shape.color || 0xcccccc,
@@ -2205,7 +2198,7 @@ var Spacekit = (function (exports) {
 
       fetch(dataUrl)
         .then(resp => resp.json())
-        .then(library => {
+        .then((library) => {
           const n = library.length;
 
           const geometry = new THREE.BufferGeometry();
@@ -2294,7 +2287,7 @@ var Spacekit = (function (exports) {
    *  startPaused: false,
    *  maxNumParticles: 2**16,
    *  camera: {
-   *    position: [0, -10, 5],
+   *    initialPosition: [0, -10, 5],
    *    enableDrift: false,
    *  },
    *  debug: {
@@ -2341,11 +2334,9 @@ var Spacekit = (function (exports) {
     constructor(simulationElt, options) {
       this._simulationElt = simulationElt;
       this._options = options || {};
-      this._options.basePath =
-        this._options.basePath || 'https://typpo.github.io/spacekit/src';
+      this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
-      this._jd =
-        this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
+      this._jd = typeof this._options.jd === 'undefined' ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
       this._jdDelta = this._options.jdDelta;
       this._jdPerSecond = this._options.jdPerSecond || 100;
       this._isPaused = options.startPaused || false;
@@ -2358,8 +2349,7 @@ var Spacekit = (function (exports) {
       this._cameraDefaultPos = [0, -10, 5];
       if (this._options.camera) {
         this._enableCameraDrift = !!this._options.camera.enableDrift;
-        this._cameraDefaultPos =
-          this._options.camera.initialPosition || this._cameraDefaultPos;
+        this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
       }
 
       this._camera = null;
@@ -2442,8 +2432,8 @@ var Spacekit = (function (exports) {
       this._particles = new KeplerParticles(
         {
           textureUrl:
-            this._options.particleTextureUrl ||
-            '{{assets}}/sprites/smallparticle.png',
+            this._options.particleTextureUrl
+            || '{{assets}}/sprites/smallparticle.png',
           jd: this._jd,
           maxNumParticles: this._options.maxNumParticles,
         },
@@ -2551,7 +2541,7 @@ var Spacekit = (function (exports) {
      */
     addObject(obj, noUpdate = false) {
       console.log('adding', obj.get3jsObjects());
-      obj.get3jsObjects().map(x => {
+      obj.get3jsObjects().map((x) => {
         this._scene.add(x);
       });
 
@@ -2567,7 +2557,7 @@ var Spacekit = (function (exports) {
      */
     removeObject(obj) {
       // TODO(ian): test this and avoid memory leaks...
-      obj.get3jsObjects().map(x => {
+      obj.get3jsObjects().map((x) => {
         this._scene.remove(x);
       });
 
@@ -2661,12 +2651,9 @@ var Spacekit = (function (exports) {
       let previouslyInView = true;
       const isInView = () => {
         const rect = this._simulationElt.getBoundingClientRect();
-        const windowHeight =
-          window.innerHeight || document.documentElement.clientHeight;
-        const windowWidth =
-          window.innerWidth || document.documentElement.clientWidth;
-        const vertInView =
-          rect.top <= windowHeight && rect.top + rect.height >= 0;
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+        const vertInView = rect.top <= windowHeight && rect.top + rect.height >= 0;
         const horInView = rect.left <= windowWidth && rect.left + rect.width >= 0;
 
         return vertInView && horInView;

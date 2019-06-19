@@ -35,24 +35,21 @@ export function getNutationAndObliquity(jd = J2000) {
   const Lsun = rad(280.4665 + 36000.7698 * t);
   const Lmoon = rad(218.3165 + 481267.8813 * t);
 
-  const nutation =
-    (-17.2 / 3600) * Math.sin(omega) -
-    (-1.32 / 3600) * Math.sin(2 * Lsun) -
-    (0.23 / 3600) * Math.sin(2 * Lmoon) +
-    deg((0.21 / 3600) * Math.sin(2 * omega));
+  const nutation = (-17.2 / 3600) * Math.sin(omega)
+    - (-1.32 / 3600) * Math.sin(2 * Lsun)
+    - (0.23 / 3600) * Math.sin(2 * Lmoon)
+    + deg((0.21 / 3600) * Math.sin(2 * omega));
 
-  const obliquity_zero =
-    23 +
-    26.0 / 60 +
-    21.448 / 3600 -
-    (46.815 / 3600) * t -
-    (0.00059 / 3600) * t * t +
-    (0.001813 / 3600) * t * t * t;
-  const obliquity_delta =
-    (9.2 / 3600) * Math.cos(omega) +
-    (0.57 / 3600) * Math.cos(2 * Lsun) +
-    (0.1 / 3600) * Math.cos(2 * Lmoon) -
-    (0.09 / 3600) * Math.cos(2 * omega);
+  const obliquity_zero = 23
+    + 26.0 / 60
+    + 21.448 / 3600
+    - (46.815 / 3600) * t
+    - (0.00059 / 3600) * t * t
+    + (0.001813 / 3600) * t * t * t;
+  const obliquity_delta = (9.2 / 3600) * Math.cos(omega)
+    + (0.57 / 3600) * Math.cos(2 * Lsun)
+    + (0.1 / 3600) * Math.cos(2 * Lmoon)
+    - (0.09 / 3600) * Math.cos(2 * omega);
   const obliquity = obliquity_zero + obliquity_delta;
 
   return {

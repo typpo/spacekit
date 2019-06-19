@@ -1,6 +1,10 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: 'https://typpo.github.io/spacekit/src',
-  jdDelta: 0.0025,
+  jd: 0,
+  jdDelta: 0.025,
+  camera: {
+    initialPosition: [0, -0.5, 0.2],
+  },
 });
 
 // Create a starry background using Yale Bright Star Catalog Data.
@@ -8,12 +12,12 @@ viz.createStars();
 
 // Create our first object - the sun - using a preset space object.
 viz.createObject('sun', {
-	textureUrl: '{{assets}}/sprites/lensflare0.png',
+  textureUrl: '{{assets}}/sprites/lensflare0.png',
   position: [0, 0, 0],
   scale: [0.1, 0.1, 0.1],
-	theme: {
-		color: 0xff7034,
-	},
+  theme: {
+    color: 0xff7034,
+  },
 });
 
 // Then add some planets

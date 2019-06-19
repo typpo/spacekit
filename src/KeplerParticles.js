@@ -73,8 +73,7 @@ export class KeplerParticles {
       texture: { value: defaultMapTexture },
     };
 
-    const particleCount =
-      this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+    const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
     this._attributes = {
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
@@ -100,7 +99,7 @@ export class KeplerParticles {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
-    Object.keys(this._attributes).forEach(attributeName => {
+    Object.keys(this._attributes).forEach((attributeName) => {
       const attribute = this._attributes[attributeName];
       // attribute.setDynamic(true);
       geometry.addAttribute(attributeName, attribute);
@@ -181,6 +180,7 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd) {
+    console.log(jd);
     this._uniforms.jd.value = jd;
   }
 

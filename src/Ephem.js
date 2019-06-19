@@ -142,9 +142,8 @@ export class Ephem {
     let period = this.get('period');
 
     if (!isDef(period) && isDef(a)) {
-      period =
-        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
-        SECONDS_IN_DAY;
+      period = (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM))
+        / SECONDS_IN_DAY;
       this.set('period', period);
     }
 

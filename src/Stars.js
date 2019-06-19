@@ -80,7 +80,7 @@ export class Stars {
 
     fetch(dataUrl)
       .then(resp => resp.json())
-      .then(library => {
+      .then((library) => {
         const n = library.length;
 
         const geometry = new THREE.BufferGeometry();

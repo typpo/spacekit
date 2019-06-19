@@ -86,8 +86,7 @@ export class Simulation {
     this._cameraDefaultPos = [0, -10, 5];
     if (this._options.camera) {
       this._enableCameraDrift = !!this._options.camera.enableDrift;
-      this._cameraDefaultPos =
-        this._options.camera.initialPosition || this._cameraDefaultPos;
+      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
     }
 
     this._camera = null;
@@ -170,8 +169,8 @@ export class Simulation {
     this._particles = new KeplerParticles(
       {
         textureUrl:
-          this._options.particleTextureUrl ||
-          '{{assets}}/sprites/smallparticle.png',
+          this._options.particleTextureUrl
+          || '{{assets}}/sprites/smallparticle.png',
         jd: this._jd,
         maxNumParticles: this._options.maxNumParticles,
       },
@@ -279,7 +278,7 @@ export class Simulation {
    */
   addObject(obj, noUpdate = false) {
     console.log('adding', obj.get3jsObjects());
-    obj.get3jsObjects().map(x => {
+    obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
 
@@ -295,7 +294,7 @@ export class Simulation {
    */
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
-    obj.get3jsObjects().map(x => {
+    obj.get3jsObjects().map((x) => {
       this._scene.remove(x);
     });
 
@@ -389,12 +388,9 @@ export class Simulation {
     let previouslyInView = true;
     const isInView = () => {
       const rect = this._simulationElt.getBoundingClientRect();
-      const windowHeight =
-        window.innerHeight || document.documentElement.clientHeight;
-      const windowWidth =
-        window.innerWidth || document.documentElement.clientWidth;
-      const vertInView =
-        rect.top <= windowHeight && rect.top + rect.height >= 0;
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+      const vertInView = rect.top <= windowHeight && rect.top + rect.height >= 0;
       const horInView = rect.left <= windowWidth && rect.left + rect.width >= 0;
 
       return vertInView && horInView;

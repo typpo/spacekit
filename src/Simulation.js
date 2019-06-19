@@ -277,7 +277,6 @@ export class Simulation {
    * animated.
    */
   addObject(obj, noUpdate = false) {
-    console.log('adding', obj.get3jsObjects());
     obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });

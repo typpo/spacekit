@@ -238,7 +238,7 @@ export class SpaceObject {
         map: texture,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        color: 0xffffff,
+        color: this._options.theme ? this._options.theme.color : 0xffffff,
       }),
     );
     const scale = this._scale;
@@ -365,7 +365,6 @@ export class SpaceObject {
     if (this._object3js || this._label) {
       shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
     }
-    shouldUpdateObjectPosition = true;
     if (this._object3js && shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);

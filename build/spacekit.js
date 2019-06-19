@@ -891,6 +891,7 @@ var Spacekit = (function (exports) {
       return vec3(X, Y, Z);
     }
 
+    /*
     vec3 getAstroPosFast() {
       float M1 = ma + (jd - epoch) * n;
       float theta = M1 + 2. * e * sin(M1);
@@ -914,6 +915,7 @@ var Spacekit = (function (exports) {
 
       return vec3(X, Y, Z);
     }
+    */
 
     void main() {
       vColor = fuzzColor;
@@ -1374,7 +1376,7 @@ var Spacekit = (function (exports) {
           map: texture,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
-          color: 0xffffff,
+          color: this._options.theme ? this._options.theme.color : 0xffffff,
         }),
       );
       const scale = this._scale;
@@ -1383,6 +1385,7 @@ var Spacekit = (function (exports) {
       sprite.position.set(position[0], position[1], position[2]);
 
       if (this.isStaticObject()) {
+        sprite.updateMatrix();
         sprite.matrixAutoUpdate = false;
       }
 
@@ -1429,9 +1432,6 @@ var Spacekit = (function (exports) {
      * @return {boolean} Whether to update
      */
     shouldUpdateObjectPosition(afterJd) {
-      if (this._options.ephem.get('a') < 0.1) {
-        return true;
-      }
       const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
       if (degMove < MIN_DEG_MOVE_PER_DAY) {
         return false;
@@ -2521,12 +2521,15 @@ var Spacekit = (function (exports) {
 
       // Update objects in this simulation
       this.update();
+
       // Update camera drifting, if applicable
       if (this._enableCameraDrift) {
         this.doCameraDrift();
       }
+
       // Handle trackball movements
       this._cameraControls.update();
+
       // Update three.js scene
       this._renderer.render(this._scene, this._camera);
 

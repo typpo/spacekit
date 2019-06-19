@@ -76,6 +76,7 @@ export const ORBIT_SHADER_VERTEX = `
       return vec3(X, Y, Z);
     }
 
+    /*
     vec3 getAstroPosFast() {
       float M1 = ma + (jd - epoch) * n;
       float theta = M1 + 2. * e * sin(M1);
@@ -99,6 +100,7 @@ export const ORBIT_SHADER_VERTEX = `
 
       return vec3(X, Y, Z);
     }
+    */
 
     void main() {
       vColor = fuzzColor;

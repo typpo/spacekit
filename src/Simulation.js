@@ -251,12 +251,15 @@ export class Simulation {
 
     // Update objects in this simulation
     this.update();
+
     // Update camera drifting, if applicable
     if (this._enableCameraDrift) {
       this.doCameraDrift();
     }
+
     // Handle trackball movements
     this._cameraControls.update();
+
     // Update three.js scene
     this._renderer.render(this._scene, this._camera);
 

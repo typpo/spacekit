@@ -247,6 +247,7 @@ export class SpaceObject {
     sprite.position.set(position[0], position[1], position[2]);
 
     if (this.isStaticObject()) {
+      sprite.updateMatrix();
       sprite.matrixAutoUpdate = false;
     }
 
@@ -293,9 +294,6 @@ export class SpaceObject {
    * @return {boolean} Whether to update
    */
   shouldUpdateObjectPosition(afterJd) {
-    if (this._options.ephem.get('a') < 0.1) {
-      return true;
-    }
     const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
     if (degMove < MIN_DEG_MOVE_PER_DAY) {
       return false;
@@ -367,6 +365,7 @@ export class SpaceObject {
     if (this._object3js || this._label) {
       shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
     }
+    shouldUpdateObjectPosition = true;
     if (this._object3js && shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);

@@ -1429,6 +1429,9 @@ var Spacekit = (function (exports) {
      * @return {boolean} Whether to update
      */
     shouldUpdateObjectPosition(afterJd) {
+      if (this._options.ephem.get('a') < 0.1) {
+        return true;
+      }
       const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
       if (degMove < MIN_DEG_MOVE_PER_DAY) {
         return false;

@@ -24,7 +24,7 @@ import { Stars } from './Stars';
  *  startPaused: false,
  *  maxNumParticles: 2**16,
  *  camera: {
- *    position: [0, -10, 5],
+ *    initialPosition: [0, -10, 5],
  *    enableDrift: false,
  *  },
  *  debug: {
@@ -71,11 +71,9 @@ export class Simulation {
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
-    this._options.basePath =
-      this._options.basePath || 'https://typpo.github.io/spacekit/src';
+    this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
 
-    this._jd =
-      this._options.jd || julian.toJulianDay(this._options.startDate) || 0;
+    this._jd = typeof this._options.jd === 'undefined' ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
     this._isPaused = options.startPaused || false;

@@ -52,3 +52,25 @@ const spaceship = viz.createObject('my spaceship', {
   ),
 });
 spaceship.orbitAround(earth);
+
+const spaceshipMoon = viz.createObject('me', {
+  labelText: 'me',
+  ephem: new Spacekit.Ephem(
+    {
+      // These parameters define orbit shape.
+      a: 0.1,
+      e: 0,
+      i: 0,
+
+      // These parameters define the orientation of the orbit.
+      om: 0,
+      w: 0,
+      ma: 0,
+
+      // Where the object is in its orbit.
+      epoch: 2458426.5,
+    },
+    'deg',
+  ),
+});
+spaceshipMoon.orbitAround(spaceship);

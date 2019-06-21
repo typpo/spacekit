@@ -1476,6 +1476,14 @@ var Spacekit = (function (exports) {
       }
 
       const posModified = this._orbit.getPositionAtTime(jd);
+      if (this._orbitAround) {
+        const parentPos = this._orbitAround.getPosition(jd);
+        return [
+          pos[0] + posModified[0] + parentPos[0],
+          pos[1] + posModified[1] + parentPos[1],
+          pos[2] + posModified[2] + parentPos[2],
+        ];
+      }
       return [
         pos[0] + posModified[0],
         pos[1] + posModified[1],
@@ -1516,9 +1524,6 @@ var Spacekit = (function (exports) {
         if (!newpos) {
           newpos = this.getPosition(jd);
         }
-        newpos[0] += parentPos[0];
-        newpos[1] += parentPos[1];
-        newpos[2] += parentPos[2];
       }
 
       // TODO(ian): Determine this based on orbit and camera position change.

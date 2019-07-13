@@ -516,7 +516,7 @@ export class Simulation {
   }
 
   /**
-   * Get a date object representing current date and time of the simulation.
+   * Get a date object representing local date and time of the simulation.
    * @return {Date} Date of simulation
    */
   getDate() {
@@ -524,7 +524,7 @@ export class Simulation {
   }
 
   /**
-   * Set the date and time of the simulation.
+   * Set the local date and time of the simulation.
    * @param {Date} date Date of simulation
    */
   setDate(date) {

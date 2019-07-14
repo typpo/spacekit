@@ -26,7 +26,7 @@ export class SphereObject extends RotatingObject {
   initSphere() {
     let map;
     if (this._options.textureUrl) {
-      map = THREE.ImageUtils.loadTexture(this._options.textureUrl);
+      map = new THREE.TextureLoader().load(this._options.textureUrl);
       map.minFilter = THREE.LinearFilter;
     }
 

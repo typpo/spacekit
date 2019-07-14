@@ -188,6 +188,11 @@ export class Simulation {
       antialias: true,
     });
 
+    const maxPrecision = renderer.capabilities.getMaxPrecision();
+    if (maxPrecision !== 'highp') {
+      console.warn(`Shader maximum precision is "${maxPrecision}", GPU rendering may not be accurate.`);
+    }
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(
       this._simulationElt.offsetWidth,

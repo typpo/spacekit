@@ -45,3 +45,11 @@ export function decimalToSexagesimalDec(
   const decSec = (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
   return [decDeg, decMin, decSec];
 }
+
+export function kmToAu(km) {
+  return km / 149598000;
+}
+
+export function auToKm(au) {
+  return km * 149598000;
+}

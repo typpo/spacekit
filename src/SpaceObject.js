@@ -1,4 +1,4 @@
-import { EphemPresets } from './Ephem';
+import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 
@@ -39,6 +39,7 @@ function toScreenXY(position, camera, canvas) {
  * const myObject = viz.addObject('planet1', {
  *   position: [0, 0, 0],
  *   scale: [1, 1, 1],
+ *   particleSize: 5,
  *   labelText: 'My object',
  *   labelUrl: 'http://...',
  *   hideOrbit: false,

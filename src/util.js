@@ -28,3 +28,8 @@ export function getFullUrl(template, basePath) {
 export function getFullTextureUrl(template, basePath) {
   return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
 }
+
+export function getDefaultBasePath() {
+  return window.location.href.indexOf('localhost') > -1 ?
+      '/src/' : 'https://typpo.github.io/spacekit/src';
+}

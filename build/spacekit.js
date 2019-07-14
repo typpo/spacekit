@@ -221,8 +221,9 @@ var Spacekit = (function (exports) {
      * Defaults to GM.SUN.  @see {GM}
      * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
      */
-    constructor(initialValues, units = 'rad') {
+    constructor(initialValues, units = 'rad', locked = false) {
       this._attrs = {};
+      this._locked = false;
 
       for (const attr in initialValues) {
         if (initialValues.hasOwnProperty(attr)) {
@@ -235,6 +236,8 @@ var Spacekit = (function (exports) {
         this._attrs.GM = GM.SUN;
       }
       this.fill();
+
+      this._locked = locked;
     }
 
     /**
@@ -244,6 +247,10 @@ var Spacekit = (function (exports) {
      * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
      */
     set(attr, val, units = 'rad') {
+      if (this._locked) {
+        throw new Error('Attempted to modify locked (immutable) Ephem object');
+      }
+
       if (!EPHEM_VALID_ATTRS.has(attr)) {
         console.warn(`Invalid ephem attr: ${attr}`);
         return false;
@@ -331,6 +338,13 @@ var Spacekit = (function (exports) {
       //  TODO(ian): Handle no om
     }
 
+    /**
+     * Make this ephem object immutable.
+     */
+    lock() {
+      this._locked = true;
+    }
+
     copy() {
       return new Ephem({
         epoch: this.get('epoch'),
@@ -363,6 +377,42 @@ var Spacekit = (function (exports) {
   };
 
   /**
+   * @ignore
+   */
+  const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
+
+  /**
+   * Returns the complete URL to a texture given a basepath and a template url.
+   * @param {String} template URL containing optional template parameters
+   * @param {String} basePath Base path
+   * @example
+   * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+   * => '/path/to/assets/images/mysprite.png'
+   */
+  function getFullUrl(template, basePath) {
+    return template
+      .replace('{{assets}}', `${basePath}/assets`)
+      .replace('{{data}}', `${basePath}/data`);
+  }
+
+  /**
+   * Returns the complete URL to a texture given a basepath and a template url.
+   * @param {String} template URL containing optional template parameters
+   * @param {String} basePath Base path for simulation data and assets.
+   * @example
+   * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+   * => '/path/to/assets/images/mysprite.png'
+   */
+  function getFullTextureUrl(template, basePath) {
+    return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
+  }
+
+  function getDefaultBasePath() {
+    return window.location.href.indexOf('localhost') > -1 ?
+        '/src/' : 'https://typpo.github.io/spacekit/src';
+  }
+
+  /**
    * A dictionary containing ephemerides of planets and other well-known objects.
    * @example
    * const planet1 = viz.createObject('planet1', {
@@ -382,6 +432,7 @@ var Spacekit = (function (exports) {
         ma: 2.56190975209273e2,
       },
       'deg',
+      true, /* locked */
     ),
     VENUS: new Ephem(
       {
@@ -394,6 +445,7 @@ var Spacekit = (function (exports) {
         ma: 2.756687596099721e2,
       },
       'deg',
+      true, /* locked */
     ),
     EARTH: new Ephem(
       {
@@ -428,6 +480,7 @@ var Spacekit = (function (exports) {
        */
       },
       'deg',
+      true, /* locked */
     ),
     MOON: new Ephem(
       {
@@ -455,6 +508,7 @@ var Spacekit = (function (exports) {
      */
       },
       'deg',
+      true, /* locked */
     ),
     MARS: new Ephem(
       {
@@ -467,6 +521,7 @@ var Spacekit = (function (exports) {
         ma: 2.538237617924876e1,
       },
       'deg',
+      true, /* locked */
     ),
     JUPITER: new Ephem(
       {
@@ -479,6 +534,7 @@ var Spacekit = (function (exports) {
         ma: 2.31939544389401e2,
       },
       'deg',
+      true, /* locked */
     ),
     SATURN: new Ephem(
       {
@@ -491,6 +547,7 @@ var Spacekit = (function (exports) {
         ma: 1.870970898012944e2,
       },
       'deg',
+      true, /* locked */
     ),
     URANUS: new Ephem(
       {
@@ -503,6 +560,7 @@ var Spacekit = (function (exports) {
         ma: 2.202603033874267e2,
       },
       'deg',
+      true, /* locked */
     ),
     NEPTUNE: new Ephem(
       {
@@ -515,6 +573,7 @@ var Spacekit = (function (exports) {
         ma: 3.152804988924479e2,
       },
       'deg',
+      true, /* locked */
     ),
     PLUTO: new Ephem(
       {
@@ -527,542 +586,92 @@ var Spacekit = (function (exports) {
         ma: 25.2471897122,
       },
       'deg',
+      true, /* locked */
     ),
   };
 
-  EphemPresets.JUPITER_MOONS = {
-    Himalia: new Ephem({
-      epoch: 2451544.5,  // 2000 Jan 1 TT ? -> midnight Jan 1
-      a: kmToAu(11460000),
-      e: 0.1586,
-      w: 331.234,
-      ma: 66.874,
-      i: 28.612,
-      om: 64.798,
-    }, 'deg'),
-    Elara: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(11740000),
-      e: 0.2108,
-      w: 142.001,
-      ma: 330.985,
-      i: 27.945,
-      om: 115.511,
-    }, 'deg'),
-    Pasiphae: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23629000),
-      e: 0.4062,
-      w: 169.226,
-      ma: 279.769,
-      i: 151.413,
-      om: 314.223,
-    }, 'deg'),
-    Sinope: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23942000),
-      e: 0.2552,
-      w: 354.541,
-      ma: 165.352,
-      i: 158.189,
-      om: 309.199,
-    }, 'deg'),
-    Lysithea: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(11717000),
-      e: 0.1161,
-      w: 49.67,
-      ma: 330.475,
-      i: 27.663,
-      om: 5.326,
-    }, 'deg'),
-    Carme: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23401000),
-      e: 0.2546,
-      w: 26.416,
-      ma: 233.375,
-      i: 164.994,
-      om: 114.854,
-    }, 'deg'),
-    Ananke: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21254000),
-      e: 0.2332,
-      w: 95.772,
-      ma: 253.384,
-      i: 148.693,
-      om: 15.959,
-    }, 'deg'),
-    Leda: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(11164000),
-      e: 0.1624,
-      w: 269.393,
-      ma: 230.352,
-      i: 27.882,
-      om: 219.181,
-    }, 'deg'),
-    Callirrhoe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(24099000),
-      e: 0.2796,
-      w: 23.909,
-      ma: 107.962,
-      i: 147.08,
-      om: 283.104,
-    }, 'deg'),
-    Themisto: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(7504000),
-      e: 0.2435,
-      w: 217.147,
-      ma: 313.051,
-      i: 42.977,
-      om: 192.288,
-    }, 'deg'),
-    Megaclite: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23814000),
-      e: 0.4156,
-      w: 288.882,
-      ma: 135.272,
-      i: 152.781,
-      om: 280.575,
-    }, 'deg'),
-    Taygete: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23363000),
-      e: 0.2523,
-      w: 231.54,
-      ma: 94.756,
-      i: 165.253,
-      om: 305.114,
-    }, 'deg'),
-    Chaldene: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23181000),
-      e: 0.2503,
-      w: 243.878,
-      ma: 267.454,
-      i: 165.155,
-      om: 134.24,
-    }, 'deg'),
-    Harpalyke: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21106000),
-      e: 0.2296,
-      w: 134.505,
-      ma: 215.956,
-      i: 148.759,
-      om: 29.834,
-    }, 'deg'),
-    Kalyke: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23565000),
-      e: 0.2466,
-      w: 218.934,
-      ma: 255.702,
-      i: 165.121,
-      om: 43.864,
-    }, 'deg'),
-    Iocaste: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21272000),
-      e: 0.2152,
-      w: 64.727,
-      ma: 213.675,
-      i: 149.411,
-      om: 269.613,
-    }, 'deg'),
-    Erinome: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23286000),
-      e: 0.2655,
-      w: 10.274,
-      ma: 267.136,
-      i: 164.914,
-      om: 317.497,
-    }, 'deg'),
-    Isonoe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23231000),
-      e: 0.2471,
-      w: 116.879,
-      ma: 124.941,
-      i: 165.25,
-      om: 130.961,
-    }, 'deg'),
-    Praxidike: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21148000),
-      e: 0.2274,
-      w: 190.862,
-      ma: 117.48,
-      i: 148.885,
-      om: 280.956,
-    }, 'deg'),
-    Autonoe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(24037000),
-      e: 0.3152,
-      w: 54.793,
-      ma: 142.035,
-      i: 152.364,
-      om: 272.817,
-    }, 'deg'),
-    Thyone: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21197000),
-      e: 0.2307,
-      w: 97.023,
-      ma: 238.786,
-      i: 148.595,
-      om: 233.022,
-    }, 'deg'),
-    Hermippe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21297000),
-      e: 0.2095,
-      w: 300.836,
-      ma: 131.854,
-      i: 150.74,
-      om: 330.393,
-    }, 'deg'),
-    Aitne: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23317000),
-      e: 0.2627,
-      w: 99.401,
-      ma: 105,
-      i: 165.048,
-      om: 8.679,
-    }, 'deg'),
-    Eurydome: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23146000),
-      e: 0.2755,
-      w: 223.631,
-      ma: 287.689,
-      i: 150.271,
-      om: 302.47,
-    }, 'deg'),
-    Euanthe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21039000),
-      e: 0.232,
-      w: 320.635,
-      ma: 333.101,
-      i: 148.915,
-      om: 254.297,
-    }, 'deg'),
-    Euporie: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(19336000),
-      e: 0.1438,
-      w: 89.904,
-      ma: 70.243,
-      i: 145.74,
-      om: 60.143,
-    }, 'deg'),
-    Orthosie: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21158000),
-      e: 0.2807,
-      w: 216.805,
-      ma: 204.517,
-      i: 146.004,
-      om: 221.949,
-    }, 'deg'),
-    Sponde: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23790000),
-      e: 0.3112,
-      w: 61.885,
-      ma: 174.044,
-      i: 150.997,
-      om: 116.363,
-    }, 'deg'),
-    Kale: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23306000),
-      e: 0.2597,
-      w: 44.233,
-      ma: 212.853,
-      i: 164.944,
-      om: 60.17,
-    }, 'deg'),
-    Pasithee: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23091000),
-      e: 0.2682,
-      w: 231.92,
-      ma: 215.443,
-      i: 165.117,
-      om: 327.729,
-    }, 'deg'),
-    Hegemone: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23575000),
-      e: 0.3445,
-      w: 197.144,
-      ma: 236.95,
-      i: 154.164,
-      om: 318.902,
-    }, 'deg'),
-    Mneme: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21033000),
-      e: 0.2258,
-      w: 40.542,
-      ma: 256.86,
-      i: 148.585,
-      om: 13.467,
-    }, 'deg'),
-    Aoede: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23974000),
-      e: 0.4325,
-      w: 59.739,
-      ma: 197.676,
-      i: 158.272,
-      om: 173.392,
-    }, 'deg'),
-    Thelxinoe: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21160000),
-      e: 0.2201,
-      w: 313.183,
-      ma: 268.013,
-      i: 151.39,
-      om: 169.962,
-    }, 'deg'),
-    Arche: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23352000),
-      e: 0.2495,
-      w: 171.632,
-      ma: 39.713,
-      i: 165.015,
-      om: 339.21,
-    }, 'deg'),
-    Kallichore: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23276000),
-      e: 0.2509,
-      w: 9.836,
-      ma: 55.937,
-      i: 165.102,
-      om: 30.339,
-    }, 'deg'),
-    Helike: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21065000),
-      e: 0.1498,
-      w: 299.482,
-      ma: 43.659,
-      i: 154.842,
-      om: 89.749,
-    }, 'deg'),
-    Carpo: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(17056000),
-      e: 0.4317,
-      w: 90.372,
-      ma: 337.062,
-      i: 51.624,
-      om: 50.597,
-    }, 'deg'),
-    Eukelade: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23323000),
-      e: 0.2619,
-      w: 309.685,
-      ma: 204.846,
-      i: 165.265,
-      om: 193.558,
-    }, 'deg'),
-    Cyllene: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23800000),
-      e: 0.4155,
-      w: 187.429,
-      ma: 128.345,
-      i: 150.336,
-      om: 252.611,
-    }, 'deg'),
-    Kore: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(24482000),
-      e: 0.3313,
-      w: 138.071,
-      ma: 33.416,
-      i: 145.173,
-      om: 313.355,
-    }, 'deg'),
-    Herse: new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23408000),
-      e: 0.2541,
-      w: 330.295,
-      ma: 141.667,
-      i: 164.964,
-      om: 295.702,
-    }, 'deg'),
-    'S/2000 J 11': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(12297000),
-      e: 0.232,
-      w: 173.544,
-      ma: 309.734,
-      i: 28.631,
-      om: 294.497,
-    }, 'deg'),
-    'S/2003 J 2': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(28347000),
-      e: 0.41,
-      w: 165.201,
-      ma: 237.932,
-      i: 157.291,
-      om: 344.782,
-    }, 'deg'),
-    'S/2003 J 3': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(20221000),
-      e: 0.1969,
-      w: 66.338,
-      ma: 311.78,
-      i: 147.547,
-      om: 231.489,
-    }, 'deg'),
-    'S/2003 J 4': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23929000),
-      e: 0.3624,
-      w: 197.401,
-      ma: 260.48,
-      i: 149.589,
-      om: 179.131,
-    }, 'deg'),
-    'S/2003 J 5': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23495000),
-      e: 0.2476,
-      w: 90.066,
-      ma: 336.636,
-      i: 165.248,
-      om: 176.683,
-    }, 'deg'),
-    'S/2003 J 9': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23385000),
-      e: 0.2632,
-      w: 292.662,
-      ma: 348.415,
-      i: 165.047,
-      om: 44.321,
-    }, 'deg'),
-    'S/2003 J 10': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23042000),
-      e: 0.4299,
-      w: 170.833,
-      ma: 258.937,
-      i: 165.073,
-      om: 151.911,
-    }, 'deg'),
-    'S/2003 J 12': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(17830000),
-      e: 0.4904,
-      w: 13.288,
-      ma: 38.543,
-      i: 151.003,
-      om: 65.53,
-    }, 'deg'),
-    'S/2003 J 15': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(22627000),
-      e: 0.1899,
-      w: 18.405,
-      ma: 58.865,
-      i: 146.492,
-      om: 236.674,
-    }, 'deg'),
-    'S/2003 J 16': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21097000),
-      e: 0.2281,
-      w: 57.681,
-      ma: 307.563,
-      i: 148.683,
-      om: 16.883,
-    }, 'deg'),
-    'S/2003 J 18': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(20508000),
-      e: 0.0895,
-      w: 130.894,
-      ma: 202.16,
-      i: 146.077,
-      om: 158.247,
-    }, 'deg'),
-    'S/2003 J 19': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23533000),
-      e: 0.2552,
-      w: 176.668,
-      ma: 223.035,
-      i: 165.116,
-      om: 27.442,
-    }, 'deg'),
-    'S/2003 J 23': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23567000),
-      e: 0.2746,
-      w: 255.114,
-      ma: 144.222,
-      i: 146.424,
-      om: 41.706,
-    }, 'deg'),
-    'S/2010 J 1': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23449000),
-      e: 0.2491,
-      w: 189.23,
-      ma: 160.525,
-      i: 165.1,
-      om: 282.871,
-    }, 'deg'),
-    'S/2010 J 2': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(21004000),
-      e: 0.2267,
-      w: 18.252,
-      ma: 312.074,
-      i: 148.673,
-      om: 5.802,
-    }, 'deg'),
-    'S/2011 J 1': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23446000),
-      e: 0.2534,
-      w: 31.514,
-      ma: 256.027,
-      i: 165.318,
-      om: 250.728,
-    }, 'deg'),
-    'S/2011 J 2': new Ephem({
-      epoch: 2451544.5,
-      a: kmToAu(23124000),
-      e: 0.3493,
-      w: 270.154,
-      ma: 285.597,
-      i: 153.597,
-      om: 24.866,
-    }, 'deg'),
-  };
+  /**
+   * A class for fetching orbital elements of natural satellites in our solar
+   * system.
+   */
+  class NaturalSatellites {
+    constructor(contextOrSimulation) {
+      {
+        // User passed in Simulation
+        this._simulation = contextOrSimulation;
+        this._context = contextOrSimulation.getContext();
+      }
+
+      this._satellitesByPlanet = {};
+      this._readyPromise = null;
+
+      this.init();
+    }
+
+    init() {
+      const dataUrl = getFullUrl(
+        '{{data}}/processed/natural-satellites.json',
+        this._context.options.basePath,
+      );
+
+      this._readyPromise = new Promise((resolve, reject) => {
+        fetch(dataUrl)
+          .then(resp => resp.json())
+          .then((moons) => {
+            moons.forEach((moon) => {
+              const planetName = moon.Planet.toLowerCase();
+              if (!this._satellitesByPlanet[planetName]) {
+                this._satellitesByPlanet[planetName] = [];
+              }
+
+              switch(moon['Element Type']) {
+                case 'Ecliptic':
+                  // Don't have to do anything
+                  break;
+                case 'Equatorial':
+                  // TODO(ian): Convert equatorial coords
+                  break;
+                case 'Laplace':
+                  // TODO(ian): Convert laplace coords
+                  break;
+                default:
+                  console.error('Unknown element type in natural satellites object:', moon);
+                  return;
+              }
+
+              const ephem = new Ephem({
+                epoch: moon['Epoch JD'],
+                a: kmToAu(moon.a),
+                e: parseFloat(moon.e),
+                i: parseFloat(moon.i),
+                w: parseFloat(moon.w),
+                om: parseFloat(moon.node),
+                ma: parseFloat(moon.M),
+              }, 'deg', true /* locked */ );
+
+              this._satellitesByPlanet[planetName].push({
+                name: moon['Sat.'],
+                elementType: moon['Element Type'],
+                ephem: ephem,
+              });
+            });
+            console.info('Loaded', moons.length, 'natural satellites');
+            resolve(this);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    }
+
+    getSatellitesForPlanet(planetName) {
+      return this._satellitesByPlanet[planetName.toLowerCase()];
+    }
+
+    load() {
+      return this._readyPromise;
+    }
+  }
 
   /**
    * A class that builds a visual representation of a Kepler orbit.
@@ -1200,11 +809,15 @@ var Spacekit = (function (exports) {
       // Estimate eccentric and true anom using iterative approx
       let E0 = M;
       let lastdiff;
-      do {
+      for (var count = 0; count < 100; count++) {
         const E1 = M + e * sin(E0);
         lastdiff = Math.abs(E1 - E0);
         E0 = E1;
-      } while (lastdiff > 0.0000001);
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
       const E = E0;
       const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
@@ -1334,37 +947,6 @@ var Spacekit = (function (exports) {
   /**
    * @ignore
    */
-  const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
-
-  /**
-   * Returns the complete URL to a texture given a basepath and a template url.
-   * @param {String} template URL containing optional template parameters
-   * @param {String} basePath Base path
-   * @example
-   * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
-   * => '/path/to/assets/images/mysprite.png'
-   */
-  function getFullUrl(template, basePath) {
-    return template
-      .replace('{{assets}}', `${basePath}/assets`)
-      .replace('{{data}}', `${basePath}/data`);
-  }
-
-  /**
-   * Returns the complete URL to a texture given a basepath and a template url.
-   * @param {String} template URL containing optional template parameters
-   * @param {String} basePath Base path for simulation data and assets.
-   * @example
-   * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
-   * => '/path/to/assets/images/mysprite.png'
-   */
-  function getFullTextureUrl(template, basePath) {
-    return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
-  }
-
-  /**
-   * @ignore
-   */
   const ORBIT_SHADER_FRAGMENT = `
     varying vec3 vColor;
     uniform sampler2D texture;
@@ -1418,7 +1000,7 @@ var Spacekit = (function (exports) {
       float E1 = M + adjusted_e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
-      for (int foo=0; foo < 25; foo++) {
+      for (int foo=0; foo < 100; foo++) {
         E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
@@ -2893,7 +2475,7 @@ var Spacekit = (function (exports) {
     constructor(simulationElt, options) {
       this._simulationElt = simulationElt;
       this._options = options || {};
-      this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
+      this._options.basePath = this._options.basePath || getDefaultBasePath();
 
       this._jd = typeof this._options.jd === 'undefined' ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
       this._jdDelta = this._options.jdDelta;
@@ -3200,6 +2782,17 @@ var Spacekit = (function (exports) {
     }
 
     /**
+     * Returns a promise that receives a NaturalSatellites object when it is
+     * resolved.  @return {Promise<NaturalSatellites>} NaturalSatellites object
+     * that is ready to load.
+     *
+     * @see {NaturalSatellites}
+     */
+    loadNaturalSatellites() {
+      return new NaturalSatellites(this).load();
+    }
+
+    /**
      * Installs a scroll handler that only renders the visualization while it is
      * in the user's viewport.
      *
@@ -3462,6 +3055,7 @@ var Spacekit = (function (exports) {
   exports.Ephem = Ephem;
   exports.GM = GM;
   exports.EphemPresets = EphemPresets;
+  exports.NaturalSatellites = NaturalSatellites;
   exports.Orbit = Orbit;
   exports.Simulation = Simulation;
   exports.Skybox = Skybox;

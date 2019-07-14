@@ -2,11 +2,13 @@ import julian from 'julian';
 
 import { Camera } from './Camera';
 import { KeplerParticles } from './KeplerParticles';
+import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
 import { Stars } from './Stars';
+import { getDefaultBasePath } from './util';
 
 /**
  * The main entrypoint of a visualization.
@@ -71,7 +73,7 @@ export class Simulation {
   constructor(simulationElt, options) {
     this._simulationElt = simulationElt;
     this._options = options || {};
-    this._options.basePath = this._options.basePath || 'https://typpo.github.io/spacekit/src';
+    this._options.basePath = this._options.basePath || getDefaultBasePath();
 
     this._jd = typeof this._options.jd === 'undefined' ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
     this._jdDelta = this._options.jdDelta;
@@ -375,6 +377,17 @@ export class Simulation {
       });
     }
     this._scene.add(pointLight);
+  }
+
+  /**
+   * Returns a promise that receives a NaturalSatellites object when it is
+   * resolved.  @return {Promise<NaturalSatellites>} NaturalSatellites object
+   * that is ready to load.
+   *
+   * @see {NaturalSatellites}
+   */
+  loadNaturalSatellites() {
+    return new NaturalSatellites(this).load();
   }
 
   /**

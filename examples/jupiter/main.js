@@ -1,6 +1,6 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jd: 0,
-  jdDelta: 0.020,
+  jdDelta: 0.001,
   camera: {
     //initialPosition: [0.04, 0.16, 2.6],
   },
@@ -15,18 +15,22 @@ viz.createStars();
 // Create jupiter
 const jupiter = viz.createSphere('jupiter', {
   textureUrl: './jupiter_texture.jpg',
-  radius: 0.025,
+  radius: 71492 / 149598000,  // radius in AU, so jupiter is shown to scale
 });
 viz.zoomToFit(jupiter);
 
 // Add its moons
-Object.keys(Spacekit.EphemPresets.JUPITER_MOONS).forEach((name) => {
-  viz.createObject(name, {
-    labelText: name,
-    ephem: Spacekit.EphemPresets.JUPITER_MOONS[name],
-    particleSize: 5,
-    theme: {
-      color: 0xCCCCCC,
-    },
+viz.loadNaturalSatellites().then((loader) => {
+  loader.getSatellitesForPlanet('jupiter').forEach((moon) => {
+    console.log(moon.name, moon.ephem)
+    viz.createObject(moon.name, {
+      labelText: moon.name,
+      ephem: moon.ephem,
+      particleSize: 20,
+      theme: {
+        color: 0xCCCCCC,
+      },
+    });
   });
+
 });

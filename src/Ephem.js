@@ -62,8 +62,9 @@ export class Ephem {
    * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
-  constructor(initialValues, units = 'rad') {
+  constructor(initialValues, units = 'rad', locked = false) {
     this._attrs = {};
+    this._locked = false;
 
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
@@ -76,6 +77,8 @@ export class Ephem {
       this._attrs.GM = GM.SUN;
     }
     this.fill();
+
+    this._locked = locked;
   }
 
   /**
@@ -85,6 +88,10 @@ export class Ephem {
    * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
    */
   set(attr, val, units = 'rad') {
+    if (this._locked) {
+      throw new Error('Attempted to modify locked (immutable) Ephem object');
+    }
+
     if (!EPHEM_VALID_ATTRS.has(attr)) {
       console.warn(`Invalid ephem attr: ${attr}`);
       return false;
@@ -170,6 +177,13 @@ export class Ephem {
     }
 
     //  TODO(ian): Handle no om
+  }
+
+  /**
+   * Make this ephem object immutable.
+   */
+  lock() {
+    this._locked = true;
   }
 
   copy() {

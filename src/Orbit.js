@@ -134,11 +134,15 @@ export class Orbit {
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;
     let lastdiff;
-    do {
+    for (var count = 0; count < 100; count++) {
       const E1 = M + e * sin(E0);
       lastdiff = Math.abs(E1 - E0);
       E0 = E1;
-    } while (lastdiff > 0.0000001);
+
+      if (lastdiff < 0.0000001) {
+        break;
+      }
+    }
     const E = E0;
     const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 

@@ -22,7 +22,6 @@ viz.zoomToFit(jupiter);
 // Add its moons
 viz.loadNaturalSatellites().then((loader) => {
   loader.getSatellitesForPlanet('jupiter').forEach((moon) => {
-    console.log(moon.name, moon.ephem)
     viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,

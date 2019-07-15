@@ -1,6 +1,6 @@
 import { RotatingObject } from './RotatingObject';
 
-const NUM_SPHERE_SEGMENTS = 32;
+const NUM_SPHERE_SEGMENTS = 16;
 
 /**
  * Simulates a planet or other object as a perfect sphere.

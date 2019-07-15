@@ -1,6 +1,5 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  jd: 0,
-  jdDelta: 0.001,
+  jdPerSecond: 0.1,
   camera: {
     //initialPosition: [0.04, 0.16, 2.6],
   },
@@ -21,7 +20,7 @@ viz.zoomToFit(jupiter);
 
 // Add its moons
 viz.loadNaturalSatellites().then((loader) => {
-  loader.getSatellitesForPlanet('jupiter').forEach((moon) => {
+  loader.getSatellitesForPlanet('jupiter').slice(0, 1).forEach((moon) => {
     viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,

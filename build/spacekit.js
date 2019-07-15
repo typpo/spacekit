@@ -731,7 +731,8 @@ var Spacekit = (function (exports) {
 
       const period = eph.get('period');
       const ecc = eph.get('e');
-      const minSegments = ecc > 0.4 ? 100 : 50;
+      //const minSegments = ecc > 0.4 ? 100 : 50;
+      const minSegments = 360;
       const numSegments = Math.max(period / 2, minSegments);
       const step = period / numSegments;
 

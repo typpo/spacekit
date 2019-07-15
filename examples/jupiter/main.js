@@ -20,7 +20,7 @@ viz.zoomToFit(jupiter);
 
 // Add its moons
 viz.loadNaturalSatellites().then((loader) => {
-  loader.getSatellitesForPlanet('jupiter').slice(0, 1).forEach((moon) => {
+  loader.getSatellitesForPlanet('jupiter').forEach((moon) => {
     viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,

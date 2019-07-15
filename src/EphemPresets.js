@@ -1,4 +1,4 @@
-import { Ephem } from './Ephem';
+import { Ephem, GM } from './Ephem';
 import { getFullUrl } from './util';
 import { kmToAu } from './Units';
 
@@ -234,6 +234,7 @@ export class NaturalSatellites {
             }
 
             const ephem = new Ephem({
+              GM: GM.JUPITER,  // FIXME(ian): Choose the right GM
               epoch: moon['Epoch JD'],
               a: kmToAu(moon.a),
               e: parseFloat(moon.e),

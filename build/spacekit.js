@@ -347,6 +347,7 @@ var Spacekit = (function (exports) {
 
     copy() {
       return new Ephem({
+        GM: this.get('GM'),
         epoch: this.get('epoch'),
         a: this.get('a'),
         e: this.get('e'),
@@ -640,6 +641,7 @@ var Spacekit = (function (exports) {
               }
 
               const ephem = new Ephem({
+                GM: GM.JUPITER,  // FIXME(ian): Choose the right GM
                 epoch: moon['Epoch JD'],
                 a: kmToAu(moon.a),
                 e: parseFloat(moon.e),

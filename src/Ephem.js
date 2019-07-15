@@ -188,6 +188,7 @@ export class Ephem {
 
   copy() {
     return new Ephem({
+      GM: this.get('GM'),
       epoch: this.get('epoch'),
       a: this.get('a'),
       e: this.get('e'),

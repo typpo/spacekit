@@ -1,3 +1,5 @@
+import { rescaleXYZ } from './Scale';
+
 /**
  * A class that builds a visual representation of a Kepler orbit.
  * @example
@@ -160,7 +162,7 @@ export class Orbit {
     const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
     const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
     const Z = r * (sin(v + p - o) * sin(i));
-    return [X, Y, Z];
+    return rescaleXYZ(X, Y, Z);
   }
 
   /**

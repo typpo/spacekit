@@ -9,7 +9,7 @@ const EPHEM_VALID_ATTRS = new Set([
   'i', // Inclination
 
   'epoch',
-  'period',
+  'period', // in days
 
   'ma', // Mean anomaly
   'n', // Mean motion

@@ -1,7 +1,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   camera: {
-    //initialPosition: [0.04, 0.16, 2.6],
+    initialPosition: [0.00012001978724511495, -0.0042476726341716935, 0.006932030381669033],
   },
   debug: {
     showAxes: true,

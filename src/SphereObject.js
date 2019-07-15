@@ -1,4 +1,5 @@
 import { RotatingObject } from './RotatingObject';
+import { rescaleNumber } from './Scale';
 
 const NUM_SPHERE_SEGMENTS = 16;
 
@@ -33,7 +34,7 @@ export class SphereObject extends RotatingObject {
     // TODO(ian): Clouds and rings
 
     const sphereGeometry = new THREE.SphereGeometry(
-      this._options.radius || 1,
+      rescaleNumber(this._options.radius || 1),
       NUM_SPHERE_SEGMENTS,
       NUM_SPHERE_SEGMENTS,
     );

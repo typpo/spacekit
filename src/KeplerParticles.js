@@ -1,8 +1,17 @@
+import { SCALE_FACTOR } from './Scale';
 import { getFullTextureUrl } from './util';
 
 import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
 
 const DEFAULT_PARTICLE_COUNT = 1024;
+
+/**
+ * Compute mean anomaly at date.
+ */
+function getM(ephem, jd) {
+  const d = jd - ephem.get('epoch');
+  return ephem.get('ma') + ephem.get('n') * d;
+}
 
 /**
  * An efficient way to render many objects in space with Kepler orbits.
@@ -42,6 +51,7 @@ export class KeplerParticles {
     // Number of particles in the scene.
     this._particleCount = 0;
 
+    this._elements = null;
     this._attributes = null;
     this._uniforms = null;
     this._geometry = null;
@@ -69,11 +79,11 @@ export class KeplerParticles {
     const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
-      jd: { value: this._options.jd || 0 },
       texture: { value: defaultMapTexture },
     };
 
     const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+    this._elements = [];
     this._attributes = {
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
@@ -94,7 +104,7 @@ export class KeplerParticles {
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-      epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
     const geometry = new THREE.BufferGeometry();
@@ -128,6 +138,7 @@ export class KeplerParticles {
    * @return {Number} The index of this article in the attribute list.
    */
   addParticle(ephem, options = {}) {
+    this._elements.push(ephem);
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
@@ -141,11 +152,9 @@ export class KeplerParticles {
     attributes.e.set([ephem.get('e')], offset);
     attributes.i.set([ephem.get('i', 'rad')], offset);
     attributes.om.set([ephem.get('om', 'rad')], offset);
-    attributes.ma.set([ephem.get('ma', 'rad')], offset);
-    attributes.n.set([ephem.get('n', 'rad')], offset);
     attributes.w.set([ephem.get('w', 'rad')], offset);
     attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
-    attributes.epoch.set([ephem.get('epoch')], offset);
+    attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
 
     // TODO(ian): Set the update range
     for (const attributeKey in attributes) {
@@ -180,7 +189,11 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd) {
-    this._uniforms.jd.value = jd;
+    const Ms = this._elements.map((ephem) => {
+      return getM(ephem, jd);
+    });
+    this._attributes.M.set(Ms);
+    this._attributes.M.needsUpdate = true;
   }
 
   /**

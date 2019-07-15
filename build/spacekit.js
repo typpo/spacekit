@@ -168,7 +168,7 @@ var Spacekit = (function (exports) {
     'i', // Inclination
 
     'epoch',
-    'period',
+    'period', // in days
 
     'ma', // Mean anomaly
     'n', // Mean motion
@@ -675,6 +675,16 @@ var Spacekit = (function (exports) {
     }
   }
 
+  const SCALE_FACTOR = 1.0;
+
+  function rescaleXYZ(X, Y, Z) {
+    return [X * SCALE_FACTOR, Y * SCALE_FACTOR, Z * SCALE_FACTOR];
+  }
+
+  function rescaleNumber(x) {
+    return SCALE_FACTOR * x;
+  }
+
   /**
    * A class that builds a visual representation of a Kepler orbit.
    * @example
@@ -837,7 +847,7 @@ var Spacekit = (function (exports) {
       const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
       const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
       const Z = r * (sin(v + p - o) * sin(i));
-      return [X, Y, Z];
+      return rescaleXYZ(X, Y, Z);
     }
 
     /**
@@ -964,8 +974,6 @@ var Spacekit = (function (exports) {
    * @ignore
    */
   const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
-
     attribute vec3 fuzzColor;
     attribute vec3 origin;
     varying vec3 vColor;
@@ -976,21 +984,14 @@ var Spacekit = (function (exports) {
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float ma;
-    attribute float n;
     attribute float w;
     attribute float wBar;
-    attribute float epoch;
+    attribute float M;
 
     vec3 getAstroPos() {
       float i_rad = i;
       float o_rad = om;
       float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
-
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
 
       float adjusted_e = e;
       if (e >= 1.0) {
@@ -1016,7 +1017,7 @@ var Spacekit = (function (exports) {
       float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
 
       // Compute radius vector.
-      float r = a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      float r = ${SCALE_FACTOR.toFixed(1)} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
@@ -1084,6 +1085,14 @@ var Spacekit = (function (exports) {
   const DEFAULT_PARTICLE_COUNT = 1024;
 
   /**
+   * Compute mean anomaly at date.
+   */
+  function getM(ephem, jd) {
+    const d = jd - ephem.get('epoch');
+    return ephem.get('ma') + ephem.get('n') * d;
+  }
+
+  /**
    * An efficient way to render many objects in space with Kepler orbits.
    * Primarily used by Simulation to render all non-static objects.
    * @see Simulation
@@ -1117,6 +1126,7 @@ var Spacekit = (function (exports) {
       // Number of particles in the scene.
       this._particleCount = 0;
 
+      this._elements = null;
       this._attributes = null;
       this._uniforms = null;
       this._geometry = null;
@@ -1144,11 +1154,11 @@ var Spacekit = (function (exports) {
       const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
       this._uniforms = {
-        jd: { value: this._options.jd || 0 },
         texture: { value: defaultMapTexture },
       };
 
       const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+      this._elements = [];
       this._attributes = {
         size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
@@ -1169,7 +1179,7 @@ var Spacekit = (function (exports) {
         n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-        epoch: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+        M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       };
 
       const geometry = new THREE.BufferGeometry();
@@ -1203,6 +1213,7 @@ var Spacekit = (function (exports) {
      * @return {Number} The index of this article in the attribute list.
      */
     addParticle(ephem, options = {}) {
+      this._elements.push(ephem);
       const attributes = this._attributes;
       const offset = this._particleCount++;
 
@@ -1216,11 +1227,9 @@ var Spacekit = (function (exports) {
       attributes.e.set([ephem.get('e')], offset);
       attributes.i.set([ephem.get('i', 'rad')], offset);
       attributes.om.set([ephem.get('om', 'rad')], offset);
-      attributes.ma.set([ephem.get('ma', 'rad')], offset);
-      attributes.n.set([ephem.get('n', 'rad')], offset);
       attributes.w.set([ephem.get('w', 'rad')], offset);
       attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
-      attributes.epoch.set([ephem.get('epoch')], offset);
+      attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
 
       // TODO(ian): Set the update range
       for (const attributeKey in attributes) {
@@ -1255,7 +1264,11 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      this._uniforms.jd.value = jd;
+      const Ms = this._elements.map((ephem) => {
+        return getM(ephem, jd);
+      });
+      this._attributes.M.set(Ms);
+      this._attributes.M.needsUpdate = true;
     }
 
     /**
@@ -2244,7 +2257,7 @@ var Spacekit = (function (exports) {
       // TODO(ian): Clouds and rings
 
       const sphereGeometry = new THREE.SphereGeometry(
-        this._options.radius || 1,
+        rescaleNumber(this._options.radius || 1),
         NUM_SPHERE_SEGMENTS,
         NUM_SPHERE_SEGMENTS,
       );

@@ -1,3 +1,5 @@
+import { SCALE_FACTOR } from './Scale';
+
 /**
  * @ignore
  */
@@ -15,8 +17,6 @@ export const ORBIT_SHADER_FRAGMENT = `
  * @ignore
  */
 export const ORBIT_SHADER_VERTEX = `
-    uniform float jd;
-
     attribute vec3 fuzzColor;
     attribute vec3 origin;
     varying vec3 vColor;
@@ -27,21 +27,14 @@ export const ORBIT_SHADER_VERTEX = `
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float ma;
-    attribute float n;
     attribute float w;
     attribute float wBar;
-    attribute float epoch;
+    attribute float M;
 
     vec3 getAstroPos() {
       float i_rad = i;
       float o_rad = om;
       float p_rad = wBar;
-      float ma_rad = ma;
-      float n_rad = n;
-
-      float d = jd - epoch;
-      float M = ma_rad + n_rad * d;
 
       float adjusted_e = e;
       if (e >= 1.0) {
@@ -67,7 +60,7 @@ export const ORBIT_SHADER_VERTEX = `
       float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
 
       // Compute radius vector.
-      float r = a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      float r = ${SCALE_FACTOR.toFixed(1)} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));

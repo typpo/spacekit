@@ -58,7 +58,7 @@ export class Orbit {
 
     const period = eph.get('period');
     const ecc = eph.get('e');
-    //const minSegments = ecc > 0.4 ? 100 : 50;
+    // const minSegments = ecc > 0.4 ? 100 : 50;
     const minSegments = 360;
     const numSegments = Math.max(period / 2, minSegments);
     const step = period / numSegments;
@@ -137,7 +137,7 @@ export class Orbit {
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;
     let lastdiff;
-    for (var count = 0; count < 100; count++) {
+    for (let count = 0; count < 100; count++) {
       const E1 = M + e * sin(E0);
       lastdiff = Math.abs(E1 - E0);
       E0 = E1;

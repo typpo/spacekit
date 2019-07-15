@@ -189,9 +189,7 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd) {
-    const Ms = this._elements.map((ephem) => {
-      return getM(ephem, jd);
-    });
+    const Ms = this._elements.map(ephem => getM(ephem, jd));
     this._attributes.M.set(Ms);
     this._attributes.M.needsUpdate = true;
   }

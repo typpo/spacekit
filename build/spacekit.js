@@ -409,8 +409,8 @@ var Spacekit = (function (exports) {
   }
 
   function getDefaultBasePath() {
-    return window.location.href.indexOf('localhost') > -1 ?
-        '/src/' : 'https://typpo.github.io/spacekit/src';
+    return window.location.href.indexOf('localhost') > -1
+      ? '/src/' : 'https://typpo.github.io/spacekit/src';
   }
 
   /**
@@ -625,7 +625,7 @@ var Spacekit = (function (exports) {
                 this._satellitesByPlanet[planetName] = [];
               }
 
-              switch(moon['Element Type']) {
+              switch (moon['Element Type']) {
                 case 'Ecliptic':
                   // Don't have to do anything
                   break;
@@ -641,7 +641,7 @@ var Spacekit = (function (exports) {
               }
 
               const ephem = new Ephem({
-                GM: GM.JUPITER,  // FIXME(ian): Choose the right GM
+                GM: GM.JUPITER, // FIXME(ian): Choose the right GM
                 epoch: moon['Epoch JD'],
                 a: kmToAu(moon.a),
                 e: parseFloat(moon.e),
@@ -649,12 +649,12 @@ var Spacekit = (function (exports) {
                 w: parseFloat(moon.w),
                 om: parseFloat(moon.node),
                 ma: parseFloat(moon.M),
-              }, 'deg', true /* locked */ );
+              }, 'deg', true /* locked */);
 
               this._satellitesByPlanet[planetName].push({
                 name: moon['Sat.'],
                 elementType: moon['Element Type'],
-                ephem: ephem,
+                ephem,
               });
             });
             console.info('Loaded', moons.length, 'natural satellites');
@@ -743,7 +743,7 @@ var Spacekit = (function (exports) {
 
       const period = eph.get('period');
       const ecc = eph.get('e');
-      //const minSegments = ecc > 0.4 ? 100 : 50;
+      // const minSegments = ecc > 0.4 ? 100 : 50;
       const minSegments = 360;
       const numSegments = Math.max(period / 2, minSegments);
       const step = period / numSegments;
@@ -822,7 +822,7 @@ var Spacekit = (function (exports) {
       // Estimate eccentric and true anom using iterative approx
       let E0 = M;
       let lastdiff;
-      for (var count = 0; count < 100; count++) {
+      for (let count = 0; count < 100; count++) {
         const E1 = M + e * sin(E0);
         lastdiff = Math.abs(E1 - E0);
         E0 = E1;
@@ -1264,9 +1264,7 @@ var Spacekit = (function (exports) {
      * @param {Number} jd JD date
      */
     update(jd) {
-      const Ms = this._elements.map((ephem) => {
-        return getM(ephem, jd);
-      });
+      const Ms = this._elements.map(ephem => getM(ephem, jd));
       this._attributes.M.set(Ms);
       this._attributes.M.needsUpdate = true;
     }

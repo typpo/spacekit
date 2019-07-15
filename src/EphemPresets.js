@@ -218,7 +218,7 @@ export class NaturalSatellites {
               this._satellitesByPlanet[planetName] = [];
             }
 
-            switch(moon['Element Type']) {
+            switch (moon['Element Type']) {
               case 'Ecliptic':
                 // Don't have to do anything
                 break;
@@ -234,7 +234,7 @@ export class NaturalSatellites {
             }
 
             const ephem = new Ephem({
-              GM: GM.JUPITER,  // FIXME(ian): Choose the right GM
+              GM: GM.JUPITER, // FIXME(ian): Choose the right GM
               epoch: moon['Epoch JD'],
               a: kmToAu(moon.a),
               e: parseFloat(moon.e),
@@ -242,12 +242,12 @@ export class NaturalSatellites {
               w: parseFloat(moon.w),
               om: parseFloat(moon.node),
               ma: parseFloat(moon.M),
-            }, 'deg', true /* locked */ );
+            }, 'deg', true /* locked */);
 
             this._satellitesByPlanet[planetName].push({
               name: moon['Sat.'],
               elementType: moon['Element Type'],
-              ephem: ephem,
+              ephem,
             });
           });
           console.info('Loaded', moons.length, 'natural satellites');

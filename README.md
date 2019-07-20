@@ -131,7 +131,7 @@ If you want to contribute to this project, you will also need to install Python 
 
 # Running an Example
 
-Running `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/simple.html to load a simple example.
+Running `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/index.html to load a simple example.
 
 If you're making changes to the code, run `yarn build` to update the build outputs.  `yarn build:watch` will continuously watch for your changes and update the build.
 

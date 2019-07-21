@@ -12,9 +12,9 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "spacekit/src/ephem.js~ephempresets",
+    "spacekit/src/ephempresets.js~ephempresets",
     "variable/index.html#static-variable-EphemPresets",
-    "<span>EphemPresets</span> <span class=\"search-result-import-path\">spacekit/src/Ephem.js</span>",
+    "<span>EphemPresets</span> <span class=\"search-result-import-path\">spacekit/src/EphemPresets.js</span>",
     "variable"
   ],
   [
@@ -42,6 +42,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/ephempresets.js~naturalsatellites",
+    "class/src/EphemPresets.js~NaturalSatellites.html",
+    "<span>NaturalSatellites</span> <span class=\"search-result-import-path\">spacekit/src/EphemPresets.js</span>",
+    "class"
+  ],
+  [
     "spacekit/src/orbit.js~orbit",
     "class/src/Orbit.js~Orbit.html",
     "<span>Orbit</span> <span class=\"search-result-import-path\">spacekit/src/Orbit.js</span>",
@@ -52,6 +58,12 @@ window.esdocSearchIndex = [
     "class/src/RotatingObject.js~RotatingObject.html",
     "<span>RotatingObject</span> <span class=\"search-result-import-path\">spacekit/src/RotatingObject.js</span>",
     "class"
+  ],
+  [
+    "spacekit/src/scale.js~scale_factor",
+    "variable/index.html#static-variable-SCALE_FACTOR",
+    "<span>SCALE_FACTOR</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "variable"
   ],
   [
     "spacekit/src/shaders.js~star_shader_fragment",
@@ -120,6 +132,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/units.js~autokm",
+    "function/index.html#static-function-auToKm",
+    "<span>auToKm</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/units.js~decimaltosexagesimaldec",
     "function/index.html#static-function-decimalToSexagesimalDec",
     "<span>decimalToSexagesimalDec</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
@@ -141,6 +159,12 @@ window.esdocSearchIndex = [
     "spacekit/src/coordinates.js~equatorialtoecliptic_cartesian",
     "function/index.html#static-function-equatorialToEcliptic_Cartesian",
     "<span>equatorialToEcliptic_Cartesian</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/util.js~getdefaultbasepath",
+    "function/index.html#static-function-getDefaultBasePath",
+    "<span>getDefaultBasePath</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
     "function"
   ],
   [
@@ -174,9 +198,45 @@ window.esdocSearchIndex = [
     "function"
   ],
   [
+    "spacekit/src/units.js~kmtoau",
+    "function/index.html#static-function-kmToAu",
+    "<span>kmToAu</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/units.js~rad",
     "function/index.html#static-function-rad",
     "<span>rad</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~rescale",
+    "function/index.html#static-function-rescale",
+    "<span>rescale</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~rescalearray",
+    "function/index.html#static-function-rescaleArray",
+    "<span>rescaleArray</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~rescalenumber",
+    "function/index.html#static-function-rescaleNumber",
+    "<span>rescaleNumber</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~rescalepos",
+    "function/index.html#static-function-rescalePos",
+    "<span>rescalePos</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~rescalexyz",
+    "function/index.html#static-function-rescaleXYZ",
+    "<span>rescaleXYZ</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
     "function"
   ],
   [
@@ -522,15 +582,57 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/ephem.js~ephem#copy",
+    "class/src/Ephem.js~Ephem.html#instance-method-copy",
+    "src/Ephem.js~Ephem#copy",
+    "method"
+  ],
+  [
     "src/ephem.js~ephem#get",
     "class/src/Ephem.js~Ephem.html#instance-method-get",
     "src/Ephem.js~Ephem#get",
     "method"
   ],
   [
+    "src/ephem.js~ephem#lock",
+    "class/src/Ephem.js~Ephem.html#instance-method-lock",
+    "src/Ephem.js~Ephem#lock",
+    "method"
+  ],
+  [
     "src/ephem.js~ephem#set",
     "class/src/Ephem.js~Ephem.html#instance-method-set",
     "src/Ephem.js~Ephem#set",
+    "method"
+  ],
+  [
+    "src/ephempresets.js",
+    "file/src/EphemPresets.js.html",
+    "src/EphemPresets.js",
+    "file"
+  ],
+  [
+    "src/ephempresets.js~naturalsatellites#constructor",
+    "class/src/EphemPresets.js~NaturalSatellites.html#instance-constructor-constructor",
+    "src/EphemPresets.js~NaturalSatellites#constructor",
+    "method"
+  ],
+  [
+    "src/ephempresets.js~naturalsatellites#getsatellitesforplanet",
+    "class/src/EphemPresets.js~NaturalSatellites.html#instance-method-getSatellitesForPlanet",
+    "src/EphemPresets.js~NaturalSatellites#getSatellitesForPlanet",
+    "method"
+  ],
+  [
+    "src/ephempresets.js~naturalsatellites#init",
+    "class/src/EphemPresets.js~NaturalSatellites.html#instance-method-init",
+    "src/EphemPresets.js~NaturalSatellites#init",
+    "method"
+  ],
+  [
+    "src/ephempresets.js~naturalsatellites#load",
+    "class/src/EphemPresets.js~NaturalSatellites.html#instance-method-load",
+    "src/EphemPresets.js~NaturalSatellites#load",
     "method"
   ],
   [
@@ -561,6 +663,12 @@ window.esdocSearchIndex = [
     "src/keplerparticles.js~keplerparticles#getid",
     "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-getId",
     "src/KeplerParticles.js~KeplerParticles#getId",
+    "method"
+  ],
+  [
+    "src/keplerparticles.js~keplerparticles#setparticleorigin",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-setParticleOrigin",
+    "src/KeplerParticles.js~KeplerParticles#setParticleOrigin",
     "method"
   ],
   [
@@ -670,6 +778,12 @@ window.esdocSearchIndex = [
     "class/src/RotatingObject.js~RotatingObject.html#instance-method-update",
     "src/RotatingObject.js~RotatingObject#update",
     "method"
+  ],
+  [
+    "src/scale.js",
+    "file/src/Scale.js.html",
+    "src/Scale.js",
+    "file"
   ],
   [
     "src/shapeobject.js",
@@ -801,6 +915,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#getsimulationelement",
     "class/src/Simulation.js~Simulation.html#instance-method-getSimulationElement",
     "src/Simulation.js~Simulation#getSimulationElement",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#loadnaturalsatellites",
+    "class/src/Simulation.js~Simulation.html#instance-method-loadNaturalSatellites",
+    "src/Simulation.js~Simulation#loadNaturalSatellites",
     "method"
   ],
   [
@@ -963,6 +1083,12 @@ window.esdocSearchIndex = [
     "src/spaceobject.js~spaceobject#isstaticobject",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-isStaticObject",
     "src/SpaceObject.js~SpaceObject#isStaticObject",
+    "method"
+  ],
+  [
+    "src/spaceobject.js~spaceobject#orbitaround",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-orbitAround",
+    "src/SpaceObject.js~SpaceObject#orbitAround",
     "method"
   ],
   [

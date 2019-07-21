@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/StaticParticles.js | spacekit.js</title>
+  <title data-ice="title">NaturalSatellites | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -76,76 +76,400 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/StaticParticles.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import {
-  GENERIC_PARTICLE_SHADER_VERTEX,
-  GENERIC_PARTICLE_SHADER_FRAGMENT,
-} from &apos;./shaders&apos;;
+<div class="content" data-ice="content"><div class="header-notice">
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {NaturalSatellites} from &apos;<span><a href="file/src/EphemPresets.js.html#lineNumber187">spacekit/src/EphemPresets.js</a></span>&apos;</code></pre></div>
+  <span data-ice="access">public</span>
+  <span data-ice="kind">class</span>
+  
+  
+  
+  <span data-ice="source">| <span><a href="file/src/EphemPresets.js.html#lineNumber187">source</a></span></span>
+</div>
 
-const DEFAULT_PARTICLE_COUNT = 1024;
+<div class="self-detail detail">
+  <h1 data-ice="name">NaturalSatellites</h1>
 
-const PARTICLE_SIZE = 5.0;
+  
 
-export class StaticParticles {
-  constructor(options, contextOrSimulation) {
-    this._options = options;
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-    this._id = `StaticParticles__${StaticParticles.instanceCount}`;
+  
+  
+  <div class="description" data-ice="description"><p>A class for fetching orbital elements of natural satellites in our solar
+system.</p>
+</div>
+  
 
-    // TODO(ian): Add to ctx
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+  
 
-    // Number of particles in the scene.
-    this._particleCount = 0;
+  
 
-    this._points = undefined;
+  
 
-    this.init();
-  }
+  
+</div>
 
-  init() {
-    const positions = new Float32Array(vertices.length * 3);
-    const colors = new Float32Array(vertices.length * 3);
-    const sizes = new Float32Array(vertices.length);
 
-    for (let i = 0, l = vertices.length; i &lt; l; i++) {
-      const vertex = vertices[i];
-      vertex.toArray(positions, i * 3);
-      color.setHSL(0.01 + 0.1 * (i / l), 1.0, 0.5);
-      color.toArray(colors, i * 3);
-      sizes[i] = PARTICLE_SIZE * 0.5;
-    }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute(&apos;position&apos;, new THREE.BufferAttribute(positions, 3));
-    geometry.addAttribute(&apos;customColor&apos;, new THREE.BufferAttribute(colors, 3));
-    geometry.addAttribute(&apos;size&apos;, new THREE.BufferAttribute(sizes, 1));
+<div data-ice="constructorSummary"><h2>Constructor Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Constructor</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">()</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
 
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        color: { value: new THREE.Color(0xffffff) },
-        // texture: { value: new THREE.TextureLoader().load( &quot;textures/sprites/disc.png&quot; ) }
-      },
-      vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
-      fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
-      alphaTest: 0.9,
-    });
+<div data-ice="methodSummary"><h2>Method Summary</h2><table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3">Public Methods</td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html#instance-method-getSatellitesForPlanet">getSatellitesForPlanet</a></span></span><span class="code" data-ice="signature">(planetName: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html#instance-method-init">init</a></span></span><span class="code" data-ice="signature">()</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html#instance-method-load">load</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
 
-    this._points = new THREE.Points(geometry, material);
-  }
-}
 
-StaticParticles.instanceCount = 0;
-</code></pre>
 
+
+
+<div data-ice="constructorDetails"><h2 data-ice="title">Public Constructors</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-constructor-constructor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">()</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/EphemPresets.js.html#lineNumber188">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
+
+<div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
+
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-getSatellitesForPlanet">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">getSatellitesForPlanet</span><span class="code" data-ice="signature">(planetName: <span>*</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/EphemPresets.js.html#lineNumber277">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">planetName</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-init">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">init</span><span class="code" data-ice="signature">()</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/EphemPresets.js.html#lineNumber205">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-load">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">load</span><span class="code" data-ice="signature">(): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/EphemPresets.js.html#lineNumber281">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+</div>
 </div>
 
 <footer class="footer">

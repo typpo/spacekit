@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/StaticParticles.js | spacekit.js</title>
+  <title data-ice="title">src/Scale.js | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -76,74 +76,40 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/StaticParticles.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import {
-  GENERIC_PARTICLE_SHADER_VERTEX,
-  GENERIC_PARTICLE_SHADER_FRAGMENT,
-} from &apos;./shaders&apos;;
+<div class="content" data-ice="content"><h1 data-ice="title">src/Scale.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">export const SCALE_FACTOR = 1.0;
 
-const DEFAULT_PARTICLE_COUNT = 1024;
-
-const PARTICLE_SIZE = 5.0;
-
-export class StaticParticles {
-  constructor(options, contextOrSimulation) {
-    this._options = options;
-
-    this._id = `StaticParticles__${StaticParticles.instanceCount}`;
-
-    // TODO(ian): Add to ctx
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
-
-    // Number of particles in the scene.
-    this._particleCount = 0;
-
-    this._points = undefined;
-
-    this.init();
-  }
-
-  init() {
-    const positions = new Float32Array(vertices.length * 3);
-    const colors = new Float32Array(vertices.length * 3);
-    const sizes = new Float32Array(vertices.length);
-
-    for (let i = 0, l = vertices.length; i &lt; l; i++) {
-      const vertex = vertices[i];
-      vertex.toArray(positions, i * 3);
-      color.setHSL(0.01 + 0.1 * (i / l), 1.0, 0.5);
-      color.toArray(colors, i * 3);
-      sizes[i] = PARTICLE_SIZE * 0.5;
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute(&apos;position&apos;, new THREE.BufferAttribute(positions, 3));
-    geometry.addAttribute(&apos;customColor&apos;, new THREE.BufferAttribute(colors, 3));
-    geometry.addAttribute(&apos;size&apos;, new THREE.BufferAttribute(sizes, 1));
-
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        color: { value: new THREE.Color(0xffffff) },
-        // texture: { value: new THREE.TextureLoader().load( &quot;textures/sprites/disc.png&quot; ) }
-      },
-      vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
-      fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
-      alphaTest: 0.9,
-    });
-
-    this._points = new THREE.Points(geometry, material);
-  }
+export function rescalePos(pos) {
+  pos.x *= SCALE_FACTOR;
+  pos.y *= SCALE_FACTOR;
+  pos.z *= SCALE_FACTOR;
+  return pos;
 }
 
-StaticParticles.instanceCount = 0;
+export function rescaleArray(XYZ) {
+  return [XYZ[0] * SCALE_FACTOR, XYZ[1] * SCALE_FACTOR, XYZ[2] * SCALE_FACTOR];
+}
+
+export function rescaleXYZ(X, Y, Z) {
+  return [X * SCALE_FACTOR, Y * SCALE_FACTOR, Z * SCALE_FACTOR];
+}
+
+export function rescaleNumber(x) {
+  return SCALE_FACTOR * x;
+}
+
+export function rescale(...args) {
+  if (Array.isArray(args[0])) {
+    return rescaleArray(args[0]);
+  }
+  if (typeof args[0] === &apos;number&apos;) {
+    if (args.length === 3) {
+      return rescaleXYZ(...args);
+    }
+    return rescaleNumber(args[0]);
+  }
+  return rescalePos(args[0]);
+}
 </code></pre>
 
 </div>

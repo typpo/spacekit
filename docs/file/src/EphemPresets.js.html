@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/StaticParticles.js | spacekit.js</title>
+  <title data-ice="title">src/EphemPresets.js | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -76,23 +76,195 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/StaticParticles.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import {
-  GENERIC_PARTICLE_SHADER_VERTEX,
-  GENERIC_PARTICLE_SHADER_FRAGMENT,
-} from &apos;./shaders&apos;;
+<div class="content" data-ice="content"><h1 data-ice="title">src/EphemPresets.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { Ephem, GM } from &apos;./Ephem&apos;;
+import { getFullUrl } from &apos;./util&apos;;
+import { kmToAu } from &apos;./Units&apos;;
 
-const DEFAULT_PARTICLE_COUNT = 1024;
+/**
+ * A dictionary containing ephemerides of planets and other well-known objects.
+ * @example
+ * const planet1 = viz.createObject(&apos;planet1&apos;, {
+ *   ephem: EphemPresets.MERCURY,
+ * });
+ */
+export const EphemPresets = {
+  // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+  MERCURY: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 3.870968969437096e-1,
+      e: 2.056515875393916e-1,
+      i: 7.003891682749818,
+      om: 4.830774804443502e1,
+      w: 2.917940253442659e1,
+      ma: 2.56190975209273e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  VENUS: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 7.233458663591554e-1,
+      e: 6.762510759617694e-3,
+      i: 3.394567787211735,
+      om: 7.662534150657346e1,
+      w: 5.474567447560867e1,
+      ma: 2.756687596099721e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  EARTH: new Ephem(
+    {
+      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+      /*
+    epoch: 2451545.0,
+    a: 1.00000011,
+    e: 0.01671022,
+    i: 0.00005,
+    om: -11.26064,
+    wBar: 102.94719,
+    L: 100.46435,
+    */
 
-const PARTICLE_SIZE = 5.0;
+      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+      epoch: 2451545.0,
+      a: 1.00000261,
+      e: 0.01671123,
+      i: -0.00001531,
+      om: 0.0,
+      wBar: 102.93768193,
+      L: 100.46457166,
 
-export class StaticParticles {
-  constructor(options, contextOrSimulation) {
-    this._options = options;
+      /*
+      epoch: 2458426.500000000,
+      a: 1.000618919441359E+00,
+      e: 1.676780871638673E-02,
+      i: 0,
+      om: 1.888900932218542E+02,
+      w: 2.718307282052625E+02,
+      ma: 3.021792498388233E+02,
+     */
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  MOON: new Ephem(
+    {
+      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+      GM: 0.3986e6,
 
-    this._id = `StaticParticles__${StaticParticles.instanceCount}`;
+      // Geocentric
+      // https://ssd.jpl.nasa.gov/horizons.cgi#results
+      epoch: 2458621.5,
+      a: 2.582517063772124e-3,
+      e: 4.582543645168888e-2,
+      i: 5.102060246928811,
+      om: 1.085916732144811e2,
+      w: 6.180561793729225e1,
+      ma: 5.053270083636792e1,
+      /*
+     * heliocentric
+    epoch: 2458621.500000000,
+    a: 1.078855621785179E+00,
+    e: 6.333300212090676E-02,
+    i: 7.211217382317713E-02,
+    om: 6.722057157026397E+01,
+    w: 1.503642883585293E+02,
+    ma: 1.666758688084831E+01,
+   */
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  MARS: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 1.52371401537107,
+      e: 9.336741335309606e-2,
+      i: 1.848141099825311,
+      om: 4.950420572080223e1,
+      w: 2.866965847685386e2,
+      ma: 2.538237617924876e1,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  JUPITER: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 5.20180355911023,
+      e: 4.89912558249006e-2,
+      i: 1.303560894624275,
+      om: 1.005203828847816e2,
+      w: 2.73736301845404e2,
+      ma: 2.31939544389401e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  SATURN: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 9.577177295536776,
+      e: 5.101889921719987e-2,
+      i: 2.482782449972317,
+      om: 1.136154964073247e2,
+      w: 3.394422648650336e2,
+      ma: 1.870970898012944e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  URANUS: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 1.914496966635462e1,
+      e: 4.832662948112808e-2,
+      i: 7.697511134483724e-1,
+      om: 7.414239045667875e1,
+      w: 9.942704504702185e1,
+      ma: 2.202603033874267e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  NEPTUNE: new Ephem(
+    {
+      epoch: 2458426.5,
+      a: 3.00962226342805e1,
+      e: 7.36257118719377e-3,
+      i: 1.774569249829094,
+      om: 1.318695882492132e2,
+      w: 2.586226409499831e2,
+      ma: 3.152804988924479e2,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+  PLUTO: new Ephem(
+    {
+      epoch: 2454000.5,
+      a: 39.4450697257,
+      e: 0.250248713478,
+      i: 17.0890009196,
+      om: 110.376957955,
+      w: 112.597141677,
+      ma: 25.2471897122,
+    },
+    &apos;deg&apos;,
+    true, /* locked */
+  ),
+};
 
-    // TODO(ian): Add to ctx
+/**
+ * A class for fetching orbital elements of natural satellites in our solar
+ * system.
+ */
+export class NaturalSatellites {
+  constructor(contextOrSimulation) {
     if (true) {
       // User passed in Simulation
       this._simulation = contextOrSimulation;
@@ -103,47 +275,92 @@ export class StaticParticles {
       this._context = contextOrSimulation;
     }
 
-    // Number of particles in the scene.
-    this._particleCount = 0;
-
-    this._points = undefined;
+    this._satellitesByPlanet = {};
+    this._readyPromise = null;
 
     this.init();
   }
 
   init() {
-    const positions = new Float32Array(vertices.length * 3);
-    const colors = new Float32Array(vertices.length * 3);
-    const sizes = new Float32Array(vertices.length);
+    const dataUrl = getFullUrl(
+      &apos;{{data}}/processed/natural-satellites.json&apos;,
+      this._context.options.basePath,
+    );
 
-    for (let i = 0, l = vertices.length; i &lt; l; i++) {
-      const vertex = vertices[i];
-      vertex.toArray(positions, i * 3);
-      color.setHSL(0.01 + 0.1 * (i / l), 1.0, 0.5);
-      color.toArray(colors, i * 3);
-      sizes[i] = PARTICLE_SIZE * 0.5;
-    }
+    this._readyPromise = new Promise((resolve, reject) =&gt; {
+      fetch(dataUrl)
+        .then(resp =&gt; resp.json())
+        .then((moons) =&gt; {
+          moons.forEach((moon) =&gt; {
+            const planetName = moon.Planet.toLowerCase();
+            if (!this._satellitesByPlanet[planetName]) {
+              this._satellitesByPlanet[planetName] = [];
+            }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute(&apos;position&apos;, new THREE.BufferAttribute(positions, 3));
-    geometry.addAttribute(&apos;customColor&apos;, new THREE.BufferAttribute(colors, 3));
-    geometry.addAttribute(&apos;size&apos;, new THREE.BufferAttribute(sizes, 1));
+            switch (moon[&apos;Element Type&apos;]) {
+              case &apos;Ecliptic&apos;:
+                // Don&apos;t have to do anything
+                break;
+              case &apos;Equatorial&apos;:
+                // TODO(ian): Convert equatorial coords
+                break;
+              case &apos;Laplace&apos;:
+                // TODO(ian): Convert laplace coords
+                break;
+              default:
+                console.error(&apos;Unknown element type in natural satellites object:&apos;, moon);
+                return;
+            }
 
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        color: { value: new THREE.Color(0xffffff) },
-        // texture: { value: new THREE.TextureLoader().load( &quot;textures/sprites/disc.png&quot; ) }
-      },
-      vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
-      fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
-      alphaTest: 0.9,
+            let ephemGM;
+            switch (moon.Planet) {
+              case &apos;Earth&apos;:
+                ephemGM = GM.EARTH_MOON;
+                break;
+              case &apos;Pluto&apos;:
+                ephemGM = GM.PLUTO_CHARON;
+                break;
+              default:
+              ephemGM = GM[moon.Planet.toUpperCase()];
+            }
+            if (!ephemGM) {
+              console.error(`Could not look up GM for ${moon.Planet}`);
+            }
+
+            const ephem = new Ephem({
+              GM: ephemGM,
+              epoch: moon[&apos;Epoch JD&apos;],
+              a: kmToAu(moon.a),
+              e: parseFloat(moon.e),
+              i: parseFloat(moon.i),
+              w: parseFloat(moon.w),
+              om: parseFloat(moon.node),
+              ma: parseFloat(moon.M),
+            }, &apos;deg&apos;, true /* locked */);
+
+            this._satellitesByPlanet[planetName].push({
+              name: moon[&apos;Sat.&apos;],
+              elementType: moon[&apos;Element Type&apos;],
+              ephem,
+            });
+          });
+          console.info(&apos;Loaded&apos;, moons.length, &apos;natural satellites&apos;);
+          resolve(this);
+        })
+        .catch((err) =&gt; {
+          reject(err);
+        });
     });
+  }
 
-    this._points = new THREE.Points(geometry, material);
+  getSatellitesForPlanet(planetName) {
+    return this._satellitesByPlanet[planetName.toLowerCase()];
+  }
+
+  load() {
+    return this._readyPromise;
   }
 }
-
-StaticParticles.instanceCount = 0;
 </code></pre>
 
 </div>

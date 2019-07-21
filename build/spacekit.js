@@ -681,6 +681,12 @@ var Spacekit = (function (exports) {
       });
     }
 
+    /**
+     * Get a list of satellites and their orbital elements for a given planet.
+     * @param {String} planetName Name of a planet, e.g. "Jupiter"
+     * @return {Object} List containing a list of dictionaries with information
+     * on each satellite.
+     */
     getSatellitesForPlanet(planetName) {
       return this._satellitesByPlanet[planetName.toLowerCase()];
     }

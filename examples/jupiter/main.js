@@ -28,7 +28,7 @@ viz.loadNaturalSatellites().then((loader) => {
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,
-      particleSize: 20,
+      particleSize: 50,
       theme: {
         color: 0x888888,
       },

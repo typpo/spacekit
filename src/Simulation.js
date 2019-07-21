@@ -59,6 +59,8 @@ export class Simulation {
    * thousands+), you don't need to worry about this.
    * @param {String} options.particleTextureUrl The texture for the default
    * particle system.
+   * @param {Number} options.particleDefaultSize The default size for the
+   * particle system.
    * @param {Object} options.camera Options for camera
    * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
    * coordinates of the camera. Defaults to [0, -10, 5].
@@ -175,6 +177,7 @@ export class Simulation {
           || '{{assets}}/sprites/smallparticle.png',
         jd: this._jd,
         maxNumParticles: this._options.maxNumParticles,
+        defaultSize: this._options.particleDefaultSize,
       },
       this,
     );

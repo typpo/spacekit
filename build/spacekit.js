@@ -1126,6 +1126,8 @@ var Spacekit = (function (exports) {
      * @param {Object} options.basePath Base path for simulation supporting files
      * @param {Number} options.jd JD date value
      * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
+     * @param {Number} options.defaultSize Default size of particles. Note this
+     * can be overriden by SpaceObject particleSize. Defaults to 15
      * @param {Object} contextOrSimulation Simulation context or object
      */
     constructor(options, contextOrSimulation) {
@@ -1239,7 +1241,7 @@ var Spacekit = (function (exports) {
       const attributes = this._attributes;
       const offset = this._particleCount++;
 
-      attributes.size.set([options.particleSize || 15], offset);
+      attributes.size.set([options.particleSize || this._options.defaultSize || 15], offset);
       const color = new THREE.Color(options.color || 0xffffff);
       attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 
@@ -2497,6 +2499,8 @@ var Spacekit = (function (exports) {
      * thousands+), you don't need to worry about this.
      * @param {String} options.particleTextureUrl The texture for the default
      * particle system.
+     * @param {Number} options.particleDefaultSize The default size for the
+     * particle system.
      * @param {Object} options.camera Options for camera
      * @param {Array.<Number>} options.camera.initialPosition Initial X, Y, Z
      * coordinates of the camera. Defaults to [0, -10, 5].
@@ -2613,6 +2617,7 @@ var Spacekit = (function (exports) {
             || '{{assets}}/sprites/smallparticle.png',
           jd: this._jd,
           maxNumParticles: this._options.maxNumParticles,
+          defaultSize: this._options.particleDefaultSize,
         },
         this,
       );

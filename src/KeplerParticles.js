@@ -25,6 +25,8 @@ export class KeplerParticles {
    * @param {Object} options.basePath Base path for simulation supporting files
    * @param {Number} options.jd JD date value
    * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
+   * @param {Number} options.defaultSize Default size of particles. Note this
+   * can be overriden by SpaceObject particleSize. Defaults to 15
    * @param {Object} contextOrSimulation Simulation context or object
    */
   constructor(options, contextOrSimulation) {
@@ -142,7 +144,7 @@ export class KeplerParticles {
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
-    attributes.size.set([options.particleSize || 15], offset);
+    attributes.size.set([options.particleSize || this._options.defaultSize || 15], offset);
     const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 

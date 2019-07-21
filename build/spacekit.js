@@ -640,9 +640,23 @@ var Spacekit = (function (exports) {
                   return;
               }
 
-              const GM$$1 = GM$$1[moon['Planet'].toUpperCase()];
+              let ephemGM;
+              switch (moon.Planet) {
+                case 'Earth':
+                  ephemGM = GM.EARTH_MOON;
+                  break;
+                case 'Pluto':
+                  ephemGM = GM.PLUTO_CHARON;
+                  break;
+                default:
+                ephemGM = GM[moon.Planet.toUpperCase()];
+              }
+              if (!ephemGM) {
+                console.error(`Could not look up GM for ${moon.Planet}`);
+              }
+
               const ephem = new Ephem({
-                GM: GM$$1,
+                GM: ephemGM,
                 epoch: moon['Epoch JD'],
                 a: kmToAu(moon.a),
                 e: parseFloat(moon.e),

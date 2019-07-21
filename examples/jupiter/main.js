@@ -29,9 +29,6 @@ viz.loadNaturalSatellites().then((loader) => {
       labelText: moon.name,
       ephem: moon.ephem,
       particleSize: 50,
-      theme: {
-        color: 0x888888,
-      },
     });
     moonObjs.push(obj);
   });

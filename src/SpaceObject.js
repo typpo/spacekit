@@ -52,6 +52,7 @@ function toScreenXY(position, camera, canvas) {
  *   },
  *   theme: {
  *     color: 0xFFFFFF,
+ *     orbitColor: 0x888888,
  *   },
  * });
  */
@@ -72,7 +73,8 @@ export class SpaceObject {
    * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
    * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
    * @param {Object} options.theme Contains settings related to appearance of orbit
-   * @param {Number} options.theme.color Hex color of the orbit
+   * @param {Number} options.theme.color Hex color of the object, if applicable
+   * @param {Number} options.theme.orbitColor Hex color of the orbit
    * @param {Object} contextOrSimulation Simulation context or simulation object
    * @param {boolean} autoInit Automatically initialize this object. If false
    * you must call init() manually.
@@ -278,7 +280,7 @@ export class SpaceObject {
       return this._orbit;
     }
     return new Orbit(this._options.ephem, {
-      color: this.getColor(),
+      color: this._options.theme ? this._options.theme.orbitColor || 0x888888 : 0x888888,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
         : null,

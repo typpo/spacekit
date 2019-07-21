@@ -262,6 +262,7 @@ export class NaturalSatellites {
             this._satellitesByPlanet[planetName].push({
               name: moon['Sat.'],
               elementType: moon['Element Type'],
+              tags: new Set(moon['tags'].split(',')),
               ephem,
             });
           });

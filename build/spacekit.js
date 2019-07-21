@@ -669,6 +669,7 @@ var Spacekit = (function (exports) {
               this._satellitesByPlanet[planetName].push({
                 name: moon['Sat.'],
                 elementType: moon['Element Type'],
+                tags: new Set(moon['tags'].split(',')),
                 ephem,
               });
             });
@@ -925,7 +926,7 @@ var Spacekit = (function (exports) {
      * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
      */
     setHexColor(hexVal) {
-      return (this._ellipse.material.color = new THREE.Color(hexVal));
+      this._ellipse.material.color = new THREE.Color(hexVal);
     }
 
     /**
@@ -943,7 +944,7 @@ var Spacekit = (function (exports) {
      * @param {boolean} val Whether to show the orbital ellipse.
      */
     setVisibility(val) {
-      return (this._ellipse.visible = val);
+      this._ellipse.visible = val;
     }
   }
 

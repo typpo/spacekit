@@ -219,7 +219,7 @@ export class Orbit {
    * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
    */
   setHexColor(hexVal) {
-    return (this._ellipse.material.color = new THREE.Color(hexVal));
+    this._ellipse.material.color = new THREE.Color(hexVal);
   }
 
   /**
@@ -237,6 +237,6 @@ export class Orbit {
    * @param {boolean} val Whether to show the orbital ellipse.
    */
   setVisibility(val) {
-    return (this._ellipse.visible = val);
+    this._ellipse.visible = val;
   }
 }

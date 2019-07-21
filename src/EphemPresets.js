@@ -233,7 +233,7 @@ export class NaturalSatellites {
                 return;
             }
 
-            const GM = GM[moon['Planet'].toUpperCase()];
+            const GM = GM[moon.Planet.toUpperCase()];
             const ephem = new Ephem({
               GM,
               epoch: moon['Epoch JD'],

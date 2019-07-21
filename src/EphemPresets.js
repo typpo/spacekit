@@ -233,8 +233,9 @@ export class NaturalSatellites {
                 return;
             }
 
+            const GM = GM[moon['Planet'].toUpperCase()];
             const ephem = new Ephem({
-              GM: GM.JUPITER, // FIXME(ian): Choose the right GM
+              GM,
               epoch: moon['Epoch JD'],
               a: kmToAu(moon.a),
               e: parseFloat(moon.e),

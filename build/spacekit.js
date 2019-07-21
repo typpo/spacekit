@@ -640,8 +640,9 @@ var Spacekit = (function (exports) {
                   return;
               }
 
+              const GM$$1 = GM$$1[moon['Planet'].toUpperCase()];
               const ephem = new Ephem({
-                GM: GM.JUPITER, // FIXME(ian): Choose the right GM
+                GM: GM$$1,
                 epoch: moon['Epoch JD'],
                 a: kmToAu(moon.a),
                 e: parseFloat(moon.e),

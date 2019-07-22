@@ -2,7 +2,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
   camera: {
-    initialPosition: [0.00012001978724511495, -0.0042476726341716935, 0.006932030381669033],
+    initialPosition: [0.0014980565625981512, -0.030445338891231168, 0.03616394298897485],
   },
   debug: {
     showAxes: true,

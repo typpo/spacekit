@@ -218,15 +218,18 @@ export class NaturalSatellites {
               this._satellitesByPlanet[planetName] = [];
             }
 
+            let ephemType;
             switch (moon['Element Type']) {
               case 'Ecliptic':
                 // Don't have to do anything
                 break;
               case 'Equatorial':
                 // TODO(ian): Convert equatorial coords
+                ephemType = 'equatorial';
                 break;
               case 'Laplace':
                 // TODO(ian): Convert laplace coords
+                ephemType = 'equatorial';
                 break;
               default:
                 console.error('Unknown element type in natural satellites object:', moon);

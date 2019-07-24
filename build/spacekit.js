@@ -101,13 +101,22 @@ var Spacekit = (function (exports) {
     ];
   }
 
-  function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
-    const obliquity = getObliquity(jd);
-
+  /**
+   * See https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector
+   */
+  function equatorialToEcliptic_Cartesian(x, y, z, tilt) {
     return [
       x,
-      Math.cos(obliquity) * y + Math.sin(obliquity) * z,
-      -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+      Math.cos(tilt) * y + Math.sin(tilt) * z,
+      -Math.sin(tilt) * y + Math.cos(tilt) * z,
+    ];
+  }
+
+  function eclipticToEquatorial_Cartesian(x, y, z, tilt) {
+    return [
+      x,
+      Math.cos(tilt) * y + -Math.sin(tilt) * z,
+      Math.sin(tilt) * y + Math.cos(tilt) * z,
     ];
   }
 
@@ -624,16 +633,13 @@ var Spacekit = (function (exports) {
               if (!this._satellitesByPlanet[planetName]) {
                 this._satellitesByPlanet[planetName] = [];
               }
-
               switch (moon['Element Type']) {
                 case 'Ecliptic':
                   // Don't have to do anything
                   break;
                 case 'Equatorial':
-                  // TODO(ian): Convert equatorial coords
                   break;
                 case 'Laplace':
-                  // TODO(ian): Convert laplace coords
                   break;
                 default:
                   console.error('Unknown element type in natural satellites object:', moon);
@@ -2406,6 +2412,7 @@ var Spacekit = (function (exports) {
               cartesianSpherical[0],
               cartesianSpherical[1],
               cartesianSpherical[2],
+              getObliquity(), // defaults to J2000 value
             );
 
             positions.set(pos, idx * 3);
@@ -3098,6 +3105,7 @@ var Spacekit = (function (exports) {
   exports.Camera = Camera;
   exports.sphericalToCartesian = sphericalToCartesian;
   exports.equatorialToEcliptic_Cartesian = equatorialToEcliptic_Cartesian;
+  exports.eclipticToEquatorial_Cartesian = eclipticToEquatorial_Cartesian;
   exports.getNutationAndObliquity = getNutationAndObliquity;
   exports.getObliquity = getObliquity;
   exports.Ephem = Ephem;

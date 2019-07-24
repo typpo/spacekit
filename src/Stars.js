@@ -9,6 +9,7 @@ import {
 import {
   sphericalToCartesian,
   equatorialToEcliptic_Cartesian,
+  getObliquity,
 } from './Coordinates';
 
 const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
@@ -107,6 +108,7 @@ export class Stars {
             cartesianSpherical[0],
             cartesianSpherical[1],
             cartesianSpherical[2],
+            getObliquity(), // defaults to J2000 value
           );
 
           positions.set(pos, idx * 3);

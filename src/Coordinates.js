@@ -11,13 +11,22 @@ export function sphericalToCartesian(ra, dec, dist) {
   ];
 }
 
-export function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
-  const obliquity = getObliquity(jd);
-
+/**
+ * See https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector
+ */
+export function equatorialToEcliptic_Cartesian(x, y, z, tilt) {
   return [
     x,
-    Math.cos(obliquity) * y + Math.sin(obliquity) * z,
-    -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+    Math.cos(tilt) * y + Math.sin(tilt) * z,
+    -Math.sin(tilt) * y + Math.cos(tilt) * z,
+  ];
+}
+
+export function eclipticToEquatorial_Cartesian(x, y, z, tilt) {
+  return [
+    x,
+    Math.cos(tilt) * y + -Math.sin(tilt) * z,
+    Math.sin(tilt) * y + Math.cos(tilt) * z,
   ];
 }
 

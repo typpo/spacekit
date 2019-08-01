@@ -1110,7 +1110,7 @@ var Spacekit = (function (exports) {
     }
 `;
 
-  const DEFAULT_PARTICLE_COUNT = 1024;
+  const DEFAULT_PARTICLE_COUNT = 4096;
 
   /**
    * Compute mean anomaly at date.
@@ -1131,7 +1131,7 @@ var Spacekit = (function (exports) {
      * @param {Object} options.textureUrl Template url for sprite
      * @param {Object} options.basePath Base path for simulation supporting files
      * @param {Number} options.jd JD date value
-     * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 1024
+     * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 4096
      * @param {Number} options.defaultSize Default size of particles. Note this
      * can be overriden by SpaceObject particleSize. Defaults to 15
      * @param {Object} contextOrSimulation Simulation context or object

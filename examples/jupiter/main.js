@@ -4,9 +4,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   camera: {
     initialPosition: [0.0014980565625981512, -0.030445338891231168, 0.03616394298897485],
   },
-  debug: {
-    showAxes: true,
-  },
 });
 
 // Create a starry background using Yale Bright Star Catalog Data.

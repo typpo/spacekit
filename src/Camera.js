@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /**
  * A simple wrapper for Three.js camera.
  */

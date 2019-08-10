@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+
 import { RotatingObject } from './RotatingObject';
 
 export class ShapeObject extends RotatingObject {
@@ -34,7 +37,7 @@ export class ShapeObject extends RotatingObject {
     manager.onProgress = (item, loaded, total) => {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
     };
-    const loader = new THREE.OBJLoader(manager);
+    const loader = new OBJLoader(manager);
     // TODO(ian): Make shapeurl follow assetpath logic.
     loader.load(this._options.shape.shapeUrl, object => {
       object.traverse(child => {

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { SCALE_FACTOR } from './Scale';
 import { getFullTextureUrl } from './util';
 

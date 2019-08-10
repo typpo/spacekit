@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { SpaceObject } from './SpaceObject';
 import { rad } from './Units';
 

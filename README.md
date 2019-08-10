@@ -112,20 +112,27 @@ sim.createSphere('earth', {
 ```
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
-  
+
 # How to get started
 
 To be written...
 
 # Dependencies
 
-You'll need to include the following dependencies in production:
+Spacekit relies on some image and data assets that are not included in the Javascript file.
 
-  - THREE.js
-  - THREE.js TrackballControls
-  - Stats.js (optional)
-  - Spacekit asset directory [TODO: link to asset and data file]
-  - Spacekit data directory
+By default, these dependencies are hosted on the spacekit site (typpo.github.io/spacekit).  If you want to host these assets yourself, you can set the `Simulation`'s `basePath` parameter to a folder that contains these files:
+
+  - [Spacekit asset directory](https://github.com/typpo/spacekit/tree/master/src/assets)
+  - [Spacekit data directory](https://github.com/typpo/spacekit/tree/master/src/data)
+
+For example:
+
+```
+const viz = new Spacekit.Simulation({
+  basePath: 'https://mysite.com/static/spacekit',
+});
+```
 
 If you want to contribute to this project, you will also need to install Python (2.7 or 3).
 

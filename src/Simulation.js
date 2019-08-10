@@ -1,4 +1,7 @@
+import * as THREE from 'three';
 import julian from 'julian';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { Camera } from './Camera';
 import { KeplerParticles } from './KeplerParticles';
@@ -142,7 +145,7 @@ export class Simulation {
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    this._cameraControls = new THREE.TrackballControls(
+    this._cameraControls = new OrbitControls(
       this._camera,
       this._simulationElt,
     );

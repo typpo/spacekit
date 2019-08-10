@@ -25,6 +25,7 @@
     "rollup-plugin-node-resolve": "^4.0.0"
   },
   "dependencies": {
-    "julian": "^0.2.0"
+    "julian": "^0.2.0",
+    "three": "^0.107.0"
   }
 }

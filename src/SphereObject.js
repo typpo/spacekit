@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
 

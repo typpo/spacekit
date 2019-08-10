@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullUrl } from './util';
 import {

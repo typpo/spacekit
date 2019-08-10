@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';

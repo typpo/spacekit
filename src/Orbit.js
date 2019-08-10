@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { rescaleXYZ } from './Scale';
 
 /**

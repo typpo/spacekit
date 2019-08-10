@@ -1,5 +1,5 @@
-import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import resolve from 'rollup-plugin-node-resolve';
 
 export default {
   input: 'src/spacekit.js',
@@ -8,11 +8,7 @@ export default {
       format: 'iife',
       name: 'Spacekit',
       file: 'build/spacekit.js',
-      globals: {
-        three: 'THREE',
-      },
     },
   ],
   plugins: [resolve(), commonjs()],
-  external: ['three'],
 };

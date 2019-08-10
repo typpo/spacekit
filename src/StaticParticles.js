@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import {
   GENERIC_PARTICLE_SHADER_VERTEX,
   GENERIC_PARTICLE_SHADER_FRAGMENT,

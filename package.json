@@ -7,6 +7,7 @@
     "build:watch": "rollup -c -w",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "prettier": "prettier --single-quote --trailing-comma all --write \"**/*.js\"",
     "docs": "esdoc",
     "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.js'"
   },
@@ -17,7 +18,7 @@
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "prettier": "1.17.1",
+    "prettier": "^1.18.2",
     "rollup": "^0.67.4",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^4.0.0"

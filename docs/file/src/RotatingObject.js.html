@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -194,9 +195,10 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
 
     // Adjust Z axis according to time.
-    const zAdjust = phi0
-      + ((2 * PI) / P) * (JD - JD0)
-      + (1 / 2) * YORP * Math.pow(JD - JD0, 2);
+    const zAdjust =
+      phi0 +
+      ((2 * PI) / P) * (JD - JD0) +
+      (1 / 2) * YORP * Math.pow(JD - JD0, 2);
     this._obj.rotateY(-(PI / 2 - beta));
     this._obj.rotateZ(-lambda);
     this._obj.rotateZ(zAdjust);
@@ -208,10 +210,10 @@ export class RotatingObject extends SpaceObject {
    */
   update(jd) {
     if (
-      this._obj
-      &amp;&amp; this._objectIsRotatable
-      &amp;&amp; this._options.rotation
-      &amp;&amp; this._options.rotation.enable
+      this._obj &amp;&amp;
+      this._objectIsRotatable &amp;&amp;
+      this._options.rotation &amp;&amp;
+      this._options.rotation.enable
     ) {
       // For now, just rotate on X axis.
       const speed = this._options.rotation.speed || 0.5;

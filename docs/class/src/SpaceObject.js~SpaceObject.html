@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -77,13 +78,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SpaceObject} from &apos;<span><a href="file/src/SpaceObject.js.html#lineNumber58">spacekit/src/SpaceObject.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SpaceObject} from &apos;<span><a href="file/src/SpaceObject.js.html#lineNumber59">spacekit/src/SpaceObject.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/SpaceObject.js.html#lineNumber58">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/SpaceObject.js.html#lineNumber59">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -130,6 +131,7 @@
   },
   theme: {
     color: 0xFFFFFF,
+    orbitColor: 0x888888,
   },
 });</code></pre>
     </div>
@@ -611,7 +613,7 @@ its position can be updated (ie, it has ephemeris)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber80">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber82">source</a></span></span>
     </span>
   </h3>
 
@@ -739,6 +741,13 @@ its position can be updated (ie, it has ephemeris)</p>
       <td data-ice="name" class="code" data-depth="2">options.theme.color</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Hex color of the object, if applicable</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="2">
+      <td data-ice="name" class="code" data-depth="2">options.theme.orbitColor</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
       <td data-ice="description"><p>Hex color of the orbit</p>
 </td>
     </tr>
@@ -795,7 +804,7 @@ you must call init() manually.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber415">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber418">source</a></span></span>
     </span>
   </h3>
 
@@ -852,7 +861,7 @@ you must call init() manually.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber434">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber437">source</a></span></span>
     </span>
   </h3>
 
@@ -910,7 +919,7 @@ this will be the first THREE.js object in this class&apos;s list of objects.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber443">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber446">source</a></span></span>
     </span>
   </h3>
 
@@ -968,7 +977,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber484">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber487">source</a></span></span>
     </span>
   </h3>
 
@@ -1025,7 +1034,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber462">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber465">source</a></span></span>
     </span>
   </h3>
 
@@ -1082,7 +1091,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber454">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber457">source</a></span></span>
     </span>
   </h3>
 
@@ -1139,7 +1148,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber340">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber342">source</a></span></span>
     </span>
   </h3>
 
@@ -1213,7 +1222,7 @@ the dot representing the object as well as its orbit.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber126">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber128">source</a></span></span>
     </span>
   </h3>
 
@@ -1271,7 +1280,7 @@ child classes).</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber501">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber504">source</a></span></span>
     </span>
   </h3>
 
@@ -1328,7 +1337,7 @@ child classes).</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber493">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber496">source</a></span></span>
     </span>
   </h3>
 
@@ -1386,7 +1395,7 @@ its position can be updated (ie, it has ephemeris)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber309">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber313">source</a></span></span>
     </span>
   </h3>
 
@@ -1447,7 +1456,7 @@ its position can be updated (ie, it has ephemeris)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber470">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber473">source</a></span></span>
     </span>
   </h3>
 
@@ -1508,7 +1517,7 @@ its position can be updated (ie, it has ephemeris)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber329">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber331">source</a></span></span>
     </span>
   </h3>
 
@@ -1584,7 +1593,7 @@ sprite and not a particle type.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber367">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber369">source</a></span></span>
     </span>
   </h3>
 

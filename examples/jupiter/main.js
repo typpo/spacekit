@@ -2,7 +2,11 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
   camera: {
-    initialPosition: [0.0014980565625981512, -0.030445338891231168, 0.03616394298897485],
+    initialPosition: [
+      0.0014980565625981512,
+      -0.030445338891231168,
+      0.03616394298897485,
+    ],
   },
 });
 
@@ -19,9 +23,9 @@ viz.zoomToFit(jupiter);
 // Add its moons
 const moonObjs = [];
 let jupiterSatellites = [];
-viz.loadNaturalSatellites().then((loader) => {
+viz.loadNaturalSatellites().then(loader => {
   jupiterSatellites = loader.getSatellitesForPlanet('jupiter');
-  jupiterSatellites.forEach((moon) => {
+  jupiterSatellites.forEach(moon => {
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,
@@ -42,17 +46,17 @@ const guiState = {
     if (input) {
       viz.setDate(new Date(input));
     }
-  }
+  },
 };
 const gui = new dat.GUI();
-gui.add(guiState, 'Speed', 0, 20).onChange((val) => {
+gui.add(guiState, 'Speed', 0, 20).onChange(val => {
   viz.setJdPerSecond(val);
 });
 
 // Map from a category string to the tag in NaturalSatellites object.
 const tagFilters = {
-  'All': 'ALL',
-  'Galilean': 'GALILEAN',
+  All: 'ALL',
+  Galilean: 'GALILEAN',
   'Prograde orbits': 'PROGRADE',
   'Retrograde orbits': 'RETROGRADE',
   'Himalia group': 'HIMALIA',
@@ -76,9 +80,9 @@ function updateFilterDisplay(tag) {
     return;
   }
 
-  const matching = new Set(jupiterSatellites
-                              .filter((moon) => moon.tags.has(tag))
-                              .map(moon => moon.name));
+  const matching = new Set(
+    jupiterSatellites.filter(moon => moon.tags.has(tag)).map(moon => moon.name),
+  );
 
   const showLabels = !guiState['Hide labels'];
   moonObjs.forEach(moonObj => {
@@ -97,7 +101,7 @@ function updateFilterDisplay(tag) {
   });
 }
 
-gui.add(guiState, 'Show', Object.keys(tagFilters)).onChange((catString) => {
+gui.add(guiState, 'Show', Object.keys(tagFilters)).onChange(catString => {
   const tag = tagFilters[catString];
   updateFilterDisplay(tag);
 });

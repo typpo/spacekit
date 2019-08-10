@@ -75,11 +75,11 @@ export class Orbit {
       }
       const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
       if (
-        prevPos
-        && Math.abs(prevPos[0] - pos[0])
-          + Math.abs(prevPos[1] - pos[1])
-          + Math.abs(prevPos[2] - pos[2])
-          > 120
+        prevPos &&
+        Math.abs(prevPos[0] - pos[0]) +
+          Math.abs(prevPos[1] - pos[1]) +
+          Math.abs(prevPos[2] - pos[2]) >
+          120
       ) {
         // Don't render bogus or very large ellipses.
         points.vertices = [];
@@ -193,7 +193,7 @@ export class Orbit {
     const points = this.getOrbitPoints();
     const geometry = new THREE.Geometry();
 
-    points.vertices.forEach((vertex) => {
+    points.vertices.forEach(vertex => {
       geometry.vertices.push(vertex);
       geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });

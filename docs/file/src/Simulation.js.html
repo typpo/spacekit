@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -138,6 +139,8 @@ export class Simulation {
    * thousands+), you don&apos;t need to worry about this.
    * @param {String} options.particleTextureUrl The texture for the default
    * particle system.
+   * @param {Number} options.particleDefaultSize The default size for the
+   * particle system.
    * @param {Object} options.camera Options for camera
    * @param {Array.&lt;Number&gt;} options.camera.initialPosition Initial X, Y, Z
    * coordinates of the camera. Defaults to [0, -10, 5].
@@ -154,7 +157,10 @@ export class Simulation {
     this._options = options || {};
     this._options.basePath = this._options.basePath || getDefaultBasePath();
 
-    this._jd = typeof this._options.jd === &apos;undefined&apos; ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
+    this._jd =
+      typeof this._options.jd === &apos;undefined&apos;
+        ? julian.toJulianDay(this._options.startDate) || 0
+        : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
     this._isPaused = options.startPaused || false;
@@ -167,7 +173,8 @@ export class Simulation {
     this._cameraDefaultPos = [0, -10, 5];
     if (this._options.camera) {
       this._enableCameraDrift = !!this._options.camera.enableDrift;
-      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+      this._cameraDefaultPos =
+        this._options.camera.initialPosition || this._cameraDefaultPos;
     }
 
     this._camera = null;
@@ -250,10 +257,11 @@ export class Simulation {
     this._particles = new KeplerParticles(
       {
         textureUrl:
-          this._options.particleTextureUrl
-          || &apos;{{assets}}/sprites/smallparticle.png&apos;,
+          this._options.particleTextureUrl ||
+          &apos;{{assets}}/sprites/smallparticle.png&apos;,
         jd: this._jd,
         maxNumParticles: this._options.maxNumParticles,
+        defaultSize: this._options.particleDefaultSize,
       },
       this,
     );
@@ -269,7 +277,9 @@ export class Simulation {
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
     if (maxPrecision !== &apos;highp&apos;) {
-      console.warn(`Shader maximum precision is &quot;${maxPrecision}&quot;, GPU rendering may not be accurate.`);
+      console.warn(
+        `Shader maximum precision is &quot;${maxPrecision}&quot;, GPU rendering may not be accurate.`,
+      );
     }
 
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -363,7 +373,7 @@ export class Simulation {
    * animated.
    */
   addObject(obj, noUpdate = false) {
-    obj.get3jsObjects().map((x) =&gt; {
+    obj.get3jsObjects().map(x =&gt; {
       this._scene.add(x);
     });
 
@@ -379,7 +389,7 @@ export class Simulation {
    */
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
-    obj.get3jsObjects().map((x) =&gt; {
+    obj.get3jsObjects().map(x =&gt; {
       this._scene.remove(x);
     });
 
@@ -484,9 +494,12 @@ export class Simulation {
     let previouslyInView = true;
     const isInView = () =&gt; {
       const rect = this._simulationElt.getBoundingClientRect();
-      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
-      const vertInView = rect.top &lt;= windowHeight &amp;&amp; rect.top + rect.height &gt;= 0;
+      const windowHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth =
+        window.innerWidth || document.documentElement.clientWidth;
+      const vertInView =
+        rect.top &lt;= windowHeight &amp;&amp; rect.top + rect.height &gt;= 0;
       const horInView = rect.left &lt;= windowWidth &amp;&amp; rect.left + rect.width &gt;= 0;
 
       return vertInView &amp;&amp; horInView;

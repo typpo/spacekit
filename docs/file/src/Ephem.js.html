@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -228,8 +229,9 @@ export class Ephem {
     let period = this.get(&apos;period&apos;);
 
     if (!isDef(period) &amp;&amp; isDef(a)) {
-      period = (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM))
-        / SECONDS_IN_DAY;
+      period =
+        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+        SECONDS_IN_DAY;
       this.set(&apos;period&apos;, period);
     }
 
@@ -266,16 +268,19 @@ export class Ephem {
   }
 
   copy() {
-    return new Ephem({
-      GM: this.get(&apos;GM&apos;),
-      epoch: this.get(&apos;epoch&apos;),
-      a: this.get(&apos;a&apos;),
-      e: this.get(&apos;e&apos;),
-      i: this.get(&apos;i&apos;),
-      om: this.get(&apos;om&apos;),
-      ma: this.get(&apos;ma&apos;),
-      w: this.get(&apos;w&apos;),
-    }, &apos;rad&apos;);
+    return new Ephem(
+      {
+        GM: this.get(&apos;GM&apos;),
+        epoch: this.get(&apos;epoch&apos;),
+        a: this.get(&apos;a&apos;),
+        e: this.get(&apos;e&apos;),
+        i: this.get(&apos;i&apos;),
+        om: this.get(&apos;om&apos;),
+        ma: this.get(&apos;ma&apos;),
+        w: this.get(&apos;w&apos;),
+      },
+      &apos;rad&apos;,
+    );
   }
 }
 

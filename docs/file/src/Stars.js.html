@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -88,6 +89,7 @@ import {
 import {
   sphericalToCartesian,
   equatorialToEcliptic_Cartesian,
+  getObliquity,
 } from &apos;./Coordinates&apos;;
 
 const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
@@ -159,7 +161,7 @@ export class Stars {
 
     fetch(dataUrl)
       .then(resp =&gt; resp.json())
-      .then((library) =&gt; {
+      .then(library =&gt; {
         const n = library.length;
 
         const geometry = new THREE.BufferGeometry();
@@ -186,6 +188,7 @@ export class Stars {
             cartesianSpherical[0],
             cartesianSpherical[1],
             cartesianSpherical[2],
+            getObliquity(), // defaults to J2000 value
           );
 
           positions.set(pos, idx * 3);

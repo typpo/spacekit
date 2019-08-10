@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -101,7 +102,7 @@ export const EphemPresets = {
       ma: 2.56190975209273e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   VENUS: new Ephem(
     {
@@ -114,7 +115,7 @@ export const EphemPresets = {
       ma: 2.756687596099721e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   EARTH: new Ephem(
     {
@@ -149,7 +150,7 @@ export const EphemPresets = {
      */
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   MOON: new Ephem(
     {
@@ -177,7 +178,7 @@ export const EphemPresets = {
    */
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   MARS: new Ephem(
     {
@@ -190,7 +191,7 @@ export const EphemPresets = {
       ma: 2.538237617924876e1,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   JUPITER: new Ephem(
     {
@@ -203,7 +204,7 @@ export const EphemPresets = {
       ma: 2.31939544389401e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   SATURN: new Ephem(
     {
@@ -216,7 +217,7 @@ export const EphemPresets = {
       ma: 1.870970898012944e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   URANUS: new Ephem(
     {
@@ -229,7 +230,7 @@ export const EphemPresets = {
       ma: 2.202603033874267e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   NEPTUNE: new Ephem(
     {
@@ -242,7 +243,7 @@ export const EphemPresets = {
       ma: 3.152804988924479e2,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
   PLUTO: new Ephem(
     {
@@ -255,7 +256,7 @@ export const EphemPresets = {
       ma: 25.2471897122,
     },
     &apos;deg&apos;,
-    true, /* locked */
+    true /* locked */,
   ),
 };
 
@@ -290,25 +291,31 @@ export class NaturalSatellites {
     this._readyPromise = new Promise((resolve, reject) =&gt; {
       fetch(dataUrl)
         .then(resp =&gt; resp.json())
-        .then((moons) =&gt; {
-          moons.forEach((moon) =&gt; {
+        .then(moons =&gt; {
+          moons.forEach(moon =&gt; {
             const planetName = moon.Planet.toLowerCase();
             if (!this._satellitesByPlanet[planetName]) {
               this._satellitesByPlanet[planetName] = [];
             }
 
+            let ephemType;
             switch (moon[&apos;Element Type&apos;]) {
               case &apos;Ecliptic&apos;:
                 // Don&apos;t have to do anything
                 break;
               case &apos;Equatorial&apos;:
                 // TODO(ian): Convert equatorial coords
+                ephemType = &apos;equatorial&apos;;
                 break;
               case &apos;Laplace&apos;:
                 // TODO(ian): Convert laplace coords
+                ephemType = &apos;equatorial&apos;;
                 break;
               default:
-                console.error(&apos;Unknown element type in natural satellites object:&apos;, moon);
+                console.error(
+                  &apos;Unknown element type in natural satellites object:&apos;,
+                  moon,
+                );
                 return;
             }
 
@@ -321,38 +328,49 @@ export class NaturalSatellites {
                 ephemGM = GM.PLUTO_CHARON;
                 break;
               default:
-              ephemGM = GM[moon.Planet.toUpperCase()];
+                ephemGM = GM[moon.Planet.toUpperCase()];
             }
             if (!ephemGM) {
               console.error(`Could not look up GM for ${moon.Planet}`);
             }
 
-            const ephem = new Ephem({
-              GM: ephemGM,
-              epoch: moon[&apos;Epoch JD&apos;],
-              a: kmToAu(moon.a),
-              e: parseFloat(moon.e),
-              i: parseFloat(moon.i),
-              w: parseFloat(moon.w),
-              om: parseFloat(moon.node),
-              ma: parseFloat(moon.M),
-            }, &apos;deg&apos;, true /* locked */);
+            const ephem = new Ephem(
+              {
+                GM: ephemGM,
+                epoch: moon[&apos;Epoch JD&apos;],
+                a: kmToAu(moon.a),
+                e: parseFloat(moon.e),
+                i: parseFloat(moon.i),
+                w: parseFloat(moon.w),
+                om: parseFloat(moon.node),
+                ma: parseFloat(moon.M),
+              },
+              &apos;deg&apos;,
+              true /* locked */,
+            );
 
             this._satellitesByPlanet[planetName].push({
               name: moon[&apos;Sat.&apos;],
               elementType: moon[&apos;Element Type&apos;],
+              tags: new Set(moon[&apos;tags&apos;].split(&apos;,&apos;)),
               ephem,
             });
           });
           console.info(&apos;Loaded&apos;, moons.length, &apos;natural satellites&apos;);
           resolve(this);
         })
-        .catch((err) =&gt; {
+        .catch(err =&gt; {
           reject(err);
         });
     });
   }
 
+  /**
+   * Get a list of satellites and their orbital elements for a given planet.
+   * @param {String} planetName Name of a planet, e.g. &quot;Jupiter&quot;
+   * @return {Object} List containing a list of dictionaries with information
+   * on each satellite.
+   */
   getSatellitesForPlanet(planetName) {
     return this._satellitesByPlanet[planetName.toLowerCase()];
   }

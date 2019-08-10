@@ -115,9 +115,10 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
 
     // Adjust Z axis according to time.
-    const zAdjust = phi0
-      + ((2 * PI) / P) * (JD - JD0)
-      + (1 / 2) * YORP * Math.pow(JD - JD0, 2);
+    const zAdjust =
+      phi0 +
+      ((2 * PI) / P) * (JD - JD0) +
+      (1 / 2) * YORP * Math.pow(JD - JD0, 2);
     this._obj.rotateY(-(PI / 2 - beta));
     this._obj.rotateZ(-lambda);
     this._obj.rotateZ(zAdjust);
@@ -129,10 +130,10 @@ export class RotatingObject extends SpaceObject {
    */
   update(jd) {
     if (
-      this._obj
-      && this._objectIsRotatable
-      && this._options.rotation
-      && this._options.rotation.enable
+      this._obj &&
+      this._objectIsRotatable &&
+      this._options.rotation &&
+      this._options.rotation.enable
     ) {
       // For now, just rotate on X axis.
       const speed = this._options.rotation.speed || 0.5;

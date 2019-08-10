@@ -77,7 +77,10 @@ export class Simulation {
     this._options = options || {};
     this._options.basePath = this._options.basePath || getDefaultBasePath();
 
-    this._jd = typeof this._options.jd === 'undefined' ? julian.toJulianDay(this._options.startDate) || 0 : this._options.jd;
+    this._jd =
+      typeof this._options.jd === 'undefined'
+        ? julian.toJulianDay(this._options.startDate) || 0
+        : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
     this._isPaused = options.startPaused || false;
@@ -90,7 +93,8 @@ export class Simulation {
     this._cameraDefaultPos = [0, -10, 5];
     if (this._options.camera) {
       this._enableCameraDrift = !!this._options.camera.enableDrift;
-      this._cameraDefaultPos = this._options.camera.initialPosition || this._cameraDefaultPos;
+      this._cameraDefaultPos =
+        this._options.camera.initialPosition || this._cameraDefaultPos;
     }
 
     this._camera = null;
@@ -173,8 +177,8 @@ export class Simulation {
     this._particles = new KeplerParticles(
       {
         textureUrl:
-          this._options.particleTextureUrl
-          || '{{assets}}/sprites/smallparticle.png',
+          this._options.particleTextureUrl ||
+          '{{assets}}/sprites/smallparticle.png',
         jd: this._jd,
         maxNumParticles: this._options.maxNumParticles,
         defaultSize: this._options.particleDefaultSize,
@@ -193,7 +197,9 @@ export class Simulation {
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
     if (maxPrecision !== 'highp') {
-      console.warn(`Shader maximum precision is "${maxPrecision}", GPU rendering may not be accurate.`);
+      console.warn(
+        `Shader maximum precision is "${maxPrecision}", GPU rendering may not be accurate.`,
+      );
     }
 
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -287,7 +293,7 @@ export class Simulation {
    * animated.
    */
   addObject(obj, noUpdate = false) {
-    obj.get3jsObjects().map((x) => {
+    obj.get3jsObjects().map(x => {
       this._scene.add(x);
     });
 
@@ -303,7 +309,7 @@ export class Simulation {
    */
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
-    obj.get3jsObjects().map((x) => {
+    obj.get3jsObjects().map(x => {
       this._scene.remove(x);
     });
 
@@ -408,9 +414,12 @@ export class Simulation {
     let previouslyInView = true;
     const isInView = () => {
       const rect = this._simulationElt.getBoundingClientRect();
-      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
-      const vertInView = rect.top <= windowHeight && rect.top + rect.height >= 0;
+      const windowHeight =
+        window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth =
+        window.innerWidth || document.documentElement.clientWidth;
+      const vertInView =
+        rect.top <= windowHeight && rect.top + rect.height >= 0;
       const horInView = rect.left <= windowWidth && rect.left + rect.width >= 0;
 
       return vertInView && horInView;

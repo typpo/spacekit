@@ -1,7 +1,7 @@
 {
-  "coverage": "48.64%",
-  "expectCount": 259,
-  "actualCount": 126,
+  "coverage": "49.23%",
+  "expectCount": 260,
+  "actualCount": 128,
   "files": {
     "src/Camera.js": {
       "expectCount": 6,
@@ -13,12 +13,12 @@
       ]
     },
     "src/Coordinates.js": {
-      "expectCount": 5,
-      "actualCount": 2,
+      "expectCount": 6,
+      "actualCount": 3,
       "undocumentLines": [
         3,
         5,
-        14
+        25
       ]
     },
     "src/Ephem.js": {
@@ -32,12 +32,12 @@
         29,
         66,
         67,
-        189
+        190
       ]
     },
     "src/EphemPresets.js": {
       "expectCount": 10,
-      "actualCount": 2,
+      "actualCount": 3,
       "undocumentLines": [
         188,
         191,
@@ -45,8 +45,7 @@
         199,
         200,
         205,
-        277,
-        281
+        298
       ]
     },
     "src/KeplerParticles.js": {
@@ -54,18 +53,18 @@
       "actualCount": 10,
       "undocumentLines": [
         6,
-        31,
         33,
-        38,
-        39,
-        49,
-        52,
+        35,
+        40,
+        41,
+        51,
         54,
-        55,
         56,
         57,
         58,
-        59
+        59,
+        60,
+        61
       ]
     },
     "src/Orbit.js": {
@@ -114,26 +113,26 @@
       "expectCount": 56,
       "actualCount": 36,
       "undocumentLines": [
-        74,
-        75,
-        78,
-        79,
+        76,
+        77,
         80,
-        81,
-        82,
         84,
         85,
+        86,
         87,
-        88,
-        94,
-        95,
-        97,
-        98,
+        89,
+        90,
+        92,
+        93,
         100,
         101,
+        103,
         104,
-        105,
-        106
+        106,
+        107,
+        110,
+        111,
+        112
       ]
     },
     "src/Skybox.js": {
@@ -151,24 +150,24 @@
       "expectCount": 43,
       "actualCount": 25,
       "undocumentLines": [
-        81,
-        82,
-        87,
-        88,
-        95,
-        96,
+        83,
+        84,
+        89,
+        90,
         97,
+        98,
         99,
-        100,
         101,
-        104,
-        107,
-        111,
-        115,
-        129,
-        139,
-        408,
-        506
+        102,
+        103,
+        106,
+        109,
+        113,
+        117,
+        131,
+        141,
+        411,
+        509
       ]
     },
     "src/SphereObject.js": {
@@ -184,14 +183,14 @@
       "expectCount": 14,
       "actualCount": 6,
       "undocumentLines": [
-        14,
         15,
-        56,
+        16,
         57,
-        62,
+        58,
         63,
-        70,
-        75
+        64,
+        71,
+        76
       ]
     },
     "src/StaticParticles.js": {
@@ -222,18 +221,18 @@
         18,
         28,
         36,
-        49,
-        53
+        50,
+        54
       ]
     },
     "src/shaders.js": {
       "expectCount": 6,
       "actualCount": 2,
       "undocumentLines": [
-        109,
-        116,
-        128,
-        140
+        111,
+        118,
+        130,
+        142
       ]
     },
     "src/util.js": {

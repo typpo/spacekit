@@ -22,7 +22,7 @@ export const EphemPresets = {
       ma: 2.56190975209273e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   VENUS: new Ephem(
     {
@@ -35,7 +35,7 @@ export const EphemPresets = {
       ma: 2.756687596099721e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   EARTH: new Ephem(
     {
@@ -70,7 +70,7 @@ export const EphemPresets = {
      */
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   MOON: new Ephem(
     {
@@ -98,7 +98,7 @@ export const EphemPresets = {
    */
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   MARS: new Ephem(
     {
@@ -111,7 +111,7 @@ export const EphemPresets = {
       ma: 2.538237617924876e1,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   JUPITER: new Ephem(
     {
@@ -124,7 +124,7 @@ export const EphemPresets = {
       ma: 2.31939544389401e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   SATURN: new Ephem(
     {
@@ -137,7 +137,7 @@ export const EphemPresets = {
       ma: 1.870970898012944e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   URANUS: new Ephem(
     {
@@ -150,7 +150,7 @@ export const EphemPresets = {
       ma: 2.202603033874267e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   NEPTUNE: new Ephem(
     {
@@ -163,7 +163,7 @@ export const EphemPresets = {
       ma: 3.152804988924479e2,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
   PLUTO: new Ephem(
     {
@@ -176,7 +176,7 @@ export const EphemPresets = {
       ma: 25.2471897122,
     },
     'deg',
-    true, /* locked */
+    true /* locked */,
   ),
 };
 
@@ -211,8 +211,8 @@ export class NaturalSatellites {
     this._readyPromise = new Promise((resolve, reject) => {
       fetch(dataUrl)
         .then(resp => resp.json())
-        .then((moons) => {
-          moons.forEach((moon) => {
+        .then(moons => {
+          moons.forEach(moon => {
             const planetName = moon.Planet.toLowerCase();
             if (!this._satellitesByPlanet[planetName]) {
               this._satellitesByPlanet[planetName] = [];
@@ -232,7 +232,10 @@ export class NaturalSatellites {
                 ephemType = 'equatorial';
                 break;
               default:
-                console.error('Unknown element type in natural satellites object:', moon);
+                console.error(
+                  'Unknown element type in natural satellites object:',
+                  moon,
+                );
                 return;
             }
 
@@ -245,22 +248,26 @@ export class NaturalSatellites {
                 ephemGM = GM.PLUTO_CHARON;
                 break;
               default:
-              ephemGM = GM[moon.Planet.toUpperCase()];
+                ephemGM = GM[moon.Planet.toUpperCase()];
             }
             if (!ephemGM) {
               console.error(`Could not look up GM for ${moon.Planet}`);
             }
 
-            const ephem = new Ephem({
-              GM: ephemGM,
-              epoch: moon['Epoch JD'],
-              a: kmToAu(moon.a),
-              e: parseFloat(moon.e),
-              i: parseFloat(moon.i),
-              w: parseFloat(moon.w),
-              om: parseFloat(moon.node),
-              ma: parseFloat(moon.M),
-            }, 'deg', true /* locked */);
+            const ephem = new Ephem(
+              {
+                GM: ephemGM,
+                epoch: moon['Epoch JD'],
+                a: kmToAu(moon.a),
+                e: parseFloat(moon.e),
+                i: parseFloat(moon.i),
+                w: parseFloat(moon.w),
+                om: parseFloat(moon.node),
+                ma: parseFloat(moon.M),
+              },
+              'deg',
+              true /* locked */,
+            );
 
             this._satellitesByPlanet[planetName].push({
               name: moon['Sat.'],
@@ -272,7 +279,7 @@ export class NaturalSatellites {
           console.info('Loaded', moons.length, 'natural satellites');
           resolve(this);
         })
-        .catch((err) => {
+        .catch(err => {
           reject(err);
         });
     });

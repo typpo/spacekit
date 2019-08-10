@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -90,13 +91,22 @@ export function sphericalToCartesian(ra, dec, dist) {
   ];
 }
 
-export function equatorialToEcliptic_Cartesian(x, y, z, jd = J2000) {
-  const obliquity = getObliquity(jd);
-
+/**
+ * See https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector
+ */
+export function equatorialToEcliptic_Cartesian(x, y, z, tilt) {
   return [
     x,
-    Math.cos(obliquity) * y + Math.sin(obliquity) * z,
-    -Math.sin(obliquity) * y + Math.cos(obliquity) * z,
+    Math.cos(tilt) * y + Math.sin(tilt) * z,
+    -Math.sin(tilt) * y + Math.cos(tilt) * z,
+  ];
+}
+
+export function eclipticToEquatorial_Cartesian(x, y, z, tilt) {
+  return [
+    x,
+    Math.cos(tilt) * y + -Math.sin(tilt) * z,
+    Math.sin(tilt) * y + Math.cos(tilt) * z,
   ];
 }
 
@@ -114,21 +124,24 @@ export function getNutationAndObliquity(jd = J2000) {
   const Lsun = rad(280.4665 + 36000.7698 * t);
   const Lmoon = rad(218.3165 + 481267.8813 * t);
 
-  const nutation = (-17.2 / 3600) * Math.sin(omega)
-    - (-1.32 / 3600) * Math.sin(2 * Lsun)
-    - (0.23 / 3600) * Math.sin(2 * Lmoon)
-    + deg((0.21 / 3600) * Math.sin(2 * omega));
+  const nutation =
+    (-17.2 / 3600) * Math.sin(omega) -
+    (-1.32 / 3600) * Math.sin(2 * Lsun) -
+    (0.23 / 3600) * Math.sin(2 * Lmoon) +
+    deg((0.21 / 3600) * Math.sin(2 * omega));
 
-  const obliquity_zero = 23
-    + 26.0 / 60
-    + 21.448 / 3600
-    - (46.815 / 3600) * t
-    - (0.00059 / 3600) * t * t
-    + (0.001813 / 3600) * t * t * t;
-  const obliquity_delta = (9.2 / 3600) * Math.cos(omega)
-    + (0.57 / 3600) * Math.cos(2 * Lsun)
-    + (0.1 / 3600) * Math.cos(2 * Lmoon)
-    - (0.09 / 3600) * Math.cos(2 * omega);
+  const obliquity_zero =
+    23 +
+    26.0 / 60 +
+    21.448 / 3600 -
+    (46.815 / 3600) * t -
+    (0.00059 / 3600) * t * t +
+    (0.001813 / 3600) * t * t * t;
+  const obliquity_delta =
+    (9.2 / 3600) * Math.cos(omega) +
+    (0.57 / 3600) * Math.cos(2 * Lsun) +
+    (0.1 / 3600) * Math.cos(2 * Lmoon) -
+    (0.09 / 3600) * Math.cos(2 * omega);
   const obliquity = obliquity_zero + obliquity_delta;
 
   return {

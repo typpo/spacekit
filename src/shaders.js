@@ -60,7 +60,9 @@ export const ORBIT_SHADER_VERTEX = `
       float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
 
       // Compute radius vector.
-      float r = ${SCALE_FACTOR.toFixed(1)} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      float r = ${SCALE_FACTOR.toFixed(
+        1,
+      )} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));

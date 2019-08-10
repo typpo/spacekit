@@ -31,5 +31,6 @@ export function getFullTextureUrl(template, basePath) {
 
 export function getDefaultBasePath() {
   return window.location.href.indexOf('localhost') > -1
-    ? '/src/' : 'https://typpo.github.io/spacekit/src';
+    ? '/src/'
+    : 'https://typpo.github.io/spacekit/src';
 }

@@ -156,6 +156,12 @@ window.esdocSearchIndex = [
     "function"
   ],
   [
+    "spacekit/src/coordinates.js~ecliptictoequatorial_cartesian",
+    "function/index.html#static-function-eclipticToEquatorial_Cartesian",
+    "<span>eclipticToEquatorial_Cartesian</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/coordinates.js~equatorialtoecliptic_cartesian",
     "function/index.html#static-function-equatorialToEcliptic_Cartesian",
     "<span>equatorialToEcliptic_Cartesian</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
@@ -562,6 +568,12 @@ window.esdocSearchIndex = [
     "class/src/Camera.js~Camera.html#instance-method-init",
     "src/Camera.js~Camera#init",
     "method"
+  ],
+  [
+    "src/coordinatesystems.js",
+    "file/src/CoordinateSystems.js.html",
+    "src/CoordinateSystems.js",
+    "file"
   ],
   [
     "src/coordinates.js",

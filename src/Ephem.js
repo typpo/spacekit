@@ -149,8 +149,9 @@ export class Ephem {
     let period = this.get('period');
 
     if (!isDef(period) && isDef(a)) {
-      period = (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM))
-        / SECONDS_IN_DAY;
+      period =
+        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+        SECONDS_IN_DAY;
       this.set('period', period);
     }
 
@@ -187,16 +188,19 @@ export class Ephem {
   }
 
   copy() {
-    return new Ephem({
-      GM: this.get('GM'),
-      epoch: this.get('epoch'),
-      a: this.get('a'),
-      e: this.get('e'),
-      i: this.get('i'),
-      om: this.get('om'),
-      ma: this.get('ma'),
-      w: this.get('w'),
-    }, 'rad');
+    return new Ephem(
+      {
+        GM: this.get('GM'),
+        epoch: this.get('epoch'),
+        a: this.get('a'),
+        e: this.get('e'),
+        i: this.get('i'),
+        om: this.get('om'),
+        ma: this.get('ma'),
+        w: this.get('w'),
+      },
+      'rad',
+    );
   }
 }
 

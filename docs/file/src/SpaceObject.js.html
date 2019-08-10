@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -131,6 +132,7 @@ function toScreenXY(position, camera, canvas) {
  *   },
  *   theme: {
  *     color: 0xFFFFFF,
+ *     orbitColor: 0x888888,
  *   },
  * });
  */
@@ -151,7 +153,8 @@ export class SpaceObject {
    * @param {Number} options.ecliptic.lineColor Hex color of lines that run perpendicular to ecliptic. @see Orbit
    * @param {boolean} options.ecliptic.displayLines Whether to show ecliptic lines. Defaults false.
    * @param {Object} options.theme Contains settings related to appearance of orbit
-   * @param {Number} options.theme.color Hex color of the orbit
+   * @param {Number} options.theme.color Hex color of the object, if applicable
+   * @param {Number} options.theme.orbitColor Hex color of the orbit
    * @param {Object} contextOrSimulation Simulation context or simulation object
    * @param {boolean} autoInit Automatically initialize this object. If false
    * you must call init() manually.
@@ -289,10 +292,10 @@ export class SpaceObject {
       bottom: pos.y + label.clientHeight,
     };
     if (
-      loc.left &gt; 0
-      &amp;&amp; loc.right &lt; simulationElt.clientWidth
-      &amp;&amp; loc.top &gt; 0
-      &amp;&amp; loc.bottom &lt; simulationElt.clientHeight
+      loc.left &gt; 0 &amp;&amp;
+      loc.right &lt; simulationElt.clientWidth &amp;&amp;
+      loc.top &gt; 0 &amp;&amp;
+      loc.bottom &lt; simulationElt.clientHeight
     ) {
       label.style.left = `${loc.left}px`;
       label.style.top = `${loc.top}px`;
@@ -357,7 +360,9 @@ export class SpaceObject {
       return this._orbit;
     }
     return new Orbit(this._options.ephem, {
-      color: this.getColor(),
+      color: this._options.theme
+        ? this._options.theme.orbitColor || 0x888888
+        : 0x888888,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
         : null,
@@ -388,9 +393,7 @@ export class SpaceObject {
   orbitAround(spaceObj) {
     if (this._renderMethod !== &apos;PARTICLESYSTEM&apos;) {
       console.error(
-        `&quot;${
-          this._renderMethod
-        }&quot; is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
+        `&quot;${this._renderMethod}&quot; is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
       );
       return;
     }
@@ -475,7 +478,8 @@ export class SpaceObject {
     }
 
     // TODO(ian): Determine this based on orbit and camera position change.
-    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS &amp;&amp; this._showLabel;
+    const shouldUpdateLabelPos =
+      +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS &amp;&amp; this._showLabel;
     if (this._label &amp;&amp; shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);

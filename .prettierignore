@@ -1,1 +1,6 @@
 src/lib
+venv
+node_modules
+.git
+docs
+build

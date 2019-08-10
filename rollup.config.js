@@ -13,9 +13,6 @@ export default {
       },
     },
   ],
-  plugins: [
-    resolve(),
-    commonjs(),
-  ],
+  plugins: [resolve(), commonjs()],
   external: ['three'],
 };

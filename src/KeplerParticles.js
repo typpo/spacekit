@@ -84,7 +84,8 @@ export class KeplerParticles {
       texture: { value: defaultMapTexture },
     };
 
-    const particleCount = this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+    const particleCount =
+      this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
     this._elements = [];
     this._attributes = {
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
@@ -111,7 +112,7 @@ export class KeplerParticles {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
-    Object.keys(this._attributes).forEach((attributeName) => {
+    Object.keys(this._attributes).forEach(attributeName => {
       const attribute = this._attributes[attributeName];
       // attribute.setDynamic(true);
       geometry.addAttribute(attributeName, attribute);
@@ -144,7 +145,10 @@ export class KeplerParticles {
     const attributes = this._attributes;
     const offset = this._particleCount++;
 
-    attributes.size.set([options.particleSize || this._options.defaultSize || 15], offset);
+    attributes.size.set(
+      [options.particleSize || this._options.defaultSize || 15],
+      offset,
+    );
     const color = new THREE.Color(options.color || 0xffffff);
     attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
 

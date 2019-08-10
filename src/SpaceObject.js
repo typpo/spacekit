@@ -212,10 +212,10 @@ export class SpaceObject {
       bottom: pos.y + label.clientHeight,
     };
     if (
-      loc.left > 0
-      && loc.right < simulationElt.clientWidth
-      && loc.top > 0
-      && loc.bottom < simulationElt.clientHeight
+      loc.left > 0 &&
+      loc.right < simulationElt.clientWidth &&
+      loc.top > 0 &&
+      loc.bottom < simulationElt.clientHeight
     ) {
       label.style.left = `${loc.left}px`;
       label.style.top = `${loc.top}px`;
@@ -280,7 +280,9 @@ export class SpaceObject {
       return this._orbit;
     }
     return new Orbit(this._options.ephem, {
-      color: this._options.theme ? this._options.theme.orbitColor || 0x888888 : 0x888888,
+      color: this._options.theme
+        ? this._options.theme.orbitColor || 0x888888
+        : 0x888888,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
         : null,
@@ -311,9 +313,7 @@ export class SpaceObject {
   orbitAround(spaceObj) {
     if (this._renderMethod !== 'PARTICLESYSTEM') {
       console.error(
-        `"${
-          this._renderMethod
-        }" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
+        `"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
       );
       return;
     }
@@ -398,7 +398,8 @@ export class SpaceObject {
     }
 
     // TODO(ian): Determine this based on orbit and camera position change.
-    const shouldUpdateLabelPos = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+    const shouldUpdateLabelPos =
+      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
     if (this._label && shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);

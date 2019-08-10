@@ -42,6 +42,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SphereObject.js~SphereObject.html">SphereObject</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Stars.js~Stars.html">Stars</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html">StaticParticles</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
@@ -207,13 +208,42 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, jd: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-eclipticToEquatorial_Cartesian">eclipticToEquatorial_Cartesian</a></span></span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, tilt: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
         </p>
       </div>
       <div>
         
         
         
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-equatorialToEcliptic_Cartesian">equatorialToEcliptic_Cartesian</a></span></span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, tilt: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>See <a href="https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector">https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector</a></p>
+</div>
       </div>
     </td>
     <td>
@@ -690,11 +720,11 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Units.js.html#lineNumber53">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Units.js.html#lineNumber54">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {auToKm} from &apos;<span><a href="file/src/Units.js.html#lineNumber53">spacekit/src/Units.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {auToKm} from &apos;<span><a href="file/src/Units.js.html#lineNumber54">spacekit/src/Units.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -970,22 +1000,22 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="static-function-equatorialToEcliptic_Cartesian">
+  <h3 data-ice="anchor" id="static-function-eclipticToEquatorial_Cartesian">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">equatorialToEcliptic_Cartesian</span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, jd: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+    <span class="code" data-ice="name">eclipticToEquatorial_Cartesian</span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, tilt: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber14">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber25">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {equatorialToEcliptic_Cartesian} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber14">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {eclipticToEquatorial_Cartesian} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber25">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1019,10 +1049,99 @@
       <td data-ice="description"></td>
     </tr>
 <tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">jd</td>
+      <td data-ice="name" class="code" data-depth="0">tilt</td>
       <td data-ice="type" class="code"><span>*</span></td>
-      <td data-ice="appendix"><ul><li>optional</li>
-<li>default: J2000</li></ul></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-function-equatorialToEcliptic_Cartesian">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">equatorialToEcliptic_Cartesian</span><span class="code" data-ice="signature">(x: <span>*</span>, y: <span>*</span>, z: <span>*</span>, tilt: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber17">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {equatorialToEcliptic_Cartesian} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber17">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
+  
+  
+  <div data-ice="description"><p>See <a href="https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector">https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector</a></p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">x</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">y</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">z</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">tilt</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
       <td data-ice="description"></td>
     </tr>
 </tbody>
@@ -1302,11 +1421,11 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber30">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber39">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getNutationAndObliquity} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber30">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getNutationAndObliquity} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber39">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Get Earth&apos;s obliquity and nutation at a given date.</p>
@@ -1377,11 +1496,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber66">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Coordinates.js.html#lineNumber78">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getObliquity} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber66">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getObliquity} from &apos;<span><a href="file/src/Coordinates.js.html#lineNumber78">spacekit/src/Coordinates.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Get Earth&apos;s obliquity at a given date.</p>
@@ -1522,11 +1641,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Units.js.html#lineNumber49">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Units.js.html#lineNumber50">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {kmToAu} from &apos;<span><a href="file/src/Units.js.html#lineNumber49">spacekit/src/Units.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {kmToAu} from &apos;<span><a href="file/src/Units.js.html#lineNumber50">spacekit/src/Units.js</a></span>&apos;</code></pre></div>
   
   
   

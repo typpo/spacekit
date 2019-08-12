@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
-import { getFullUrl } from './util';
+import { getFullUrl, getThreeJsTexture } from './util';
 import {
   rad,
   hoursToDeg,
@@ -120,12 +120,20 @@ export class Stars {
 
           sizes[idx] = getSizeForStar(
             mag,
-            this._options.minSize || 1.25 /* minSize */,
+            this._options.minSize || 15 /* minSize */,
           );
         });
 
+        // Load texture
+        const defaultMapTexture = getThreeJsTexture(
+          '{{assets}}/sprites/fuzzyparticle.png',
+          this._context.options.basePath,
+        );
+
         const material = new THREE.ShaderMaterial({
-          uniforms: {},
+          uniforms: {
+            texture: { value: defaultMapTexture },
+          },
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
           transparent: true,

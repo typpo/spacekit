@@ -48927,6 +48927,16 @@ var Spacekit = (function (exports) {
 	  return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
 	}
 
+	/*
+	 * Returns a THREE.js texture given a basepath and a template url.
+	 * @param {String} template URL containing optional template parameters
+	 * @param {String} basePath Base path for simulation data and assets.
+	 */
+	function getThreeJsTexture(template, basePath) {
+	  const fullTextureUrl = getFullTextureUrl(template, basePath);
+	  return new TextureLoader().load(fullTextureUrl);
+	}
+
 	function getDefaultBasePath() {
 	  return window.location.href.indexOf('localhost') > -1
 	    ? '/src/'
@@ -50996,8 +51006,7 @@ var Spacekit = (function (exports) {
     uniform sampler2D texture;
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
     }
 `;
 
@@ -51098,8 +51107,10 @@ var Spacekit = (function (exports) {
 
 	const STAR_SHADER_FRAGMENT = `
     varying vec3 vColor;
+    uniform sampler2D texture;
+
     void main() {
-        gl_FragColor = vec4(vColor, 1.0);
+      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
     }
 `;
 
@@ -51138,7 +51149,7 @@ var Spacekit = (function (exports) {
 	   * @param {Number} options.jd JD date value
 	   * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 4096
 	   * @param {Number} options.defaultSize Default size of particles. Note this
-	   * can be overriden by SpaceObject particleSize. Defaults to 15
+	   * can be overriden by SpaceObject particleSize. Defaults to 25
 	   * @param {Object} contextOrSimulation Simulation context or object
 	   */
 	  constructor(options, contextOrSimulation) {
@@ -51182,11 +51193,10 @@ var Spacekit = (function (exports) {
 	   * @private
 	   */
 	  createParticleSystem() {
-	    const fullTextureUrl = getFullTextureUrl(
+	    const defaultMapTexture = getThreeJsTexture(
 	      this._options.textureUrl,
 	      this._context.options.basePath,
 	    );
-	    const defaultMapTexture = new TextureLoader().load(fullTextureUrl);
 
 	    this._uniforms = {
 	      texture: { value: defaultMapTexture },
@@ -53231,12 +53241,20 @@ var Spacekit = (function (exports) {
 
 	          sizes[idx] = getSizeForStar(
 	            mag,
-	            this._options.minSize || 1.25 /* minSize */,
+	            this._options.minSize || 15 /* minSize */,
 	          );
 	        });
 
+	        // Load texture
+	        const defaultMapTexture = getThreeJsTexture(
+	          '{{assets}}/sprites/fuzzyparticle.png',
+	          this._context.options.basePath,
+	        );
+
 	        const material = new ShaderMaterial({
-	          uniforms: {},
+	          uniforms: {
+	            texture: { value: defaultMapTexture },
+	          },
 	          vertexShader: STAR_SHADER_VERTEX,
 	          fragmentShader: STAR_SHADER_FRAGMENT,
 	          transparent: true,

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /**
  * @ignore
  */
@@ -27,6 +29,16 @@ export function getFullUrl(template, basePath) {
  */
 export function getFullTextureUrl(template, basePath) {
   return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
+}
+
+/*
+ * Returns a THREE.js texture given a basepath and a template url.
+ * @param {String} template URL containing optional template parameters
+ * @param {String} basePath Base path for simulation data and assets.
+ */
+export function getThreeJsTexture(template, basePath) {
+  const fullTextureUrl = getFullTextureUrl(template, basePath);
+  return new THREE.TextureLoader().load(fullTextureUrl);
 }
 
 export function getDefaultBasePath() {

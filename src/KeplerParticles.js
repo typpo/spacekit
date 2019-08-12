@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { SCALE_FACTOR } from './Scale';
-import { getFullTextureUrl } from './util';
+import { getThreeJsTexture } from './util';
 
 import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
 
@@ -28,7 +28,7 @@ export class KeplerParticles {
    * @param {Number} options.jd JD date value
    * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 4096
    * @param {Number} options.defaultSize Default size of particles. Note this
-   * can be overriden by SpaceObject particleSize. Defaults to 15
+   * can be overriden by SpaceObject particleSize. Defaults to 25
    * @param {Object} contextOrSimulation Simulation context or object
    */
   constructor(options, contextOrSimulation) {
@@ -76,11 +76,10 @@ export class KeplerParticles {
    * @private
    */
   createParticleSystem() {
-    const fullTextureUrl = getFullTextureUrl(
+    const defaultMapTexture = getThreeJsTexture(
       this._options.textureUrl,
       this._context.options.basePath,
     );
-    const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
       texture: { value: defaultMapTexture },

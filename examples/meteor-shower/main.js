@@ -3,7 +3,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
   jd: 2458454.5,
   maxNumParticles: 2 ** 16,
-  particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
   debug: {
     // showAxesHelper: true,
     showStats: true,
@@ -11,9 +10,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a skybox using NASA TYCHO artwork.
-const skybox = viz.createStars({
-  minSize: 1.0,
-});
+const skybox = viz.createStars();
 
 // Create our first object - the sun - using a preset space object.
 const sun = viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
@@ -42,7 +39,8 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
 
   viz.createObject(`perseids_${idx}`, {
     hideOrbit: true,
-    particleSize: 35,
+    particleSize: 10,
+    textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
     ephem,
   });
 });

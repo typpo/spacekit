@@ -145,13 +145,13 @@ export class Simulation {
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    this._cameraControls = new OrbitControls(
-      this._camera,
-      this._simulationElt,
-    );
+    this._cameraControls = new OrbitControls(this._camera, this._simulationElt);
     this._cameraControls.zoomSpeed = 1.5;
     this._cameraControls.userPanSpeed = 20;
     this._cameraControls.rotateSpeed = 2;
+    this._cameraControls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+    };
 
     // Events
     this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {

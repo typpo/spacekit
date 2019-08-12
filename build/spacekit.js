@@ -53241,7 +53241,7 @@ var Spacekit = (function (exports) {
 
 	          sizes[idx] = getSizeForStar(
 	            mag,
-	            this._options.minSize || 15 /* minSize */,
+	            this._options.minSize || 10 /* minSize */,
 	          );
 	        });
 
@@ -53255,10 +53255,11 @@ var Spacekit = (function (exports) {
 	          uniforms: {
 	            texture: { value: defaultMapTexture },
 	          },
+	          vertexColors: VertexColors,
 	          vertexShader: STAR_SHADER_VERTEX,
 	          fragmentShader: STAR_SHADER_FRAGMENT,
+
 	          transparent: true,
-	          vertexColors: VertexColors,
 	        });
 
 	        this._stars = new Points(geometry, material);

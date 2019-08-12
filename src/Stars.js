@@ -120,7 +120,7 @@ export class Stars {
 
           sizes[idx] = getSizeForStar(
             mag,
-            this._options.minSize || 15 /* minSize */,
+            this._options.minSize || 10 /* minSize */,
           );
         });
 
@@ -134,10 +134,11 @@ export class Stars {
           uniforms: {
             texture: { value: defaultMapTexture },
           },
+          vertexColors: THREE.VertexColors,
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
+
           transparent: true,
-          vertexColors: THREE.VertexColors,
         });
 
         this._stars = new THREE.Points(geometry, material);

@@ -120,7 +120,7 @@ export class Stars {
 
           sizes[idx] = getSizeForStar(
             mag,
-            this._options.minSize || 0.75 /* minSize */,
+            this._options.minSize || 1.25 /* minSize */,
           );
         });
 

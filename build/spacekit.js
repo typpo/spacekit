@@ -53423,6 +53423,7 @@ var Spacekit = (function (exports) {
 	      this._camera,
 	      this._simulationElt,
 	    );
+	    this._cameraControls.zoomSpeed = 1.5;
 	    this._cameraControls.userPanSpeed = 20;
 	    this._cameraControls.rotateSpeed = 2;
 

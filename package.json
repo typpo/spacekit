@@ -7,7 +7,6 @@
     "build:watch": "rollup -c -w",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "prettier": "prettier --single-quote --trailing-comma all --write \"**/*.js\"",
     "docs": "esdoc",
     "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.js'"
   },

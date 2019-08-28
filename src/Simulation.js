@@ -151,6 +151,7 @@ export class Simulation {
     this._cameraControls.rotateSpeed = 2;
     this._cameraControls.touches = {
       ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_ROTATE,
     };
 
     // Events

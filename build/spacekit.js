@@ -53417,6 +53417,7 @@ var Spacekit = (function (exports) {
 	    this._cameraControls.rotateSpeed = 2;
 	    this._cameraControls.touches = {
 	      ONE: TOUCH.ROTATE,
+	      TWO: TOUCH.DOLLY_ROTATE,
 	    };
 
 	    // Events

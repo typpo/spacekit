@@ -51107,10 +51107,10 @@ var Spacekit = (function (exports) {
 
 	const STAR_SHADER_FRAGMENT = `
     varying vec3 vColor;
-    uniform sampler2D texture;
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
+      float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));
+      gl_FragColor = vec4(vColor, a);
     }
 `;
 
@@ -53241,20 +53241,12 @@ var Spacekit = (function (exports) {
 
 	          sizes[idx] = getSizeForStar(
 	            mag,
-	            this._options.minSize || 10 /* minSize */,
+	            this._options.minSize || 3.0 /* minSize */,
 	          );
 	        });
 
-	        // Load texture
-	        const defaultMapTexture = getThreeJsTexture(
-	          '{{assets}}/sprites/fuzzyparticle.png',
-	          this._context.options.basePath,
-	        );
-
 	        const material = new ShaderMaterial({
-	          uniforms: {
-	            texture: { value: defaultMapTexture },
-	          },
+	          uniforms: {},
 	          vertexColors: VertexColors,
 	          vertexShader: STAR_SHADER_VERTEX,
 	          fragmentShader: STAR_SHADER_FRAGMENT,

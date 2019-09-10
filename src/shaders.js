@@ -109,10 +109,10 @@ export const ORBIT_SHADER_VERTEX = `
 
 export const STAR_SHADER_FRAGMENT = `
     varying vec3 vColor;
-    uniform sampler2D texture;
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
+      float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));
+      gl_FragColor = vec4(vColor, a);
     }
 `;
 

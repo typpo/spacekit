@@ -120,20 +120,12 @@ export class Stars {
 
           sizes[idx] = getSizeForStar(
             mag,
-            this._options.minSize || 10 /* minSize */,
+            this._options.minSize || 3.0 /* minSize */,
           );
         });
 
-        // Load texture
-        const defaultMapTexture = getThreeJsTexture(
-          '{{assets}}/sprites/fuzzyparticle.png',
-          this._context.options.basePath,
-        );
-
         const material = new THREE.ShaderMaterial({
-          uniforms: {
-            texture: { value: defaultMapTexture },
-          },
+          uniforms: {},
           vertexColors: THREE.VertexColors,
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,

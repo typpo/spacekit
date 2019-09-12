@@ -12,6 +12,7 @@ import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
+import { setScaleFactor, rescaleArray } from './Scale';
 
 /**
  * The main entrypoint of a visualization.
@@ -27,6 +28,7 @@ import { getDefaultBasePath } from './util';
  *  jdDelta: 10.0,
  *  jdPerSecond: 100.0,  // overrides jdDelta
  *  startPaused: false,
+ *  unitsPerAu: 1.0,
  *  maxNumParticles: 2**16,
  *  camera: {
  *    initialPosition: [0, -10, 5],
@@ -50,9 +52,16 @@ export class Simulation {
    * Defaults to 0
    * @param {Number} options.jdDelta The number of JD to add every tick of
    * the simulation.
-   * @param {Number} options.jdPerSecond The number of jd to add every
-   * second. Use this instead of `jdDelta` for constant motion that does not
-   * vary with framerate. Defaults to 100
+   * @param {Number} options.jdPerSecond The number of jd to add every second.
+   * Use this instead of `jdDelta` for constant motion that does not vary with
+   * framerate.  Defaults to 100.
+   * @param {Number} options.unitsPerAu The number of "position" units in the
+   * simulation that represent an AU. This is an optional setting that you may
+   * use if the default (1 unit = 1 AU) is too small for your simulation (e.g.
+   * if you are representing a planetary system). Depending on your graphics
+   * card, you may begin to notice inaccuracies at fractional scales of GL
+   * units, so it becomes necessary to scale the whole visualization.  Defaults
+   * to 1.0.
    * @param {boolean} options.startPaused Whether the simulation should start
    * in a paused state.
    * @param {Number} options.maxNumParticles The maximum number of particles in
@@ -93,11 +102,14 @@ export class Simulation {
     this._renderer = null;
 
     this._enableCameraDrift = false;
-    this._cameraDefaultPos = [0, -10, 5];
+    this._cameraDefaultPos = rescaleArray([0, -10, 5]);
     if (this._options.camera) {
       this._enableCameraDrift = !!this._options.camera.enableDrift;
-      this._cameraDefaultPos =
-        this._options.camera.initialPosition || this._cameraDefaultPos;
+      if (this._options.camera.initialPosition) {
+        this._cameraDefaultPos = rescaleArray(
+          this._options.camera.initialPosition,
+        );
+      }
     }
 
     this._camera = null;
@@ -128,6 +140,11 @@ export class Simulation {
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
+    // Scale
+    if (this._options.unitsPerAu) {
+      setScaleFactor(this._options.unitsPerAu);
+    }
 
     // Scene
     const scene = new THREE.Scene();

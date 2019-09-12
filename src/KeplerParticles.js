@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 
-import { SCALE_FACTOR } from './Scale';
 import { getThreeJsTexture } from './util';
 
-import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from './shaders';
+import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
 
 const DEFAULT_PARTICLE_COUNT = 4096;
 
@@ -121,8 +120,8 @@ export class KeplerParticles {
 
     const shader = new THREE.ShaderMaterial({
       uniforms: this._uniforms,
-      vertexShader: ORBIT_SHADER_VERTEX,
-      fragmentShader: ORBIT_SHADER_FRAGMENT,
+      vertexShader: getOrbitShaderVertex(),
+      fragmentShader: getOrbitShaderFragment(),
 
       depthTest: false,
       transparent: true,

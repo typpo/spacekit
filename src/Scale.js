@@ -1,22 +1,36 @@
-export const SCALE_FACTOR = 1.0;
+let scaleFactor = 1.0;
+
+/**
+ * Set the number of units per AU.
+ */
+export function setScaleFactor(val) {
+  scaleFactor = val;
+}
+
+/**
+ * Get the number of units per AU.
+ */
+export function getScaleFactor() {
+  return scaleFactor;
+}
 
 export function rescalePos(pos) {
-  pos.x *= SCALE_FACTOR;
-  pos.y *= SCALE_FACTOR;
-  pos.z *= SCALE_FACTOR;
+  pos.x *= scaleFactor;
+  pos.y *= scaleFactor;
+  pos.z *= scaleFactor;
   return pos;
 }
 
 export function rescaleArray(XYZ) {
-  return [XYZ[0] * SCALE_FACTOR, XYZ[1] * SCALE_FACTOR, XYZ[2] * SCALE_FACTOR];
+  return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
 }
 
 export function rescaleXYZ(X, Y, Z) {
-  return [X * SCALE_FACTOR, Y * SCALE_FACTOR, Z * SCALE_FACTOR];
+  return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
 }
 
 export function rescaleNumber(x) {
-  return SCALE_FACTOR * x;
+  return scaleFactor * x;
 }
 
 export function rescale(...args) {

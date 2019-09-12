@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
+import { rescaleArray } from './Scale';
 
 /**
  * @private
@@ -246,7 +247,7 @@ export class SpaceObject {
         color: this._options.theme ? this._options.theme.color : 0xffffff,
       }),
     );
-    const scale = this._scale;
+    const scale = rescaleArray(this._scale);
     sprite.scale.set(scale[0], scale[1], scale[2]);
     const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);

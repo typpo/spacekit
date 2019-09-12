@@ -1,21 +1,24 @@
-import { SCALE_FACTOR } from './Scale';
+import { getScaleFactor } from './Scale';
 
 /**
  * @ignore
  */
-export const ORBIT_SHADER_FRAGMENT = `
+export function getOrbitShaderFragment() {
+  return `
     varying vec3 vColor;
     uniform sampler2D texture;
 
     void main() {
       gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
     }
-`;
+  `;
+}
 
 /**
  * @ignore
  */
-export const ORBIT_SHADER_VERTEX = `
+export function getOrbitShaderVertex() {
+  return `
     attribute vec3 fuzzColor;
     attribute vec3 origin;
     varying vec3 vColor;
@@ -59,7 +62,7 @@ export const ORBIT_SHADER_VERTEX = `
       float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
 
       // Compute radius vector.
-      float r = ${SCALE_FACTOR.toFixed(
+      float r = ${getScaleFactor().toFixed(
         1,
       )} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
 
@@ -105,7 +108,8 @@ export const ORBIT_SHADER_VERTEX = `
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;
     }
-`;
+  `;
+}
 
 export const STAR_SHADER_FRAGMENT = `
     varying vec3 vColor;

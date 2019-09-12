@@ -113,3 +113,5 @@ gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
 gui.add(guiState, 'Set Date');
+
+window.THREE = Spacekit.THREE;

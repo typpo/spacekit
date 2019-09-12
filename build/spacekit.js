@@ -53987,7 +53987,8 @@ var Spacekit = (function (exports) {
 	  },
 	};
 
-	const NUM_SPHERE_SEGMENTS = 128;
+	// Number of sphere segments for each level of detail.
+	const NUM_SPHERE_SEGMENTS = [4, 8, 64];
 
 	/**
 	 * Simulates a planet or other object as a perfect sphere.
@@ -54019,33 +54020,41 @@ var Spacekit = (function (exports) {
 
 	    // TODO(ian): Clouds and rings
 
-	    const sphereGeometry = new SphereGeometry(
-	      rescaleNumber(this._options.radius || 1),
-	      NUM_SPHERE_SEGMENTS,
-	      NUM_SPHERE_SEGMENTS,
-	    );
-	    const mesh = new Mesh(
-	      sphereGeometry,
-	      // new THREE.MeshPhongMaterial({
-	      new MeshBasicMaterial({
-	        map,
-	        color: this._options.color || 0xbbbbbb,
-	        // specular: 0x111111,
-	        // shininess: 1,
-	        // shininess: 0,
-	        // bumpMap:     map,
-	        // bumpScale:   0.02,
-	        // specularMap: map,
-	        // specular:    new THREE.Color('grey')
-	        // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
-	        // bumpScale:   0.005,
-	      }),
-	    );
+	    const levelOfDetail = new LOD();
+	    const radius = rescaleNumber(this._options.radius || 1);
+	    for (let i=0; i < 3; i++) {
+	      const sphereGeometry = new SphereGeometry(
+	        radius,
+	        NUM_SPHERE_SEGMENTS[i],
+	        NUM_SPHERE_SEGMENTS[i],
+	      );
+	      const mesh = new Mesh(
+	        sphereGeometry,
+	        // new THREE.MeshPhongMaterial({
+	        new MeshBasicMaterial({
+	          map,
+	          color: this._options.color || 0xbbbbbb,
+	          // specular: 0x111111,
+	          // shininess: 1,
+	          // shininess: 0,
+	          // bumpMap:     map,
+	          // bumpScale:   0.02,
+	          // specularMap: map,
+	          // specular:    new THREE.Color('grey')
+	          // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
+	          // bumpScale:   0.005,
+	        }),
+	      );
 
-	    // Change the coordinate system to have Z-axis pointed up.
-	    mesh.rotation.x = Math.PI / 2;
+	      // Change the coordinate system to have Z-axis pointed up.
+	      mesh.rotation.x = Math.PI / 2;
 
-	    this._obj.add(mesh);
+	      console.log(radius * i * 2);
+	      levelOfDetail.addLevel(mesh, radius * i);
+	    }
+
+	    // Add levelOfDetail object to the parent base object.
+	    this._obj.add(levelOfDetail);
 
 	    if (this._simulation) {
 	      // Add it all to visualization.

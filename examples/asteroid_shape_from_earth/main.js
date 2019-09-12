@@ -111,6 +111,9 @@ const obj = viz.createShape('myobj', {
 
 // viz.zoomToFit(obj, 5 /* zoom offset */);
 
+// Get the Spacekit version of THREE.js.
+const THREE = Spacekit.THREE;
+
 // Set up camera
 const earthpos = earth.getOrbit().getPositionAtTime(jdStart);
 viz.getCamera().position.set(earthpos[0], earthpos[1], earthpos[2]);

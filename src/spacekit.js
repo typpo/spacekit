@@ -12,3 +12,6 @@ export * from './SphereObject';
 export * from './KeplerParticles';
 export * from './Stars';
 export * from './Units';
+
+import * as _THREE from 'three';
+export const THREE = _THREE;

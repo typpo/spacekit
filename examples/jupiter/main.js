@@ -15,7 +15,7 @@ viz.createStars();
 
 // Create jupiter
 const jupiter = viz.createSphere('jupiter', {
-  textureUrl: './jupiter_texture.jpg',
+  textureUrl: './jupiter2_4k.jpg',
   radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
 });
 viz.zoomToFit(jupiter);

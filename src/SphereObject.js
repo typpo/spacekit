@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
 
-const NUM_SPHERE_SEGMENTS = 16;
+const NUM_SPHERE_SEGMENTS = 128;
 
 /**
  * Simulates a planet or other object as a perfect sphere.

@@ -8,6 +8,8 @@ See the **[full documentation](https://typpo.github.io/spacekit/)**
 
 Note that this library is a work in progress and the API might change!
 
+[![spacekit examples](https://i.imgur.com/u48FCjJ.jpg)](https://typpo.github.io/spacekit/)
+
 # Terminology and components
 
 `Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it. See [documentation](https://typpo.github.io/spacekit/class/src/Simulation.js~Simulation.html) for full options.

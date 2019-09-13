@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { rescaleNumber } from './Scale';
+
 /**
  * A simple wrapper for Three.js camera.
  */
@@ -20,8 +22,8 @@ export class Camera {
     this._camera = new THREE.PerspectiveCamera(
       50,
       containerWidth / containerHeight,
-      0.00001,
-      2000,
+      rescaleNumber(0.00001),
+      rescaleNumber(2000),
     );
   }
 

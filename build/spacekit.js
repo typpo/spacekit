@@ -49395,6 +49395,34 @@ var Spacekit = (function (exports) {
 		sRGBEncoding: sRGBEncoding
 	});
 
+	let scaleFactor = 1.0;
+
+	/**
+	 * Set the number of units per AU.
+	 */
+	function setScaleFactor(val) {
+	  scaleFactor = val;
+	}
+
+	/**
+	 * Get the number of units per AU.
+	 */
+	function getScaleFactor() {
+	  return scaleFactor;
+	}
+
+	function rescaleArray(XYZ) {
+	  return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
+	}
+
+	function rescaleXYZ(X, Y, Z) {
+	  return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
+	}
+
+	function rescaleNumber(x) {
+	  return scaleFactor * x;
+	}
+
 	/**
 	 * A simple wrapper for Three.js camera.
 	 */
@@ -49415,8 +49443,8 @@ var Spacekit = (function (exports) {
 	    this._camera = new PerspectiveCamera(
 	      50,
 	      containerWidth / containerHeight,
-	      0.00001,
-	      2000,
+	      rescaleNumber(0.00001),
+	      rescaleNumber(2000),
 	    );
 	  }
 
@@ -50121,34 +50149,6 @@ var Spacekit = (function (exports) {
 	  load() {
 	    return this._readyPromise;
 	  }
-	}
-
-	let scaleFactor = 1.0;
-
-	/**
-	 * Set the number of units per AU.
-	 */
-	function setScaleFactor(val) {
-	  scaleFactor = val;
-	}
-
-	/**
-	 * Get the number of units per AU.
-	 */
-	function getScaleFactor() {
-	  return scaleFactor;
-	}
-
-	function rescaleArray(XYZ) {
-	  return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
-	}
-
-	function rescaleXYZ(X, Y, Z) {
-	  return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
-	}
-
-	function rescaleNumber(x) {
-	  return scaleFactor * x;
 	}
 
 	/**
@@ -53169,6 +53169,7 @@ var Spacekit = (function (exports) {
 	   * child classes).
 	   */
 	  init() {
+	    console.log('init', this._id);
 	    if (this.isStaticObject()) {
 	      // Create a stationary sprite.
 	      this._object3js = this.createSprite();
@@ -53206,6 +53207,7 @@ var Spacekit = (function (exports) {
 	      this._showLabel = true;
 	    }
 	    this._initialized = true;
+	    console.log('render', this._id, this._renderMethod);
 	    return true;
 	  }
 
@@ -54010,7 +54012,11 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation) {
 	    super(id, options, contextOrSimulation, false /* autoInit */);
 
+	    console.log('asd1');
 	    this.initSphere();
+	    console.log('asd2', this._id);
+	    super.init();
+	    console.log('asd3');
 	  }
 
 	  initSphere() {
@@ -54024,7 +54030,7 @@ var Spacekit = (function (exports) {
 
 	    const levelOfDetail = new LOD();
 	    const radius = rescaleNumber(this._options.radius || 1);
-	    for (let i=0; i < NUM_SPHERE_SEGMENTS.length; i++) {
+	    for (let i = 0; i < NUM_SPHERE_SEGMENTS.length; i++) {
 	      const sphereGeometry = new SphereGeometry(
 	        radius,
 	        NUM_SPHERE_SEGMENTS[i],
@@ -54064,8 +54070,6 @@ var Spacekit = (function (exports) {
 	      // Add it all to visualization.
 	      this._simulation.addObject(this, false /* noUpdate */);
 	    }
-
-	    this._initialized = true;
 	  }
 	}
 

@@ -129,6 +129,7 @@ export class SpaceObject {
    * child classes).
    */
   init() {
+    console.log('init', this._id)
     if (this.isStaticObject()) {
       // Create a stationary sprite.
       this._object3js = this.createSprite();
@@ -166,6 +167,7 @@ export class SpaceObject {
       this._showLabel = true;
     }
     this._initialized = true;
+    console.log('render', this._id, this._renderMethod)
     return true;
   }
 

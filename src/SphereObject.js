@@ -26,7 +26,11 @@ export class SphereObject extends RotatingObject {
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
 
+    console.log('asd1');
     this.initSphere();
+    console.log('asd2', this._id);
+    super.init();
+    console.log('asd3');
   }
 
   initSphere() {
@@ -40,7 +44,7 @@ export class SphereObject extends RotatingObject {
 
     const levelOfDetail = new THREE.LOD();
     const radius = rescaleNumber(this._options.radius || 1);
-    for (let i=0; i < NUM_SPHERE_SEGMENTS.length; i++) {
+    for (let i = 0; i < NUM_SPHERE_SEGMENTS.length; i++) {
       const sphereGeometry = new THREE.SphereGeometry(
         radius,
         NUM_SPHERE_SEGMENTS[i],
@@ -80,7 +84,5 @@ export class SphereObject extends RotatingObject {
       // Add it all to visualization.
       this._simulation.addObject(this, false /* noUpdate */);
     }
-
-    this._initialized = true;
   }
 }

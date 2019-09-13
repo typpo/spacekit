@@ -22,9 +22,19 @@ viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 
 const jupiter = viz.createSphere('jupiter2', {
   textureUrl: './jupiter2_4k.jpg',
-  radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
+  //radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
+  radius: 0.1,
   ephem: Spacekit.EphemPresets.JUPITER,
 });
 viz.zoomToFit(jupiter);
+
+console.log(jupiter.get3jsObjects()[0])
+
+window.cam.lookAt(jupiter.get3jsObjects()[0])
+viz.onTick = function() {
+  const jd = viz.getJd();
+  const jPos = jupiter.getPosition(jd);
+  window.cam.position.set(jPos[0] * 1.1, jPos[1] * 1.1, jPos[2] * 2.1);
+}
 
 window.THREE = Spacekit.THREE;

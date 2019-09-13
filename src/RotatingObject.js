@@ -60,6 +60,7 @@ export class RotatingObject extends SpaceObject {
     this._materials = [];
 
     this.init();
+    super.init();
   }
 
   init() {
@@ -148,6 +149,8 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateZ(0.015)
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
     // TODO(ian): Update position if there is an associated orbit
+
+    super.update(jd);
   }
 
   /**
@@ -156,7 +159,8 @@ export class RotatingObject extends SpaceObject {
    */
   get3jsObjects() {
     const ret = super.get3jsObjects();
-    ret.push(this._obj);
+    // Add to the front, because this is the primary object.
+    ret.unshift(this._obj);
     return ret;
   }
 

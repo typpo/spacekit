@@ -162,14 +162,16 @@ export class Simulation {
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    this._cameraControls = new OrbitControls(this._camera, this._simulationElt);
-    this._cameraControls.zoomSpeed = 1.5;
-    this._cameraControls.userPanSpeed = 20;
-    this._cameraControls.rotateSpeed = 2;
-    this._cameraControls.touches = {
+    const controls = new OrbitControls(this._camera, this._simulationElt);
+    controls.zoomSpeed = 1.5;
+    controls.userPanSpeed = 20;
+    controls.rotateSpeed = 2;
+    controls.touches = {
       ONE: THREE.TOUCH.ROTATE,
       TWO: THREE.TOUCH.DOLLY_ROTATE,
     };
+    this._cameraControls = controls;
+
 
     // Events
     this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -413,6 +415,15 @@ export class Simulation {
       });
     }
     this._scene.add(pointLight);
+  }
+
+  /**
+   * Move the camera so it follows a SpaceObject. Currently only works for
+   * non-particlesystems.
+   * @param {SpaceObject} obj A SpaceObject to follow.
+   */
+  followObject(obj) {
+
   }
 
   /**

@@ -26,11 +26,8 @@ export class SphereObject extends RotatingObject {
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
 
-    console.log('asd1');
     this.initSphere();
-    console.log('asd2', this._id);
     super.init();
-    console.log('asd3');
   }
 
   initSphere() {
@@ -84,5 +81,11 @@ export class SphereObject extends RotatingObject {
       // Add it all to visualization.
       this._simulation.addObject(this, false /* noUpdate */);
     }
+  }
+
+  update(jd) {
+    const newpos = this.getPosition(jd);
+    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
+    super.update(jd);
   }
 }

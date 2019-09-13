@@ -53457,7 +53457,9 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Gets the THREE.js objects that represent this SpaceObject.
+	   * Gets the THREE.js objects that represent this SpaceObject.  The first
+	   * object returned is the primary object.  Other objects may be returned,
+	   * such as rings, ellipses, etc.
 	   * @return {Array.<THREE.Object>} A list of THREE.js objects
 	   */
 	  get3jsObjects() {
@@ -53695,6 +53697,7 @@ var Spacekit = (function (exports) {
 	    this._materials = [];
 
 	    this.init();
+	    super.init();
 	  }
 
 	  init() {
@@ -53781,6 +53784,8 @@ var Spacekit = (function (exports) {
 	    // this._obj.rotateZ(0.015)
 	    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
 	    // TODO(ian): Update position if there is an associated orbit
+
+	    super.update(jd);
 	  }
 
 	  /**
@@ -53789,7 +53794,8 @@ var Spacekit = (function (exports) {
 	   */
 	  get3jsObjects() {
 	    const ret = super.get3jsObjects();
-	    ret.push(this._obj);
+	    // Add to the front, because this is the primary object.
+	    ret.unshift(this._obj);
 	    return ret;
 	  }
 
@@ -54012,11 +54018,8 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation) {
 	    super(id, options, contextOrSimulation, false /* autoInit */);
 
-	    console.log('asd1');
 	    this.initSphere();
-	    console.log('asd2', this._id);
 	    super.init();
-	    console.log('asd3');
 	  }
 
 	  initSphere() {
@@ -54070,6 +54073,12 @@ var Spacekit = (function (exports) {
 	      // Add it all to visualization.
 	      this._simulation.addObject(this, false /* noUpdate */);
 	    }
+	  }
+
+	  update(jd) {
+	    const newpos = this.getPosition(jd);
+	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
+	    super.update(jd);
 	  }
 	}
 
@@ -54358,14 +54367,16 @@ var Spacekit = (function (exports) {
 	    // Controls
 	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
 	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-	    this._cameraControls = new OrbitControls(this._camera, this._simulationElt);
-	    this._cameraControls.zoomSpeed = 1.5;
-	    this._cameraControls.userPanSpeed = 20;
-	    this._cameraControls.rotateSpeed = 2;
-	    this._cameraControls.touches = {
+	    const controls = new OrbitControls(this._camera, this._simulationElt);
+	    controls.zoomSpeed = 1.5;
+	    controls.userPanSpeed = 20;
+	    controls.rotateSpeed = 2;
+	    controls.touches = {
 	      ONE: TOUCH.ROTATE,
 	      TWO: TOUCH.DOLLY_ROTATE,
 	    };
+	    this._cameraControls = controls;
+
 
 	    // Events
 	    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -54609,6 +54620,15 @@ var Spacekit = (function (exports) {
 	      });
 	    }
 	    this._scene.add(pointLight);
+	  }
+
+	  /**
+	   * Move the camera so it follows a SpaceObject. Currently only works for
+	   * non-particlesystems.
+	   * @param {SpaceObject} obj A SpaceObject to follow.
+	   */
+	  followObject(obj) {
+
 	  }
 
 	  /**

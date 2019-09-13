@@ -417,7 +417,9 @@ export class SpaceObject {
   }
 
   /**
-   * Gets the THREE.js objects that represent this SpaceObject.
+   * Gets the THREE.js objects that represent this SpaceObject.  The first
+   * object returned is the primary object.  Other objects may be returned,
+   * such as rings, ellipses, etc.
    * @return {Array.<THREE.Object>} A list of THREE.js objects
    */
   get3jsObjects() {

@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 
 import { RotatingObject } from './RotatingObject';
-import { rescaleNumber } from './Scale';
+import { rescaleNumber, getScaleFactor } from './Scale';
 
-// Number of sphere segments for each level of detail.
-const NUM_SPHERE_SEGMENTS = [4, 8, 64];
+// Number of sphere segments for each level of detail, from most detailed to
+// least.  In general, it is sufficient to just have 2 levels: high-detail and
+// low-detail.
+const NUM_SPHERE_SEGMENTS = [64, 8, 4];
 
 /**
  * Simulates a planet or other object as a perfect sphere.
@@ -38,7 +40,7 @@ export class SphereObject extends RotatingObject {
 
     const levelOfDetail = new THREE.LOD();
     const radius = rescaleNumber(this._options.radius || 1);
-    for (let i=0; i < 3; i++) {
+    for (let i=0; i < NUM_SPHERE_SEGMENTS.length; i++) {
       const sphereGeometry = new THREE.SphereGeometry(
         radius,
         NUM_SPHERE_SEGMENTS[i],
@@ -65,8 +67,10 @@ export class SphereObject extends RotatingObject {
       // Change the coordinate system to have Z-axis pointed up.
       mesh.rotation.x = Math.PI / 2;
 
-      console.log(radius * i * 2);
-      levelOfDetail.addLevel(mesh, radius * i);
+      // Show this number of segments at distances >= threshold.
+      const threshold = i === 0 ? 0 : radius * Math.pow(getScaleFactor(), i);
+      //console.info(NUM_SPHERE_SEGMENTS[i], 'sphere segments are shown at', threshold);
+      levelOfDetail.addLevel(mesh, threshold);
     }
 
     // Add levelOfDetail object to the parent base object.

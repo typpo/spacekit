@@ -28,13 +28,16 @@ const jupiter = viz.createSphere('jupiter2', {
 });
 viz.zoomToFit(jupiter);
 
-console.log(jupiter.get3jsObjects()[0])
+console.log(jupiter.get3jsObjects()[0]);
 
-window.cam.lookAt(jupiter.get3jsObjects()[0])
+/*
+window.cam.lookAt(jupiter.get3jsObjects()[0]);
 viz.onTick = function() {
   const jd = viz.getJd();
   const jPos = jupiter.getPosition(jd);
   window.cam.position.set(jPos[0] * 1.1, jPos[1] * 1.1, jPos[2] * 2.1);
-}
+};
+*/
+viz.getVizCamera().followObject(jupiter, [1, -1, 0]);
 
 window.THREE = Spacekit.THREE;

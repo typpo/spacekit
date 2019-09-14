@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { rescaleNumber } from './Scale';
+import { rescaleNumber, rescaleArray } from './Scale';
 
 /**
  * A simple wrapper for Three.js camera.
@@ -19,12 +19,45 @@ export class Camera {
   init() {
     const containerWidth = this._context.container.width;
     const containerHeight = this._context.container.height;
+
     this._camera = new THREE.PerspectiveCamera(
       50,
       containerWidth / containerHeight,
       rescaleNumber(0.00001),
       rescaleNumber(2000),
     );
+
+    // The mesh in which this camera is embedded.  If null, the camera floats
+    // freely around the scene.
+    this._cameraMesh = null;
+  }
+
+  /**
+   * Move the camera so to follows a SpaceObject. Currently only works for
+   * non-particlesystems.  @param {SpaceObject} obj SpaceObject to follow.
+   * @param {Array.<Number>} position Position of the camera with respect to
+   * the object.
+   */
+  followObject(obj, position) {
+    const rescaled = rescaleArray(position);
+    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+
+    // Attach camera to the object's mesh.
+    const cameraMesh = obj.get3jsObjects()[0];
+    cameraMesh.add(this._camera);
+
+    this._cameraMesh = cameraMesh;
+  }
+
+  stopFollowingObject() {
+    if (this._cameraMesh) {
+      this._cameraMesh.remove(this._camera);
+      this._cameraMesh = null;
+    }
+  }
+
+  isFollowingObject() {
+    return !!this._cameraMesh;
   }
 
   /**
@@ -32,5 +65,11 @@ export class Camera {
    */
   get3jsCamera() {
     return this._camera;
+  }
+
+  update() {
+    if (this.isFollowingObject()) {
+      console.log(this._cameraMesh.position);
+    }
   }
 }

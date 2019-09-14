@@ -49440,12 +49440,45 @@ var Spacekit = (function (exports) {
 	  init() {
 	    const containerWidth = this._context.container.width;
 	    const containerHeight = this._context.container.height;
+
 	    this._camera = new PerspectiveCamera(
 	      50,
 	      containerWidth / containerHeight,
 	      rescaleNumber(0.00001),
 	      rescaleNumber(2000),
 	    );
+
+	    // The mesh in which this camera is embedded.  If null, the camera floats
+	    // freely around the scene.
+	    this._cameraMesh = null;
+	  }
+
+	  /**
+	   * Move the camera so to follows a SpaceObject. Currently only works for
+	   * non-particlesystems.  @param {SpaceObject} obj SpaceObject to follow.
+	   * @param {Array.<Number>} position Position of the camera with respect to
+	   * the object.
+	   */
+	  followObject(obj, position) {
+	    const rescaled = rescaleArray(position);
+	    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+
+	    // Attach camera to the object's mesh.
+	    const cameraMesh = obj.get3jsObjects()[0];
+	    cameraMesh.add(this._camera);
+
+	    this._cameraMesh = cameraMesh;
+	  }
+
+	  stopFollowingObject() {
+	    if (this._cameraMesh) {
+	      this._cameraMesh.remove(this._camera);
+	      this._cameraMesh = null;
+	    }
+	  }
+
+	  isFollowingObject() {
+	    return !!this._cameraMesh;
 	  }
 
 	  /**
@@ -49453,6 +49486,12 @@ var Spacekit = (function (exports) {
 	   */
 	  get3jsCamera() {
 	    return this._camera;
+	  }
+
+	  update() {
+	    if (this.isFollowingObject()) {
+	      console.log(this._cameraMesh.position);
+	    }
 	  }
 	}
 
@@ -54356,18 +54395,24 @@ var Spacekit = (function (exports) {
 	    this._scene = scene;
 
 	    // Camera
-	    this._camera = new Camera$1(this.getContext()).get3jsCamera();
-	    this._camera.position.set(
-	      this._cameraDefaultPos[0],
-	      this._cameraDefaultPos[1],
-	      this._cameraDefaultPos[2],
-	    );
-	    window.cam = this._camera;
+	    const camera = new Camera$1(this.getContext());
+	    camera
+	      .get3jsCamera()
+	      .position.set(
+	        this._cameraDefaultPos[0],
+	        this._cameraDefaultPos[1],
+	        this._cameraDefaultPos[2],
+	      );
+	    window.cam = camera.get3jsCamera();
+	    this._camera = camera;
 
 	    // Controls
 	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
 	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-	    const controls = new OrbitControls(this._camera, this._simulationElt);
+	    const controls = new OrbitControls(
+	      this._camera.get3jsCamera(),
+	      this._simulationElt,
+	    );
 	    controls.zoomSpeed = 1.5;
 	    controls.userPanSpeed = 20;
 	    controls.rotateSpeed = 2;
@@ -54376,7 +54421,6 @@ var Spacekit = (function (exports) {
 	      TWO: TOUCH.DOLLY_ROTATE,
 	    };
 	    this._cameraControls = controls;
-
 
 	    // Events
 	    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -54455,13 +54499,15 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
+	   * TODO(ian): Move this into Camera
 	   */
 	  doCameraDrift() {
 	    // Follow floating path around
 	    const timer = 0.0001 * Date.now();
 	    const pos = this._cameraDefaultPos;
-	    this._camera.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
-	    this._camera.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
+	    const cam = this._camera.get3jsCamera();
+	    cam.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
+	    cam.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
 	  }
 
 	  /**
@@ -54498,12 +54544,13 @@ var Spacekit = (function (exports) {
 	    if (this._enableCameraDrift) {
 	      this.doCameraDrift();
 	    }
+	    this._camera.update();
 
 	    // Handle trackball movements
 	    this._cameraControls.update();
 
 	    // Update three.js scene
-	    this._renderer.render(this._scene, this._camera);
+	    this._renderer.render(this._scene, this._camera.get3jsCamera());
 
 	    if (this.onTick) {
 	      this.onTick();
@@ -54616,19 +54663,10 @@ var Spacekit = (function (exports) {
 	      pointLight.position.set(pos[0], pos[1], pos[2]);
 	    } else {
 	      this._cameraControls.addEventListener('change', () => {
-	        pointLight.position.copy(this._camera.position);
+	        pointLight.position.copy(this._camera.get3jsCamera().position);
 	      });
 	    }
 	    this._scene.add(pointLight);
-	  }
-
-	  /**
-	   * Move the camera so it follows a SpaceObject. Currently only works for
-	   * non-particlesystems.
-	   * @param {SpaceObject} obj A SpaceObject to follow.
-	   */
-	  followObject(obj) {
-
 	  }
 
 	  /**
@@ -54731,7 +54769,7 @@ var Spacekit = (function (exports) {
 	    boundingBox.getSize(size);
 
 	    // Get the max side of the bounding box (fits to width OR height as needed)
-	    const camera = this._camera;
+	    const camera = this._camera.get3jsCamera();
 	    const maxDim = Math.max(size.x, size.y, size.z);
 	    const fov = camera.fov * (Math.PI / 180);
 	    const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
@@ -54868,10 +54906,10 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Get the three.js camera
-	   * @return {THREE.Camera} The THREE.js camera object
+	   * Get the Camera wrapper object
+	   * @return {Camera} The Camera wrapper
 	   */
-	  getCamera() {
+	  getVizCamera() {
 	    return this._camera;
 	  }
 

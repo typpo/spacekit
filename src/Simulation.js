@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import julian from 'julian';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { Camera } from './Camera';
@@ -113,7 +112,6 @@ export class Simulation {
     }
 
     this._camera = null;
-    this._cameraControls = null;
 
     this._subscribedObjects = {};
     this._particles = null;
@@ -161,22 +159,6 @@ export class Simulation {
       );
     window.cam = camera.get3jsCamera();
     this._camera = camera;
-
-    // Controls
-    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
-    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    const controls = new OrbitControls(
-      this._camera.get3jsCamera(),
-      this._simulationElt,
-    );
-    controls.zoomSpeed = 1.5;
-    controls.userPanSpeed = 20;
-    controls.rotateSpeed = 2;
-    controls.touches = {
-      ONE: THREE.TOUCH.ROTATE,
-      TWO: THREE.TOUCH.DOLLY_ROTATE,
-    };
-    this._cameraControls = controls;
 
     // Events
     this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -302,9 +284,6 @@ export class Simulation {
     }
     this._camera.update();
 
-    // Handle trackball movements
-    this._cameraControls.update();
-
     // Update three.js scene
     this._renderer.render(this._scene, this._camera.get3jsCamera());
 
@@ -418,7 +397,8 @@ export class Simulation {
     if (typeof pos !== 'undefined') {
       pointLight.position.set(pos[0], pos[1], pos[2]);
     } else {
-      this._cameraControls.addEventListener('change', () => {
+      // The light comes from the camera.
+      this._camera.get3jsCameraControls().addEventListener('change', () => {
         pointLight.position.copy(this._camera.get3jsCamera().position);
       });
     }
@@ -662,10 +642,10 @@ export class Simulation {
   }
 
   /**
-   * Get the Camera wrapper object
+   * Get the Camera and CameraControls wrapper object
    * @return {Camera} The Camera wrapper
    */
-  getVizCamera() {
+  getViewer() {
     return this._camera;
   }
 
@@ -675,14 +655,6 @@ export class Simulation {
    */
   getScene() {
     return this._scene;
-  }
-
-  /**
-   * Get the three.js controls
-   * @return {THREE.TrackballControls} THREE.js controls object
-   */
-  getControls() {
-    return this._cameraControls;
   }
 
   /**

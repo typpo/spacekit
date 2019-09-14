@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import { rescaleNumber, rescaleArray } from './Scale';
 
 /**
- * A simple wrapper for Three.js camera.
+ * A wrapper for Three.js camera and controls.
+ * TODO(ian): Rename to "Viewer"
  */
 export class Camera {
   /**
@@ -27,6 +29,19 @@ export class Camera {
       rescaleNumber(2000),
     );
 
+    // Controls
+    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
+    const controls = new OrbitControls(this._camera, this._simulationElt);
+    controls.zoomSpeed = 1.5;
+    controls.userPanSpeed = 20;
+    controls.rotateSpeed = 2;
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_ROTATE,
+    };
+    this._cameraControls = controls;
+
     // The mesh in which this camera is embedded.  If null, the camera floats
     // freely around the scene.
     this._cameraMesh = null;
@@ -39,13 +54,19 @@ export class Camera {
    * the object.
    */
   followObject(obj, position) {
-    const rescaled = rescaleArray(position);
-    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
-
     // Attach camera to the object's mesh.
+    // TODO(ian): Handle rotating object
+    // https://stackoverflow.com/questions/12998137/camera-following-an-objects-rotation
     const cameraMesh = obj.get3jsObjects()[0];
     cameraMesh.add(this._camera);
 
+    const newpos = cameraMesh.position;
+    this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+
+    const rescaled = rescaleArray(position);
+    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+
+    this._cameraControls.update();
     this._cameraMesh = cameraMesh;
   }
 
@@ -67,9 +88,17 @@ export class Camera {
     return this._camera;
   }
 
+  get3jsCameraControls() {
+    return this._cameraControls;
+  }
+
   update() {
     if (this.isFollowingObject()) {
-      console.log(this._cameraMesh.position);
+      const newpos = this._cameraMesh.position;
+      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
     }
+
+    // Handle trackball movements
+    this._cameraControls.update();
   }
 }

@@ -2,6 +2,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
   unitsPerAu: 100.0,
+  startPaused: 1,
 });
 
 // Create a skybox using NASA TYCHO artwork.
@@ -26,9 +27,6 @@ const jupiter = viz.createSphere('jupiter2', {
   radius: 0.1,
   ephem: Spacekit.EphemPresets.JUPITER,
 });
-viz.zoomToFit(jupiter);
-
-console.log(jupiter.get3jsObjects()[0]);
 
 /*
 window.cam.lookAt(jupiter.get3jsObjects()[0]);
@@ -38,6 +36,6 @@ viz.onTick = function() {
   window.cam.position.set(jPos[0] * 1.1, jPos[1] * 1.1, jPos[2] * 2.1);
 };
 */
-viz.getVizCamera().followObject(jupiter, [1, -1, 0]);
+viz.getViewer().followObject(jupiter, [-0.75, -0.75, 0.5]);
 
 window.THREE = Spacekit.THREE;

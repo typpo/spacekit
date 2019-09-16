@@ -2,13 +2,14 @@ import * as THREE from 'three';
 
 import { SpaceObject } from './SpaceObject';
 import { rad } from './Units';
+import { rescaleVector } from './Scale';
 
 function getAxis(src, dst, color) {
   const geom = new THREE.Geometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
-  geom.vertices.push(src.clone());
-  geom.vertices.push(dst.clone());
+  geom.vertices.push(rescaleVector(src).clone());
+  geom.vertices.push(rescaleVector(dst).clone());
 
   const axis = new THREE.Line(geom, mat, THREE.LineSegments);
   axis.computeLineDistances();

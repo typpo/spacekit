@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import OrbitControlsLocal from './OrbitControlsLocal';
 
 import { rescaleNumber, rescaleArray } from './Scale';
 
@@ -29,9 +30,16 @@ export class Camera {
       rescaleNumber(2000),
     );
 
+    // Workaround for using OrbitControls + camera that is not child of the
+    // scene.  See
+    // https://stackoverflow.com/questions/53292145/forcing-orbitcontrols-to-navigate-around-a-moving-object-almost-working
+    // https://github.com/mrdoob/three.js/pull/16506
+    //this._orbitControlsCamera = this._camera.clone();
+
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
+    //const controls = new OrbitControls(this._orbitControlsCamera, this._simulationElt);
     const controls = new OrbitControls(this._camera, this._simulationElt);
     controls.zoomSpeed = 1.5;
     controls.userPanSpeed = 20;
@@ -58,13 +66,13 @@ export class Camera {
     // TODO(ian): Handle rotating object
     // https://stackoverflow.com/questions/12998137/camera-following-an-objects-rotation
     const cameraMesh = obj.get3jsObjects()[0];
-    cameraMesh.add(this._camera);
+    //cameraMesh.add(this._camera);
 
     const newpos = cameraMesh.position;
-    this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+    //this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
 
-    const rescaled = rescaleArray(position);
-    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+    //const rescaled = rescaleArray(position);
+    //this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
 
     this._cameraControls.update();
     this._cameraMesh = cameraMesh;
@@ -94,9 +102,13 @@ export class Camera {
 
   update() {
     if (this.isFollowingObject()) {
-      const newpos = this._cameraMesh.position;
-      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+      const newpos = this._cameraMesh.position.clone().multiplyScalar(1.1);
+      //this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+
+      this._camera.position.set(newpos.x, newpos.y, newpos.z);
     }
+
+    //this._camera.copy(this._orbitControlsCamera);
 
     // Handle trackball movements
     this._cameraControls.update();

@@ -2,7 +2,6 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
   unitsPerAu: 100.0,
-  startPaused: 1,
 });
 
 // Create a skybox using NASA TYCHO artwork.
@@ -26,6 +25,9 @@ const jupiter = viz.createSphere('jupiter2', {
   //radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
   radius: 0.1,
   ephem: Spacekit.EphemPresets.JUPITER,
+  debug: {
+    showAxes: true,
+  },
 });
 
 /*

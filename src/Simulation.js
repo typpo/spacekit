@@ -204,6 +204,7 @@ export class Simulation {
   initRenderer() {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
+      logarithmicDepthBuffer: true,
     });
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();

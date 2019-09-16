@@ -123,7 +123,7 @@ export class KeplerParticles {
       vertexShader: getOrbitShaderVertex(),
       fragmentShader: getOrbitShaderFragment(),
 
-      depthTest: false,
+      depthTest: true,
       transparent: true,
     });
 

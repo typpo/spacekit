@@ -209,7 +209,7 @@ export class SpaceObject {
   updateLabelPosition(newpos) {
     const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
-    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+    const pos = toScreenXY(newpos, this._simulation.getViewer().get3jsCamera(), simulationElt);
     const loc = {
       left: pos.x - 30,
       top: pos.y - 25,

@@ -50778,7 +50778,7 @@ var Spacekit = (function (exports) {
 	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
 	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
 	    //const controls = new OrbitControls(this._orbitControlsCamera, this._simulationElt);
-	    const controls = new OrbitControls(this._camera, this._simulationElt);
+	    //const controls = new OrbitControls(this._camera, this._simulationElt);
 	    controls.zoomSpeed = 1.5;
 	    controls.userPanSpeed = 20;
 	    controls.rotateSpeed = 2;
@@ -50804,13 +50804,14 @@ var Spacekit = (function (exports) {
 	    // TODO(ian): Handle rotating object
 	    // https://stackoverflow.com/questions/12998137/camera-following-an-objects-rotation
 	    const cameraMesh = obj.get3jsObjects()[0];
-	    //cameraMesh.add(this._camera);
+	    cameraMesh.add(this._camera);
 
 	    const newpos = cameraMesh.position;
 	    //this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
 
-	    //const rescaled = rescaleArray(position);
-	    //this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+	    const rescaled = rescaleArray(position);
+	    this._camera.position.set(rescaled[0], rescaled[1], rescaled[2]);
+	    console.log('rescaled', rescaled);
 
 	    this._cameraControls.update();
 	    this._cameraMesh = cameraMesh;
@@ -50840,11 +50841,12 @@ var Spacekit = (function (exports) {
 
 	  update() {
 	    if (this.isFollowingObject()) {
-	      const newpos = this._cameraMesh.position.clone().multiplyScalar(1.1);
-	      //this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+	      const newpos = this._cameraMesh.position.clone();
 
-	      this._camera.position.set(newpos.x, newpos.y, newpos.z);
+	      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
 	    }
+
+	    console.log(this._camera.position);
 
 	    //this._camera.copy(this._orbitControlsCamera);
 

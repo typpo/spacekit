@@ -3,11 +3,6 @@ import * as THREE from 'three';
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber, getScaleFactor } from './Scale';
 
-// Number of sphere segments for each level of detail, from most detailed to
-// least.  In general, it is sufficient to just have 2 levels: high-detail and
-// low-detail.
-const NUM_SPHERE_SEGMENTS = [64, 8, 4];
-
 /**
  * Simulates a planet or other object as a perfect sphere.
  */
@@ -19,6 +14,8 @@ export class SphereObject extends RotatingObject {
    * @param {Number} options.color Hex color of the sphere
    * @param {Number} options.radius Radius of sphere. Defaults to 1
    * @param {Object} options.debug Debug options
+   * @param {Object} options.levelsOfDetail Map of # radii distance to number
+   * of sphere faces to render.
    * @param {boolean} options.debug.showAxes Show axes
    * @see SpaceObject
    * @see RotatingObject
@@ -38,13 +35,18 @@ export class SphereObject extends RotatingObject {
 
     // TODO(ian): Clouds and rings
 
-    const levelOfDetail = new THREE.LOD();
+    const detailedObj = new THREE.LOD();
+    const levelsOfDetail = this._options.levelsOfDetail || { 0: 64 };
+    const distanceThresholds = Object.keys(levelsOfDetail);
     const radius = rescaleNumber(this._options.radius || 1);
-    for (let i = 0; i < NUM_SPHERE_SEGMENTS.length; i++) {
+
+    for (let i = 0; i < distanceThresholds.length; i++) {
+      const distanceThreshold = distanceThresholds[i] * radius;
+      const numSegments = levelsOfDetail[distanceThresholds[i]];
       const sphereGeometry = new THREE.SphereGeometry(
         radius,
-        NUM_SPHERE_SEGMENTS[i],
-        NUM_SPHERE_SEGMENTS[i],
+        numSegments,
+        numSegments,
       );
       const mesh = new THREE.Mesh(
         sphereGeometry,
@@ -68,17 +70,16 @@ export class SphereObject extends RotatingObject {
       mesh.rotation.x = Math.PI / 2;
 
       // Show this number of segments at distances >= threshold.
-      const threshold = i === 0 ? 0 : radius * Math.pow(getScaleFactor(), i);
       console.info(
-        NUM_SPHERE_SEGMENTS[i],
+        numSegments,
         'sphere segments are shown at',
-        threshold,
+        distanceThreshold,
       );
-      levelOfDetail.addLevel(mesh, threshold);
+      detailedObj.addLevel(mesh, distanceThreshold);
     }
 
-    // Add levelOfDetail object to the parent base object.
-    this._obj.add(levelOfDetail);
+    // Add to the parent base object.
+    this._obj.add(detailedObj);
 
     this._renderMethod = 'SPHERE';
 

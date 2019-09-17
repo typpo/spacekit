@@ -54091,11 +54091,6 @@ var Spacekit = (function (exports) {
 	  },
 	};
 
-	// Number of sphere segments for each level of detail, from most detailed to
-	// least.  In general, it is sufficient to just have 2 levels: high-detail and
-	// low-detail.
-	const NUM_SPHERE_SEGMENTS = [64, 8, 4];
-
 	/**
 	 * Simulates a planet or other object as a perfect sphere.
 	 */
@@ -54107,6 +54102,8 @@ var Spacekit = (function (exports) {
 	   * @param {Number} options.color Hex color of the sphere
 	   * @param {Number} options.radius Radius of sphere. Defaults to 1
 	   * @param {Object} options.debug Debug options
+	   * @param {Object} options.levelsOfDetail Map of # radii distance to number
+	   * of sphere faces to render.
 	   * @param {boolean} options.debug.showAxes Show axes
 	   * @see SpaceObject
 	   * @see RotatingObject
@@ -54126,13 +54123,18 @@ var Spacekit = (function (exports) {
 
 	    // TODO(ian): Clouds and rings
 
-	    const levelOfDetail = new LOD();
+	    const detailedObj = new LOD();
+	    const levelsOfDetail = this._options.levelsOfDetail || { 0: 64 };
+	    const distanceThresholds = Object.keys(levelsOfDetail);
 	    const radius = rescaleNumber(this._options.radius || 1);
-	    for (let i = 0; i < NUM_SPHERE_SEGMENTS.length; i++) {
+
+	    for (let i = 0; i < distanceThresholds.length; i++) {
+	      const distanceThreshold = distanceThresholds[i] * radius;
+	      const numSegments = levelsOfDetail[distanceThresholds[i]];
 	      const sphereGeometry = new SphereGeometry(
 	        radius,
-	        NUM_SPHERE_SEGMENTS[i],
-	        NUM_SPHERE_SEGMENTS[i],
+	        numSegments,
+	        numSegments,
 	      );
 	      const mesh = new Mesh(
 	        sphereGeometry,
@@ -54156,17 +54158,16 @@ var Spacekit = (function (exports) {
 	      mesh.rotation.x = Math.PI / 2;
 
 	      // Show this number of segments at distances >= threshold.
-	      const threshold = i === 0 ? 0 : radius * Math.pow(getScaleFactor(), i);
 	      console.info(
-	        NUM_SPHERE_SEGMENTS[i],
+	        numSegments,
 	        'sphere segments are shown at',
-	        threshold,
+	        distanceThreshold,
 	      );
-	      levelOfDetail.addLevel(mesh, threshold);
+	      detailedObj.addLevel(mesh, distanceThreshold);
 	    }
 
-	    // Add levelOfDetail object to the parent base object.
-	    this._obj.add(levelOfDetail);
+	    // Add to the parent base object.
+	    this._obj.add(detailedObj);
 
 	    this._renderMethod = 'SPHERE';
 

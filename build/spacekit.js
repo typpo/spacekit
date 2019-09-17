@@ -53214,6 +53214,8 @@ var Spacekit = (function (exports) {
 	      this._context = contextOrSimulation.getContext();
 	    }
 
+	    this._renderMethod = null;
+
 	    this._label = null;
 	    this._showLabel = false;
 	    this._lastLabelUpdate = 0;
@@ -53247,14 +53249,33 @@ var Spacekit = (function (exports) {
 	   */
 	  init() {
 	    console.log('init', this._id);
+	    this.renderObject();
+
+	    if (this._options.labelText) {
+	      const labelElt = this.createLabel();
+	      this._simulation.getSimulationElement().appendChild(labelElt);
+	      this._label = labelElt;
+	      this._showLabel = true;
+	    }
+	    this._initialized = true;
+	    console.log('render', this._id, this._renderMethod);
+	    return true;
+	  }
+
+	  renderObject() {
 	    if (this.isStaticObject()) {
-	      // Create a stationary sprite.
-	      this._object3js = this.createSprite();
-	      if (this._simulation) {
-	        // Add it all to visualization.
-	        this._simulation.addObject(this, false /* noUpdate */);
+	      if (this._renderMethod !== 'SPHERE') {
+	        // TODO(ian): It kinda sucks to have SpaceObject care about
+	        // SphereObject like this.
+
+	        // Create a stationary sprite.
+	        this._object3js = this.createSprite();
+	        if (this._simulation) {
+	          // Add it all to visualization.
+	          this._simulation.addObject(this, false /* noUpdate */);
+	        }
+	        this._renderMethod = 'SPRITE';
 	      }
-	      this._renderMethod = 'SPRITE';
 	    } else {
 	      if (!this._options.hideOrbit) {
 	        // Orbit is initialized before sprite because sprite may be positioned
@@ -53277,15 +53298,6 @@ var Spacekit = (function (exports) {
 	      );
 	      this._renderMethod = 'PARTICLESYSTEM';
 	    }
-	    if (this._options.labelText) {
-	      const labelElt = this.createLabel();
-	      this._simulation.getSimulationElement().appendChild(labelElt);
-	      this._label = labelElt;
-	      this._showLabel = true;
-	    }
-	    this._initialized = true;
-	    console.log('render', this._id, this._renderMethod);
-	    return true;
 	  }
 
 	  /**
@@ -53759,8 +53771,8 @@ var Spacekit = (function (exports) {
 	   * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
 	   * @see SpaceObject
 	   */
-	  constructor(id, options, contextOrSimulation) {
-	    super(id, options, contextOrSimulation, false /* autoInit */);
+	  constructor(id, options, contextOrSimulation, autoInit = true) {
+	    super(id, options, contextOrSimulation, autoInit);
 
 	    // The THREE.js object
 	    this._obj = new Object3D();
@@ -53777,8 +53789,9 @@ var Spacekit = (function (exports) {
 	    // Keep track of materials that comprise this object.
 	    this._materials = [];
 
-	    this.init();
-	    super.init();
+	    if (autoInit) {
+	      this.init();
+	    }
 	  }
 
 	  init() {
@@ -53797,6 +53810,8 @@ var Spacekit = (function (exports) {
 	        this._obj.add(gridHelper);
 	      }
 	    }
+
+	    super.init();
 	  }
 
 	  initRotation() {
@@ -54099,11 +54114,10 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation) {
 	    super(id, options, contextOrSimulation, false /* autoInit */);
 
-	    this.initSphere();
-	    super.init();
+	    this.init();
 	  }
 
-	  initSphere() {
+	  init() {
 	    let map;
 	    if (this._options.textureUrl) {
 	      map = new TextureLoader().load(this._options.textureUrl);
@@ -54143,17 +54157,25 @@ var Spacekit = (function (exports) {
 
 	      // Show this number of segments at distances >= threshold.
 	      const threshold = i === 0 ? 0 : radius * Math.pow(getScaleFactor(), i);
-	      //console.info(NUM_SPHERE_SEGMENTS[i], 'sphere segments are shown at', threshold);
+	      console.info(
+	        NUM_SPHERE_SEGMENTS[i],
+	        'sphere segments are shown at',
+	        threshold,
+	      );
 	      levelOfDetail.addLevel(mesh, threshold);
 	    }
 
 	    // Add levelOfDetail object to the parent base object.
 	    this._obj.add(levelOfDetail);
 
+	    this._renderMethod = 'SPHERE';
+
 	    if (this._simulation) {
 	      // Add it all to visualization.
 	      this._simulation.addObject(this, false /* noUpdate */);
 	    }
+
+	    super.init();
 	  }
 
 	  update(jd) {
@@ -54401,6 +54423,7 @@ var Spacekit = (function (exports) {
 	    this._camera = null;
 
 	    this._subscribedObjects = {};
+	    this._addedObjects = new Set();
 	    this._particles = null;
 
 	    this._renderEnabled = true;
@@ -54593,7 +54616,10 @@ var Spacekit = (function (exports) {
 	   */
 	  addObject(obj, noUpdate = false) {
 	    obj.get3jsObjects().map(x => {
-	      this._scene.add(x);
+	      if (!this._addedObjects.has(x.uuid)) {
+	        this._scene.add(x);
+	        this._addedObjects.add(x.uuid);
+	      }
 	    });
 
 	    if (!noUpdate) {
@@ -54610,6 +54636,7 @@ var Spacekit = (function (exports) {
 	    // TODO(ian): test this and avoid memory leaks...
 	    obj.get3jsObjects().map(x => {
 	      this._scene.remove(x);
+	      this._addedObjects.remove(x.uuid);
 	    });
 
 	    delete this._subscribedObjects[obj.getId()];

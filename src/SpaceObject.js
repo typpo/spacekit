@@ -97,6 +97,8 @@ export class SpaceObject {
       this._context = contextOrSimulation;
     }
 
+    this._renderMethod = null;
+
     this._label = null;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
@@ -130,14 +132,33 @@ export class SpaceObject {
    */
   init() {
     console.log('init', this._id);
+    this.renderObject();
+
+    if (this._options.labelText) {
+      const labelElt = this.createLabel();
+      this._simulation.getSimulationElement().appendChild(labelElt);
+      this._label = labelElt;
+      this._showLabel = true;
+    }
+    this._initialized = true;
+    console.log('render', this._id, this._renderMethod);
+    return true;
+  }
+
+  renderObject() {
     if (this.isStaticObject()) {
-      // Create a stationary sprite.
-      this._object3js = this.createSprite();
-      if (this._simulation) {
-        // Add it all to visualization.
-        this._simulation.addObject(this, false /* noUpdate */);
+      if (this._renderMethod !== 'SPHERE') {
+        // TODO(ian): It kinda sucks to have SpaceObject care about
+        // SphereObject like this.
+
+        // Create a stationary sprite.
+        this._object3js = this.createSprite();
+        if (this._simulation) {
+          // Add it all to visualization.
+          this._simulation.addObject(this, false /* noUpdate */);
+        }
+        this._renderMethod = 'SPRITE';
       }
-      this._renderMethod = 'SPRITE';
     } else {
       if (!this._options.hideOrbit) {
         // Orbit is initialized before sprite because sprite may be positioned
@@ -160,15 +181,6 @@ export class SpaceObject {
       );
       this._renderMethod = 'PARTICLESYSTEM';
     }
-    if (this._options.labelText) {
-      const labelElt = this.createLabel();
-      this._simulation.getSimulationElement().appendChild(labelElt);
-      this._label = labelElt;
-      this._showLabel = true;
-    }
-    this._initialized = true;
-    console.log('render', this._id, this._renderMethod);
-    return true;
   }
 
   /**

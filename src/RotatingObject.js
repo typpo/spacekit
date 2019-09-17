@@ -42,8 +42,8 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
-  constructor(id, options, contextOrSimulation) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id, options, contextOrSimulation, autoInit = true) {
+    super(id, options, contextOrSimulation, autoInit);
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -60,8 +60,9 @@ export class RotatingObject extends SpaceObject {
     // Keep track of materials that comprise this object.
     this._materials = [];
 
-    this.init();
-    super.init();
+    if (autoInit) {
+      this.init();
+    }
   }
 
   init() {
@@ -80,6 +81,8 @@ export class RotatingObject extends SpaceObject {
         this._obj.add(gridHelper);
       }
     }
+
+    super.init();
   }
 
   initRotation() {

@@ -26,11 +26,10 @@ export class SphereObject extends RotatingObject {
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
 
-    this.initSphere();
-    super.init();
+    this.init();
   }
 
-  initSphere() {
+  init() {
     let map;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
@@ -70,17 +69,25 @@ export class SphereObject extends RotatingObject {
 
       // Show this number of segments at distances >= threshold.
       const threshold = i === 0 ? 0 : radius * Math.pow(getScaleFactor(), i);
-      //console.info(NUM_SPHERE_SEGMENTS[i], 'sphere segments are shown at', threshold);
+      console.info(
+        NUM_SPHERE_SEGMENTS[i],
+        'sphere segments are shown at',
+        threshold,
+      );
       levelOfDetail.addLevel(mesh, threshold);
     }
 
     // Add levelOfDetail object to the parent base object.
     this._obj.add(levelOfDetail);
 
+    this._renderMethod = 'SPHERE';
+
     if (this._simulation) {
       // Add it all to visualization.
       this._simulation.addObject(this, false /* noUpdate */);
     }
+
+    super.init();
   }
 
   update(jd) {

@@ -109,8 +109,6 @@ const obj = viz.createShape('myobj', {
   },
 });
 
-// viz.zoomToFit(obj, 5 /* zoom offset */);
-
 // Get the Spacekit version of THREE.js.
 const THREE = Spacekit.THREE;
 
@@ -120,10 +118,13 @@ viz
   .getViewer()
   .get3jsCamera()
   .position.set(earthpos[0], earthpos[1], earthpos[2]);
-viz.getControls().target = new THREE.Vector3(astpos[0], astpos[1], astpos[2]);
+viz.getViewer().get3jsCameraControls().target = new THREE.Vector3(
+  astpos[0],
+  astpos[1],
+  astpos[2],
+);
 
 // Add some light.
-// viz.createLight([0, 0, 0]);
 viz.createLight();
 viz.createAmbientLight();
 

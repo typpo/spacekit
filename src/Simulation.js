@@ -114,6 +114,7 @@ export class Simulation {
     this._camera = null;
 
     this._subscribedObjects = {};
+    this._addedObjects = new Set();
     this._particles = null;
 
     this._renderEnabled = true;
@@ -306,7 +307,10 @@ export class Simulation {
    */
   addObject(obj, noUpdate = false) {
     obj.get3jsObjects().map(x => {
-      this._scene.add(x);
+      if (!this._addedObjects.has(x.uuid)) {
+        this._scene.add(x);
+        this._addedObjects.add(x.uuid);
+      }
     });
 
     if (!noUpdate) {
@@ -323,6 +327,7 @@ export class Simulation {
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map(x => {
       this._scene.remove(x);
+      this._addedObjects.remove(x.uuid);
     });
 
     delete this._subscribedObjects[obj.getId()];

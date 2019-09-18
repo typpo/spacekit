@@ -14,8 +14,9 @@ export class SphereObject extends RotatingObject {
    * @param {Number} options.color Hex color of the sphere
    * @param {Number} options.radius Radius of sphere. Defaults to 1
    * @param {Object} options.debug Debug options
-   * @param {Object} options.levelsOfDetail Map of # radii distance to number
-   * of sphere faces to render.
+   * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
+   * y}, where `threshold` is radii distance and `segments` is the number
+   * number of sphere faces to render.
    * @param {boolean} options.debug.showAxes Show axes
    * @see SpaceObject
    * @see RotatingObject
@@ -36,17 +37,17 @@ export class SphereObject extends RotatingObject {
     // TODO(ian): Clouds and rings
 
     const detailedObj = new THREE.LOD();
-    const levelsOfDetail = this._options.levelsOfDetail || { 0: 64 };
-    const distanceThresholds = Object.keys(levelsOfDetail);
+    const levelsOfDetail = this._options.levelsOfDetail || [
+      { radii: 0, segments: 64 },
+    ];
     const radius = rescaleNumber(this._options.radius || 1);
 
-    for (let i = 0; i < distanceThresholds.length; i++) {
-      const distanceThreshold = distanceThresholds[i] * radius;
-      const numSegments = levelsOfDetail[distanceThresholds[i]];
+    for (let i = 0; i < levelsOfDetail.length; i++) {
+      const level = levelsOfDetail[i];
       const sphereGeometry = new THREE.SphereGeometry(
         radius,
-        numSegments,
-        numSegments,
+        level.segments,
+        level.segments,
       );
       const mesh = new THREE.Mesh(
         sphereGeometry,
@@ -69,13 +70,8 @@ export class SphereObject extends RotatingObject {
       // Change the coordinate system to have Z-axis pointed up.
       mesh.rotation.x = Math.PI / 2;
 
-      // Show this number of segments at distances >= threshold.
-      console.info(
-        numSegments,
-        'sphere segments are shown at',
-        distanceThreshold,
-      );
-      detailedObj.addLevel(mesh, distanceThreshold);
+      // Show this number of segments at distance >= radii * level.radii.
+      detailedObj.addLevel(mesh, radius * level.radii);
     }
 
     // Add to the parent base object.

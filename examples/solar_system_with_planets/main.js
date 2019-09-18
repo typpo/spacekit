@@ -25,11 +25,11 @@ const jupiter = viz.createSphere('jupiter2', {
   //radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
   radius: 0.1,
   ephem: Spacekit.EphemPresets.JUPITER,
-  levelsOfDetail: {
-    0: 64,
-    30: 16,
-    60: 8,
-  },
+  levelsOfDetail: [
+    { radii: 0, segments: 64 },
+    { radii: 30, segments: 16 },
+    { radii: 60, segments: 8 },
+  ],
   rotation: {
     enable: true,
     speed: 2,

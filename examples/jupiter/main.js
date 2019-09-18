@@ -18,11 +18,11 @@ viz.createStars();
 const jupiter = viz.createSphere('jupiter', {
   textureUrl: './jupiter2_4k.jpg',
   radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
-  levelsOfDetail: {
-    0: 64,
-    30: 16,
-    60: 8,
-  },
+  levelsOfDetail: [
+    { radii: 0, segments: 64 },
+    { radii: 30, segments: 16 },
+    { radii: 60, segments: 8 },
+  ],
 });
 viz.zoomToFit(jupiter);
 

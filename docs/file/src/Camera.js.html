@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,22 +67,29 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/Camera.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
- * A simple wrapper for Three.js camera.
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
+import { OrbitControls } from &apos;three/examples/jsm/controls/OrbitControls.js&apos;;
+
+import { rescaleNumber, rescaleArray } from &apos;./Scale&apos;;
+
+/**
+ * A wrapper for Three.js camera and controls.
+ * TODO(ian): Rename to &quot;Viewer&quot;
  */
 export class Camera {
   /**
@@ -89,25 +99,109 @@ export class Camera {
     // TODO(ian): Accept either context or container
     this._context = context;
 
+    this._camera = null;
+    this._cameraControls = null;
+
+    // Optional mesh that we are following.
+    this._followMesh = null;
+
     this.init();
   }
 
   init() {
     const containerWidth = this._context.container.width;
     const containerHeight = this._context.container.height;
+
     this._camera = new THREE.PerspectiveCamera(
       50,
       containerWidth / containerHeight,
-      0.00001,
-      2000,
+      rescaleNumber(0.00001),
+      rescaleNumber(2000),
     );
+
+    // Controls
+    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
+    const controls = new OrbitControls(this._camera, this._simulationElt);
+    controls.enablePan = true;
+    controls.zoomSpeed = 1.5;
+    controls.userPanSpeed = 20;
+    controls.rotateSpeed = 2;
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_ROTATE,
+    };
+    this._cameraControls = controls;
   }
 
   /**
-   * @returns {Object} The THREE.js camera object.
+   * Move the camera to follow a SpaceObject as it moves. Currently only works
+   * for non-particlesystems.
+   * @param {SpaceObject} obj SpaceObject to follow.
+   * @param {Array.&lt;Number&gt;} position Position of the camera with respect to
+   * the object.
+   */
+  followObject(obj, position) {
+    const followMesh = obj.get3jsObjects()[0];
+
+    this._cameraControls.enablePan = false;
+
+    const rescaled = rescaleArray(position);
+    this._camera.position.add(
+      new THREE.Vector3(rescaled[0], rescaled[1], rescaled[2]),
+    );
+
+    this._cameraControls.update();
+    this._followMesh = followMesh;
+  }
+
+  /**
+   * Stop the camera from following the object.
+   */
+  stopFollowingObject() {
+    if (this._followMesh) {
+      this._followMesh.remove(this._camera);
+      this._followMesh = null;
+      this._cameraControls.enablePan = true;
+    }
+  }
+
+  /**
+   * @returns {boolean} True if camera is following object.
+   */
+  isFollowingObject() {
+    return !!this._followMesh;
+  }
+
+  /**
+   * @returns {THREE.Camera} The THREE.js camera object.
    */
   get3jsCamera() {
     return this._camera;
+  }
+
+  /**
+   * @returns {THREE.CameraControls} The THREE.js CameraControls object.
+   */
+  get3jsCameraControls() {
+    return this._cameraControls;
+  }
+
+  /**
+   * Update the camera position and process control inputs.
+   */
+  update() {
+    if (this.isFollowingObject()) {
+      const newpos = this._followMesh.position.clone();
+
+      const offset = newpos.clone().sub(this._cameraControls.target);
+      this._camera.position.add(offset);
+
+      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+    }
+
+    // Handle control movements
+    this._cameraControls.update();
   }
 }
 </code></pre>

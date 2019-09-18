@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,15 +67,16 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -81,6 +85,7 @@
 <p>You can check out an editable live example on <a href="https://jsfiddle.net/typpo/x9nv8jg0/6/">jsfiddle</a>, or look at a variety of live examples on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="http://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="http://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="http://www.ianww.com/ceres/">and</a> <a href="http://www.asterank.com/exoplanets">many</a> <a href="http://www.ianww.com/pluto/">other</a> <a href="http://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
 <p>See the <strong><a href="https://typpo.github.io/spacekit/">full documentation</a></strong></p>
 <p>Note that this library is a work in progress and the API might change!</p>
+<p><a href="https://typpo.github.io/spacekit/"><img src="https://i.imgur.com/u48FCjJ.jpg" alt="spacekit examples"></a></p>
 <h1 id="terminology-and-components">Terminology and components</h1><p><code>Simulation</code>: the main container for your visualization.  A simulation is comprised by a <code>Camera</code> plus whatever you choose to put in it. See <a href="https://typpo.github.io/spacekit/class/src/Simulation.js~Simulation.html">documentation</a> for full options.</p>
 <pre><code class="lang-javascript"><code class="source-code prettyprint">const sim = new Spacekit.Simulation(document.getElementById(&apos;my-container&apos;), {
  // Required
@@ -176,15 +181,17 @@ sim.createSphere(&apos;earth&apos;, {
 </code></pre>
 <p><code>KeplerParticles</code>: an optimized class for creating many particles that follow Kepler orbits.  These particles don&apos;t have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.</p>
 <h1 id="how-to-get-started">How to get started</h1><p>To be written...</p>
-<h1 id="dependencies">Dependencies</h1><p>You&apos;ll need to include the following dependencies in production:</p>
+<h1 id="dependencies">Dependencies</h1><p>Spacekit relies on some image and data assets that are not included in the Javascript file.</p>
+<p>By default, these dependencies are hosted on the spacekit site (typpo.github.io/spacekit).  If you want to host these assets yourself, you can set the <code>Simulation</code>&apos;s <code>basePath</code> parameter to a folder that contains these files:</p>
 <ul>
-<li>THREE.js</li>
-<li>THREE.js TrackballControls</li>
-<li>Stats.js (optional)</li>
-<li>Spacekit asset directory [TODO: link to asset and data file]</li>
-<li>Spacekit data directory</li>
+<li><a href="https://github.com/typpo/spacekit/tree/master/src/assets">Spacekit asset directory</a></li>
+<li><a href="https://github.com/typpo/spacekit/tree/master/src/data">Spacekit data directory</a></li>
 </ul>
-<p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
+<p>For example:</p>
+<pre><code><code class="source-code prettyprint">const viz = new Spacekit.Simulation({
+  basePath: &apos;https://mysite.com/static/spacekit&apos;,
+});</code>
+</code></pre><p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
 <h1 id="running-an-example">Running an Example</h1><p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/index.html">http://localhost:8001/examples/index.html</a> to load a simple example.</p>
 <p>If you&apos;re making changes to the code, run <code>yarn build</code> to update the build outputs.  <code>yarn build:watch</code> will continuously watch for your changes and update the build.</p>
 <h1 id="usage">Usage</h1><p>See the <a href="https://github.com/typpo/spacekit/tree/master/examples">examples</a> directory for full usage examples.  For now, here&apos;s some example code that will build an interactive visualization of a couple planets:</p>

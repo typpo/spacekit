@@ -15,7 +15,6 @@ viz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);
 viz.createObject('venus', Spacekit.SpaceObjectPresets.VENUS);
 viz.createObject('earth', Spacekit.SpaceObjectPresets.EARTH);
 viz.createObject('mars', Spacekit.SpaceObjectPresets.MARS);
-//viz.createObject('jupiter', Spacekit.SpaceObjectPresets.JUPITER);
 viz.createObject('saturn', Spacekit.SpaceObjectPresets.SATURN);
 viz.createObject('uranus', Spacekit.SpaceObjectPresets.URANUS);
 viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
@@ -36,14 +35,6 @@ const jupiter = viz.createSphere('jupiter2', {
   },
 });
 
-/*
-window.cam.lookAt(jupiter.get3jsObjects()[0]);
-viz.onTick = function() {
-  const jd = viz.getJd();
-  const jPos = jupiter.getPosition(jd);
-  window.cam.position.set(jPos[0] * 1.1, jPos[1] * 1.1, jPos[2] * 2.1);
-};
-*/
 viz.getViewer().followObject(jupiter, [-0.75, -0.75, 0.5]);
 
 window.THREE = Spacekit.THREE;

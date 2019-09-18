@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,24 +67,26 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/KeplerParticles.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { SCALE_FACTOR } from &apos;./Scale&apos;;
-import { getFullTextureUrl } from &apos;./util&apos;;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
 
-import { ORBIT_SHADER_VERTEX, ORBIT_SHADER_FRAGMENT } from &apos;./shaders&apos;;
+import { getThreeJsTexture } from &apos;./util&apos;;
+
+import { getOrbitShaderVertex, getOrbitShaderFragment } from &apos;./shaders&apos;;
 
 const DEFAULT_PARTICLE_COUNT = 4096;
 
@@ -106,7 +111,7 @@ export class KeplerParticles {
    * @param {Number} options.jd JD date value
    * @param {Number} options.maxNumParticles Maximum number of particles to display. Defaults to 4096
    * @param {Number} options.defaultSize Default size of particles. Note this
-   * can be overriden by SpaceObject particleSize. Defaults to 15
+   * can be overriden by SpaceObject particleSize. Defaults to 25
    * @param {Object} contextOrSimulation Simulation context or object
    */
   constructor(options, contextOrSimulation) {
@@ -154,11 +159,10 @@ export class KeplerParticles {
    * @private
    */
   createParticleSystem() {
-    const fullTextureUrl = getFullTextureUrl(
+    const defaultMapTexture = getThreeJsTexture(
       this._options.textureUrl,
       this._context.options.basePath,
     );
-    const defaultMapTexture = new THREE.TextureLoader().load(fullTextureUrl);
 
     this._uniforms = {
       texture: { value: defaultMapTexture },
@@ -200,10 +204,10 @@ export class KeplerParticles {
 
     const shader = new THREE.ShaderMaterial({
       uniforms: this._uniforms,
-      vertexShader: ORBIT_SHADER_VERTEX,
-      fragmentShader: ORBIT_SHADER_FRAGMENT,
+      vertexShader: getOrbitShaderVertex(),
+      fragmentShader: getOrbitShaderFragment(),
 
-      depthTest: false,
+      depthTest: true,
       transparent: true,
     });
 

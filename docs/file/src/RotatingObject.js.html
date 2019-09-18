@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,29 +67,33 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/RotatingObject.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { SpaceObject } from &apos;./SpaceObject&apos;;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
+
+import { SpaceObject } from &apos;./SpaceObject&apos;;
 import { rad } from &apos;./Units&apos;;
+import { rescaleVector } from &apos;./Scale&apos;;
 
 function getAxis(src, dst, color) {
   const geom = new THREE.Geometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
-  geom.vertices.push(src.clone());
-  geom.vertices.push(dst.clone());
+  geom.vertices.push(rescaleVector(src).clone());
+  geom.vertices.push(rescaleVector(dst).clone());
 
   const axis = new THREE.Line(geom, mat, THREE.LineSegments);
   axis.computeLineDistances();
@@ -119,8 +126,8 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
-  constructor(id, options, contextOrSimulation) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id, options, contextOrSimulation, autoInit = true) {
+    super(id, options, contextOrSimulation, autoInit);
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -137,7 +144,9 @@ export class RotatingObject extends SpaceObject {
     // Keep track of materials that comprise this object.
     this._materials = [];
 
-    this.init();
+    if (autoInit) {
+      this.init();
+    }
   }
 
   init() {
@@ -156,6 +165,8 @@ export class RotatingObject extends SpaceObject {
         this._obj.add(gridHelper);
       }
     }
+
+    super.init();
   }
 
   initRotation() {
@@ -226,6 +237,8 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateZ(0.015)
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
     // TODO(ian): Update position if there is an associated orbit
+
+    super.update(jd);
   }
 
   /**
@@ -234,7 +247,8 @@ export class RotatingObject extends SpaceObject {
    */
   get3jsObjects() {
     const ret = super.get3jsObjects();
-    ret.push(this._obj);
+    // Add to the front, because this is the primary object.
+    ret.unshift(this._obj);
     return ret;
   }
 

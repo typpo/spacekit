@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,15 +67,16 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -409,6 +413,63 @@
           
           
           
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span><span class="code" data-ice="signature">(): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Get the number of units per AU.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span><span class="code" data-ice="signature">(template: <span>*</span>, basePath: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
           <span class="code" data-ice="name"><span><a href="function/index.html#static-function-hoursToDeg">hoursToDeg</a></span></span><span class="code" data-ice="signature">(val: <span>*</span>): <span>*</span></span>
         </p>
       </div>
@@ -605,6 +666,34 @@
           
           
           
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span><span class="code" data-ice="signature">(vec: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
           <span class="code" data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span><span class="code" data-ice="signature">(X: <span>*</span>, Y: <span>*</span>, Z: <span>*</span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined">undefined</a></span><span>[]</span></span></span>
         </p>
       </div>
@@ -612,6 +701,35 @@
         
         
         
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span><span class="code" data-ice="signature">(val: <span>*</span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Set the number of units per AU.</p>
+</div>
       </div>
     </td>
     <td>
@@ -1190,11 +1308,11 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber32">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber44">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getDefaultBasePath} from &apos;<span><a href="file/src/util.js.html#lineNumber32">spacekit/src/util.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getDefaultBasePath} from &apos;<span><a href="file/src/util.js.html#lineNumber44">spacekit/src/util.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1245,11 +1363,11 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber28">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber30">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getFullTextureUrl} from &apos;<span><a href="file/src/util.js.html#lineNumber28">spacekit/src/util.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getFullTextureUrl} from &apos;<span><a href="file/src/util.js.html#lineNumber30">spacekit/src/util.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Returns the complete URL to a texture given a basepath and a template url.</p>
@@ -1333,11 +1451,11 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber14">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber16">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getFullUrl} from &apos;<span><a href="file/src/util.js.html#lineNumber14">spacekit/src/util.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getFullUrl} from &apos;<span><a href="file/src/util.js.html#lineNumber16">spacekit/src/util.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Returns the complete URL to a texture given a basepath and a template url.</p>
@@ -1536,6 +1654,139 @@ in radians</p>
           <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
           <td class="return-desc" data-ice="returnDescription"><p>Obliquity in radians</p>
 </td>
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-function-getScaleFactor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">getScaleFactor</span><span class="code" data-ice="signature">(): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber13">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getScaleFactor} from &apos;<span><a href="file/src/Scale.js.html#lineNumber13">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  
+  
+  <div data-ice="description"><p>Get the number of units per AU.</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-function-getThreeJsTexture">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">getThreeJsTexture</span><span class="code" data-ice="signature">(template: <span>*</span>, basePath: <span>*</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/util.js.html#lineNumber39">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {getThreeJsTexture} from &apos;<span><a href="file/src/util.js.html#lineNumber39">spacekit/src/util.js</a></span>&apos;</code></pre></div>
+  
+  
+  
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">template</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">basePath</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
         </tr>
       </tbody>
     </table>
@@ -1783,11 +2034,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber22">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber40">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescale} from &apos;<span><a href="file/src/Scale.js.html#lineNumber22">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescale} from &apos;<span><a href="file/src/Scale.js.html#lineNumber40">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1854,11 +2105,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber10">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber24">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleArray} from &apos;<span><a href="file/src/Scale.js.html#lineNumber10">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleArray} from &apos;<span><a href="file/src/Scale.js.html#lineNumber24">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1925,11 +2176,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber18">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber36">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleNumber} from &apos;<span><a href="file/src/Scale.js.html#lineNumber18">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleNumber} from &apos;<span><a href="file/src/Scale.js.html#lineNumber36">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1996,11 +2247,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber3">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber17">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescalePos} from &apos;<span><a href="file/src/Scale.js.html#lineNumber3">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescalePos} from &apos;<span><a href="file/src/Scale.js.html#lineNumber17">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -2056,6 +2307,77 @@ in radians</p>
   
 </div>
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-function-rescaleVector">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">rescaleVector</span><span class="code" data-ice="signature">(vec: <span>*</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber32">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleVector} from &apos;<span><a href="file/src/Scale.js.html#lineNumber32">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  
+  
+  
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">vec</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="static-function-rescaleXYZ">
     <span class="access" data-ice="access">public</span>
     
@@ -2067,11 +2389,11 @@ in radians</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber14">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber28">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleXYZ} from &apos;<span><a href="file/src/Scale.js.html#lineNumber14">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {rescaleXYZ} from &apos;<span><a href="file/src/Scale.js.html#lineNumber28">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -2122,6 +2444,66 @@ in radians</p>
     <div data-ice="returnProperties">
 </div>
   </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-function-setScaleFactor">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">setScaleFactor</span><span class="code" data-ice="signature">(val: <span>*</span>)</span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Scale.js.html#lineNumber6">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {setScaleFactor} from &apos;<span><a href="file/src/Scale.js.html#lineNumber6">spacekit/src/Scale.js</a></span>&apos;</code></pre></div>
+  
+  
+  <div data-ice="description"><p>Set the number of units per AU.</p>
+</div>
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">val</td>
+      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  
 
   
 

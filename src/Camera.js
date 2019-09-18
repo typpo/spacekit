@@ -51,8 +51,8 @@ export class Camera {
   }
 
   /**
-   * Move the camera so to follows a SpaceObject. Currently only works for
-   * non-particlesystems.
+   * Move the camera to follow a SpaceObject as it moves. Currently only works
+   * for non-particlesystems.
    * @param {SpaceObject} obj SpaceObject to follow.
    * @param {Array.<Number>} position Position of the camera with respect to
    * the object.
@@ -71,6 +71,9 @@ export class Camera {
     this._followMesh = followMesh;
   }
 
+  /**
+   * Stop the camera from following the object.
+   */
   stopFollowingObject() {
     if (this._followMesh) {
       this._followMesh.remove(this._camera);
@@ -79,21 +82,30 @@ export class Camera {
     }
   }
 
+  /**
+   * @returns {boolean} True if camera is following object.
+   */
   isFollowingObject() {
     return !!this._followMesh;
   }
 
   /**
-   * @returns {Object} The THREE.js camera object.
+   * @returns {THREE.Camera} The THREE.js camera object.
    */
   get3jsCamera() {
     return this._camera;
   }
 
+  /**
+   * @returns {THREE.CameraControls} The THREE.js CameraControls object.
+   */
   get3jsCameraControls() {
     return this._cameraControls;
   }
 
+  /**
+   * Update the camera position and process control inputs.
+   */
   update() {
     if (this.isFollowingObject()) {
       const newpos = this._followMesh.position.clone();

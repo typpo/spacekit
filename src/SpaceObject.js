@@ -143,6 +143,10 @@ export class SpaceObject {
     return true;
   }
 
+  /**
+   * @private
+   * Build the THREE.js object for this SpaceObject.
+   */
   renderObject() {
     if (this.isStaticObject()) {
       if (this._renderMethod !== 'SPHERE') {

@@ -60,12 +60,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "spacekit/src/scale.js~scale_factor",
-    "variable/index.html#static-variable-SCALE_FACTOR",
-    "<span>SCALE_FACTOR</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
-    "variable"
-  ],
-  [
     "spacekit/src/shaders.js~star_shader_fragment",
     "variable/index.html#static-variable-STAR_SHADER_FRAGMENT",
     "<span>STAR_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
@@ -130,6 +124,12 @@ window.esdocSearchIndex = [
     "class/src/StaticParticles.js~StaticParticles.html",
     "<span>StaticParticles</span> <span class=\"search-result-import-path\">spacekit/src/StaticParticles.js</span>",
     "class"
+  ],
+  [
+    "spacekit/src/spacekit.js~three",
+    "variable/index.html#static-variable-THREE",
+    "<span>THREE</span> <span class=\"search-result-import-path\">spacekit/src/spacekit.js</span>",
+    "variable"
   ],
   [
     "spacekit/src/units.js~autokm",
@@ -198,6 +198,18 @@ window.esdocSearchIndex = [
     "function"
   ],
   [
+    "spacekit/src/scale.js~getscalefactor",
+    "function/index.html#static-function-getScaleFactor",
+    "<span>getScaleFactor</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/util.js~getthreejstexture",
+    "function/index.html#static-function-getThreeJsTexture",
+    "<span>getThreeJsTexture</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/units.js~hourstodeg",
     "function/index.html#static-function-hoursToDeg",
     "<span>hoursToDeg</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
@@ -240,9 +252,21 @@ window.esdocSearchIndex = [
     "function"
   ],
   [
+    "spacekit/src/scale.js~rescalevector",
+    "function/index.html#static-function-rescaleVector",
+    "<span>rescaleVector</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/scale.js~rescalexyz",
     "function/index.html#static-function-rescaleXYZ",
     "<span>rescaleXYZ</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/scale.js~setscalefactor",
+    "function/index.html#static-function-setScaleFactor",
+    "<span>setScaleFactor</span> <span class=\"search-result-import-path\">spacekit/src/Scale.js</span>",
     "function"
   ],
   [
@@ -558,9 +582,21 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/camera.js~camera#followobject",
+    "class/src/Camera.js~Camera.html#instance-method-followObject",
+    "src/Camera.js~Camera#followObject",
+    "method"
+  ],
+  [
     "src/camera.js~camera#get3jscamera",
     "class/src/Camera.js~Camera.html#instance-method-get3jsCamera",
     "src/Camera.js~Camera#get3jsCamera",
+    "method"
+  ],
+  [
+    "src/camera.js~camera#get3jscameracontrols",
+    "class/src/Camera.js~Camera.html#instance-method-get3jsCameraControls",
+    "src/Camera.js~Camera#get3jsCameraControls",
     "method"
   ],
   [
@@ -570,10 +606,22 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/coordinatesystems.js",
-    "file/src/CoordinateSystems.js.html",
-    "src/CoordinateSystems.js",
-    "file"
+    "src/camera.js~camera#isfollowingobject",
+    "class/src/Camera.js~Camera.html#instance-method-isFollowingObject",
+    "src/Camera.js~Camera#isFollowingObject",
+    "method"
+  ],
+  [
+    "src/camera.js~camera#stopfollowingobject",
+    "class/src/Camera.js~Camera.html#instance-method-stopFollowingObject",
+    "src/Camera.js~Camera#stopFollowingObject",
+    "method"
+  ],
+  [
+    "src/camera.js~camera#update",
+    "class/src/Camera.js~Camera.html#instance-method-update",
+    "src/Camera.js~Camera#update",
+    "method"
   ],
   [
     "src/coordinates.js",
@@ -876,21 +924,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/simulation.js~simulation#getcamera",
-    "class/src/Simulation.js~Simulation.html#instance-method-getCamera",
-    "src/Simulation.js~Simulation#getCamera",
-    "method"
-  ],
-  [
     "src/simulation.js~simulation#getcontext",
     "class/src/Simulation.js~Simulation.html#instance-method-getContext",
     "src/Simulation.js~Simulation#getContext",
-    "method"
-  ],
-  [
-    "src/simulation.js~simulation#getcontrols",
-    "class/src/Simulation.js~Simulation.html#instance-method-getControls",
-    "src/Simulation.js~Simulation#getControls",
     "method"
   ],
   [
@@ -927,6 +963,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#getsimulationelement",
     "class/src/Simulation.js~Simulation.html#instance-method-getSimulationElement",
     "src/Simulation.js~Simulation#getSimulationElement",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#getviewer",
+    "class/src/Simulation.js~Simulation.html#instance-method-getViewer",
+    "src/Simulation.js~Simulation#getViewer",
     "method"
   ],
   [
@@ -1134,9 +1176,15 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/sphereobject.js~sphereobject#initsphere",
-    "class/src/SphereObject.js~SphereObject.html#instance-method-initSphere",
-    "src/SphereObject.js~SphereObject#initSphere",
+    "src/sphereobject.js~sphereobject#init",
+    "class/src/SphereObject.js~SphereObject.html#instance-method-init",
+    "src/SphereObject.js~SphereObject#init",
+    "method"
+  ],
+  [
+    "src/sphereobject.js~sphereobject#update",
+    "class/src/SphereObject.js~SphereObject.html#instance-method-update",
+    "src/SphereObject.js~SphereObject#update",
     "method"
   ],
   [

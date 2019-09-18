@@ -50790,8 +50790,8 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Move the camera so to follows a SpaceObject. Currently only works for
-	   * non-particlesystems.
+	   * Move the camera to follow a SpaceObject as it moves. Currently only works
+	   * for non-particlesystems.
 	   * @param {SpaceObject} obj SpaceObject to follow.
 	   * @param {Array.<Number>} position Position of the camera with respect to
 	   * the object.
@@ -50810,6 +50810,9 @@ var Spacekit = (function (exports) {
 	    this._followMesh = followMesh;
 	  }
 
+	  /**
+	   * Stop the camera from following the object.
+	   */
 	  stopFollowingObject() {
 	    if (this._followMesh) {
 	      this._followMesh.remove(this._camera);
@@ -50818,21 +50821,30 @@ var Spacekit = (function (exports) {
 	    }
 	  }
 
+	  /**
+	   * @returns {boolean} True if camera is following object.
+	   */
 	  isFollowingObject() {
 	    return !!this._followMesh;
 	  }
 
 	  /**
-	   * @returns {Object} The THREE.js camera object.
+	   * @returns {THREE.Camera} The THREE.js camera object.
 	   */
 	  get3jsCamera() {
 	    return this._camera;
 	  }
 
+	  /**
+	   * @returns {THREE.CameraControls} The THREE.js CameraControls object.
+	   */
 	  get3jsCameraControls() {
 	    return this._cameraControls;
 	  }
 
+	  /**
+	   * Update the camera position and process control inputs.
+	   */
 	  update() {
 	    if (this.isFollowingObject()) {
 	      const newpos = this._followMesh.position.clone();
@@ -53260,6 +53272,10 @@ var Spacekit = (function (exports) {
 	    return true;
 	  }
 
+	  /**
+	   * @private
+	   * Build the THREE.js object for this SpaceObject.
+	   */
 	  renderObject() {
 	    if (this.isStaticObject()) {
 	      if (this._renderMethod !== 'SPHERE') {
@@ -54173,6 +54189,10 @@ var Spacekit = (function (exports) {
 	    super.init();
 	  }
 
+	  /**
+	   * Update the location of this object at a given time. Note that this is
+	   * computed on CPU.
+	   */
 	  update(jd) {
 	    const newpos = this.getPosition(jd);
 	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);

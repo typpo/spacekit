@@ -47,11 +47,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleNumber">rescaleNumber</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescalePos">rescalePos</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleVector">rescaleVector</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleXYZ">rescaleXYZ</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-setScaleFactor">setScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-auToKm">auToKm</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalDec">decimalToSexagesimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-decimalToSexagesimalRa">decimalToSexagesimalRa</a></span></span></li>
@@ -64,23 +67,27 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SCALE_FACTOR">SCALE_FACTOR</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
 </ul>
 </div>
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/SpaceObject.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { EphemPresets } from &apos;./EphemPresets&apos;;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
+
+import { EphemPresets } from &apos;./EphemPresets&apos;;
 import { Orbit } from &apos;./Orbit&apos;;
 import { getFullTextureUrl } from &apos;./util&apos;;
+import { rescaleArray } from &apos;./Scale&apos;;
 
 /**
  * @private
@@ -174,6 +181,8 @@ export class SpaceObject {
       this._context = contextOrSimulation;
     }
 
+    this._renderMethod = null;
+
     this._label = null;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
@@ -206,14 +215,36 @@ export class SpaceObject {
    * child classes).
    */
   init() {
+    this.renderObject();
+
+    if (this._options.labelText) {
+      const labelElt = this.createLabel();
+      this._simulation.getSimulationElement().appendChild(labelElt);
+      this._label = labelElt;
+      this._showLabel = true;
+    }
+    this._initialized = true;
+    return true;
+  }
+
+  /**
+   * @private
+   * Build the THREE.js object for this SpaceObject.
+   */
+  renderObject() {
     if (this.isStaticObject()) {
-      // Create a stationary sprite.
-      this._object3js = this.createSprite();
-      if (this._simulation) {
-        // Add it all to visualization.
-        this._simulation.addObject(this, false /* noUpdate */);
+      if (this._renderMethod !== &apos;SPHERE&apos;) {
+        // TODO(ian): It kinda sucks to have SpaceObject care about
+        // SphereObject like this.
+
+        // Create a stationary sprite.
+        this._object3js = this.createSprite();
+        if (this._simulation) {
+          // Add it all to visualization.
+          this._simulation.addObject(this, false /* noUpdate */);
+        }
+        this._renderMethod = &apos;SPRITE&apos;;
       }
-      this._renderMethod = &apos;SPRITE&apos;;
     } else {
       if (!this._options.hideOrbit) {
         // Orbit is initialized before sprite because sprite may be positioned
@@ -236,14 +267,6 @@ export class SpaceObject {
       );
       this._renderMethod = &apos;PARTICLESYSTEM&apos;;
     }
-    if (this._options.labelText) {
-      const labelElt = this.createLabel();
-      this._simulation.getSimulationElement().appendChild(labelElt);
-      this._label = labelElt;
-      this._showLabel = true;
-    }
-    this._initialized = true;
-    return true;
   }
 
   /**
@@ -284,7 +307,11 @@ export class SpaceObject {
   updateLabelPosition(newpos) {
     const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
-    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+    const pos = toScreenXY(
+      newpos,
+      this._simulation.getViewer().get3jsCamera(),
+      simulationElt,
+    );
     const loc = {
       left: pos.x - 30,
       top: pos.y - 25,
@@ -324,7 +351,7 @@ export class SpaceObject {
         color: this._options.theme ? this._options.theme.color : 0xffffff,
       }),
     );
-    const scale = this._scale;
+    const scale = rescaleArray(this._scale);
     sprite.scale.set(scale[0], scale[1], scale[2]);
     const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
@@ -492,7 +519,9 @@ export class SpaceObject {
   }
 
   /**
-   * Gets the THREE.js objects that represent this SpaceObject.
+   * Gets the THREE.js objects that represent this SpaceObject.  The first
+   * object returned is the primary object.  Other objects may be returned,
+   * such as rings, ellipses, etc.
    * @return {Array.&lt;THREE.Object&gt;} A list of THREE.js objects
    */
   get3jsObjects() {

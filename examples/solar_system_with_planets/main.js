@@ -30,8 +30,9 @@ const jupiter = viz.createSphere('jupiter2', {
     30: 16,
     60: 8,
   },
-  debug: {
-    showAxes: true,
+  rotation: {
+    enable: true,
+    speed: 2,
   },
 });
 

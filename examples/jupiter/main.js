@@ -18,6 +18,11 @@ viz.createStars();
 const jupiter = viz.createSphere('jupiter', {
   textureUrl: './jupiter2_4k.jpg',
   radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
+  levelsOfDetail: [
+    { radii: 0, segments: 64 },
+    { radii: 30, segments: 16 },
+    { radii: 60, segments: 8 },
+  ],
 });
 viz.zoomToFit(jupiter);
 
@@ -113,3 +118,5 @@ gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
 gui.add(guiState, 'Set Date');
+
+window.THREE = Spacekit.THREE;

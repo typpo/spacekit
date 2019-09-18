@@ -2,13 +2,14 @@ import * as THREE from 'three';
 
 import { SpaceObject } from './SpaceObject';
 import { rad } from './Units';
+import { rescaleVector } from './Scale';
 
 function getAxis(src, dst, color) {
   const geom = new THREE.Geometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
-  geom.vertices.push(src.clone());
-  geom.vertices.push(dst.clone());
+  geom.vertices.push(rescaleVector(src).clone());
+  geom.vertices.push(rescaleVector(dst).clone());
 
   const axis = new THREE.Line(geom, mat, THREE.LineSegments);
   axis.computeLineDistances();
@@ -41,8 +42,8 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
-  constructor(id, options, contextOrSimulation) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id, options, contextOrSimulation, autoInit = true) {
+    super(id, options, contextOrSimulation, autoInit);
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -59,7 +60,9 @@ export class RotatingObject extends SpaceObject {
     // Keep track of materials that comprise this object.
     this._materials = [];
 
-    this.init();
+    if (autoInit) {
+      this.init();
+    }
   }
 
   init() {
@@ -78,6 +81,8 @@ export class RotatingObject extends SpaceObject {
         this._obj.add(gridHelper);
       }
     }
+
+    super.init();
   }
 
   initRotation() {
@@ -148,6 +153,8 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateZ(0.015)
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
     // TODO(ian): Update position if there is an associated orbit
+
+    super.update(jd);
   }
 
   /**
@@ -156,7 +163,8 @@ export class RotatingObject extends SpaceObject {
    */
   get3jsObjects() {
     const ret = super.get3jsObjects();
-    ret.push(this._obj);
+    // Add to the front, because this is the primary object.
+    ret.unshift(this._obj);
     return ret;
   }
 

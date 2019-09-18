@@ -29,6 +29,10 @@ export function rescaleXYZ(X, Y, Z) {
   return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
 }
 
+export function rescaleVector(vec) {
+  return vec.multiplyScalar(scaleFactor);
+}
+
 export function rescaleNumber(x) {
   return scaleFactor * x;
 }

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import julian from 'julian';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { Camera } from './Camera';
@@ -113,7 +112,6 @@ export class Simulation {
     }
 
     this._camera = null;
-    this._cameraControls = null;
 
     this._subscribedObjects = {};
     this._particles = null;
@@ -151,25 +149,16 @@ export class Simulation {
     this._scene = scene;
 
     // Camera
-    this._camera = new Camera(this.getContext()).get3jsCamera();
-    this._camera.position.set(
-      this._cameraDefaultPos[0],
-      this._cameraDefaultPos[1],
-      this._cameraDefaultPos[2],
-    );
-    window.cam = this._camera;
-
-    // Controls
-    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
-    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-    this._cameraControls = new OrbitControls(this._camera, this._simulationElt);
-    this._cameraControls.zoomSpeed = 1.5;
-    this._cameraControls.userPanSpeed = 20;
-    this._cameraControls.rotateSpeed = 2;
-    this._cameraControls.touches = {
-      ONE: THREE.TOUCH.ROTATE,
-      TWO: THREE.TOUCH.DOLLY_ROTATE,
-    };
+    const camera = new Camera(this.getContext());
+    camera
+      .get3jsCamera()
+      .position.set(
+        this._cameraDefaultPos[0],
+        this._cameraDefaultPos[1],
+        this._cameraDefaultPos[2],
+      );
+    window.cam = camera.get3jsCamera();
+    this._camera = camera;
 
     // Events
     this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -215,6 +204,7 @@ export class Simulation {
   initRenderer() {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
+      logarithmicDepthBuffer: true,
     });
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
@@ -248,13 +238,15 @@ export class Simulation {
 
   /**
    * @private
+   * TODO(ian): Move this into Camera
    */
   doCameraDrift() {
     // Follow floating path around
     const timer = 0.0001 * Date.now();
     const pos = this._cameraDefaultPos;
-    this._camera.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
-    this._camera.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
+    const cam = this._camera.get3jsCamera();
+    cam.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
+    cam.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
   }
 
   /**
@@ -291,12 +283,10 @@ export class Simulation {
     if (this._enableCameraDrift) {
       this.doCameraDrift();
     }
-
-    // Handle trackball movements
-    this._cameraControls.update();
+    this._camera.update();
 
     // Update three.js scene
-    this._renderer.render(this._scene, this._camera);
+    this._renderer.render(this._scene, this._camera.get3jsCamera());
 
     if (this.onTick) {
       this.onTick();
@@ -408,8 +398,9 @@ export class Simulation {
     if (typeof pos !== 'undefined') {
       pointLight.position.set(pos[0], pos[1], pos[2]);
     } else {
-      this._cameraControls.addEventListener('change', () => {
-        pointLight.position.copy(this._camera.position);
+      // The light comes from the camera.
+      this._camera.get3jsCameraControls().addEventListener('change', () => {
+        pointLight.position.copy(this._camera.get3jsCamera().position);
       });
     }
     this._scene.add(pointLight);
@@ -515,7 +506,7 @@ export class Simulation {
     boundingBox.getSize(size);
 
     // Get the max side of the bounding box (fits to width OR height as needed)
-    const camera = this._camera;
+    const camera = this._camera.get3jsCamera();
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = camera.fov * (Math.PI / 180);
     const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
@@ -652,10 +643,10 @@ export class Simulation {
   }
 
   /**
-   * Get the three.js camera
-   * @return {THREE.Camera} The THREE.js camera object
+   * Get the Camera and CameraControls wrapper object
+   * @return {Camera} The Camera wrapper
    */
-  getCamera() {
+  getViewer() {
     return this._camera;
   }
 
@@ -665,14 +656,6 @@ export class Simulation {
    */
   getScene() {
     return this._scene;
-  }
-
-  /**
-   * Get the three.js controls
-   * @return {THREE.TrackballControls} THREE.js controls object
-   */
-  getControls() {
-    return this._cameraControls;
   }
 
   /**

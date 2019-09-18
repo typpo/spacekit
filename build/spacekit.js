@@ -49396,1034 +49396,6 @@ var Spacekit = (function (exports) {
 	});
 
 	/**
-	 * A simple wrapper for Three.js camera.
-	 */
-	class Camera$1 {
-	  /**
-	   * @param {Object} context The simulation context
-	   */
-	  constructor(context) {
-	    // TODO(ian): Accept either context or container
-	    this._context = context;
-
-	    this.init();
-	  }
-
-	  init() {
-	    const containerWidth = this._context.container.width;
-	    const containerHeight = this._context.container.height;
-	    this._camera = new PerspectiveCamera(
-	      50,
-	      containerWidth / containerHeight,
-	      0.00001,
-	      2000,
-	    );
-	  }
-
-	  /**
-	   * @returns {Object} The THREE.js camera object.
-	   */
-	  get3jsCamera() {
-	    return this._camera;
-	  }
-	}
-
-	function rad(val) {
-	  return (val * Math.PI) / 180;
-	}
-
-	function deg(val) {
-	  return (val * 180) / Math.PI;
-	}
-
-	function hoursToDeg(val) {
-	  return val * 15.0;
-	}
-
-	function sexagesimalToDecimalRa(raHour, raMin, raSec) {
-	  // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
-	  return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
-	}
-
-	function sexagesimalToDecimalDec(
-	  decDeg,
-	  decMin,
-	  decSec,
-	  isObserverBelowEquator = false,
-	) {
-	  const posneg = isObserverBelowEquator ? -1 : 1;
-	  return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
-	}
-
-	function decimalToSexagesimalRa(decimal) {
-	  const val = parseFloat(decimal);
-	  const raHour = Math.trunc(val / 15.0);
-	  const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
-	  const raSec = (val - raHour * 15.0 - raMin / 4.0) * 240.0;
-	  return [raHour, raMin, raSec];
-	}
-
-	function decimalToSexagesimalDec(
-	  decimal,
-	  isObserverBelowEquator = false,
-	) {
-	  const val = parseFloat(decimal);
-	  const posneg = isObserverBelowEquator ? -1 : 1;
-
-	  const decDeg = Math.trunc(val);
-	  const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-	  const decSec =
-	    (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
-	  return [decDeg, decMin, decSec];
-	}
-
-	function kmToAu(km) {
-	  return km / 149598000;
-	}
-
-	function auToKm(au) {
-	  return km * 149598000;
-	}
-
-	const J2000 = 2451545.0;
-
-	function sphericalToCartesian(ra, dec, dist) {
-	  // See http://www.stargazing.net/kepler/rectang.html
-	  return [
-	    dist * Math.cos(ra) * Math.cos(dec),
-	    dist * Math.sin(ra) * Math.cos(dec),
-	    dist * Math.sin(dec),
-	  ];
-	}
-
-	/**
-	 * See https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector
-	 */
-	function equatorialToEcliptic_Cartesian(x, y, z, tilt) {
-	  return [
-	    x,
-	    Math.cos(tilt) * y + Math.sin(tilt) * z,
-	    -Math.sin(tilt) * y + Math.cos(tilt) * z,
-	  ];
-	}
-
-	function eclipticToEquatorial_Cartesian(x, y, z, tilt) {
-	  return [
-	    x,
-	    Math.cos(tilt) * y + -Math.sin(tilt) * z,
-	    Math.sin(tilt) * y + Math.cos(tilt) * z,
-	  ];
-	}
-
-	/**
-	 * Get Earth's obliquity and nutation at a given date.
-	 * @param {Number} jd JD date
-	 * @return {Object} Object with attributes "obliquity" and "nutation" provided
-	 * in radians
-	 */
-	function getNutationAndObliquity(jd = J2000) {
-	  const t = (jd - J2000) / 36525;
-	  const omega = rad(
-	    125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000,
-	  );
-	  const Lsun = rad(280.4665 + 36000.7698 * t);
-	  const Lmoon = rad(218.3165 + 481267.8813 * t);
-
-	  const nutation =
-	    (-17.2 / 3600) * Math.sin(omega) -
-	    (-1.32 / 3600) * Math.sin(2 * Lsun) -
-	    (0.23 / 3600) * Math.sin(2 * Lmoon) +
-	    deg((0.21 / 3600) * Math.sin(2 * omega));
-
-	  const obliquity_zero =
-	    23 +
-	    26.0 / 60 +
-	    21.448 / 3600 -
-	    (46.815 / 3600) * t -
-	    (0.00059 / 3600) * t * t +
-	    (0.001813 / 3600) * t * t * t;
-	  const obliquity_delta =
-	    (9.2 / 3600) * Math.cos(omega) +
-	    (0.57 / 3600) * Math.cos(2 * Lsun) +
-	    (0.1 / 3600) * Math.cos(2 * Lmoon) -
-	    (0.09 / 3600) * Math.cos(2 * omega);
-	  const obliquity = obliquity_zero + obliquity_delta;
-
-	  return {
-	    nutation: rad(nutation),
-	    obliquity: rad(obliquity),
-	  };
-	}
-
-	/**
-	 * Get Earth's obliquity at a given date.
-	 * @param {Number} jd JD date
-	 * @return {Number} Obliquity in radians
-	 */
-	function getObliquity(jd = J2000) {
-	  return getNutationAndObliquity(jd).obliquity;
-	}
-
-	const METERS_IN_AU = 149597870700;
-	const SECONDS_IN_DAY = 86400;
-
-	// TODO(ian): Allow multiple valid attrs for a single quantity and map them
-	// internally to a single canonical attribute.
-	const EPHEM_VALID_ATTRS = new Set([
-	  'a', // Semi-major axis
-	  'e', // Eccentricity
-	  'i', // Inclination
-
-	  'epoch',
-	  'period', // in days
-
-	  'ma', // Mean anomaly
-	  'n', // Mean motion
-	  'L', // Mean longitude
-
-	  'om', // Longitude of Ascending Node
-	  'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
-	  'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
-
-	  'GM', // Gravitational constant of more massive body
-	]);
-
-	// Which of these are angular measurements.
-	const ANGLE_UNITS = new Set(['i', 'ma', 'n', 'L', 'om', 'w', 'wBar']);
-
-	// Returns true if object is defined.
-	function isDef(obj) {
-	  return typeof obj !== 'undefined';
-	}
-
-	/**
-	 * A class representing Kepler ephemerides.
-	 * @example
-	 * const NEPTUNE = new Ephem({
-	 *   epoch: 2458426.500000000,
-	 *   a: 3.009622263428050E+01,
-	 *   e: 7.362571187193770E-03,
-	 *   i: 1.774569249829094E+00,
-	 *   om: 1.318695882492132E+02,
-	 *   w: 2.586226409499831E+02,
-	 *   ma: 3.152804988924479E+02,
-	 * }, 'deg'),
-	 */
-	class Ephem {
-	  /**
-	   * @param {Object} initialValues A dictionary of initial values. Not all values
-	   * are required as some may be inferred from others.
-	   * @param {Number} initialValues.a Semimajor axis
-	   * @param {Number} initialValues.e Eccentricity
-	   * @param {Number} initialValues.i Inclination
-	   * @param {Number} initialValues.epoch Epoch in JD
-	   * @param {Number} initialValues.period Period in days
-	   * @param {Number} initialValues.ma Mean anomaly
-	   * @param {Number} initialValues.n Mean motion
-	   * @param {Number} initialValues.L Mean longitude
-	   * @param {Number} initialValues.om Longitude of Ascending Node
-	   * @param {Number} initialValues.w Argument of Perihelion
-	   * @param {Number} initialValues.wBar Longitude of Perihelion
-	   * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
-	   * Defaults to GM.SUN.  @see {GM}
-	   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
-	   */
-	  constructor(initialValues, units = 'rad', locked = false) {
-	    this._attrs = {};
-	    this._locked = false;
-
-	    for (const attr in initialValues) {
-	      if (initialValues.hasOwnProperty(attr)) {
-	        const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
-	        this.set(attr, initialValues[attr], actualUnits);
-	      }
-	    }
-
-	    if (typeof this._attrs.GM === 'undefined') {
-	      this._attrs.GM = GM.SUN;
-	    }
-	    this.fill();
-
-	    this._locked = locked;
-	  }
-
-	  /**
-	   * Sets an ephemerides attribute.
-	   * @param {String} attr The name of the attribute (e.g. 'a')
-	   * @param {Number} val The value of the attribute (e.g. 0.5)
-	   * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
-	   */
-	  set(attr, val, units = 'rad') {
-	    if (this._locked) {
-	      throw new Error('Attempted to modify locked (immutable) Ephem object');
-	    }
-
-	    if (!EPHEM_VALID_ATTRS.has(attr)) {
-	      console.warn(`Invalid ephem attr: ${attr}`);
-	      return false;
-	    }
-
-	    // Store everything in radians.
-	    // TODO(ian): Make sure value can't be set with bogus units.
-	    if (units === 'deg') {
-	      this._attrs[attr] = (val * Math.PI) / 180;
-	    } else {
-	      this._attrs[attr] = val;
-	    }
-	    return true;
-	  }
-
-	  /**
-	   * Gets an ephemerides attribute.
-	   * @param {String} attr The name of the attribute (e.g. 'a')
-	   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
-	   * input is ignored for values that are not angle measurements.
-	   */
-	  get(attr, units = 'rad') {
-	    if (units === 'deg') {
-	      return (this._attrs[attr] * 180) / Math.PI;
-	    }
-	    return this._attrs[attr];
-	  }
-
-	  /**
-	   * @private
-	   * Infers values of some ephemerides attributes if the required information
-	   * is available.
-	   */
-	  fill() {
-	    // Longitude/Argument of Perihelion and Long. of Ascending Node
-	    let w = this.get('w');
-	    let wBar = this.get('wBar');
-	    let om = this.get('om');
-	    if (isDef(w) && isDef(om) && !isDef(wBar)) {
-	      wBar = w + om;
-	      this.set('wBar', wBar);
-	    } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
-	      w = wBar - om;
-	      this.set('w', w);
-	    } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
-	      om = wBar - w;
-	      this.set('om', om);
-	    }
-
-	    // Mean motion and period
-	    const a = this.get('a');
-	    const aMeters = a * METERS_IN_AU;
-	    const n = this.get('n');
-	    const GM = this.get('GM');
-	    let period = this.get('period');
-
-	    if (!isDef(period) && isDef(a)) {
-	      period =
-	        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
-	        SECONDS_IN_DAY;
-	      this.set('period', period);
-	    }
-
-	    if (isDef(period) && !isDef(n)) {
-	      // Set radians
-	      const newN = (2.0 * Math.PI) / period;
-	      this.set('n', newN);
-	    } else if (isDef(n) && !isDef(period)) {
-	      this.set('period', (2.0 * Math.PI) / n);
-	    }
-
-	    // Mean longitude
-	    const ma = this.get('ma');
-	    let L = this.get('L');
-	    if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
-	      L = om + w + ma;
-	      this.set('L', L);
-	    }
-
-	    // Mean anomaly
-	    if (!isDef(ma)) {
-	      // MA = Mean longitude - Longitude of perihelion
-	      this.set('ma', L - wBar);
-	    }
-
-	    //  TODO(ian): Handle no om
-	  }
-
-	  /**
-	   * Make this ephem object immutable.
-	   */
-	  lock() {
-	    this._locked = true;
-	  }
-
-	  copy() {
-	    return new Ephem(
-	      {
-	        GM: this.get('GM'),
-	        epoch: this.get('epoch'),
-	        a: this.get('a'),
-	        e: this.get('e'),
-	        i: this.get('i'),
-	        om: this.get('om'),
-	        ma: this.get('ma'),
-	        w: this.get('w'),
-	      },
-	      'rad',
-	    );
-	  }
-	}
-
-	/**
-	 * Standard gravitational parameter for objects orbiting these bodies.
-	 * Units in m^3/s^2
-	 */
-	const GM = {
-	  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
-	  SUN: 1.3271244004193938e20,
-	  MERCURY: 2.2031780000000021e13,
-	  VENUS: 3.2485859200000006e14,
-	  EARTH_MOON: 4.0350323550225981e14,
-	  MARS: 4.2828375214000022e13,
-	  JUPITER: 1.2671276480000021e17,
-	  SATURN: 3.7940585200000003e16,
-	  URANUS: 5.794548600000008e15,
-	  NEPTUNE: 6.8365271005800236e15,
-	  PLUTO_CHARON: 9.7700000000000068e11,
-	};
-
-	/**
-	 * @ignore
-	 */
-	const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
-
-	/**
-	 * Returns the complete URL to a texture given a basepath and a template url.
-	 * @param {String} template URL containing optional template parameters
-	 * @param {String} basePath Base path
-	 * @example
-	 * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
-	 * => '/path/to/assets/images/mysprite.png'
-	 */
-	function getFullUrl(template, basePath) {
-	  return template
-	    .replace('{{assets}}', `${basePath}/assets`)
-	    .replace('{{data}}', `${basePath}/data`);
-	}
-
-	/**
-	 * Returns the complete URL to a texture given a basepath and a template url.
-	 * @param {String} template URL containing optional template parameters
-	 * @param {String} basePath Base path for simulation data and assets.
-	 * @example
-	 * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
-	 * => '/path/to/assets/images/mysprite.png'
-	 */
-	function getFullTextureUrl(template, basePath) {
-	  return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
-	}
-
-	/*
-	 * Returns a THREE.js texture given a basepath and a template url.
-	 * @param {String} template URL containing optional template parameters
-	 * @param {String} basePath Base path for simulation data and assets.
-	 */
-	function getThreeJsTexture(template, basePath) {
-	  const fullTextureUrl = getFullTextureUrl(template, basePath);
-	  return new TextureLoader().load(fullTextureUrl);
-	}
-
-	function getDefaultBasePath() {
-	  return window.location.href.indexOf('localhost') > -1
-	    ? '/src/'
-	    : 'https://typpo.github.io/spacekit/src';
-	}
-
-	/**
-	 * A dictionary containing ephemerides of planets and other well-known objects.
-	 * @example
-	 * const planet1 = viz.createObject('planet1', {
-	 *   ephem: EphemPresets.MERCURY,
-	 * });
-	 */
-	const EphemPresets = {
-	  // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
-	  MERCURY: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 3.870968969437096e-1,
-	      e: 2.056515875393916e-1,
-	      i: 7.003891682749818,
-	      om: 4.830774804443502e1,
-	      w: 2.917940253442659e1,
-	      ma: 2.56190975209273e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  VENUS: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 7.233458663591554e-1,
-	      e: 6.762510759617694e-3,
-	      i: 3.394567787211735,
-	      om: 7.662534150657346e1,
-	      w: 5.474567447560867e1,
-	      ma: 2.756687596099721e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  EARTH: new Ephem(
-	    {
-	      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
-	      /*
-	    epoch: 2451545.0,
-	    a: 1.00000011,
-	    e: 0.01671022,
-	    i: 0.00005,
-	    om: -11.26064,
-	    wBar: 102.94719,
-	    L: 100.46435,
-	    */
-
-	      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
-	      epoch: 2451545.0,
-	      a: 1.00000261,
-	      e: 0.01671123,
-	      i: -0.00001531,
-	      om: 0.0,
-	      wBar: 102.93768193,
-	      L: 100.46457166,
-
-	      /*
-	      epoch: 2458426.500000000,
-	      a: 1.000618919441359E+00,
-	      e: 1.676780871638673E-02,
-	      i: 0,
-	      om: 1.888900932218542E+02,
-	      w: 2.718307282052625E+02,
-	      ma: 3.021792498388233E+02,
-	     */
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  MOON: new Ephem(
-	    {
-	      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-	      GM: 0.3986e6,
-
-	      // Geocentric
-	      // https://ssd.jpl.nasa.gov/horizons.cgi#results
-	      epoch: 2458621.5,
-	      a: 2.582517063772124e-3,
-	      e: 4.582543645168888e-2,
-	      i: 5.102060246928811,
-	      om: 1.085916732144811e2,
-	      w: 6.180561793729225e1,
-	      ma: 5.053270083636792e1,
-	      /*
-	     * heliocentric
-	    epoch: 2458621.500000000,
-	    a: 1.078855621785179E+00,
-	    e: 6.333300212090676E-02,
-	    i: 7.211217382317713E-02,
-	    om: 6.722057157026397E+01,
-	    w: 1.503642883585293E+02,
-	    ma: 1.666758688084831E+01,
-	   */
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  MARS: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 1.52371401537107,
-	      e: 9.336741335309606e-2,
-	      i: 1.848141099825311,
-	      om: 4.950420572080223e1,
-	      w: 2.866965847685386e2,
-	      ma: 2.538237617924876e1,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  JUPITER: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 5.20180355911023,
-	      e: 4.89912558249006e-2,
-	      i: 1.303560894624275,
-	      om: 1.005203828847816e2,
-	      w: 2.73736301845404e2,
-	      ma: 2.31939544389401e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  SATURN: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 9.577177295536776,
-	      e: 5.101889921719987e-2,
-	      i: 2.482782449972317,
-	      om: 1.136154964073247e2,
-	      w: 3.394422648650336e2,
-	      ma: 1.870970898012944e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  URANUS: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 1.914496966635462e1,
-	      e: 4.832662948112808e-2,
-	      i: 7.697511134483724e-1,
-	      om: 7.414239045667875e1,
-	      w: 9.942704504702185e1,
-	      ma: 2.202603033874267e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  NEPTUNE: new Ephem(
-	    {
-	      epoch: 2458426.5,
-	      a: 3.00962226342805e1,
-	      e: 7.36257118719377e-3,
-	      i: 1.774569249829094,
-	      om: 1.318695882492132e2,
-	      w: 2.586226409499831e2,
-	      ma: 3.152804988924479e2,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	  PLUTO: new Ephem(
-	    {
-	      epoch: 2454000.5,
-	      a: 39.4450697257,
-	      e: 0.250248713478,
-	      i: 17.0890009196,
-	      om: 110.376957955,
-	      w: 112.597141677,
-	      ma: 25.2471897122,
-	    },
-	    'deg',
-	    true /* locked */,
-	  ),
-	};
-
-	/**
-	 * A class for fetching orbital elements of natural satellites in our solar
-	 * system.
-	 */
-	class NaturalSatellites {
-	  constructor(contextOrSimulation) {
-	    {
-	      // User passed in Simulation
-	      this._simulation = contextOrSimulation;
-	      this._context = contextOrSimulation.getContext();
-	    }
-
-	    this._satellitesByPlanet = {};
-	    this._readyPromise = null;
-
-	    this.init();
-	  }
-
-	  init() {
-	    const dataUrl = getFullUrl(
-	      '{{data}}/processed/natural-satellites.json',
-	      this._context.options.basePath,
-	    );
-
-	    this._readyPromise = new Promise((resolve, reject) => {
-	      fetch(dataUrl)
-	        .then(resp => resp.json())
-	        .then(moons => {
-	          moons.forEach(moon => {
-	            const planetName = moon.Planet.toLowerCase();
-	            if (!this._satellitesByPlanet[planetName]) {
-	              this._satellitesByPlanet[planetName] = [];
-	            }
-	            switch (moon['Element Type']) {
-	              case 'Ecliptic':
-	                // Don't have to do anything
-	                break;
-	              case 'Equatorial':
-	                break;
-	              case 'Laplace':
-	                break;
-	              default:
-	                console.error(
-	                  'Unknown element type in natural satellites object:',
-	                  moon,
-	                );
-	                return;
-	            }
-
-	            let ephemGM;
-	            switch (moon.Planet) {
-	              case 'Earth':
-	                ephemGM = GM.EARTH_MOON;
-	                break;
-	              case 'Pluto':
-	                ephemGM = GM.PLUTO_CHARON;
-	                break;
-	              default:
-	                ephemGM = GM[moon.Planet.toUpperCase()];
-	            }
-	            if (!ephemGM) {
-	              console.error(`Could not look up GM for ${moon.Planet}`);
-	            }
-
-	            const ephem = new Ephem(
-	              {
-	                GM: ephemGM,
-	                epoch: moon['Epoch JD'],
-	                a: kmToAu(moon.a),
-	                e: parseFloat(moon.e),
-	                i: parseFloat(moon.i),
-	                w: parseFloat(moon.w),
-	                om: parseFloat(moon.node),
-	                ma: parseFloat(moon.M),
-	              },
-	              'deg',
-	              true /* locked */,
-	            );
-
-	            this._satellitesByPlanet[planetName].push({
-	              name: moon['Sat.'],
-	              elementType: moon['Element Type'],
-	              tags: new Set(moon['tags'].split(',')),
-	              ephem,
-	            });
-	          });
-	          console.info('Loaded', moons.length, 'natural satellites');
-	          resolve(this);
-	        })
-	        .catch(err => {
-	          reject(err);
-	        });
-	    });
-	  }
-
-	  /**
-	   * Get a list of satellites and their orbital elements for a given planet.
-	   * @param {String} planetName Name of a planet, e.g. "Jupiter"
-	   * @return {Object} List containing a list of dictionaries with information
-	   * on each satellite.
-	   */
-	  getSatellitesForPlanet(planetName) {
-	    return this._satellitesByPlanet[planetName.toLowerCase()];
-	  }
-
-	  load() {
-	    return this._readyPromise;
-	  }
-	}
-
-	let scaleFactor = 1.0;
-
-	/**
-	 * Set the number of units per AU.
-	 */
-	function setScaleFactor(val) {
-	  scaleFactor = val;
-	}
-
-	/**
-	 * Get the number of units per AU.
-	 */
-	function getScaleFactor() {
-	  return scaleFactor;
-	}
-
-	function rescaleArray(XYZ) {
-	  return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
-	}
-
-	function rescaleXYZ(X, Y, Z) {
-	  return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
-	}
-
-	function rescaleNumber(x) {
-	  return scaleFactor * x;
-	}
-
-	/**
-	 * A class that builds a visual representation of a Kepler orbit.
-	 * @example
-	 * const orbit = new Spacekit.Orbit({
-	 *   ephem: new Spacekit.Ephem({...}),
-	 *   options: {
-	 *     color: 0xFFFFFF,
-	 *     eclipticLineColor: 0xCCCCCC,
-	 *   },
-	 * });
-	 */
-	class Orbit {
-	  /**
-	   * @param {Ephem} ephem The ephemerides that define this orbit.
-	   * @param {Object} options
-	   * @param {Object} options.color The color of the orbital ellipse.
-	   * @param {Object} options.eclipticLineColor The color of lines drawn
-	   * perpendicular to the ecliptic in order to illustrate depth (defaults to
-	   * 0x333333).
-	   */
-	  constructor(ephem, options) {
-	    /**
-	     * Ephem object
-	     * @type {Ephem}
-	     */
-	    this._ephem = ephem;
-
-	    /**
-	     * Options (see class definition for details)
-	     */
-	    this._options = options || {};
-
-	    /**
-	     * Cached orbital points.
-	     * @type {Array.<THREE.Vector3>}
-	     */
-	    this._points = null;
-
-	    /**
-	     * Cached ellipse.
-	     * @type {THREE.Line}
-	     */
-	    this._ellipse = null;
-	  }
-
-	  /**
-	   * @private
-	   * @return {Array.<THREE.Vector3>} List of points
-	   */
-	  getOrbitPoints() {
-	    if (this._points) {
-	      return this._points;
-	    }
-
-	    const eph = this._ephem;
-
-	    const period = eph.get('period');
-	    const ecc = eph.get('e');
-	    // const minSegments = ecc > 0.4 ? 100 : 50;
-	    const minSegments = 360;
-	    const numSegments = Math.max(period / 2, minSegments);
-	    const step = period / numSegments;
-
-	    const pts = [];
-	    let prevPos;
-	    for (let time = 0; time < period; time += step) {
-	      const pos = this.getPositionAtTime(time);
-	      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-	        console.error(
-	          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
-	        );
-	        console.error(eph);
-	      }
-	      const vector = new Vector3(pos[0], pos[1], pos[2]);
-	      if (
-	        prevPos &&
-	        Math.abs(prevPos[0] - pos[0]) +
-	          Math.abs(prevPos[1] - pos[1]) +
-	          Math.abs(prevPos[2] - pos[2]) >
-	          120
-	      ) {
-	        // Don't render bogus or very large ellipses.
-	        points.vertices = [];
-	        return points;
-	      }
-	      prevPos = pos;
-	      pts.push(vector);
-	    }
-	    pts.push(pts[0]);
-
-	    this._points = new Geometry();
-	    this._points.vertices = pts;
-
-	    return this._points;
-	  }
-
-	  /**
-	   * Get heliocentric position of object at a given JD.
-	   * @param {Number} jd Date value in JD.
-	   * @param {boolean} debug Set true for debug output.
-	   * @return {Array.<Number>} [X, Y, Z] coordinates
-	   */
-	  getPositionAtTime(jd, debug) {
-	    // Note: logic below must match the vertex shader.
-
-	    const pi = Math.PI;
-	    const sin = Math.sin;
-	    const cos = Math.cos;
-
-	    const eph = this._ephem;
-
-	    // This position calculation is used to create orbital ellipses.
-	    let e = eph.get('e');
-	    if (e >= 1) {
-	      e = 0.9;
-	    }
-
-	    // Mean anomaly
-	    const ma = eph.get('ma', 'rad');
-
-	    // Calculate mean anomaly at jd
-	    const n = eph.get('n', 'rad');
-	    const epoch = eph.get('epoch');
-	    const d = jd - epoch;
-
-	    const M = ma + n * d;
-	    if (debug) {
-	      console.info('period=', eph.get('period'));
-	      console.info('n=', n);
-	      console.info('ma=', ma);
-	      console.info('d=', d);
-	      console.info('M=', M);
-	    }
-
-	    // Estimate eccentric and true anom using iterative approx
-	    let E0 = M;
-	    let lastdiff;
-	    for (let count = 0; count < 100; count++) {
-	      const E1 = M + e * sin(E0);
-	      lastdiff = Math.abs(E1 - E0);
-	      E0 = E1;
-
-	      if (lastdiff < 0.0000001) {
-	        break;
-	      }
-	    }
-	    const E = E0;
-	    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
-
-	    // Radius vector, in AU
-	    const a = eph.get('a');
-	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
-
-	    // Inclination, Longitude of ascending node, Longitude of perihelion
-	    const i = eph.get('i', 'rad');
-	    const o = eph.get('om', 'rad');
-	    const p = eph.get('wBar', 'rad');
-
-	    // Heliocentric coords
-	    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
-	    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
-	    const Z = r * (sin(v + p - o) * sin(i));
-	    return rescaleXYZ(X, Y, Z);
-	  }
-
-	  /**
-	   * @return {THREE.Line} The ellipse object that represents this orbit.
-	   */
-	  getEllipse() {
-	    if (!this._ellipse) {
-	      const pointGeometry = this.getOrbitPoints();
-	      this._ellipse = new Line(
-	        pointGeometry,
-	        new LineBasicMaterial({
-	          color: this._options.color,
-	        }),
-	        LineStrip,
-	      );
-	    }
-	    return this._ellipse;
-	  }
-
-	  /**
-	   * A geometry containing line segments that run between the orbit ellipse and
-	   * the ecliptic plane of the solar system. This is a useful visual effect
-	   * that makes it easy to tell when an orbit goes below or above the ecliptic
-	   * plane.
-	   * @return {THREE.Geometry} A geometry with many line segments.
-	   */
-	  getLinesToEcliptic() {
-	    const points = this.getOrbitPoints();
-	    const geometry = new Geometry();
-
-	    points.vertices.forEach(vertex => {
-	      geometry.vertices.push(vertex);
-	      geometry.vertices.push(new Vector3(vertex.x, vertex.y, 0));
-	    });
-
-	    return new LineSegments(
-	      geometry,
-	      new LineBasicMaterial({
-	        color: this._options.eclipticLineColor || 0x333333,
-	      }),
-	      LineStrip,
-	    );
-	  }
-
-	  /**
-	   * Get the color of this orbit.
-	   * @return {Number} The hexadecimal color of the orbital ellipse.
-	   */
-	  getHexColor() {
-	    return this._ellipse.material.color.getHex();
-	  }
-
-	  /**
-	   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
-	   */
-	  setHexColor(hexVal) {
-	    this._ellipse.material.color = new Color(hexVal);
-	  }
-
-	  /**
-	   * Get the visibility of this orbit.
-	   * @return {boolean} Whether the orbital ellipse is visible. Note that
-	   * although the ellipse may not be visible, it is still present in the
-	   * underlying Scene and Simultation.
-	   */
-	  getVisibility() {
-	    return this._ellipse.visible;
-	  }
-
-	  /**
-	   * Change the visibility of this orbit.
-	   * @param {boolean} val Whether to show the orbital ellipse.
-	   */
-	  setVisibility(val) {
-	    this._ellipse.visible = val;
-	  }
-	}
-
-	var julian = convert;
-	var toDate = convertToDate;
-
-	var toJulianDay_1 = toJulianDay;
-	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
-	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
-
-	var DAY = 86400000;
-	var HALF_DAY = DAY / 2;
-	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
-	var UNIX_EPOCH_JULIAN_DAY = 2440587;
-
-	function convert(date) {
-	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
-	}
-	function convertToDate(julian) {
-	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
-	}
-	function toJulianDay(date) {
-	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
-	}
-	function toMillisecondsInJulianDay(date) {
-	  return (+date + HALF_DAY) % DAY;
-	}
-	function fromJulianDayAndMilliseconds(day, ms) {
-	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
-	}julian.toDate = toDate;
-	julian.toJulianDay = toJulianDay_1;
-	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
-	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
-
-	/**
 	 * @author qiao / https://github.com/qiao
 	 * @author mrdoob / http://mrdoob.com
 	 * @author alteredq / http://alteredqualia.com/
@@ -51738,6 +50710,1123 @@ var Spacekit = (function (exports) {
 	MapControls.prototype = Object.create( EventDispatcher.prototype );
 	MapControls.prototype.constructor = MapControls;
 
+	let scaleFactor = 1.0;
+
+	/**
+	 * Set the number of units per AU.
+	 */
+	function setScaleFactor(val) {
+	  scaleFactor = val;
+	}
+
+	/**
+	 * Get the number of units per AU.
+	 */
+	function getScaleFactor() {
+	  return scaleFactor;
+	}
+
+	function rescaleArray(XYZ) {
+	  return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
+	}
+
+	function rescaleXYZ(X, Y, Z) {
+	  return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
+	}
+
+	function rescaleVector(vec) {
+	  return vec.multiplyScalar(scaleFactor);
+	}
+
+	function rescaleNumber(x) {
+	  return scaleFactor * x;
+	}
+
+	/**
+	 * A wrapper for Three.js camera and controls.
+	 * TODO(ian): Rename to "Viewer"
+	 */
+	class Camera$1 {
+	  /**
+	   * @param {Object} context The simulation context
+	   */
+	  constructor(context) {
+	    // TODO(ian): Accept either context or container
+	    this._context = context;
+
+	    this._camera = null;
+	    this._cameraControls = null;
+
+	    // Optional mesh that we are following.
+	    this._followMesh = null;
+
+	    this.init();
+	  }
+
+	  init() {
+	    const containerWidth = this._context.container.width;
+	    const containerHeight = this._context.container.height;
+
+	    this._camera = new PerspectiveCamera(
+	      50,
+	      containerWidth / containerHeight,
+	      rescaleNumber(0.00001),
+	      rescaleNumber(2000),
+	    );
+
+	    // Controls
+	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
+	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
+	    const controls = new OrbitControls(this._camera, this._simulationElt);
+	    controls.enablePan = true;
+	    controls.zoomSpeed = 1.5;
+	    controls.userPanSpeed = 20;
+	    controls.rotateSpeed = 2;
+	    controls.touches = {
+	      ONE: TOUCH.ROTATE,
+	      TWO: TOUCH.DOLLY_ROTATE,
+	    };
+	    this._cameraControls = controls;
+	  }
+
+	  /**
+	   * Move the camera to follow a SpaceObject as it moves. Currently only works
+	   * for non-particlesystems.
+	   * @param {SpaceObject} obj SpaceObject to follow.
+	   * @param {Array.<Number>} position Position of the camera with respect to
+	   * the object.
+	   */
+	  followObject(obj, position) {
+	    const followMesh = obj.get3jsObjects()[0];
+
+	    this._cameraControls.enablePan = false;
+
+	    const rescaled = rescaleArray(position);
+	    this._camera.position.add(
+	      new Vector3(rescaled[0], rescaled[1], rescaled[2]),
+	    );
+
+	    this._cameraControls.update();
+	    this._followMesh = followMesh;
+	  }
+
+	  /**
+	   * Stop the camera from following the object.
+	   */
+	  stopFollowingObject() {
+	    if (this._followMesh) {
+	      this._followMesh.remove(this._camera);
+	      this._followMesh = null;
+	      this._cameraControls.enablePan = true;
+	    }
+	  }
+
+	  /**
+	   * @returns {boolean} True if camera is following object.
+	   */
+	  isFollowingObject() {
+	    return !!this._followMesh;
+	  }
+
+	  /**
+	   * @returns {THREE.Camera} The THREE.js camera object.
+	   */
+	  get3jsCamera() {
+	    return this._camera;
+	  }
+
+	  /**
+	   * @returns {THREE.CameraControls} The THREE.js CameraControls object.
+	   */
+	  get3jsCameraControls() {
+	    return this._cameraControls;
+	  }
+
+	  /**
+	   * Update the camera position and process control inputs.
+	   */
+	  update() {
+	    if (this.isFollowingObject()) {
+	      const newpos = this._followMesh.position.clone();
+
+	      const offset = newpos.clone().sub(this._cameraControls.target);
+	      this._camera.position.add(offset);
+
+	      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+	    }
+
+	    // Handle control movements
+	    this._cameraControls.update();
+	  }
+	}
+
+	function rad(val) {
+	  return (val * Math.PI) / 180;
+	}
+
+	function deg(val) {
+	  return (val * 180) / Math.PI;
+	}
+
+	function hoursToDeg(val) {
+	  return val * 15.0;
+	}
+
+	function sexagesimalToDecimalRa(raHour, raMin, raSec) {
+	  // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
+	  return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
+	}
+
+	function sexagesimalToDecimalDec(
+	  decDeg,
+	  decMin,
+	  decSec,
+	  isObserverBelowEquator = false,
+	) {
+	  const posneg = isObserverBelowEquator ? -1 : 1;
+	  return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
+	}
+
+	function decimalToSexagesimalRa(decimal) {
+	  const val = parseFloat(decimal);
+	  const raHour = Math.trunc(val / 15.0);
+	  const raMin = Math.trunc((val - raHour * 15.0) * 4.0);
+	  const raSec = (val - raHour * 15.0 - raMin / 4.0) * 240.0;
+	  return [raHour, raMin, raSec];
+	}
+
+	function decimalToSexagesimalDec(
+	  decimal,
+	  isObserverBelowEquator = false,
+	) {
+	  const val = parseFloat(decimal);
+	  const posneg = isObserverBelowEquator ? -1 : 1;
+
+	  const decDeg = Math.trunc(val);
+	  const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
+	  const decSec =
+	    (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+	  return [decDeg, decMin, decSec];
+	}
+
+	function kmToAu(km) {
+	  return km / 149598000;
+	}
+
+	function auToKm(au) {
+	  return km * 149598000;
+	}
+
+	const J2000 = 2451545.0;
+
+	function sphericalToCartesian(ra, dec, dist) {
+	  // See http://www.stargazing.net/kepler/rectang.html
+	  return [
+	    dist * Math.cos(ra) * Math.cos(dec),
+	    dist * Math.sin(ra) * Math.cos(dec),
+	    dist * Math.sin(dec),
+	  ];
+	}
+
+	/**
+	 * See https://en.wikipedia.org/wiki/Ecliptic_coordinate_system#Converting_Cartesian_vector
+	 */
+	function equatorialToEcliptic_Cartesian(x, y, z, tilt) {
+	  return [
+	    x,
+	    Math.cos(tilt) * y + Math.sin(tilt) * z,
+	    -Math.sin(tilt) * y + Math.cos(tilt) * z,
+	  ];
+	}
+
+	function eclipticToEquatorial_Cartesian(x, y, z, tilt) {
+	  return [
+	    x,
+	    Math.cos(tilt) * y + -Math.sin(tilt) * z,
+	    Math.sin(tilt) * y + Math.cos(tilt) * z,
+	  ];
+	}
+
+	/**
+	 * Get Earth's obliquity and nutation at a given date.
+	 * @param {Number} jd JD date
+	 * @return {Object} Object with attributes "obliquity" and "nutation" provided
+	 * in radians
+	 */
+	function getNutationAndObliquity(jd = J2000) {
+	  const t = (jd - J2000) / 36525;
+	  const omega = rad(
+	    125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000,
+	  );
+	  const Lsun = rad(280.4665 + 36000.7698 * t);
+	  const Lmoon = rad(218.3165 + 481267.8813 * t);
+
+	  const nutation =
+	    (-17.2 / 3600) * Math.sin(omega) -
+	    (-1.32 / 3600) * Math.sin(2 * Lsun) -
+	    (0.23 / 3600) * Math.sin(2 * Lmoon) +
+	    deg((0.21 / 3600) * Math.sin(2 * omega));
+
+	  const obliquity_zero =
+	    23 +
+	    26.0 / 60 +
+	    21.448 / 3600 -
+	    (46.815 / 3600) * t -
+	    (0.00059 / 3600) * t * t +
+	    (0.001813 / 3600) * t * t * t;
+	  const obliquity_delta =
+	    (9.2 / 3600) * Math.cos(omega) +
+	    (0.57 / 3600) * Math.cos(2 * Lsun) +
+	    (0.1 / 3600) * Math.cos(2 * Lmoon) -
+	    (0.09 / 3600) * Math.cos(2 * omega);
+	  const obliquity = obliquity_zero + obliquity_delta;
+
+	  return {
+	    nutation: rad(nutation),
+	    obliquity: rad(obliquity),
+	  };
+	}
+
+	/**
+	 * Get Earth's obliquity at a given date.
+	 * @param {Number} jd JD date
+	 * @return {Number} Obliquity in radians
+	 */
+	function getObliquity(jd = J2000) {
+	  return getNutationAndObliquity(jd).obliquity;
+	}
+
+	const METERS_IN_AU = 149597870700;
+	const SECONDS_IN_DAY = 86400;
+
+	// TODO(ian): Allow multiple valid attrs for a single quantity and map them
+	// internally to a single canonical attribute.
+	const EPHEM_VALID_ATTRS = new Set([
+	  'a', // Semi-major axis
+	  'e', // Eccentricity
+	  'i', // Inclination
+
+	  'epoch',
+	  'period', // in days
+
+	  'ma', // Mean anomaly
+	  'n', // Mean motion
+	  'L', // Mean longitude
+
+	  'om', // Longitude of Ascending Node
+	  'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
+	  'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
+
+	  'GM', // Gravitational constant of more massive body
+	]);
+
+	// Which of these are angular measurements.
+	const ANGLE_UNITS = new Set(['i', 'ma', 'n', 'L', 'om', 'w', 'wBar']);
+
+	// Returns true if object is defined.
+	function isDef(obj) {
+	  return typeof obj !== 'undefined';
+	}
+
+	/**
+	 * A class representing Kepler ephemerides.
+	 * @example
+	 * const NEPTUNE = new Ephem({
+	 *   epoch: 2458426.500000000,
+	 *   a: 3.009622263428050E+01,
+	 *   e: 7.362571187193770E-03,
+	 *   i: 1.774569249829094E+00,
+	 *   om: 1.318695882492132E+02,
+	 *   w: 2.586226409499831E+02,
+	 *   ma: 3.152804988924479E+02,
+	 * }, 'deg'),
+	 */
+	class Ephem {
+	  /**
+	   * @param {Object} initialValues A dictionary of initial values. Not all values
+	   * are required as some may be inferred from others.
+	   * @param {Number} initialValues.a Semimajor axis
+	   * @param {Number} initialValues.e Eccentricity
+	   * @param {Number} initialValues.i Inclination
+	   * @param {Number} initialValues.epoch Epoch in JD
+	   * @param {Number} initialValues.period Period in days
+	   * @param {Number} initialValues.ma Mean anomaly
+	   * @param {Number} initialValues.n Mean motion
+	   * @param {Number} initialValues.L Mean longitude
+	   * @param {Number} initialValues.om Longitude of Ascending Node
+	   * @param {Number} initialValues.w Argument of Perihelion
+	   * @param {Number} initialValues.wBar Longitude of Perihelion
+	   * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+	   * Defaults to GM.SUN.  @see {GM}
+	   * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
+	   */
+	  constructor(initialValues, units = 'rad', locked = false) {
+	    this._attrs = {};
+	    this._locked = false;
+
+	    for (const attr in initialValues) {
+	      if (initialValues.hasOwnProperty(attr)) {
+	        const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
+	        this.set(attr, initialValues[attr], actualUnits);
+	      }
+	    }
+
+	    if (typeof this._attrs.GM === 'undefined') {
+	      this._attrs.GM = GM.SUN;
+	    }
+	    this.fill();
+
+	    this._locked = locked;
+	  }
+
+	  /**
+	   * Sets an ephemerides attribute.
+	   * @param {String} attr The name of the attribute (e.g. 'a')
+	   * @param {Number} val The value of the attribute (e.g. 0.5)
+	   * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
+	   */
+	  set(attr, val, units = 'rad') {
+	    if (this._locked) {
+	      throw new Error('Attempted to modify locked (immutable) Ephem object');
+	    }
+
+	    if (!EPHEM_VALID_ATTRS.has(attr)) {
+	      console.warn(`Invalid ephem attr: ${attr}`);
+	      return false;
+	    }
+
+	    // Store everything in radians.
+	    // TODO(ian): Make sure value can't be set with bogus units.
+	    if (units === 'deg') {
+	      this._attrs[attr] = (val * Math.PI) / 180;
+	    } else {
+	      this._attrs[attr] = val;
+	    }
+	    return true;
+	  }
+
+	  /**
+	   * Gets an ephemerides attribute.
+	   * @param {String} attr The name of the attribute (e.g. 'a')
+	   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
+	   * input is ignored for values that are not angle measurements.
+	   */
+	  get(attr, units = 'rad') {
+	    if (units === 'deg') {
+	      return (this._attrs[attr] * 180) / Math.PI;
+	    }
+	    return this._attrs[attr];
+	  }
+
+	  /**
+	   * @private
+	   * Infers values of some ephemerides attributes if the required information
+	   * is available.
+	   */
+	  fill() {
+	    // Longitude/Argument of Perihelion and Long. of Ascending Node
+	    let w = this.get('w');
+	    let wBar = this.get('wBar');
+	    let om = this.get('om');
+	    if (isDef(w) && isDef(om) && !isDef(wBar)) {
+	      wBar = w + om;
+	      this.set('wBar', wBar);
+	    } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
+	      w = wBar - om;
+	      this.set('w', w);
+	    } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
+	      om = wBar - w;
+	      this.set('om', om);
+	    }
+
+	    // Mean motion and period
+	    const a = this.get('a');
+	    const aMeters = a * METERS_IN_AU;
+	    const n = this.get('n');
+	    const GM = this.get('GM');
+	    let period = this.get('period');
+
+	    if (!isDef(period) && isDef(a)) {
+	      period =
+	        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+	        SECONDS_IN_DAY;
+	      this.set('period', period);
+	    }
+
+	    if (isDef(period) && !isDef(n)) {
+	      // Set radians
+	      const newN = (2.0 * Math.PI) / period;
+	      this.set('n', newN);
+	    } else if (isDef(n) && !isDef(period)) {
+	      this.set('period', (2.0 * Math.PI) / n);
+	    }
+
+	    // Mean longitude
+	    const ma = this.get('ma');
+	    let L = this.get('L');
+	    if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
+	      L = om + w + ma;
+	      this.set('L', L);
+	    }
+
+	    // Mean anomaly
+	    if (!isDef(ma)) {
+	      // MA = Mean longitude - Longitude of perihelion
+	      this.set('ma', L - wBar);
+	    }
+
+	    //  TODO(ian): Handle no om
+	  }
+
+	  /**
+	   * Make this ephem object immutable.
+	   */
+	  lock() {
+	    this._locked = true;
+	  }
+
+	  copy() {
+	    return new Ephem(
+	      {
+	        GM: this.get('GM'),
+	        epoch: this.get('epoch'),
+	        a: this.get('a'),
+	        e: this.get('e'),
+	        i: this.get('i'),
+	        om: this.get('om'),
+	        ma: this.get('ma'),
+	        w: this.get('w'),
+	      },
+	      'rad',
+	    );
+	  }
+	}
+
+	/**
+	 * Standard gravitational parameter for objects orbiting these bodies.
+	 * Units in m^3/s^2
+	 */
+	const GM = {
+	  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+	  SUN: 1.3271244004193938e20,
+	  MERCURY: 2.2031780000000021e13,
+	  VENUS: 3.2485859200000006e14,
+	  EARTH_MOON: 4.0350323550225981e14,
+	  MARS: 4.2828375214000022e13,
+	  JUPITER: 1.2671276480000021e17,
+	  SATURN: 3.7940585200000003e16,
+	  URANUS: 5.794548600000008e15,
+	  NEPTUNE: 6.8365271005800236e15,
+	  PLUTO_CHARON: 9.7700000000000068e11,
+	};
+
+	/**
+	 * @ignore
+	 */
+	const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
+
+	/**
+	 * Returns the complete URL to a texture given a basepath and a template url.
+	 * @param {String} template URL containing optional template parameters
+	 * @param {String} basePath Base path
+	 * @example
+	 * getFullUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+	 * => '/path/to/assets/images/mysprite.png'
+	 */
+	function getFullUrl(template, basePath) {
+	  return template
+	    .replace('{{assets}}', `${basePath}/assets`)
+	    .replace('{{data}}', `${basePath}/data`);
+	}
+
+	/**
+	 * Returns the complete URL to a texture given a basepath and a template url.
+	 * @param {String} template URL containing optional template parameters
+	 * @param {String} basePath Base path for simulation data and assets.
+	 * @example
+	 * getFullTextureUrl('{{assets}}/images/mysprite.png', '/path/to/assets')
+	 * => '/path/to/assets/images/mysprite.png'
+	 */
+	function getFullTextureUrl(template, basePath) {
+	  return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
+	}
+
+	/*
+	 * Returns a THREE.js texture given a basepath and a template url.
+	 * @param {String} template URL containing optional template parameters
+	 * @param {String} basePath Base path for simulation data and assets.
+	 */
+	function getThreeJsTexture(template, basePath) {
+	  const fullTextureUrl = getFullTextureUrl(template, basePath);
+	  return new TextureLoader().load(fullTextureUrl);
+	}
+
+	function getDefaultBasePath() {
+	  return window.location.href.indexOf('localhost') > -1
+	    ? '/src/'
+	    : 'https://typpo.github.io/spacekit/src';
+	}
+
+	/**
+	 * A dictionary containing ephemerides of planets and other well-known objects.
+	 * @example
+	 * const planet1 = viz.createObject('planet1', {
+	 *   ephem: EphemPresets.MERCURY,
+	 * });
+	 */
+	const EphemPresets = {
+	  // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+	  MERCURY: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 3.870968969437096e-1,
+	      e: 2.056515875393916e-1,
+	      i: 7.003891682749818,
+	      om: 4.830774804443502e1,
+	      w: 2.917940253442659e1,
+	      ma: 2.56190975209273e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  VENUS: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 7.233458663591554e-1,
+	      e: 6.762510759617694e-3,
+	      i: 3.394567787211735,
+	      om: 7.662534150657346e1,
+	      w: 5.474567447560867e1,
+	      ma: 2.756687596099721e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  EARTH: new Ephem(
+	    {
+	      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+	      /*
+	    epoch: 2451545.0,
+	    a: 1.00000011,
+	    e: 0.01671022,
+	    i: 0.00005,
+	    om: -11.26064,
+	    wBar: 102.94719,
+	    L: 100.46435,
+	    */
+
+	      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+	      epoch: 2451545.0,
+	      a: 1.00000261,
+	      e: 0.01671123,
+	      i: -0.00001531,
+	      om: 0.0,
+	      wBar: 102.93768193,
+	      L: 100.46457166,
+
+	      /*
+	      epoch: 2458426.500000000,
+	      a: 1.000618919441359E+00,
+	      e: 1.676780871638673E-02,
+	      i: 0,
+	      om: 1.888900932218542E+02,
+	      w: 2.718307282052625E+02,
+	      ma: 3.021792498388233E+02,
+	     */
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  MOON: new Ephem(
+	    {
+	      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+	      GM: 0.3986e6,
+
+	      // Geocentric
+	      // https://ssd.jpl.nasa.gov/horizons.cgi#results
+	      epoch: 2458621.5,
+	      a: 2.582517063772124e-3,
+	      e: 4.582543645168888e-2,
+	      i: 5.102060246928811,
+	      om: 1.085916732144811e2,
+	      w: 6.180561793729225e1,
+	      ma: 5.053270083636792e1,
+	      /*
+	     * heliocentric
+	    epoch: 2458621.500000000,
+	    a: 1.078855621785179E+00,
+	    e: 6.333300212090676E-02,
+	    i: 7.211217382317713E-02,
+	    om: 6.722057157026397E+01,
+	    w: 1.503642883585293E+02,
+	    ma: 1.666758688084831E+01,
+	   */
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  MARS: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 1.52371401537107,
+	      e: 9.336741335309606e-2,
+	      i: 1.848141099825311,
+	      om: 4.950420572080223e1,
+	      w: 2.866965847685386e2,
+	      ma: 2.538237617924876e1,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  JUPITER: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 5.20180355911023,
+	      e: 4.89912558249006e-2,
+	      i: 1.303560894624275,
+	      om: 1.005203828847816e2,
+	      w: 2.73736301845404e2,
+	      ma: 2.31939544389401e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  SATURN: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 9.577177295536776,
+	      e: 5.101889921719987e-2,
+	      i: 2.482782449972317,
+	      om: 1.136154964073247e2,
+	      w: 3.394422648650336e2,
+	      ma: 1.870970898012944e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  URANUS: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 1.914496966635462e1,
+	      e: 4.832662948112808e-2,
+	      i: 7.697511134483724e-1,
+	      om: 7.414239045667875e1,
+	      w: 9.942704504702185e1,
+	      ma: 2.202603033874267e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  NEPTUNE: new Ephem(
+	    {
+	      epoch: 2458426.5,
+	      a: 3.00962226342805e1,
+	      e: 7.36257118719377e-3,
+	      i: 1.774569249829094,
+	      om: 1.318695882492132e2,
+	      w: 2.586226409499831e2,
+	      ma: 3.152804988924479e2,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	  PLUTO: new Ephem(
+	    {
+	      epoch: 2454000.5,
+	      a: 39.4450697257,
+	      e: 0.250248713478,
+	      i: 17.0890009196,
+	      om: 110.376957955,
+	      w: 112.597141677,
+	      ma: 25.2471897122,
+	    },
+	    'deg',
+	    true /* locked */,
+	  ),
+	};
+
+	/**
+	 * A class for fetching orbital elements of natural satellites in our solar
+	 * system.
+	 */
+	class NaturalSatellites {
+	  constructor(contextOrSimulation) {
+	    {
+	      // User passed in Simulation
+	      this._simulation = contextOrSimulation;
+	      this._context = contextOrSimulation.getContext();
+	    }
+
+	    this._satellitesByPlanet = {};
+	    this._readyPromise = null;
+
+	    this.init();
+	  }
+
+	  init() {
+	    const dataUrl = getFullUrl(
+	      '{{data}}/processed/natural-satellites.json',
+	      this._context.options.basePath,
+	    );
+
+	    this._readyPromise = new Promise((resolve, reject) => {
+	      fetch(dataUrl)
+	        .then(resp => resp.json())
+	        .then(moons => {
+	          moons.forEach(moon => {
+	            const planetName = moon.Planet.toLowerCase();
+	            if (!this._satellitesByPlanet[planetName]) {
+	              this._satellitesByPlanet[planetName] = [];
+	            }
+	            switch (moon['Element Type']) {
+	              case 'Ecliptic':
+	                // Don't have to do anything
+	                break;
+	              case 'Equatorial':
+	                break;
+	              case 'Laplace':
+	                break;
+	              default:
+	                console.error(
+	                  'Unknown element type in natural satellites object:',
+	                  moon,
+	                );
+	                return;
+	            }
+
+	            let ephemGM;
+	            switch (moon.Planet) {
+	              case 'Earth':
+	                ephemGM = GM.EARTH_MOON;
+	                break;
+	              case 'Pluto':
+	                ephemGM = GM.PLUTO_CHARON;
+	                break;
+	              default:
+	                ephemGM = GM[moon.Planet.toUpperCase()];
+	            }
+	            if (!ephemGM) {
+	              console.error(`Could not look up GM for ${moon.Planet}`);
+	            }
+
+	            const ephem = new Ephem(
+	              {
+	                GM: ephemGM,
+	                epoch: moon['Epoch JD'],
+	                a: kmToAu(moon.a),
+	                e: parseFloat(moon.e),
+	                i: parseFloat(moon.i),
+	                w: parseFloat(moon.w),
+	                om: parseFloat(moon.node),
+	                ma: parseFloat(moon.M),
+	              },
+	              'deg',
+	              true /* locked */,
+	            );
+
+	            this._satellitesByPlanet[planetName].push({
+	              name: moon['Sat.'],
+	              elementType: moon['Element Type'],
+	              tags: new Set(moon['tags'].split(',')),
+	              ephem,
+	            });
+	          });
+	          console.info('Loaded', moons.length, 'natural satellites');
+	          resolve(this);
+	        })
+	        .catch(err => {
+	          reject(err);
+	        });
+	    });
+	  }
+
+	  /**
+	   * Get a list of satellites and their orbital elements for a given planet.
+	   * @param {String} planetName Name of a planet, e.g. "Jupiter"
+	   * @return {Object} List containing a list of dictionaries with information
+	   * on each satellite.
+	   */
+	  getSatellitesForPlanet(planetName) {
+	    return this._satellitesByPlanet[planetName.toLowerCase()];
+	  }
+
+	  load() {
+	    return this._readyPromise;
+	  }
+	}
+
+	/**
+	 * A class that builds a visual representation of a Kepler orbit.
+	 * @example
+	 * const orbit = new Spacekit.Orbit({
+	 *   ephem: new Spacekit.Ephem({...}),
+	 *   options: {
+	 *     color: 0xFFFFFF,
+	 *     eclipticLineColor: 0xCCCCCC,
+	 *   },
+	 * });
+	 */
+	class Orbit {
+	  /**
+	   * @param {Ephem} ephem The ephemerides that define this orbit.
+	   * @param {Object} options
+	   * @param {Object} options.color The color of the orbital ellipse.
+	   * @param {Object} options.eclipticLineColor The color of lines drawn
+	   * perpendicular to the ecliptic in order to illustrate depth (defaults to
+	   * 0x333333).
+	   */
+	  constructor(ephem, options) {
+	    /**
+	     * Ephem object
+	     * @type {Ephem}
+	     */
+	    this._ephem = ephem;
+
+	    /**
+	     * Options (see class definition for details)
+	     */
+	    this._options = options || {};
+
+	    /**
+	     * Cached orbital points.
+	     * @type {Array.<THREE.Vector3>}
+	     */
+	    this._points = null;
+
+	    /**
+	     * Cached ellipse.
+	     * @type {THREE.Line}
+	     */
+	    this._ellipse = null;
+	  }
+
+	  /**
+	   * @private
+	   * @return {Array.<THREE.Vector3>} List of points
+	   */
+	  getOrbitPoints() {
+	    if (this._points) {
+	      return this._points;
+	    }
+
+	    const eph = this._ephem;
+
+	    const period = eph.get('period');
+	    const ecc = eph.get('e');
+	    // const minSegments = ecc > 0.4 ? 100 : 50;
+	    const minSegments = 360;
+	    const numSegments = Math.max(period / 2, minSegments);
+	    const step = period / numSegments;
+
+	    const pts = [];
+	    let prevPos;
+	    for (let time = 0; time < period; time += step) {
+	      const pos = this.getPositionAtTime(time);
+	      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
+	        console.error(
+	          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
+	        );
+	        console.error(eph);
+	      }
+	      const vector = new Vector3(pos[0], pos[1], pos[2]);
+	      if (
+	        prevPos &&
+	        Math.abs(prevPos[0] - pos[0]) +
+	          Math.abs(prevPos[1] - pos[1]) +
+	          Math.abs(prevPos[2] - pos[2]) >
+	          120
+	      ) {
+	        // Don't render bogus or very large ellipses.
+	        points.vertices = [];
+	        return points;
+	      }
+	      prevPos = pos;
+	      pts.push(vector);
+	    }
+	    pts.push(pts[0]);
+
+	    this._points = new Geometry();
+	    this._points.vertices = pts;
+
+	    return this._points;
+	  }
+
+	  /**
+	   * Get heliocentric position of object at a given JD.
+	   * @param {Number} jd Date value in JD.
+	   * @param {boolean} debug Set true for debug output.
+	   * @return {Array.<Number>} [X, Y, Z] coordinates
+	   */
+	  getPositionAtTime(jd, debug) {
+	    // Note: logic below must match the vertex shader.
+
+	    const pi = Math.PI;
+	    const sin = Math.sin;
+	    const cos = Math.cos;
+
+	    const eph = this._ephem;
+
+	    // This position calculation is used to create orbital ellipses.
+	    let e = eph.get('e');
+	    if (e >= 1) {
+	      e = 0.9;
+	    }
+
+	    // Mean anomaly
+	    const ma = eph.get('ma', 'rad');
+
+	    // Calculate mean anomaly at jd
+	    const n = eph.get('n', 'rad');
+	    const epoch = eph.get('epoch');
+	    const d = jd - epoch;
+
+	    const M = ma + n * d;
+	    if (debug) {
+	      console.info('period=', eph.get('period'));
+	      console.info('n=', n);
+	      console.info('ma=', ma);
+	      console.info('d=', d);
+	      console.info('M=', M);
+	    }
+
+	    // Estimate eccentric and true anom using iterative approx
+	    let E0 = M;
+	    let lastdiff;
+	    for (let count = 0; count < 100; count++) {
+	      const E1 = M + e * sin(E0);
+	      lastdiff = Math.abs(E1 - E0);
+	      E0 = E1;
+
+	      if (lastdiff < 0.0000001) {
+	        break;
+	      }
+	    }
+	    const E = E0;
+	    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+
+	    // Radius vector, in AU
+	    const a = eph.get('a');
+	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+	    // Inclination, Longitude of ascending node, Longitude of perihelion
+	    const i = eph.get('i', 'rad');
+	    const o = eph.get('om', 'rad');
+	    const p = eph.get('wBar', 'rad');
+
+	    // Heliocentric coords
+	    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
+	    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
+	    const Z = r * (sin(v + p - o) * sin(i));
+	    return rescaleXYZ(X, Y, Z);
+	  }
+
+	  /**
+	   * @return {THREE.Line} The ellipse object that represents this orbit.
+	   */
+	  getEllipse() {
+	    if (!this._ellipse) {
+	      const pointGeometry = this.getOrbitPoints();
+	      this._ellipse = new Line(
+	        pointGeometry,
+	        new LineBasicMaterial({
+	          color: this._options.color,
+	        }),
+	        LineStrip,
+	      );
+	    }
+	    return this._ellipse;
+	  }
+
+	  /**
+	   * A geometry containing line segments that run between the orbit ellipse and
+	   * the ecliptic plane of the solar system. This is a useful visual effect
+	   * that makes it easy to tell when an orbit goes below or above the ecliptic
+	   * plane.
+	   * @return {THREE.Geometry} A geometry with many line segments.
+	   */
+	  getLinesToEcliptic() {
+	    const points = this.getOrbitPoints();
+	    const geometry = new Geometry();
+
+	    points.vertices.forEach(vertex => {
+	      geometry.vertices.push(vertex);
+	      geometry.vertices.push(new Vector3(vertex.x, vertex.y, 0));
+	    });
+
+	    return new LineSegments(
+	      geometry,
+	      new LineBasicMaterial({
+	        color: this._options.eclipticLineColor || 0x333333,
+	      }),
+	      LineStrip,
+	    );
+	  }
+
+	  /**
+	   * Get the color of this orbit.
+	   * @return {Number} The hexadecimal color of the orbital ellipse.
+	   */
+	  getHexColor() {
+	    return this._ellipse.material.color.getHex();
+	  }
+
+	  /**
+	   * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
+	   */
+	  setHexColor(hexVal) {
+	    this._ellipse.material.color = new Color(hexVal);
+	  }
+
+	  /**
+	   * Get the visibility of this orbit.
+	   * @return {boolean} Whether the orbital ellipse is visible. Note that
+	   * although the ellipse may not be visible, it is still present in the
+	   * underlying Scene and Simultation.
+	   */
+	  getVisibility() {
+	    return this._ellipse.visible;
+	  }
+
+	  /**
+	   * Change the visibility of this orbit.
+	   * @param {boolean} val Whether to show the orbital ellipse.
+	   */
+	  setVisibility(val) {
+	    this._ellipse.visible = val;
+	  }
+	}
+
+	var julian = convert;
+	var toDate = convertToDate;
+
+	var toJulianDay_1 = toJulianDay;
+	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
+	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
+
+	var DAY = 86400000;
+	var HALF_DAY = DAY / 2;
+	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
+	var UNIX_EPOCH_JULIAN_DAY = 2440587;
+
+	function convert(date) {
+	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
+	}
+	function convertToDate(julian) {
+	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
+	}
+	function toJulianDay(date) {
+	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
+	}
+	function toMillisecondsInJulianDay(date) {
+	  return (+date + HALF_DAY) % DAY;
+	}
+	function fromJulianDayAndMilliseconds(day, ms) {
+	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
+	}julian.toDate = toDate;
+	julian.toJulianDay = toJulianDay_1;
+	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
+	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
+
 	/**
 	 * @author mrdoob / http://mrdoob.com/
 	 */
@@ -52155,7 +52244,7 @@ var Spacekit = (function (exports) {
 	      vertexShader: getOrbitShaderVertex(),
 	      fragmentShader: getOrbitShaderFragment(),
 
-	      depthTest: false,
+	      depthTest: true,
 	      transparent: true,
 	    });
 
@@ -53137,6 +53226,8 @@ var Spacekit = (function (exports) {
 	      this._context = contextOrSimulation.getContext();
 	    }
 
+	    this._renderMethod = null;
+
 	    this._label = null;
 	    this._showLabel = false;
 	    this._lastLabelUpdate = 0;
@@ -53169,14 +53260,36 @@ var Spacekit = (function (exports) {
 	   * child classes).
 	   */
 	  init() {
+	    this.renderObject();
+
+	    if (this._options.labelText) {
+	      const labelElt = this.createLabel();
+	      this._simulation.getSimulationElement().appendChild(labelElt);
+	      this._label = labelElt;
+	      this._showLabel = true;
+	    }
+	    this._initialized = true;
+	    return true;
+	  }
+
+	  /**
+	   * @private
+	   * Build the THREE.js object for this SpaceObject.
+	   */
+	  renderObject() {
 	    if (this.isStaticObject()) {
-	      // Create a stationary sprite.
-	      this._object3js = this.createSprite();
-	      if (this._simulation) {
-	        // Add it all to visualization.
-	        this._simulation.addObject(this, false /* noUpdate */);
+	      if (this._renderMethod !== 'SPHERE') {
+	        // TODO(ian): It kinda sucks to have SpaceObject care about
+	        // SphereObject like this.
+
+	        // Create a stationary sprite.
+	        this._object3js = this.createSprite();
+	        if (this._simulation) {
+	          // Add it all to visualization.
+	          this._simulation.addObject(this, false /* noUpdate */);
+	        }
+	        this._renderMethod = 'SPRITE';
 	      }
-	      this._renderMethod = 'SPRITE';
 	    } else {
 	      if (!this._options.hideOrbit) {
 	        // Orbit is initialized before sprite because sprite may be positioned
@@ -53199,14 +53312,6 @@ var Spacekit = (function (exports) {
 	      );
 	      this._renderMethod = 'PARTICLESYSTEM';
 	    }
-	    if (this._options.labelText) {
-	      const labelElt = this.createLabel();
-	      this._simulation.getSimulationElement().appendChild(labelElt);
-	      this._label = labelElt;
-	      this._showLabel = true;
-	    }
-	    this._initialized = true;
-	    return true;
 	  }
 
 	  /**
@@ -53247,7 +53352,11 @@ var Spacekit = (function (exports) {
 	  updateLabelPosition(newpos) {
 	    const label = this._label;
 	    const simulationElt = this._simulation.getSimulationElement();
-	    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+	    const pos = toScreenXY(
+	      newpos,
+	      this._simulation.getViewer().get3jsCamera(),
+	      simulationElt,
+	    );
 	    const loc = {
 	      left: pos.x - 30,
 	      top: pos.y - 25,
@@ -53455,7 +53564,9 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Gets the THREE.js objects that represent this SpaceObject.
+	   * Gets the THREE.js objects that represent this SpaceObject.  The first
+	   * object returned is the primary object.  Other objects may be returned,
+	   * such as rings, ellipses, etc.
 	   * @return {Array.<THREE.Object>} A list of THREE.js objects
 	   */
 	  get3jsObjects() {
@@ -53640,8 +53751,8 @@ var Spacekit = (function (exports) {
 	  const geom = new Geometry();
 	  const mat = new LineBasicMaterial({ linewidth: 3, color });
 
-	  geom.vertices.push(src.clone());
-	  geom.vertices.push(dst.clone());
+	  geom.vertices.push(rescaleVector(src).clone());
+	  geom.vertices.push(rescaleVector(dst).clone());
 
 	  const axis = new Line(geom, mat, LineSegments);
 	  axis.computeLineDistances();
@@ -53674,8 +53785,8 @@ var Spacekit = (function (exports) {
 	   * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
 	   * @see SpaceObject
 	   */
-	  constructor(id, options, contextOrSimulation) {
-	    super(id, options, contextOrSimulation, false /* autoInit */);
+	  constructor(id, options, contextOrSimulation, autoInit = true) {
+	    super(id, options, contextOrSimulation, autoInit);
 
 	    // The THREE.js object
 	    this._obj = new Object3D();
@@ -53692,7 +53803,9 @@ var Spacekit = (function (exports) {
 	    // Keep track of materials that comprise this object.
 	    this._materials = [];
 
-	    this.init();
+	    if (autoInit) {
+	      this.init();
+	    }
 	  }
 
 	  init() {
@@ -53711,6 +53824,8 @@ var Spacekit = (function (exports) {
 	        this._obj.add(gridHelper);
 	      }
 	    }
+
+	    super.init();
 	  }
 
 	  initRotation() {
@@ -53779,6 +53894,8 @@ var Spacekit = (function (exports) {
 	    // this._obj.rotateZ(0.015)
 	    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
 	    // TODO(ian): Update position if there is an associated orbit
+
+	    super.update(jd);
 	  }
 
 	  /**
@@ -53787,7 +53904,8 @@ var Spacekit = (function (exports) {
 	   */
 	  get3jsObjects() {
 	    const ret = super.get3jsObjects();
-	    ret.push(this._obj);
+	    // Add to the front, because this is the primary object.
+	    ret.unshift(this._obj);
 	    return ret;
 	  }
 
@@ -53987,8 +54105,6 @@ var Spacekit = (function (exports) {
 	  },
 	};
 
-	const NUM_SPHERE_SEGMENTS = 128;
-
 	/**
 	 * Simulates a planet or other object as a perfect sphere.
 	 */
@@ -54000,6 +54116,9 @@ var Spacekit = (function (exports) {
 	   * @param {Number} options.color Hex color of the sphere
 	   * @param {Number} options.radius Radius of sphere. Defaults to 1
 	   * @param {Object} options.debug Debug options
+	   * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
+	   * y}, where `threshold` is radii distance and `segments` is the number
+	   * number of sphere faces to render.
 	   * @param {boolean} options.debug.showAxes Show axes
 	   * @see SpaceObject
 	   * @see RotatingObject
@@ -54007,10 +54126,10 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation) {
 	    super(id, options, contextOrSimulation, false /* autoInit */);
 
-	    this.initSphere();
+	    this.init();
 	  }
 
-	  initSphere() {
+	  init() {
 	    let map;
 	    if (this._options.textureUrl) {
 	      map = new TextureLoader().load(this._options.textureUrl);
@@ -54019,40 +54138,65 @@ var Spacekit = (function (exports) {
 
 	    // TODO(ian): Clouds and rings
 
-	    const sphereGeometry = new SphereGeometry(
-	      rescaleNumber(this._options.radius || 1),
-	      NUM_SPHERE_SEGMENTS,
-	      NUM_SPHERE_SEGMENTS,
-	    );
-	    const mesh = new Mesh(
-	      sphereGeometry,
-	      // new THREE.MeshPhongMaterial({
-	      new MeshBasicMaterial({
-	        map,
-	        color: this._options.color || 0xbbbbbb,
-	        // specular: 0x111111,
-	        // shininess: 1,
-	        // shininess: 0,
-	        // bumpMap:     map,
-	        // bumpScale:   0.02,
-	        // specularMap: map,
-	        // specular:    new THREE.Color('grey')
-	        // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
-	        // bumpScale:   0.005,
-	      }),
-	    );
+	    const detailedObj = new LOD();
+	    const levelsOfDetail = this._options.levelsOfDetail || [
+	      { radii: 0, segments: 64 },
+	    ];
+	    const radius = rescaleNumber(this._options.radius || 1);
 
-	    // Change the coordinate system to have Z-axis pointed up.
-	    mesh.rotation.x = Math.PI / 2;
+	    for (let i = 0; i < levelsOfDetail.length; i += 1) {
+	      const level = levelsOfDetail[i];
+	      const sphereGeometry = new SphereGeometry(
+	        radius,
+	        level.segments,
+	        level.segments,
+	      );
+	      const mesh = new Mesh(
+	        sphereGeometry,
+	        // new THREE.MeshPhongMaterial({
+	        new MeshBasicMaterial({
+	          map,
+	          color: this._options.color || 0xbbbbbb,
+	          // specular: 0x111111,
+	          // shininess: 1,
+	          // shininess: 0,
+	          // bumpMap:     map,
+	          // bumpScale:   0.02,
+	          // specularMap: map,
+	          // specular:    new THREE.Color('grey')
+	          // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
+	          // bumpScale:   0.005,
+	        }),
+	      );
 
-	    this._obj.add(mesh);
+	      // Change the coordinate system to have Z-axis pointed up.
+	      mesh.rotation.x = Math.PI / 2;
+
+	      // Show this number of segments at distance >= radii * level.radii.
+	      detailedObj.addLevel(mesh, radius * level.radii);
+	    }
+
+	    // Add to the parent base object.
+	    this._obj.add(detailedObj);
+
+	    this._renderMethod = 'SPHERE';
 
 	    if (this._simulation) {
 	      // Add it all to visualization.
 	      this._simulation.addObject(this, false /* noUpdate */);
 	    }
 
-	    this._initialized = true;
+	    super.init();
+	  }
+
+	  /**
+	   * Update the location of this object at a given time. Note that this is
+	   * computed on CPU.
+	   */
+	  update(jd) {
+	    const newpos = this.getPosition(jd);
+	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
+	    super.update(jd);
 	  }
 	}
 
@@ -54292,7 +54436,6 @@ var Spacekit = (function (exports) {
 	    }
 
 	    this._camera = null;
-	    this._cameraControls = null;
 
 	    this._subscribedObjects = {};
 	    this._particles = null;
@@ -54330,25 +54473,16 @@ var Spacekit = (function (exports) {
 	    this._scene = scene;
 
 	    // Camera
-	    this._camera = new Camera$1(this.getContext()).get3jsCamera();
-	    this._camera.position.set(
-	      this._cameraDefaultPos[0],
-	      this._cameraDefaultPos[1],
-	      this._cameraDefaultPos[2],
-	    );
-	    window.cam = this._camera;
-
-	    // Controls
-	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
-	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-	    this._cameraControls = new OrbitControls(this._camera, this._simulationElt);
-	    this._cameraControls.zoomSpeed = 1.5;
-	    this._cameraControls.userPanSpeed = 20;
-	    this._cameraControls.rotateSpeed = 2;
-	    this._cameraControls.touches = {
-	      ONE: TOUCH.ROTATE,
-	      TWO: TOUCH.DOLLY_ROTATE,
-	    };
+	    const camera = new Camera$1(this.getContext());
+	    camera
+	      .get3jsCamera()
+	      .position.set(
+	        this._cameraDefaultPos[0],
+	        this._cameraDefaultPos[1],
+	        this._cameraDefaultPos[2],
+	      );
+	    window.cam = camera.get3jsCamera();
+	    this._camera = camera;
 
 	    // Events
 	    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
@@ -54394,6 +54528,7 @@ var Spacekit = (function (exports) {
 	  initRenderer() {
 	    const renderer = new WebGLRenderer({
 	      antialias: true,
+	      logarithmicDepthBuffer: true,
 	    });
 
 	    const maxPrecision = renderer.capabilities.getMaxPrecision();
@@ -54427,13 +54562,15 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
+	   * TODO(ian): Move this into Camera
 	   */
 	  doCameraDrift() {
 	    // Follow floating path around
 	    const timer = 0.0001 * Date.now();
 	    const pos = this._cameraDefaultPos;
-	    this._camera.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
-	    this._camera.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
+	    const cam = this._camera.get3jsCamera();
+	    cam.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
+	    cam.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
 	  }
 
 	  /**
@@ -54470,12 +54607,10 @@ var Spacekit = (function (exports) {
 	    if (this._enableCameraDrift) {
 	      this.doCameraDrift();
 	    }
-
-	    // Handle trackball movements
-	    this._cameraControls.update();
+	    this._camera.update();
 
 	    // Update three.js scene
-	    this._renderer.render(this._scene, this._camera);
+	    this._renderer.render(this._scene, this._camera.get3jsCamera());
 
 	    if (this.onTick) {
 	      this.onTick();
@@ -54587,8 +54722,9 @@ var Spacekit = (function (exports) {
 	    if (typeof pos !== 'undefined') {
 	      pointLight.position.set(pos[0], pos[1], pos[2]);
 	    } else {
-	      this._cameraControls.addEventListener('change', () => {
-	        pointLight.position.copy(this._camera.position);
+	      // The light comes from the camera.
+	      this._camera.get3jsCameraControls().addEventListener('change', () => {
+	        pointLight.position.copy(this._camera.get3jsCamera().position);
 	      });
 	    }
 	    this._scene.add(pointLight);
@@ -54694,7 +54830,7 @@ var Spacekit = (function (exports) {
 	    boundingBox.getSize(size);
 
 	    // Get the max side of the bounding box (fits to width OR height as needed)
-	    const camera = this._camera;
+	    const camera = this._camera.get3jsCamera();
 	    const maxDim = Math.max(size.x, size.y, size.z);
 	    const fov = camera.fov * (Math.PI / 180);
 	    const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
@@ -54831,10 +54967,10 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Get the three.js camera
-	   * @return {THREE.Camera} The THREE.js camera object
+	   * Get the Camera and CameraControls wrapper object
+	   * @return {Camera} The Camera wrapper
 	   */
-	  getCamera() {
+	  getViewer() {
 	    return this._camera;
 	  }
 
@@ -54844,14 +54980,6 @@ var Spacekit = (function (exports) {
 	   */
 	  getScene() {
 	    return this._scene;
-	  }
-
-	  /**
-	   * Get the three.js controls
-	   * @return {THREE.TrackballControls} THREE.js controls object
-	   */
-	  getControls() {
-	    return this._cameraControls;
 	  }
 
 	  /**

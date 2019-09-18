@@ -97,6 +97,8 @@ export class SpaceObject {
       this._context = contextOrSimulation;
     }
 
+    this._renderMethod = null;
+
     this._label = null;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
@@ -129,14 +131,36 @@ export class SpaceObject {
    * child classes).
    */
   init() {
+    this.renderObject();
+
+    if (this._options.labelText) {
+      const labelElt = this.createLabel();
+      this._simulation.getSimulationElement().appendChild(labelElt);
+      this._label = labelElt;
+      this._showLabel = true;
+    }
+    this._initialized = true;
+    return true;
+  }
+
+  /**
+   * @private
+   * Build the THREE.js object for this SpaceObject.
+   */
+  renderObject() {
     if (this.isStaticObject()) {
-      // Create a stationary sprite.
-      this._object3js = this.createSprite();
-      if (this._simulation) {
-        // Add it all to visualization.
-        this._simulation.addObject(this, false /* noUpdate */);
+      if (this._renderMethod !== 'SPHERE') {
+        // TODO(ian): It kinda sucks to have SpaceObject care about
+        // SphereObject like this.
+
+        // Create a stationary sprite.
+        this._object3js = this.createSprite();
+        if (this._simulation) {
+          // Add it all to visualization.
+          this._simulation.addObject(this, false /* noUpdate */);
+        }
+        this._renderMethod = 'SPRITE';
       }
-      this._renderMethod = 'SPRITE';
     } else {
       if (!this._options.hideOrbit) {
         // Orbit is initialized before sprite because sprite may be positioned
@@ -159,14 +183,6 @@ export class SpaceObject {
       );
       this._renderMethod = 'PARTICLESYSTEM';
     }
-    if (this._options.labelText) {
-      const labelElt = this.createLabel();
-      this._simulation.getSimulationElement().appendChild(labelElt);
-      this._label = labelElt;
-      this._showLabel = true;
-    }
-    this._initialized = true;
-    return true;
   }
 
   /**
@@ -207,7 +223,11 @@ export class SpaceObject {
   updateLabelPosition(newpos) {
     const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
-    const pos = toScreenXY(newpos, this._simulation.getCamera(), simulationElt);
+    const pos = toScreenXY(
+      newpos,
+      this._simulation.getViewer().get3jsCamera(),
+      simulationElt,
+    );
     const loc = {
       left: pos.x - 30,
       top: pos.y - 25,
@@ -415,7 +435,9 @@ export class SpaceObject {
   }
 
   /**
-   * Gets the THREE.js objects that represent this SpaceObject.
+   * Gets the THREE.js objects that represent this SpaceObject.  The first
+   * object returned is the primary object.  Other objects may be returned,
+   * such as rings, ellipses, etc.
    * @return {Array.<THREE.Object>} A list of THREE.js objects
    */
   get3jsObjects() {

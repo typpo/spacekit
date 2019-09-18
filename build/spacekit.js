@@ -53248,7 +53248,6 @@ var Spacekit = (function (exports) {
 	   * child classes).
 	   */
 	  init() {
-	    console.log('init', this._id);
 	    this.renderObject();
 
 	    if (this._options.labelText) {
@@ -53258,7 +53257,6 @@ var Spacekit = (function (exports) {
 	      this._showLabel = true;
 	    }
 	    this._initialized = true;
-	    console.log('render', this._id, this._renderMethod);
 	    return true;
 	  }
 
@@ -54130,7 +54128,7 @@ var Spacekit = (function (exports) {
 	    ];
 	    const radius = rescaleNumber(this._options.radius || 1);
 
-	    for (let i = 0; i < levelsOfDetail.length; i++) {
+	    for (let i = 0; i < levelsOfDetail.length; i += 1) {
 	      const level = levelsOfDetail[i];
 	      const sphereGeometry = new SphereGeometry(
 	        radius,
@@ -54420,7 +54418,6 @@ var Spacekit = (function (exports) {
 	    this._camera = null;
 
 	    this._subscribedObjects = {};
-	    this._addedObjects = new Set();
 	    this._particles = null;
 
 	    this._renderEnabled = true;
@@ -54613,10 +54610,7 @@ var Spacekit = (function (exports) {
 	   */
 	  addObject(obj, noUpdate = false) {
 	    obj.get3jsObjects().map(x => {
-	      if (!this._addedObjects.has(x.uuid)) {
-	        this._scene.add(x);
-	        this._addedObjects.add(x.uuid);
-	      }
+	      this._scene.add(x);
 	    });
 
 	    if (!noUpdate) {
@@ -54633,7 +54627,6 @@ var Spacekit = (function (exports) {
 	    // TODO(ian): test this and avoid memory leaks...
 	    obj.get3jsObjects().map(x => {
 	      this._scene.remove(x);
-	      this._addedObjects.remove(x.uuid);
 	    });
 
 	    delete this._subscribedObjects[obj.getId()];

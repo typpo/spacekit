@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { RotatingObject } from './RotatingObject';
-import { rescaleNumber, getScaleFactor } from './Scale';
+import { rescaleNumber } from './Scale';
 
 /**
  * Simulates a planet or other object as a perfect sphere.
@@ -42,7 +42,7 @@ export class SphereObject extends RotatingObject {
     ];
     const radius = rescaleNumber(this._options.radius || 1);
 
-    for (let i = 0; i < levelsOfDetail.length; i++) {
+    for (let i = 0; i < levelsOfDetail.length; i += 1) {
       const level = levelsOfDetail[i];
       const sphereGeometry = new THREE.SphereGeometry(
         radius,

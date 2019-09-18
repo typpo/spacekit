@@ -131,7 +131,6 @@ export class SpaceObject {
    * child classes).
    */
   init() {
-    console.log('init', this._id);
     this.renderObject();
 
     if (this._options.labelText) {
@@ -141,7 +140,6 @@ export class SpaceObject {
       this._showLabel = true;
     }
     this._initialized = true;
-    console.log('render', this._id, this._renderMethod);
     return true;
   }
 

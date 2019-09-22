@@ -125,7 +125,7 @@ viz.getViewer().get3jsCameraControls().target = new THREE.Vector3(
 );
 
 // Add some light.
-viz.createLight();
+viz.createLight([0, 0, 0]);
 viz.createAmbientLight();
 
 const scene = viz.getScene();

@@ -156,22 +156,64 @@ export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
 `;
 
 export const ATMOSPHERE_SHADER_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
   varying vec3 vNormal;
+
   void main() {
-    vNormal = normalize(normalMatrix * normal);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    //vNormal = normalize(normalMatrix * normal);
+    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+    vUv = uv;
+    // Since the light is in camera coordinates,
+    // I'll need the vertex position in camera coords too
+    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    // That's NOT exacly how you should transform your
+    // normals but this will work fine, since my model
+    // matrix is pretty basic
+    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
+    gl_Position = projectionMatrix *
+                  vec4(vecPos, 1.0);
   }
 `;
 
+// With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material
 export const ATMOSPHERE_SHADER_FRAGMENT = `
   uniform float c;
   uniform float p;
   uniform vec3 color;
 
-  varying vec3 vNormal;
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+
+  struct PointLight {
+    vec3 color;
+    vec3 position; // light position, in camera coordinates
+    float distance; // used for attenuation purposes. Since
+                    // we're writing our own shader, it can
+                    // really be anything we want (as long as
+                    // we assign it to our light in its
+                    // "distance" field
+  };
+
+  uniform PointLight pointLights[NUM_POINT_LIGHTS];
 
   void main() {
-    float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
-    gl_FragColor = vec4(color, 1.0) * intensity;
+    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    //gl_FragColor = vec4(color, 1.0) * intensity;
+
+    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
+
+    // Pretty basic lambertian lighting...
+    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
+    for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
+        vec3 lightDirection = normalize(vecPos - pointLights[l].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * pointLights[l].color
+                           * 1.0 /* intensity */;
+    }
+    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
 `;

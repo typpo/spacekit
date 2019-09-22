@@ -9,6 +9,8 @@ viz.createStars();
 
 // Create our first object - the sun - using a preset space object.
 viz.createObject('sun', Spacekit.SpaceObjectPresets.SUN);
+viz.createAmbientLight();
+viz.createLight([0, 0, 0]);
 
 // Then add some planets
 viz.createObject('mercury', Spacekit.SpaceObjectPresets.MERCURY);

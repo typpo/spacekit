@@ -11,7 +11,7 @@ import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
-import { setScaleFactor, rescaleArray } from './Scale';
+import { setScaleFactor, rescaleArray, rescaleNumber } from './Scale';
 
 /**
  * The main entrypoint of a visualization.
@@ -394,7 +394,12 @@ export class Simulation {
    * @param {Number} color Color of light, default 0xFFFFFF
    */
   createLight(pos = undefined, color = 0xffffff) {
-    const pointLight = new THREE.PointLight(color, 1, 0, 2);
+    const pointLight = new THREE.PointLight(
+      color,
+      1 /* intensity */,
+      rescaleNumber(0) /* distance */,
+      rescaleNumber(2) /* decay */,
+    );
     if (typeof pos !== 'undefined') {
       pointLight.position.set(pos[0], pos[1], pos[2]);
     } else {

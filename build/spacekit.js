@@ -52130,23 +52130,65 @@ var Spacekit = (function (exports) {
 `;
 
 	const ATMOSPHERE_SHADER_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
   varying vec3 vNormal;
+
   void main() {
-    vNormal = normalize(normalMatrix * normal);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    //vNormal = normalize(normalMatrix * normal);
+    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+    vUv = uv;
+    // Since the light is in camera coordinates,
+    // I'll need the vertex position in camera coords too
+    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    // That's NOT exacly how you should transform your
+    // normals but this will work fine, since my model
+    // matrix is pretty basic
+    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
+    gl_Position = projectionMatrix *
+                  vec4(vecPos, 1.0);
   }
 `;
 
+	// With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material
 	const ATMOSPHERE_SHADER_FRAGMENT = `
   uniform float c;
   uniform float p;
   uniform vec3 color;
 
-  varying vec3 vNormal;
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+
+  struct PointLight {
+    vec3 color;
+    vec3 position; // light position, in camera coordinates
+    float distance; // used for attenuation purposes. Since
+                    // we're writing our own shader, it can
+                    // really be anything we want (as long as
+                    // we assign it to our light in its
+                    // "distance" field
+  };
+
+  uniform PointLight pointLights[NUM_POINT_LIGHTS];
 
   void main() {
-    float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
-    gl_FragColor = vec4(color, 1.0) * intensity;
+    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    //gl_FragColor = vec4(color, 1.0) * intensity;
+
+    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
+
+    // Pretty basic lambertian lighting...
+    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
+    for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
+        vec3 lightDirection = normalize(vecPos - pointLights[l].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * pointLights[l].color
+                           * 1.0 /* intensity */;
+    }
+    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
 `;
 
@@ -54181,13 +54223,11 @@ var Spacekit = (function (exports) {
 	      );
 	      const mesh = new Mesh(
 	        sphereGeometry,
-	        // new THREE.MeshPhongMaterial({
-	        new MeshBasicMaterial({
+	        new MeshLambertMaterial({
 	          map,
 	          color: this._options.color || 0xbbbbbb,
+	          reflectivity: 0.5,
 	          // specular: 0x111111,
-	          // shininess: 1,
-	          // shininess: 0,
 	          // bumpMap:     map,
 	          // bumpScale:   0.02,
 	          // specularMap: map,
@@ -54256,11 +54296,15 @@ var Spacekit = (function (exports) {
 	    const mesh = new Mesh(
 	      geometry,
 	      new ShaderMaterial({
-	        uniforms: {
-	          c: { value: coefficient },
-	          p: { value: power },
-	          color: { value: color },
-	        },
+	        uniforms: UniformsUtils.merge([
+	          UniformsLib.ambient,
+	          UniformsLib.lights,
+	          {
+	            c: { value: coefficient },
+	            p: { value: power },
+	            color: { value: color },
+	          },
+	        ]),
 	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
 	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
 	        //side: THREE.FrontSide,
@@ -54268,6 +54312,7 @@ var Spacekit = (function (exports) {
 	        //blending: THREE.AdditiveBlending,
 	        transparent: true,
 	        depthWrite: false,
+	        lights: true,
 	      }),
 	    );
 	    return mesh;
@@ -54802,7 +54847,12 @@ var Spacekit = (function (exports) {
 	   * @param {Number} color Color of light, default 0xFFFFFF
 	   */
 	  createLight(pos = undefined, color = 0xffffff) {
-	    const pointLight = new PointLight(color, 1, 0, 2);
+	    const pointLight = new PointLight(
+	      color,
+	      1 /* intensity */,
+	      rescaleNumber(0) /* distance */,
+	      rescaleNumber(2) /* decay */,
+	    );
 	    if (typeof pos !== 'undefined') {
 	      pointLight.position.set(pos[0], pos[1], pos[2]);
 	    } else {

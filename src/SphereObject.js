@@ -63,13 +63,11 @@ export class SphereObject extends RotatingObject {
       );
       const mesh = new THREE.Mesh(
         sphereGeometry,
-        // new THREE.MeshPhongMaterial({
-        new THREE.MeshBasicMaterial({
+        new THREE.MeshLambertMaterial({
           map,
           color: this._options.color || 0xbbbbbb,
+          reflectivity: 0.5,
           // specular: 0x111111,
-          // shininess: 1,
-          // shininess: 0,
           // bumpMap:     map,
           // bumpScale:   0.02,
           // specularMap: map,
@@ -138,11 +136,15 @@ export class SphereObject extends RotatingObject {
     const mesh = new THREE.Mesh(
       geometry,
       new THREE.ShaderMaterial({
-        uniforms: {
-          c: { value: coefficient },
-          p: { value: power },
-          color: { value: color },
-        },
+        uniforms: THREE.UniformsUtils.merge([
+          THREE.UniformsLib.ambient,
+          THREE.UniformsLib.lights,
+          {
+            c: { value: coefficient },
+            p: { value: power },
+            color: { value: color },
+          },
+        ]),
         vertexShader: ATMOSPHERE_SHADER_VERTEX,
         fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
         //side: THREE.FrontSide,
@@ -150,6 +152,7 @@ export class SphereObject extends RotatingObject {
         //blending: THREE.AdditiveBlending,
         transparent: true,
         depthWrite: false,
+        lights: true,
       }),
     );
     return mesh;

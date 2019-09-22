@@ -176,7 +176,7 @@ export class Orbit {
       this._ellipse = new THREE.Line(
         pointGeometry,
         new THREE.LineBasicMaterial({
-          color: this._options.color,
+          color: new THREE.Color(this._options.color || 0x444444),
         }),
         THREE.LineStrip,
       );

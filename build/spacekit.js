@@ -51729,7 +51729,7 @@ var Spacekit = (function (exports) {
 	      this._ellipse = new Line(
 	        pointGeometry,
 	        new LineBasicMaterial({
-	          color: this._options.color,
+	          color: new Color(this._options.color || 0x444444),
 	        }),
 	        LineStrip,
 	      );
@@ -53495,12 +53495,10 @@ var Spacekit = (function (exports) {
 	      return this._orbit;
 	    }
 	    return new Orbit(this._options.ephem, {
-	      color: this._options.theme
-	        ? this._options.theme.orbitColor || 0x888888
-	        : 0x888888,
+	      color: this._options.theme ? this._options.theme.orbitColor : undefined,
 	      eclipticLineColor: this._options.ecliptic
 	        ? this._options.ecliptic.lineColor
-	        : null,
+	        : undefined,
 	    });
 	  }
 

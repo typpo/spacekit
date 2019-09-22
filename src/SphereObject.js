@@ -116,12 +116,12 @@ export class SphereObject extends RotatingObject {
     detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
     detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
-    // Hide atmosphere beyond radius * 16 distance.
+    // Hide atmosphere beyond some multiple of radius distance.
     // TODO(ian): This effect is somewhat jarring when the atmosphere first
-    // appears...
+    // appears, also arbitrary...
     const ret = new THREE.LOD();
     ret.addLevel(detailedObj, 0);
-    ret.addLevel(new THREE.Object3D(), radius * 16);
+    ret.addLevel(new THREE.Object3D(), radius * 24);
     return ret;
   }
 

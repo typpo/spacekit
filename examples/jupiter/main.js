@@ -11,6 +11,9 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   },
 });
 
+// Create a light source somewhere off in the distance.
+viz.createLight([1, 1, 1]);
+
 // Create a starry background using Yale Bright Star Catalog Data.
 viz.createStars();
 
@@ -23,6 +26,9 @@ const jupiter = viz.createSphere('jupiter', {
     { radii: 30, segments: 16 },
     { radii: 60, segments: 8 },
   ],
+  atmosphere: {
+    enable: true,
+  },
 });
 viz.zoomToFit(jupiter);
 

@@ -403,7 +403,8 @@ export class Simulation {
       rescaleNumber(2) /* decay */,
     );
     if (typeof pos !== 'undefined') {
-      pointLight.position.set(pos[0], pos[1], pos[2]);
+      const rescaled = rescaleArray(pos);
+      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     } else {
       // The light comes from the camera.
       this._camera.get3jsCameraControls().addEventListener('change', () => {

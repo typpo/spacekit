@@ -54274,12 +54274,12 @@ var Spacekit = (function (exports) {
 	    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
 	    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
-	    // Hide atmosphere beyond radius * 16 distance.
+	    // Hide atmosphere beyond some multiple of radius distance.
 	    // TODO(ian): This effect is somewhat jarring when the atmosphere first
-	    // appears...
+	    // appears, also arbitrary...
 	    const ret = new LOD();
 	    ret.addLevel(detailedObj, 0);
-	    ret.addLevel(new Object3D(), radius * 16);
+	    ret.addLevel(new Object3D(), radius * 24);
 	    return ret;
 	  }
 
@@ -54851,7 +54851,8 @@ var Spacekit = (function (exports) {
 	      rescaleNumber(2) /* decay */,
 	    );
 	    if (typeof pos !== 'undefined') {
-	      pointLight.position.set(pos[0], pos[1], pos[2]);
+	      const rescaled = rescaleArray(pos);
+	      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
 	    } else {
 	      // The light comes from the camera.
 	      this._camera.get3jsCameraControls().addEventListener('change', () => {

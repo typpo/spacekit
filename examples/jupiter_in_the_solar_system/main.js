@@ -22,7 +22,7 @@ viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 const jupiter = viz.createSphere('jupiter2', {
   textureUrl: './jupiter2_4k.jpg',
   //radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
-  radius: 0.1,
+  radius: 0.1, // Exxagerate Jupiter's size
   ephem: Spacekit.EphemPresets.JUPITER,
   levelsOfDetail: [
     { radii: 0, segments: 64 },
@@ -33,7 +33,7 @@ const jupiter = viz.createSphere('jupiter2', {
     enable: true,
   },
   rotation: {
-    //enable: true,
+    enable: true,
     speed: 2,
   },
 });

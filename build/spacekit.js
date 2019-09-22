@@ -52132,21 +52132,22 @@ var Spacekit = (function (exports) {
 	const ATMOSPHERE_SHADER_VERTEX = `
   varying vec3 vNormal;
   void main() {
-    vNormal = normalize( normalMatrix * normal );
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 	const ATMOSPHERE_SHADER_FRAGMENT = `
-	uniform float c;
-	uniform float p;
+  uniform float c;
+  uniform float p;
+  uniform vec3 color;
 
-	varying vec3 vNormal;
+  varying vec3 vNormal;
 
-	void main() {
-		float intensity = pow( c - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), p );
-		gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
-	}
+  void main() {
+    float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    gl_FragColor = vec4(color, 1.0) * intensity;
+  }
 `;
 
 	const DEFAULT_PARTICLE_COUNT = 4096;
@@ -54140,7 +54141,11 @@ var Spacekit = (function (exports) {
 	   * number of sphere faces to render.
 	   * @param {Object} options.atmosphere Atmosphere options
 	   * @param {Object} options.atmosphere.enable Show atmosphere
-	   * @param {Number} options.atmosphere.size Atmosphere size in km
+	   * @param {Object} options.atmosphere.color Atmosphere color
+	   * @param {Object} options.atmosphere.innerSizeRatio Size ratio of the inner
+	   * atmosphere to the radius of the sphere. Defaults to 0.025
+	   * @param {Object} options.atmosphere.outerSizeRatio Size ratio of the outer
+	   * atmosphere to the radius of the sphere. Defaults to 0.15
 	   * @param {Object} options.debug Debug options
 	   * @param {boolean} options.debug.showAxes Show axes
 	   * @see SpaceObject
@@ -54203,7 +54208,7 @@ var Spacekit = (function (exports) {
 	    this._obj.add(detailedObj);
 
 	    if (this._options.atmosphere && this._options.atmosphere.enable) {
-	      this._obj.add(this.renderAtmosphere());
+	      this._obj.add(this.renderFullAtmosphere());
 	    }
 
 	    this._renderMethod = 'SPHERE';
@@ -54218,34 +54223,53 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
+	   * Model the atmosphere as two layers - a thick inner layer and a diffuse
+	   * outer one.
 	   */
-	  renderAtmosphere() {
+	  renderFullAtmosphere() {
 	    const radius = rescaleNumber(this._options.radius || 1);
+	    const color = new Color(this._options.atmosphere.color || 0xffffff);
 
-	    const sizeAu = kmToAu(
-	      this._options.atmosphere.size || auToKm(radius) * 0.15,
-	    );
+	    const innerSize =
+	      radius * (this._options.atmosphere.innerSizeRatio || 0.025);
+	    const outerSize =
+	      radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
-	    const sphereGeometry = new SphereGeometry(
-	      radius + sizeAu + radius * 0.1,
-	      32,
-	      32,
-	    );
+	    const detailedObj = new Object3D();
+	    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
+	    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+
+	    // Hide atmosphere beyond radius * 16 distance.
+	    // TODO(ian): This effect is somewhat jarring when the atmosphere first
+	    // appears...
+	    const ret = new LOD();
+	    ret.addLevel(detailedObj, 0);
+	    ret.addLevel(new Object3D(), radius * 16);
+	    return ret;
+	  }
+
+	  /**
+	   * @private
+	   */
+	  renderAtmosphere(radius, size, coefficient, power, color) {
+	    const geometry = new SphereGeometry(radius + size, 32, 32);
 	    const mesh = new Mesh(
-	      sphereGeometry,
-	      // new THREE.MeshPhongMaterial({
+	      geometry,
 	      new ShaderMaterial({
 	        uniforms: {
-	          c: { value: 0.5 },
-	          p: { value: 4 },
+	          c: { value: coefficient },
+	          p: { value: power },
+	          color: { value: color },
 	        },
 	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
 	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+	        //side: THREE.FrontSide,
 	        side: BackSide,
+	        //blending: THREE.AdditiveBlending,
 	        transparent: true,
+	        depthWrite: false,
 	      }),
 	    );
-
 	    return mesh;
 	  }
 

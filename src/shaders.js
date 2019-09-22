@@ -158,19 +158,20 @@ export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
 export const ATMOSPHERE_SHADER_VERTEX = `
   varying vec3 vNormal;
   void main() {
-    vNormal = normalize( normalMatrix * normal );
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 export const ATMOSPHERE_SHADER_FRAGMENT = `
-	uniform float c;
-	uniform float p;
+  uniform float c;
+  uniform float p;
+  uniform vec3 color;
 
-	varying vec3 vNormal;
+  varying vec3 vNormal;
 
-	void main() {
-		float intensity = pow( c - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), p );
-		gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
-	}
+  void main() {
+    float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    gl_FragColor = vec4(color, 1.0) * intensity;
+  }
 `;

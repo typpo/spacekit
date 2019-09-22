@@ -50914,7 +50914,7 @@ var Spacekit = (function (exports) {
 	}
 
 	function auToKm(au) {
-	  return km * 149598000;
+	  return au * 149598000;
 	}
 
 	const J2000 = 2451545.0;
@@ -52127,6 +52127,26 @@ var Spacekit = (function (exports) {
         gl_PointSize = size;
         gl_Position = projectionMatrix * mvPosition;
     }
+`;
+
+	const ATMOSPHERE_SHADER_VERTEX = `
+  varying vec3 vNormal;
+  void main() {
+    vNormal = normalize( normalMatrix * normal );
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+  }
+`;
+
+	const ATMOSPHERE_SHADER_FRAGMENT = `
+	uniform float c;
+	uniform float p;
+
+	varying vec3 vNormal;
+
+	void main() {
+		float intensity = pow( c - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), p );
+		gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
+	}
 `;
 
 	const DEFAULT_PARTICLE_COUNT = 4096;
@@ -54115,10 +54135,13 @@ var Spacekit = (function (exports) {
 	   * @param {String} options.specularMapUrl Path to specular map (optional)
 	   * @param {Number} options.color Hex color of the sphere
 	   * @param {Number} options.radius Radius of sphere. Defaults to 1
-	   * @param {Object} options.debug Debug options
 	   * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
 	   * y}, where `threshold` is radii distance and `segments` is the number
 	   * number of sphere faces to render.
+	   * @param {Object} options.atmosphere Atmosphere options
+	   * @param {Object} options.atmosphere.enable Show atmosphere
+	   * @param {Number} options.atmosphere.size Atmosphere size in km
+	   * @param {Object} options.debug Debug options
 	   * @param {boolean} options.debug.showAxes Show axes
 	   * @see SpaceObject
 	   * @see RotatingObject
@@ -54179,6 +54202,10 @@ var Spacekit = (function (exports) {
 	    // Add to the parent base object.
 	    this._obj.add(detailedObj);
 
+	    if (this._options.atmosphere && this._options.atmosphere.enable) {
+	      this._obj.add(this.renderAtmosphere());
+	    }
+
 	    this._renderMethod = 'SPHERE';
 
 	    if (this._simulation) {
@@ -54187,6 +54214,39 @@ var Spacekit = (function (exports) {
 	    }
 
 	    super.init();
+	  }
+
+	  /**
+	   * @private
+	   */
+	  renderAtmosphere() {
+	    const radius = rescaleNumber(this._options.radius || 1);
+
+	    const sizeAu = kmToAu(
+	      this._options.atmosphere.size || auToKm(radius) * 0.15,
+	    );
+
+	    const sphereGeometry = new SphereGeometry(
+	      radius + sizeAu + radius * 0.1,
+	      32,
+	      32,
+	    );
+	    const mesh = new Mesh(
+	      sphereGeometry,
+	      // new THREE.MeshPhongMaterial({
+	      new ShaderMaterial({
+	        uniforms: {
+	          c: { value: 0.5 },
+	          p: { value: 4 },
+	        },
+	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
+	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+	        side: BackSide,
+	        transparent: true,
+	      }),
+	    );
+
+	    return mesh;
 	  }
 
 	  /**

@@ -29,8 +29,11 @@ const jupiter = viz.createSphere('jupiter2', {
     { radii: 30, segments: 16 },
     { radii: 60, segments: 8 },
   ],
-  rotation: {
+  atmosphere: {
     enable: true,
+  },
+  rotation: {
+    //enable: true,
     speed: 2,
   },
 });

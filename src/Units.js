@@ -52,5 +52,5 @@ export function kmToAu(km) {
 }
 
 export function auToKm(au) {
-  return km * 149598000;
+  return au * 149598000;
 }

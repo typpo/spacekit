@@ -2,6 +2,11 @@ import * as THREE from 'three';
 
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
+import { auToKm, kmToAu } from './Units';
+import {
+  ATMOSPHERE_SHADER_VERTEX,
+  ATMOSPHERE_SHADER_FRAGMENT,
+} from './shaders';
 
 /**
  * Simulates a planet or other object as a perfect sphere.
@@ -13,10 +18,13 @@ export class SphereObject extends RotatingObject {
    * @param {String} options.specularMapUrl Path to specular map (optional)
    * @param {Number} options.color Hex color of the sphere
    * @param {Number} options.radius Radius of sphere. Defaults to 1
-   * @param {Object} options.debug Debug options
    * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
    * y}, where `threshold` is radii distance and `segments` is the number
    * number of sphere faces to render.
+   * @param {Object} options.atmosphere Atmosphere options
+   * @param {Object} options.atmosphere.enable Show atmosphere
+   * @param {Number} options.atmosphere.size Atmosphere size in km
+   * @param {Object} options.debug Debug options
    * @param {boolean} options.debug.showAxes Show axes
    * @see SpaceObject
    * @see RotatingObject
@@ -77,6 +85,10 @@ export class SphereObject extends RotatingObject {
     // Add to the parent base object.
     this._obj.add(detailedObj);
 
+    if (this._options.atmosphere && this._options.atmosphere.enable) {
+      this._obj.add(this.renderAtmosphere());
+    }
+
     this._renderMethod = 'SPHERE';
 
     if (this._simulation) {
@@ -85,6 +97,39 @@ export class SphereObject extends RotatingObject {
     }
 
     super.init();
+  }
+
+  /**
+   * @private
+   */
+  renderAtmosphere() {
+    const radius = rescaleNumber(this._options.radius || 1);
+
+    const sizeAu = kmToAu(
+      this._options.atmosphere.size || auToKm(radius) * 0.15,
+    );
+
+    const sphereGeometry = new THREE.SphereGeometry(
+      radius + sizeAu + radius * 0.1,
+      32,
+      32,
+    );
+    const mesh = new THREE.Mesh(
+      sphereGeometry,
+      // new THREE.MeshPhongMaterial({
+      new THREE.ShaderMaterial({
+        uniforms: {
+          c: { value: 0.5 },
+          p: { value: 4 },
+        },
+        vertexShader: ATMOSPHERE_SHADER_VERTEX,
+        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+        side: THREE.BackSide,
+        transparent: true,
+      }),
+    );
+
+    return mesh;
   }
 
   /**

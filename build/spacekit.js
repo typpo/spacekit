@@ -54221,20 +54221,25 @@ var Spacekit = (function (exports) {
 	        level.segments,
 	        level.segments,
 	      );
+	      const color = this._options.color || 0xbbbbbb;
+	      const material = this._simulation.isUsingLightSources() ? new MeshLambertMaterial({
+	        map,
+	        color,
+	        reflectivity: 0.5,
+	        // specular: 0x111111,
+	        // bumpMap:     map,
+	        // bumpScale:   0.02,
+	        // specularMap: map,
+	        // specular:    new THREE.Color('grey')
+	        // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
+	        // bumpScale:   0.005,
+	      }) : new MeshBasicMaterial({
+	        map,
+	        color,
+	      });
 	      const mesh = new Mesh(
 	        sphereGeometry,
-	        new MeshLambertMaterial({
-	          map,
-	          color: this._options.color || 0xbbbbbb,
-	          reflectivity: 0.5,
-	          // specular: 0x111111,
-	          // bumpMap:     map,
-	          // bumpScale:   0.02,
-	          // specularMap: map,
-	          // specular:    new THREE.Color('grey')
-	          // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
-	          // bumpScale:   0.005,
-	        }),
+	        material,
 	      );
 
 	      // Change the coordinate system to have Z-axis pointed up.
@@ -54565,6 +54570,7 @@ var Spacekit = (function (exports) {
 	    }
 
 	    this._camera = null;
+	    this._isUsingLightSources = false;
 
 	    this._subscribedObjects = {};
 	    this._particles = null;
@@ -54837,6 +54843,7 @@ var Spacekit = (function (exports) {
 	   */
 	  createAmbientLight(color = 0x333333) {
 	    this._scene.add(new AmbientLight(color));
+	    this._isUsingLightSources = true;
 	  }
 
 	  /**
@@ -54862,6 +54869,11 @@ var Spacekit = (function (exports) {
 	      });
 	    }
 	    this._scene.add(pointLight);
+	    this._isUsingLightSources = true;
+	  }
+
+	  isUsingLightSources() {
+	    return this._isUsingLightSources;
 	  }
 
 	  /**

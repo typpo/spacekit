@@ -61,20 +61,18 @@ export class SphereObject extends RotatingObject {
         level.segments,
         level.segments,
       );
+      const color = this._options.color || 0xbbbbbb;
+      const material = this._simulation.isUsingLightSources() ? new THREE.MeshLambertMaterial({
+        map,
+        color,
+        reflectivity: 0.5,
+      }) : new THREE.MeshBasicMaterial({
+        map,
+        color,
+      });
       const mesh = new THREE.Mesh(
         sphereGeometry,
-        new THREE.MeshLambertMaterial({
-          map,
-          color: this._options.color || 0xbbbbbb,
-          reflectivity: 0.5,
-          // specular: 0x111111,
-          // bumpMap:     map,
-          // bumpScale:   0.02,
-          // specularMap: map,
-          // specular:    new THREE.Color('grey')
-          // bumpMap:     THREE.ImageUtils.loadTexture('images/elev_bump_4k.jpg'),
-          // bumpScale:   0.005,
-        }),
+        material,
       );
 
       // Change the coordinate system to have Z-axis pointed up.

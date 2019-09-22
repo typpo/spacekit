@@ -31,6 +31,7 @@ const jupiter = viz.createSphere('jupiter2', {
   ],
   atmosphere: {
     enable: true,
+    color: 0xc7c1a8,
   },
   rotation: {
     enable: true,

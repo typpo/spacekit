@@ -112,6 +112,7 @@ export class Simulation {
     }
 
     this._camera = null;
+    this._isUsingLightSources = false;
 
     this._subscribedObjects = {};
     this._particles = null;
@@ -384,6 +385,7 @@ export class Simulation {
    */
   createAmbientLight(color = 0x333333) {
     this._scene.add(new THREE.AmbientLight(color));
+    this._isUsingLightSources = true;
   }
 
   /**
@@ -409,6 +411,11 @@ export class Simulation {
       });
     }
     this._scene.add(pointLight);
+    this._isUsingLightSources = true;
+  }
+
+  isUsingLightSources() {
+    return this._isUsingLightSources;
   }
 
   /**

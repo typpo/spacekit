@@ -39,6 +39,7 @@ export class Camera {
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
     const controls = new OrbitControls(this._camera, this._simulationElt);
+    controls.enableDamping = true;
     controls.enablePan = true;
     controls.zoomSpeed = 1.5;
     controls.userPanSpeed = 20;

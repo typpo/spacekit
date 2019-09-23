@@ -406,6 +406,7 @@ export class Simulation {
     );
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
+      console.log('light pos', rescaled);
       pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     } else {
       // The light comes from the camera.
@@ -414,10 +415,15 @@ export class Simulation {
       });
     }
     pointLight.castShadow = true;
-    pointLight.shadowMapWidth = 2048;
-    pointLight.shadowMapHeight = 2048;
-    pointLight.shadowCameraFar = 800;
-    this._scene.add(new THREE.CameraHelper(pointLight.shadow.camera));
+    pointLight.shadowMapWidth = 1024 * 1;
+    pointLight.shadowMapHeight = 1024 * 1;
+    // TODO(ian): Make these dynamic
+    pointLight.shadowCameraNear = rescaleNumber(0.5);
+    pointLight.shadowCameraFar = rescaleNumber(1.5);
+
+    const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
+
+    this._scene.add(cameraHelper);
     this._scene.add(pointLight);
     this._isUsingLightSources = true;
   }

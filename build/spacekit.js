@@ -50778,6 +50778,7 @@ var Spacekit = (function (exports) {
 	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
 	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
 	    const controls = new OrbitControls(this._camera, this._simulationElt);
+	    controls.enableDamping = true;
 	    controls.enablePan = true;
 	    controls.zoomSpeed = 1.5;
 	    controls.userPanSpeed = 20;
@@ -54332,41 +54333,46 @@ var Spacekit = (function (exports) {
 	    const segments = 64;
 
 	    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+	    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
 
-	    const geometry = new RingBufferGeometry(2 * radius, 4 * radius, segments);
+	    const geometry = new RingBufferGeometry(
+	      2 * radius,
+	      4 * radius,
+	      segments,
+	    );
 
 	    const uvs = geometry.attributes.uv.array;
 	    // Loop and initialization taken from RingBufferGeometry
 	    let phiSegments = geometry.parameters.phiSegments || 0;
 	    let thetaSegments = geometry.parameters.thetaSegments || 0;
-	    phiSegments = phiSegments !== undefined ? Math.max( 1, phiSegments ) : 1;
-	    thetaSegments = thetaSegments !== undefined ? Math.max( 3, thetaSegments ) : 8;
-	    for ( let c = 0, j = 0; j <= phiSegments; j ++ ) {
-	      for ( let i = 0; i <= thetaSegments; i ++ ) {
-	        uvs[c++] = i / thetaSegments,
-	        uvs[c++] = j / phiSegments;
+	    phiSegments = phiSegments !== undefined ? Math.max(1, phiSegments) : 1;
+	    thetaSegments =
+	      thetaSegments !== undefined ? Math.max(3, thetaSegments) : 8;
+	    for (let c = 0, j = 0; j <= phiSegments; j++) {
+	      for (let i = 0; i <= thetaSegments; i++) {
+	        (uvs[c++] = i / thetaSegments), (uvs[c++] = j / phiSegments);
 	      }
 	    }
 
 	    const map = ImageUtils.loadTexture('./saturn_rings.png');
 	    const material = this._simulation.isUsingLightSources()
-	      ? new MeshPhongMaterial({
+	      ? new MeshLambertMaterial({
 	          map,
-	          //reflectivity: 0.5,
 	          side: DoubleSide,
 	          transparent: true,
-	          opacity: 0.8
+	          opacity: 0.8,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
 	          side: DoubleSide,
 	          transparent: true,
-	          opacity: 0.8
+	          opacity: 0.8,
 	        });
 
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
+	    console.log('pinky rang', mesh);
 	    return mesh;
 	  }
 
@@ -54911,6 +54917,7 @@ var Spacekit = (function (exports) {
 	    );
 	    if (typeof pos !== 'undefined') {
 	      const rescaled = rescaleArray(pos);
+	      console.log('light pos', rescaled);
 	      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
 	    } else {
 	      // The light comes from the camera.
@@ -54919,10 +54926,15 @@ var Spacekit = (function (exports) {
 	      });
 	    }
 	    pointLight.castShadow = true;
-	    pointLight.shadowMapWidth = 2048;
-	    pointLight.shadowMapHeight = 2048;
-	    pointLight.shadowCameraFar = 800;
-	    this._scene.add(new CameraHelper(pointLight.shadow.camera));
+	    pointLight.shadowMapWidth = 1024 * 1;
+	    pointLight.shadowMapHeight = 1024 * 1;
+	    // TODO(ian): Make these dynamic
+	    pointLight.shadowCameraNear = rescaleNumber(0.5);
+	    pointLight.shadowCameraFar = rescaleNumber(1.5);
+
+	    const cameraHelper = new CameraHelper(pointLight.shadow.camera);
+
+	    this._scene.add(cameraHelper);
 	    this._scene.add(pointLight);
 	    this._isUsingLightSources = true;
 	  }

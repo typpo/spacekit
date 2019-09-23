@@ -174,41 +174,46 @@ export class SphereObject extends RotatingObject {
     const segments = 64;
 
     //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
 
-    const geometry = new THREE.RingBufferGeometry(2 * radius, 4 * radius, segments);
+    const geometry = new THREE.RingBufferGeometry(
+      2 * radius,
+      4 * radius,
+      segments,
+    );
 
     const uvs = geometry.attributes.uv.array;
     // Loop and initialization taken from RingBufferGeometry
     let phiSegments = geometry.parameters.phiSegments || 0;
     let thetaSegments = geometry.parameters.thetaSegments || 0;
-    phiSegments = phiSegments !== undefined ? Math.max( 1, phiSegments ) : 1;
-    thetaSegments = thetaSegments !== undefined ? Math.max( 3, thetaSegments ) : 8;
-    for ( let c = 0, j = 0; j <= phiSegments; j ++ ) {
-      for ( let i = 0; i <= thetaSegments; i ++ ) {
-        uvs[c++] = i / thetaSegments,
-        uvs[c++] = j / phiSegments;
+    phiSegments = phiSegments !== undefined ? Math.max(1, phiSegments) : 1;
+    thetaSegments =
+      thetaSegments !== undefined ? Math.max(3, thetaSegments) : 8;
+    for (let c = 0, j = 0; j <= phiSegments; j++) {
+      for (let i = 0; i <= thetaSegments; i++) {
+        (uvs[c++] = i / thetaSegments), (uvs[c++] = j / phiSegments);
       }
     }
 
     const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
     const material = this._simulation.isUsingLightSources()
-      ? new THREE.MeshPhongMaterial({
+      ? new THREE.MeshLambertMaterial({
           map,
-          //reflectivity: 0.5,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.8
+          opacity: 0.8,
         })
       : new THREE.MeshBasicMaterial({
           map,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.8
+          opacity: 0.8,
         });
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
+    console.log('pinky rang', mesh);
     return mesh;
   }
 

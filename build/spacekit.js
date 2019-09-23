@@ -53890,7 +53890,7 @@ var Spacekit = (function (exports) {
 	  }
 
 	  initRotation() {
-	    if (!this._options.rotation.jd0) {
+	    if (typeof this._options.rotation.jd0 === 'undefined') {
 	      return;
 	    }
 
@@ -54175,6 +54175,7 @@ var Spacekit = (function (exports) {
 	   * @param {String} options.bumpMapUrl Path to bump map (optional)
 	   * @param {String} options.specularMapUrl Path to specular map (optional)
 	   * @param {Number} options.color Hex color of the sphere
+	   * @param {Number} options.axialTilt Axial tilt in degrees
 	   * @param {Number} options.radius Radius of sphere. Defaults to 1
 	   * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
 	   * y}, where `threshold` is radii distance and `segments` is the number
@@ -54210,7 +54211,7 @@ var Spacekit = (function (exports) {
 	    const levelsOfDetail = this._options.levelsOfDetail || [
 	      { radii: 0, segments: 64 },
 	    ];
-	    const radius = rescaleNumber(this._options.radius || 1);
+	    const radius = this.getScaledRadius();
 
 	    for (let i = 0; i < levelsOfDetail.length; i += 1) {
 	      const level = levelsOfDetail[i];
@@ -54223,14 +54224,14 @@ var Spacekit = (function (exports) {
 	      const material = this._simulation.isUsingLightSources()
 	        ? new MeshLambertMaterial({
 	            map,
-	            color,
 	            reflectivity: 0.5,
 	          })
 	        : new MeshBasicMaterial({
 	            map,
-	            color,
 	          });
 	      const mesh = new Mesh(sphereGeometry, material);
+	      mesh.receiveShadow = true;
+	      mesh.castShadow = true;
 
 	      // Change the coordinate system to have Z-axis pointed up.
 	      mesh.rotation.x = Math.PI / 2;
@@ -54246,6 +54247,12 @@ var Spacekit = (function (exports) {
 	      this._obj.add(this.renderFullAtmosphere());
 	    }
 
+	    this._obj.add(this.renderRings());
+
+	    if (this._options.axialTilt) {
+	      this._obj.rotation.y += rad(this._options.axialTilt);
+	    }
+
 	    this._renderMethod = 'SPHERE';
 
 	    if (this._simulation) {
@@ -54258,11 +54265,18 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
+	   */
+	  getScaledRadius() {
+	    return rescaleNumber(this._options.radius || 1);
+	  }
+
+	  /**
+	   * @private
 	   * Model the atmosphere as two layers - a thick inner layer and a diffuse
 	   * outer one.
 	   */
 	  renderFullAtmosphere() {
-	    const radius = rescaleNumber(this._options.radius || 1);
+	    const radius = this.getScaledRadius();
 	    const color = new Color(this._options.atmosphere.color || 0xffffff);
 
 	    const innerSize =
@@ -54310,6 +54324,49 @@ var Spacekit = (function (exports) {
 	        lights: true,
 	      }),
 	    );
+	    return mesh;
+	  }
+
+	  renderRings() {
+	    const radius = this.getScaledRadius();
+	    const segments = 64;
+
+	    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+
+	    const geometry = new RingBufferGeometry(2 * radius, 4 * radius, segments);
+
+	    const uvs = geometry.attributes.uv.array;
+	    // Loop and initialization taken from RingBufferGeometry
+	    let phiSegments = geometry.parameters.phiSegments || 0;
+	    let thetaSegments = geometry.parameters.thetaSegments || 0;
+	    phiSegments = phiSegments !== undefined ? Math.max( 1, phiSegments ) : 1;
+	    thetaSegments = thetaSegments !== undefined ? Math.max( 3, thetaSegments ) : 8;
+	    for ( let c = 0, j = 0; j <= phiSegments; j ++ ) {
+	      for ( let i = 0; i <= thetaSegments; i ++ ) {
+	        uvs[c++] = i / thetaSegments,
+	        uvs[c++] = j / phiSegments;
+	      }
+	    }
+
+	    const map = ImageUtils.loadTexture('./saturn_rings.png');
+	    const material = this._simulation.isUsingLightSources()
+	      ? new MeshPhongMaterial({
+	          map,
+	          //reflectivity: 0.5,
+	          side: DoubleSide,
+	          transparent: true,
+	          opacity: 0.8
+	        })
+	      : new MeshBasicMaterial({
+	          map,
+	          side: DoubleSide,
+	          transparent: true,
+	          opacity: 0.8
+	        });
+
+	    const mesh = new Mesh(geometry, material);
+	    mesh.receiveShadow = true;
+	    mesh.castShadow = true;
 	    return mesh;
 	  }
 
@@ -54655,6 +54712,8 @@ var Spacekit = (function (exports) {
 	      antialias: true,
 	      logarithmicDepthBuffer: true,
 	    });
+	    renderer.shadowMapEnabled = true;
+	    renderer.shadowMapSoft = true;
 
 	    const maxPrecision = renderer.capabilities.getMaxPrecision();
 	    if (maxPrecision !== 'highp') {
@@ -54859,6 +54918,11 @@ var Spacekit = (function (exports) {
 	        pointLight.position.copy(this._camera.get3jsCamera().position);
 	      });
 	    }
+	    pointLight.castShadow = true;
+	    pointLight.shadowMapWidth = 2048;
+	    pointLight.shadowMapHeight = 2048;
+	    pointLight.shadowCameraFar = 800;
+	    this._scene.add(new CameraHelper(pointLight.shadow.camera));
 	    this._scene.add(pointLight);
 	    this._isUsingLightSources = true;
 	  }

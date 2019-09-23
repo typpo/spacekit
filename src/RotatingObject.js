@@ -86,7 +86,7 @@ export class RotatingObject extends SpaceObject {
   }
 
   initRotation() {
-    if (!this._options.rotation.jd0) {
+    if (typeof this._options.rotation.jd0 === 'undefined') {
       return;
     }
 

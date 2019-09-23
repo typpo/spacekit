@@ -207,6 +207,8 @@ export class Simulation {
       antialias: true,
       logarithmicDepthBuffer: true,
     });
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapSoft = true;
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
     if (maxPrecision !== 'highp') {
@@ -411,6 +413,11 @@ export class Simulation {
         pointLight.position.copy(this._camera.get3jsCamera().position);
       });
     }
+    pointLight.castShadow = true;
+    pointLight.shadowMapWidth = 2048;
+    pointLight.shadowMapHeight = 2048;
+    pointLight.shadowCameraFar = 800;
+    this._scene.add(new THREE.CameraHelper(pointLight.shadow.camera));
     this._scene.add(pointLight);
     this._isUsingLightSources = true;
   }

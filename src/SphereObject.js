@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
-import { auToKm, kmToAu } from './Units';
+import { auToKm, kmToAu, rad } from './Units';
 import {
   ATMOSPHERE_SHADER_VERTEX,
   ATMOSPHERE_SHADER_FRAGMENT,
@@ -17,6 +17,7 @@ export class SphereObject extends RotatingObject {
    * @param {String} options.bumpMapUrl Path to bump map (optional)
    * @param {String} options.specularMapUrl Path to specular map (optional)
    * @param {Number} options.color Hex color of the sphere
+   * @param {Number} options.axialTilt Axial tilt in degrees
    * @param {Number} options.radius Radius of sphere. Defaults to 1
    * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
    * y}, where `threshold` is radii distance and `segments` is the number
@@ -52,7 +53,7 @@ export class SphereObject extends RotatingObject {
     const levelsOfDetail = this._options.levelsOfDetail || [
       { radii: 0, segments: 64 },
     ];
-    const radius = rescaleNumber(this._options.radius || 1);
+    const radius = this.getScaledRadius();
 
     for (let i = 0; i < levelsOfDetail.length; i += 1) {
       const level = levelsOfDetail[i];
@@ -65,14 +66,14 @@ export class SphereObject extends RotatingObject {
       const material = this._simulation.isUsingLightSources()
         ? new THREE.MeshLambertMaterial({
             map,
-            color,
             reflectivity: 0.5,
           })
         : new THREE.MeshBasicMaterial({
             map,
-            color,
           });
       const mesh = new THREE.Mesh(sphereGeometry, material);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
 
       // Change the coordinate system to have Z-axis pointed up.
       mesh.rotation.x = Math.PI / 2;
@@ -88,6 +89,12 @@ export class SphereObject extends RotatingObject {
       this._obj.add(this.renderFullAtmosphere());
     }
 
+    this._obj.add(this.renderRings());
+
+    if (this._options.axialTilt) {
+      this._obj.rotation.y += rad(this._options.axialTilt);
+    }
+
     this._renderMethod = 'SPHERE';
 
     if (this._simulation) {
@@ -100,11 +107,18 @@ export class SphereObject extends RotatingObject {
 
   /**
    * @private
+   */
+  getScaledRadius() {
+    return rescaleNumber(this._options.radius || 1);
+  }
+
+  /**
+   * @private
    * Model the atmosphere as two layers - a thick inner layer and a diffuse
    * outer one.
    */
   renderFullAtmosphere() {
-    const radius = rescaleNumber(this._options.radius || 1);
+    const radius = this.getScaledRadius();
     const color = new THREE.Color(this._options.atmosphere.color || 0xffffff);
 
     const innerSize =
@@ -152,6 +166,49 @@ export class SphereObject extends RotatingObject {
         lights: true,
       }),
     );
+    return mesh;
+  }
+
+  renderRings() {
+    const radius = this.getScaledRadius();
+    const segments = 64;
+
+    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+
+    const geometry = new THREE.RingBufferGeometry(2 * radius, 4 * radius, segments);
+
+    const uvs = geometry.attributes.uv.array;
+    // Loop and initialization taken from RingBufferGeometry
+    let phiSegments = geometry.parameters.phiSegments || 0;
+    let thetaSegments = geometry.parameters.thetaSegments || 0;
+    phiSegments = phiSegments !== undefined ? Math.max( 1, phiSegments ) : 1;
+    thetaSegments = thetaSegments !== undefined ? Math.max( 3, thetaSegments ) : 8;
+    for ( let c = 0, j = 0; j <= phiSegments; j ++ ) {
+      for ( let i = 0; i <= thetaSegments; i ++ ) {
+        uvs[c++] = i / thetaSegments,
+        uvs[c++] = j / phiSegments;
+      }
+    }
+
+    const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
+    const material = this._simulation.isUsingLightSources()
+      ? new THREE.MeshPhongMaterial({
+          map,
+          //reflectivity: 0.5,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.8
+        })
+      : new THREE.MeshBasicMaterial({
+          map,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.8
+        });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
     return mesh;
   }
 

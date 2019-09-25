@@ -196,8 +196,8 @@ export class SphereObject extends RotatingObject {
     const geometry = new THREE.RingBufferGeometry(
       //2 * radius,
       //4 * radius,
-      rescaleNumber(kmToAu(74500)) + radius,
-      rescaleNumber(kmToAu(216780)) + radius,
+      rescaleNumber(kmToAu(74500)),
+      rescaleNumber(kmToAu(136780)),
       segments,
     );
 

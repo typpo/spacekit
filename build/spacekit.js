@@ -54355,8 +54355,8 @@ var Spacekit = (function (exports) {
 	    const geometry = new RingBufferGeometry(
 	      //2 * radius,
 	      //4 * radius,
-	      rescaleNumber(kmToAu(74500)) + radius,
-	      rescaleNumber(kmToAu(216780)) + radius,
+	      rescaleNumber(kmToAu(74500)),
+	      rescaleNumber(kmToAu(136780)),
 	      segments,
 	    );
 

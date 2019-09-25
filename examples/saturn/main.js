@@ -39,7 +39,7 @@ const saturn = viz.createSphere('saturn', {
     enable: true,
   },
   rotation: {
-    enable: true,
+    //enable: true,
   },
   axialTilt: 26.73,
 });

@@ -410,6 +410,7 @@ export class Simulation {
     );
     //const pointLight = new THREE.DirectionalLight(color, 1);
     const pointLight = new THREE.SpotLight(color, 1);
+    pointLight.angle = Math.PI / 16;
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
       console.log('light pos', rescaled);
@@ -421,21 +422,23 @@ export class Simulation {
       });
     }
     pointLight.castShadow = true;
-    pointLight.shadow.mapSize.width = 1024 * 5;
-    pointLight.shadow.mapSize.height = 1024 * 5;
+    pointLight.shadow.mapSize.width = 1024 * 2;
+    pointLight.shadow.mapSize.height = 1024 * 2;
 
     // TODO(ian): Make these dynamic
 
     //pointLight.shadow.camera.near = rescaleNumber(0.6);
     //pointLight.shadow.camera.far = rescaleNumber(0.8);
-    pointLight.shadow.camera.near = rescaleNumber(0.1);
-    pointLight.shadow.camera.far = rescaleNumber(0.2);
+    pointLight.shadow.camera.near = rescaleNumber(0.025);
+    pointLight.shadow.camera.far = rescaleNumber(0.05);
 
-    pointLight.shadow.camera.left = -rescaleNumber(0.05);
-    pointLight.shadow.camera.right = rescaleNumber(0.05);
-    pointLight.shadow.camera.top = rescaleNumber(0.05);
-    pointLight.shadow.camera.bottom = -rescaleNumber(0.05);
-    pointLight.shadow.bias = -0.0001 * 8;
+    /*
+    pointLight.shadow.camera.left = -rescaleNumber(0.005);
+    pointLight.shadow.camera.right = rescaleNumber(0.005);
+    pointLight.shadow.camera.top = rescaleNumber(0.005);
+    pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
+    */
+    pointLight.shadow.bias = 0.0001 * 9;
 
     const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
 

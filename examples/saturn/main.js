@@ -13,8 +13,8 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a light source somewhere off in the distance.
-viz.createLight([0.1, 0.1, 0.025]);
-//viz.createAmbientLight();
+viz.createLight([0.025, 0.025, 0.005]);
+viz.createAmbientLight(0x222222);
 
 viz.createObject(
   'sun',
@@ -46,15 +46,18 @@ const saturn = viz.createSphere('saturn', {
 viz.zoomToFit(saturn);
 
 // Add its moons
+/*
 const moonObjs = [];
 let saturnSatellites = [];
-/*
 viz.loadNaturalSatellites().then(loader => {
   saturnSatellites = loader.getSatellitesForPlanet('saturn');
   saturnSatellites.forEach(moon => {
+    const ephem = moon.ephem.copy();
+    // Add Saturn's axial tilt.
+    ephem.set('i', moon.ephem.get('i', 'deg') + 26.73, 'deg');
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
-      ephem: moon.ephem,
+      ephem,
       particleSize: 50,
     });
     moonObjs.push(obj);

@@ -52134,7 +52134,7 @@ var Spacekit = (function (exports) {
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
-  varying vec3 vNormal;
+  //varying vec3 vNormal;
 
   void main() {
     //vNormal = normalize(normalMatrix * normal);
@@ -54167,6 +54167,18 @@ var Spacekit = (function (exports) {
 	  },
 	};
 
+	function generateNoise(opacity, magnitude, canvas) {
+	  const ctx = canvas.getContext('2d');
+	  for (let x = 0; x < canvas.width; x++) {
+	    for (let y = 0; y < canvas.height; y++) {
+	      const number = Math.floor(Math.random() * magnitude);
+	      ctx.fillStyle =
+	        'rgba(' + number + ',' + number + ',' + number + ',' + opacity + ')';
+	      ctx.fillRect(x, y, 1, 1);
+	    }
+	  }
+	}
+
 	/**
 	 * Simulates a planet or other object as a perfect sphere.
 	 */
@@ -54252,6 +54264,8 @@ var Spacekit = (function (exports) {
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
+	      // FIXME(ian): Remove
+	      this._obj.rotation.x += rad(this._options.axialTilt);
 	    }
 
 	    this._renderMethod = 'SPHERE';
@@ -54286,8 +54300,8 @@ var Spacekit = (function (exports) {
 	      radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
 	    const detailedObj = new Object3D();
-	    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-	    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+	    //detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
+	    //detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
 	    // Hide atmosphere beyond some multiple of radius distance.
 	    // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -54330,14 +54344,19 @@ var Spacekit = (function (exports) {
 
 	  renderRings() {
 	    const radius = this.getScaledRadius();
-	    const segments = 64;
+	    const segments = 128;
 
 	    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
 	    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
 
+	    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
+	    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
+
 	    const geometry = new RingBufferGeometry(
-	      2 * radius,
-	      4 * radius,
+	      //2 * radius,
+	      //4 * radius,
+	      rescaleNumber(kmToAu(74500)) + radius,
+	      rescaleNumber(kmToAu(216780)) + radius,
 	      segments,
 	    );
 
@@ -54355,12 +54374,25 @@ var Spacekit = (function (exports) {
 	    }
 
 	    const map = ImageUtils.loadTexture('./saturn_rings.png');
+
+	    const canvas = document.createElement('canvas');
+	    canvas.width = 256;
+	    canvas.height = 256;
+	    generateNoise(0.2, 10, canvas);
+	    const noiseTexture = new Texture(canvas);
+	    noiseTexture.needsUpdate = true;
+
 	    const material = this._simulation.isUsingLightSources()
 	      ? new MeshLambertMaterial({
 	          map,
+	          emissive: new Color(0xbbbbbb),
+	          emissiveMap: noiseTexture,
 	          side: DoubleSide,
+	          shadowSide: DoubleSide,
 	          transparent: true,
 	          opacity: 0.8,
+	          //emissive: new THREE.Color(0xcccccc),
+	          //shininess: 3,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
@@ -54372,7 +54404,6 @@ var Spacekit = (function (exports) {
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
-	    console.log('pinky rang', mesh);
 	    return mesh;
 	  }
 
@@ -54718,8 +54749,12 @@ var Spacekit = (function (exports) {
 	      antialias: true,
 	      logarithmicDepthBuffer: true,
 	    });
-	    renderer.shadowMapEnabled = true;
-	    renderer.shadowMapSoft = true;
+	    renderer.shadowMap.enabled = true;
+	    renderer.shadowMap.type = PCFSoftShadowMap;
+	    console.info(
+	      'Max texture resolution:',
+	      renderer.capabilities.maxTextureSize,
+	    );
 
 	    const maxPrecision = renderer.capabilities.getMaxPrecision();
 	    if (maxPrecision !== 'highp') {
@@ -54909,12 +54944,14 @@ var Spacekit = (function (exports) {
 	   * @param {Number} color Color of light, default 0xFFFFFF
 	   */
 	  createLight(pos = undefined, color = 0xffffff) {
-	    const pointLight = new PointLight(
+	    const pointLight1 = new PointLight(
 	      color,
 	      1 /* intensity */,
 	      rescaleNumber(0) /* distance */,
 	      rescaleNumber(2) /* decay */,
 	    );
+	    //const pointLight = new THREE.DirectionalLight(color, 1);
+	    const pointLight = new SpotLight(color, 1);
 	    if (typeof pos !== 'undefined') {
 	      const rescaled = rescaleArray(pos);
 	      console.log('light pos', rescaled);
@@ -54926,11 +54963,21 @@ var Spacekit = (function (exports) {
 	      });
 	    }
 	    pointLight.castShadow = true;
-	    pointLight.shadowMapWidth = 1024 * 1;
-	    pointLight.shadowMapHeight = 1024 * 1;
+	    pointLight.shadow.mapSize.width = 1024 * 5;
+	    pointLight.shadow.mapSize.height = 1024 * 5;
+
 	    // TODO(ian): Make these dynamic
-	    pointLight.shadowCameraNear = rescaleNumber(0.5);
-	    pointLight.shadowCameraFar = rescaleNumber(1.5);
+
+	    //pointLight.shadow.camera.near = rescaleNumber(0.6);
+	    //pointLight.shadow.camera.far = rescaleNumber(0.8);
+	    pointLight.shadow.camera.near = rescaleNumber(0.1);
+	    pointLight.shadow.camera.far = rescaleNumber(0.2);
+
+	    pointLight.shadow.camera.left = -rescaleNumber(0.05);
+	    pointLight.shadow.camera.right = rescaleNumber(0.05);
+	    pointLight.shadow.camera.top = rescaleNumber(0.05);
+	    pointLight.shadow.camera.bottom = -rescaleNumber(0.05);
+	    pointLight.shadow.bias = -0.0001 * 8;
 
 	    const cameraHelper = new CameraHelper(pointLight.shadow.camera);
 

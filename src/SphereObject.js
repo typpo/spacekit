@@ -8,6 +8,18 @@ import {
   ATMOSPHERE_SHADER_FRAGMENT,
 } from './shaders';
 
+function generateNoise(opacity, magnitude, canvas) {
+  const ctx = canvas.getContext('2d');
+  for (let x = 0; x < canvas.width; x++) {
+    for (let y = 0; y < canvas.height; y++) {
+      const number = Math.floor(Math.random() * magnitude);
+      ctx.fillStyle =
+        'rgba(' + number + ',' + number + ',' + number + ',' + opacity + ')';
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
 /**
  * Simulates a planet or other object as a perfect sphere.
  */
@@ -93,6 +105,8 @@ export class SphereObject extends RotatingObject {
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
+      // FIXME(ian): Remove
+      this._obj.rotation.x += rad(this._options.axialTilt);
     }
 
     this._renderMethod = 'SPHERE';
@@ -127,8 +141,8 @@ export class SphereObject extends RotatingObject {
       radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
     const detailedObj = new THREE.Object3D();
-    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+    //detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
+    //detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
     // Hide atmosphere beyond some multiple of radius distance.
     // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -171,14 +185,19 @@ export class SphereObject extends RotatingObject {
 
   renderRings() {
     const radius = this.getScaledRadius();
-    const segments = 64;
+    const segments = 128;
 
     //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
     //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
 
+    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
+    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
+
     const geometry = new THREE.RingBufferGeometry(
-      2 * radius,
-      4 * radius,
+      //2 * radius,
+      //4 * radius,
+      rescaleNumber(kmToAu(74500)) + radius,
+      rescaleNumber(kmToAu(216780)) + radius,
       segments,
     );
 
@@ -196,12 +215,25 @@ export class SphereObject extends RotatingObject {
     }
 
     const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    generateNoise(0.2, 10, canvas);
+    const noiseTexture = new THREE.Texture(canvas);
+    noiseTexture.needsUpdate = true;
+
     const material = this._simulation.isUsingLightSources()
       ? new THREE.MeshLambertMaterial({
           map,
+          emissive: new THREE.Color(0xbbbbbb),
+          emissiveMap: noiseTexture,
           side: THREE.DoubleSide,
+          shadowSide: THREE.DoubleSide,
           transparent: true,
           opacity: 0.8,
+          //emissive: new THREE.Color(0xcccccc),
+          //shininess: 3,
         })
       : new THREE.MeshBasicMaterial({
           map,
@@ -213,7 +245,6 @@ export class SphereObject extends RotatingObject {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
-    console.log('pinky rang', mesh);
     return mesh;
   }
 

@@ -1,7 +1,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
-  unitsPerAu: 100.0,
+  unitsPerAu: 10.0,
   camera: {
     initialPosition: [
       0.0014980565625981512,
@@ -9,10 +9,19 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
       0.03616394298897485,
     ],
   },
+  startPaused: true,
 });
 
 // Create a light source somewhere off in the distance.
-viz.createLight([1, 1, 0]);
+viz.createLight([0.1, 0.1, 0.025]);
+//viz.createAmbientLight();
+
+viz.createObject(
+  'sun',
+  Object.assign(Spacekit.SpaceObjectPresets.SUN, {
+    position: [50, 50, 12.5],
+  }),
+);
 
 // Create a starry background using Yale Bright Star Catalog Data.
 viz.createStars();
@@ -29,6 +38,9 @@ const saturn = viz.createSphere('saturn', {
   atmosphere: {
     enable: true,
   },
+  rotation: {
+    enable: true,
+  },
   axialTilt: 26.73,
 });
 viz.zoomToFit(saturn);
@@ -36,6 +48,7 @@ viz.zoomToFit(saturn);
 // Add its moons
 const moonObjs = [];
 let saturnSatellites = [];
+/*
 viz.loadNaturalSatellites().then(loader => {
   saturnSatellites = loader.getSatellitesForPlanet('saturn');
   saturnSatellites.forEach(moon => {
@@ -47,6 +60,7 @@ viz.loadNaturalSatellites().then(loader => {
     moonObjs.push(obj);
   });
 });
+*/
 
 // Set up gui and user interactions
 const guiState = {

@@ -159,7 +159,7 @@ export const ATMOSPHERE_SHADER_VERTEX = `
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
-  varying vec3 vNormal;
+  //varying vec3 vNormal;
 
   void main() {
     //vNormal = normalize(normalMatrix * normal);

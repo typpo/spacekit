@@ -207,8 +207,12 @@ export class Simulation {
       antialias: true,
       logarithmicDepthBuffer: true,
     });
-    renderer.shadowMapEnabled = true;
-    renderer.shadowMapSoft = true;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    console.info(
+      'Max texture resolution:',
+      renderer.capabilities.maxTextureSize,
+    );
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
     if (maxPrecision !== 'highp') {
@@ -398,12 +402,14 @@ export class Simulation {
    * @param {Number} color Color of light, default 0xFFFFFF
    */
   createLight(pos = undefined, color = 0xffffff) {
-    const pointLight = new THREE.PointLight(
+    const pointLight1 = new THREE.PointLight(
       color,
       1 /* intensity */,
       rescaleNumber(0) /* distance */,
       rescaleNumber(2) /* decay */,
     );
+    //const pointLight = new THREE.DirectionalLight(color, 1);
+    const pointLight = new THREE.SpotLight(color, 1);
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
       console.log('light pos', rescaled);
@@ -415,11 +421,21 @@ export class Simulation {
       });
     }
     pointLight.castShadow = true;
-    pointLight.shadowMapWidth = 1024 * 1;
-    pointLight.shadowMapHeight = 1024 * 1;
+    pointLight.shadow.mapSize.width = 1024 * 5;
+    pointLight.shadow.mapSize.height = 1024 * 5;
+
     // TODO(ian): Make these dynamic
-    pointLight.shadowCameraNear = rescaleNumber(0.5);
-    pointLight.shadowCameraFar = rescaleNumber(1.5);
+
+    //pointLight.shadow.camera.near = rescaleNumber(0.6);
+    //pointLight.shadow.camera.far = rescaleNumber(0.8);
+    pointLight.shadow.camera.near = rescaleNumber(0.1);
+    pointLight.shadow.camera.far = rescaleNumber(0.2);
+
+    pointLight.shadow.camera.left = -rescaleNumber(0.05);
+    pointLight.shadow.camera.right = rescaleNumber(0.05);
+    pointLight.shadow.camera.top = rescaleNumber(0.05);
+    pointLight.shadow.camera.bottom = -rescaleNumber(0.05);
+    pointLight.shadow.bias = -0.0001 * 8;
 
     const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
 

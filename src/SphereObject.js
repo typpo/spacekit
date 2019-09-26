@@ -101,7 +101,12 @@ export class SphereObject extends RotatingObject {
       this._obj.add(this.renderFullAtmosphere());
     }
 
-    this._obj.add(this.renderRings());
+    this._obj.add(this.renderRings('D', 66900, 74510, 0x242424));
+    this._obj.add(this.renderRings('C', 74658, 92000, 0x5f5651));
+    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
+    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
+
+    // this._obj.add(this.renderRings('All', 74500, 136780));
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
@@ -183,7 +188,7 @@ export class SphereObject extends RotatingObject {
     return mesh;
   }
 
-  renderRings() {
+  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
     const radius = this.getScaledRadius();
     const segments = 128;
 
@@ -196,8 +201,8 @@ export class SphereObject extends RotatingObject {
     const geometry = new THREE.RingBufferGeometry(
       //2 * radius,
       //4 * radius,
-      rescaleNumber(kmToAu(74500)),
-      rescaleNumber(kmToAu(136780)),
+      rescaleNumber(kmToAu(innerRadiusKm)),
+      rescaleNumber(kmToAu(outerRadiusKm)),
       segments,
     );
 
@@ -225,15 +230,14 @@ export class SphereObject extends RotatingObject {
 
     const material = this._simulation.isUsingLightSources()
       ? new THREE.MeshLambertMaterial({
-          map,
+          // map,
+          color: new THREE.Color(color),
           emissive: new THREE.Color(0xbbbbbb),
           emissiveMap: noiseTexture,
           side: THREE.DoubleSide,
           shadowSide: THREE.DoubleSide,
           transparent: true,
           opacity: 0.8,
-          //emissive: new THREE.Color(0xcccccc),
-          //shininess: 3,
         })
       : new THREE.MeshBasicMaterial({
           map,

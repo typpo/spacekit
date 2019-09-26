@@ -54968,8 +54968,8 @@ var Spacekit = (function (exports) {
 	      });
 	    }
 	    pointLight.castShadow = true;
-	    pointLight.shadow.mapSize.width = 1024 * 2;
-	    pointLight.shadow.mapSize.height = 1024 * 2;
+	    pointLight.shadow.mapSize.width = 1024 * 4;
+	    pointLight.shadow.mapSize.height = 1024 * 4;
 
 	    // TODO(ian): Make these dynamic
 
@@ -54984,7 +54984,7 @@ var Spacekit = (function (exports) {
 	    pointLight.shadow.camera.top = rescaleNumber(0.005);
 	    pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
 	    */
-	    pointLight.shadow.bias = 0.0001 * 9;
+	    pointLight.shadow.bias = 0.0001 * -7;
 
 	    const cameraHelper = new CameraHelper(pointLight.shadow.camera);
 

@@ -124,6 +124,7 @@ export class KeplerParticles {
       fragmentShader: getOrbitShaderFragment(),
 
       depthTest: true,
+      depthWrite: false,
       transparent: true,
     });
 

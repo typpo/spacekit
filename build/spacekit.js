@@ -52308,6 +52308,7 @@ var Spacekit = (function (exports) {
 	      fragmentShader: getOrbitShaderFragment(),
 
 	      depthTest: true,
+	      depthWrite: false,
 	      transparent: true,
 	    });
 

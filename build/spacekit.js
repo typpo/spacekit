@@ -54266,7 +54266,10 @@ var Spacekit = (function (exports) {
 	    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
 	    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
-	    // this._obj.add(this.renderRings('All', 74500, 136780));
+	    /*
+	    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
+	    this._obj.add(allRings);
+	    */
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
@@ -54384,7 +54387,7 @@ var Spacekit = (function (exports) {
 	    const canvas = document.createElement('canvas');
 	    canvas.width = 256;
 	    canvas.height = 256;
-	    generateNoise(0.2, 10, canvas);
+	    generateNoise(0.5, 10, canvas);
 	    const noiseTexture = new Texture(canvas);
 	    noiseTexture.needsUpdate = true;
 
@@ -54756,6 +54759,8 @@ var Spacekit = (function (exports) {
 	    });
 	    renderer.shadowMap.enabled = true;
 	    renderer.shadowMap.type = PCFSoftShadowMap;
+	    renderer.gammaInput = true;
+	    renderer.gammaOutput = true;
 	    console.info(
 	      'Max texture resolution:',
 	      renderer.capabilities.maxTextureSize,
@@ -54985,7 +54990,8 @@ var Spacekit = (function (exports) {
 	    pointLight.shadow.camera.top = rescaleNumber(0.005);
 	    pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
 	    */
-	    pointLight.shadow.bias = 0.0001 * -7;
+	    pointLight.shadow.bias = 0; //0.0001 * -10;
+	    window.shadow = pointLight.shadow;
 
 	    const cameraHelper = new CameraHelper(pointLight.shadow.camera);
 

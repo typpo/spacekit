@@ -14,7 +14,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 
 // Create a light source somewhere off in the distance.
 viz.createLight([0.025, 0.025, 0.005]);
-viz.createAmbientLight(0x222222);
+//viz.createAmbientLight(0x222222);
 
 viz.createObject(
   'sun',
@@ -77,6 +77,7 @@ const guiState = {
       viz.setDate(new Date(input));
     }
   },
+  'Shadow Bias': 0,
 };
 const gui = new dat.GUI();
 gui.add(guiState, 'Speed', 0, 20).onChange(val => {
@@ -142,5 +143,9 @@ gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
 gui.add(guiState, 'Set Date');
+
+gui.add(guiState, 'Shadow Bias', -10, 10, 0.5).onChange(val => {
+  window.shadow.bias = val * 0.0001;
+});
 
 window.THREE = Spacekit.THREE;

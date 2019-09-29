@@ -209,6 +209,8 @@ export class Simulation {
     });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.gammaInput = true;
+    renderer.gammaOutput = true;
     console.info(
       'Max texture resolution:',
       renderer.capabilities.maxTextureSize,
@@ -438,7 +440,8 @@ export class Simulation {
     pointLight.shadow.camera.top = rescaleNumber(0.005);
     pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
     */
-    pointLight.shadow.bias = 0.0001 * -7;
+    pointLight.shadow.bias = 0; //0.0001 * -10;
+    window.shadow = pointLight.shadow;
 
     const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
 

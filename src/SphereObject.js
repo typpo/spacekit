@@ -106,7 +106,10 @@ export class SphereObject extends RotatingObject {
     this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
     this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
-    // this._obj.add(this.renderRings('All', 74500, 136780));
+    /*
+    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
+    this._obj.add(allRings);
+    */
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
@@ -224,7 +227,7 @@ export class SphereObject extends RotatingObject {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
-    generateNoise(0.2, 10, canvas);
+    generateNoise(0.5, 10, canvas);
     const noiseTexture = new THREE.Texture(canvas);
     noiseTexture.needsUpdate = true;
 

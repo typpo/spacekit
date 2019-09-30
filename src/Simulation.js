@@ -443,9 +443,9 @@ export class Simulation {
     pointLight.shadow.bias = 0; //0.0001 * -10;
     window.shadow = pointLight.shadow;
 
-    const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
+    //const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);
+    //this._scene.add(cameraHelper);
 
-    this._scene.add(cameraHelper);
     this._scene.add(pointLight);
     this._isUsingLightSources = true;
   }

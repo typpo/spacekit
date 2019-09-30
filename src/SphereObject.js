@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TranslucentShader } from 'three/examples/jsm/shaders/TranslucentShader.js';
+//import { TranslucentShader } from 'three/examples/jsm/shaders/TranslucentShader.js';
 
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
@@ -11,16 +11,19 @@ import {
   RING_SHADER_FRAGMENT,
 } from './shaders';
 
+const noiseTexture = THREE.ImageUtils.loadTexture('./noise.jpg');
+
 const NOISE_TEXTURE_SIZE = 512;
 
 let generatedNoise = undefined;
-function generateNoise(opacity, magnitude) {
+function generateNoise(opacity, magnitude, size = NOISE_TEXTURE_SIZE) {
+  // TODO(ian): Make this a static image.
   if (generatedNoise) {
-    return generatedNoise;
+    //return generatedNoise;
   }
   const canvas = document.createElement('canvas');
-  canvas.width = NOISE_TEXTURE_SIZE;
-  canvas.height = NOISE_TEXTURE_SIZE;
+  canvas.width = size;
+  canvas.height = size;
 
   const ctx = canvas.getContext('2d');
   for (let x = 0; x < canvas.width; x++) {
@@ -125,11 +128,9 @@ export class SphereObject extends RotatingObject {
     this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
     this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
-    /*
-    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
-    this._obj.add(this.renderRingGlow(66900, 92000, 0x5f5651));
-    this._obj.add(this.renderRingGlow(66900, 117580, 0xccb193));
-    */
+    //this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
+    //this._obj.add(this.renderRingGlow(66900, 92000, 0x5f5651));
+    //this._obj.add(this.renderRingGlow(66900, 117580, 0xccb193));
     this._obj.add(this.renderRingGlow(66900, 136775, 0x9f8d77));
 
     /*
@@ -278,10 +279,11 @@ export class SphereObject extends RotatingObject {
     );
     const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
 
-    const noiseTexture = generateNoise(1.0, 500);
+    // TODO(ian): Yes this is above 255 but I want more bright particles than not...
+    //const noiseTexture = generateNoise(1.0, 500, 1024);
 
     const material = this._simulation.isUsingLightSources()
-      ? new THREE.MeshLambertMaterial({
+      ? new THREE.MeshPhongMaterial({
           //map
           color: new THREE.Color(color),
           //lightMap: noiseTexture,
@@ -294,6 +296,9 @@ export class SphereObject extends RotatingObject {
           opacity: 1,
           alphaMap: noiseTexture,
           alphaTest: 0.5,
+          bumpMap: noiseTexture,
+
+          reflectivity: 0.5,
         })
       : new THREE.MeshBasicMaterial({
           map,
@@ -324,20 +329,20 @@ export class SphereObject extends RotatingObject {
       curveSegments: 8,
     });
     */
-    return null;
 
     const glowGeometry = new THREE.CylinderGeometry(
       outerRadiusSize,
       outerRadiusSize,
-      rescaleNumber(0.00008),
+      rescaleNumber(0.00005),
       segments,
     );
 
     const coefficient = 0.5;
     const power = 4.0;
 
-    const noiseTexture = generateNoise(1.0, 255);
+    //const noiseTexture = generateNoise(1.0, 255);
 
+    /*
     const translucentUniforms = THREE.UniformsUtils.clone(
       TranslucentShader.uniforms,
     );
@@ -363,6 +368,7 @@ export class SphereObject extends RotatingObject {
       lights: true,
     });
     translucentShader.extensions.derivatives = true;
+    */
 
     const glowMesh = new THREE.Mesh(
       glowGeometry,
@@ -374,7 +380,6 @@ export class SphereObject extends RotatingObject {
         depthWrite: false,
       }),
       */
-      /*
       new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.merge([
           THREE.UniformsLib.ambient,
@@ -390,8 +395,7 @@ export class SphereObject extends RotatingObject {
         side: THREE.BackSide,
         lights: true,
       }),
-      */
-      translucentShader,
+      //translucentShader,
     );
     glowMesh.rotation.x = Math.PI / 2;
     return glowMesh;

@@ -52165,7 +52165,7 @@ var Spacekit = (function (exports) {
   varying vec3 vecPos;
   varying vec3 vecNormal;
 
-#if NUM_POINT_LIGHTS > 1
+#if NUM_POINT_LIGHTS > 0
   struct PointLight {
     vec3 position;
     vec3 color;
@@ -52181,7 +52181,7 @@ var Spacekit = (function (exports) {
 
   uniform PointLight pointLights[NUM_POINT_LIGHTS];
 #endif
-#if NUM_DIR_LIGHTS > 1
+#if NUM_DIR_LIGHTS > 0
   struct DirectionalLight {
     vec3 direction;
     vec3 color;
@@ -52195,6 +52195,7 @@ var Spacekit = (function (exports) {
 
   uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
 #endif
+#if NUM_SPOT_LIGHTS > 0
   struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -52210,6 +52211,7 @@ var Spacekit = (function (exports) {
   };
 
   uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
+#endif
 
   void main() {
     //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
@@ -52219,7 +52221,7 @@ var Spacekit = (function (exports) {
 
     // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-#if NUM_POINT_LIGHTS > 1
+#if NUM_POINT_LIGHTS > 0
     for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - pointLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
@@ -52227,7 +52229,7 @@ var Spacekit = (function (exports) {
                            * 1.0 /* intensity */;
     }
 #endif
-#if NUM_DIR_LIGHTS > 1
+#if NUM_DIR_LIGHTS > 0
     for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
@@ -52235,12 +52237,131 @@ var Spacekit = (function (exports) {
                            * 1.0 /* intensity */;
     }
 #endif
+#if NUM_SPOT_LIGHTS > 0
     for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - spotLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * spotLights[i].color
                            * 1.0 /* intensity */;
     }
+#endif
+
+    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+  }
+`;
+
+	const RING_SHADER_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+  //varying vec3 vNormal;
+
+  void main() {
+    //vNormal = normalize(normalMatrix * normal);
+    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+    vUv = uv;
+    // Since the light is in camera coordinates,
+    // I'll need the vertex position in camera coords too
+    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    // That's NOT exacly how you should transform your
+    // normals but this will work fine, since my model
+    // matrix is pretty basic
+    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
+    gl_Position = projectionMatrix * vec4(vecPos, 1.0);
+  }
+`;
+
+	const RING_SHADER_FRAGMENT = `
+  uniform float c;
+  uniform float p;
+  uniform vec3 color;
+
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+
+#if NUM_POINT_LIGHTS > 0
+  struct PointLight {
+    vec3 position;
+    vec3 color;
+    float distance;
+    float decay;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+    float shadowCameraNear;
+    float shadowCameraFar;
+  };
+
+  uniform PointLight pointLights[NUM_POINT_LIGHTS];
+#endif
+#if NUM_DIR_LIGHTS > 0
+  struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+
+    float distance;  // ?
+  };
+
+  uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
+#endif
+#if NUM_SPOT_LIGHTS > 0
+  struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float distance;
+    float decay;
+    float coneCos;
+    float penumbraCos;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+  };
+
+  uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
+#endif
+
+  void main() {
+    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    //gl_FragColor = vec4(color, 1.0) * intensity;
+
+    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
+
+    // Pretty basic lambertian lighting...
+    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
+#if NUM_POINT_LIGHTS > 0
+    for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - pointLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * pointLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+#if NUM_DIR_LIGHTS > 0
+    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * directionalLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+#if NUM_SPOT_LIGHTS > 0
+    for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - spotLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * spotLights[i].color
+                           * 0.4 /* intensity */;
+    }
+#endif
+
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
 `;
@@ -54318,6 +54439,11 @@ var Spacekit = (function (exports) {
 	    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
 	    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
+	    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
+	    this._obj.add(this.renderRingGlow(66900, 92000, 0x5f5651));
+	    this._obj.add(this.renderRingGlow(66900, 117580, 0xccb193));
+	    this._obj.add(this.renderRingGlow(66900, 136775, 0x09f8d77));
+
 	    /*
 	    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
 	    this._obj.add(allRings);
@@ -54375,7 +54501,7 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
-	   * @param {THREE.Color} Color of atmosphere
+	   * @param {THREE.Color} color Color of atmosphere
 	   */
 	  renderAtmosphere(radius, size, coefficient, power, color) {
 	    const geometry = new SphereGeometry(radius + size, 32, 32);
@@ -54404,21 +54530,26 @@ var Spacekit = (function (exports) {
 	    return mesh;
 	  }
 
-	  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
-	    const radius = this.getScaledRadius();
-	    const segments = 128;
-
-	    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
-	    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
-
-	    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
-	    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
-
-	    const geometry = new RingBufferGeometry(
-	      //2 * radius,
-	      //4 * radius,
-	      rescaleNumber(kmToAu(innerRadiusKm)),
-	      rescaleNumber(kmToAu(outerRadiusKm)),
+	  /**
+	   * @private
+	   * Generate a ring geometry with correct UVs.
+	   * @param {Number} innerRadiusSize Inner radius in true coordinates
+	   * @param {Number} outerRadiusSize Outer radius in true coordinates
+	   * @param {Number} segments Number of segments in ring
+	   */
+	  generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+	    return new RingGeometry(
+	      innerRadiusSize,
+	      outerRadiusSize,
+	      segments,
+	      5,
+	      0,
+	      Math.PI * 2,
+	    );
+	    /*
+	    const geometry = new THREE.RingBufferGeometry(
+	      innerRadiusSize,
+	      outerRadiusSize,
 	      segments,
 	    );
 
@@ -54435,6 +54566,28 @@ var Spacekit = (function (exports) {
 	      }
 	    }
 
+	    return geometry;
+	    */
+	  }
+
+	  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
+	    const radius = this.getScaledRadius();
+	    const segments = 128;
+
+	    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+	    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
+
+	    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
+	    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
+
+	    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
+	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+	    const geometry = this.generateRingGeometry(
+	      innerRadiusSize,
+	      outerRadiusSize,
+	      segments,
+	    );
 	    const map = ImageUtils.loadTexture('./saturn_rings.png');
 
 	    const canvas = document.createElement('canvas');
@@ -54467,10 +54620,26 @@ var Spacekit = (function (exports) {
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
 
-	    const coefficient = 0.8;
-	    const power = 2.0;
+	    return mesh;
+	  }
+
+	  renderRingGlow(innerRadiusKm, outerRadiusKm, color) {
+	    const segments = 128;
+	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+	    // Now set up the rings glow...
+	    //const glowGeometry = this.generateRingGeometry(innerRadiusSize * 0.8, outerRadiusSize * 1.2, segments);
+	    const glowGeometry = new CylinderGeometry(
+	      outerRadiusSize,
+	      outerRadiusSize,
+	      Math.random() * rescaleNumber(0.00002),
+	      segments,
+	    );
+
+	    const coefficient = 0.5;
+	    const power = 4.0;
 	    const glowMesh = new Mesh(
-	      geometry,
+	      glowGeometry,
 	      new ShaderMaterial({
 	        uniforms: UniformsUtils.merge([
 	          UniformsLib.ambient,
@@ -54481,22 +54650,14 @@ var Spacekit = (function (exports) {
 	            color: { value: new Color(color) },
 	          },
 	        ]),
-	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
-	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
-	        //side: THREE.FrontSide,
+	        vertexShader: RING_SHADER_VERTEX,
+	        fragmentShader: RING_SHADER_FRAGMENT,
 	        side: BackSide,
-	        //blending: THREE.AdditiveBlending,
-	        transparent: true,
-	        depthWrite: false,
 	        lights: true,
 	      }),
 	    );
-
-	    const ret = new Object3D();
-	    ret.add(mesh);
-	    ret.add(glowMesh);
-
-	    return ret;
+	    glowMesh.rotation.x = Math.PI / 2;
+	    return glowMesh;
 	  }
 
 	  /**

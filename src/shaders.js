@@ -190,7 +190,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   varying vec3 vecPos;
   varying vec3 vecNormal;
 
-#if NUM_POINT_LIGHTS > 1
+#if NUM_POINT_LIGHTS > 0
   struct PointLight {
     vec3 position;
     vec3 color;
@@ -206,7 +206,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
 
   uniform PointLight pointLights[NUM_POINT_LIGHTS];
 #endif
-#if NUM_DIR_LIGHTS > 1
+#if NUM_DIR_LIGHTS > 0
   struct DirectionalLight {
     vec3 direction;
     vec3 color;
@@ -220,6 +220,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
 
   uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
 #endif
+#if NUM_SPOT_LIGHTS > 0
   struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -235,6 +236,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   };
 
   uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
+#endif
 
   void main() {
     //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
@@ -244,7 +246,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
 
     // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-#if NUM_POINT_LIGHTS > 1
+#if NUM_POINT_LIGHTS > 0
     for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - pointLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
@@ -252,7 +254,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
                            * 1.0 /* intensity */;
     }
 #endif
-#if NUM_DIR_LIGHTS > 1
+#if NUM_DIR_LIGHTS > 0
     for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
@@ -260,12 +262,131 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
                            * 1.0 /* intensity */;
     }
 #endif
+#if NUM_SPOT_LIGHTS > 0
     for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - spotLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * spotLights[i].color
                            * 1.0 /* intensity */;
     }
+#endif
+
+    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+  }
+`;
+
+export const RING_SHADER_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+  //varying vec3 vNormal;
+
+  void main() {
+    //vNormal = normalize(normalMatrix * normal);
+    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+    vUv = uv;
+    // Since the light is in camera coordinates,
+    // I'll need the vertex position in camera coords too
+    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    // That's NOT exacly how you should transform your
+    // normals but this will work fine, since my model
+    // matrix is pretty basic
+    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
+    gl_Position = projectionMatrix * vec4(vecPos, 1.0);
+  }
+`;
+
+export const RING_SHADER_FRAGMENT = `
+  uniform float c;
+  uniform float p;
+  uniform vec3 color;
+
+  varying vec2 vUv;
+  varying vec3 vecPos;
+  varying vec3 vecNormal;
+
+#if NUM_POINT_LIGHTS > 0
+  struct PointLight {
+    vec3 position;
+    vec3 color;
+    float distance;
+    float decay;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+    float shadowCameraNear;
+    float shadowCameraFar;
+  };
+
+  uniform PointLight pointLights[NUM_POINT_LIGHTS];
+#endif
+#if NUM_DIR_LIGHTS > 0
+  struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+
+    float distance;  // ?
+  };
+
+  uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
+#endif
+#if NUM_SPOT_LIGHTS > 0
+  struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float distance;
+    float decay;
+    float coneCos;
+    float penumbraCos;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+  };
+
+  uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
+#endif
+
+  void main() {
+    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
+    //gl_FragColor = vec4(color, 1.0) * intensity;
+
+    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
+
+    // Pretty basic lambertian lighting...
+    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
+#if NUM_POINT_LIGHTS > 0
+    for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - pointLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * pointLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+#if NUM_DIR_LIGHTS > 0
+    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * directionalLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+#if NUM_SPOT_LIGHTS > 0
+    for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - spotLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * spotLights[i].color
+                           * 0.4 /* intensity */;
+    }
+#endif
+
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
 `;

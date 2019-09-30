@@ -6,6 +6,8 @@ import { auToKm, kmToAu, rad } from './Units';
 import {
   ATMOSPHERE_SHADER_VERTEX,
   ATMOSPHERE_SHADER_FRAGMENT,
+  RING_SHADER_VERTEX,
+  RING_SHADER_FRAGMENT,
 } from './shaders';
 
 function generateNoise(opacity, magnitude, canvas) {
@@ -106,6 +108,11 @@ export class SphereObject extends RotatingObject {
     this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
     this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
+    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
+    this._obj.add(this.renderRingGlow(66900, 92000, 0x5f5651));
+    this._obj.add(this.renderRingGlow(66900, 117580, 0xccb193));
+    this._obj.add(this.renderRingGlow(66900, 136775, 0x09f8d77));
+
     /*
     const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
     this._obj.add(allRings);
@@ -163,7 +170,7 @@ export class SphereObject extends RotatingObject {
 
   /**
    * @private
-   * @param {THREE.Color} Color of atmosphere
+   * @param {THREE.Color} color Color of atmosphere
    */
   renderAtmosphere(radius, size, coefficient, power, color) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
@@ -192,21 +199,26 @@ export class SphereObject extends RotatingObject {
     return mesh;
   }
 
-  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
-    const radius = this.getScaledRadius();
-    const segments = 128;
-
-    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
-    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
-
-    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
-    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
-
+  /**
+   * @private
+   * Generate a ring geometry with correct UVs.
+   * @param {Number} innerRadiusSize Inner radius in true coordinates
+   * @param {Number} outerRadiusSize Outer radius in true coordinates
+   * @param {Number} segments Number of segments in ring
+   */
+  generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+    return new THREE.RingGeometry(
+      innerRadiusSize,
+      outerRadiusSize,
+      segments,
+      5,
+      0,
+      Math.PI * 2,
+    );
+    /*
     const geometry = new THREE.RingBufferGeometry(
-      //2 * radius,
-      //4 * radius,
-      rescaleNumber(kmToAu(innerRadiusKm)),
-      rescaleNumber(kmToAu(outerRadiusKm)),
+      innerRadiusSize,
+      outerRadiusSize,
       segments,
     );
 
@@ -223,6 +235,28 @@ export class SphereObject extends RotatingObject {
       }
     }
 
+    return geometry;
+    */
+  }
+
+  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
+    const radius = this.getScaledRadius();
+    const segments = 128;
+
+    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
+    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
+
+    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
+    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
+
+    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
+    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+    const geometry = this.generateRingGeometry(
+      innerRadiusSize,
+      outerRadiusSize,
+      segments,
+    );
     const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
 
     const canvas = document.createElement('canvas');
@@ -255,10 +289,27 @@ export class SphereObject extends RotatingObject {
     mesh.receiveShadow = true;
     mesh.castShadow = true;
 
-    const coefficient = 0.8;
-    const power = 2.0;
+    return mesh;
+  }
+
+  renderRingGlow(innerRadiusKm, outerRadiusKm, color) {
+    const segments = 128;
+    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
+    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+    // Now set up the rings glow...
+    //const glowGeometry = this.generateRingGeometry(innerRadiusSize * 0.8, outerRadiusSize * 1.2, segments);
+    const glowGeometry = new THREE.CylinderGeometry(
+      outerRadiusSize,
+      outerRadiusSize,
+      Math.random() * rescaleNumber(0.00002),
+      segments,
+    );
+
+    const coefficient = 0.5;
+    const power = 4.0;
     const glowMesh = new THREE.Mesh(
-      geometry,
+      glowGeometry,
       new THREE.ShaderMaterial({
         uniforms: THREE.UniformsUtils.merge([
           THREE.UniformsLib.ambient,
@@ -269,22 +320,14 @@ export class SphereObject extends RotatingObject {
             color: { value: new THREE.Color(color) },
           },
         ]),
-        vertexShader: ATMOSPHERE_SHADER_VERTEX,
-        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
-        //side: THREE.FrontSide,
+        vertexShader: RING_SHADER_VERTEX,
+        fragmentShader: RING_SHADER_FRAGMENT,
         side: THREE.BackSide,
-        //blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
         lights: true,
       }),
     );
-
-    const ret = new THREE.Object3D();
-    ret.add(mesh);
-    ret.add(glowMesh);
-
-    return ret;
+    glowMesh.rotation.x = Math.PI / 2;
+    return glowMesh;
   }
 
   /**

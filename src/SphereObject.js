@@ -149,8 +149,8 @@ export class SphereObject extends RotatingObject {
       radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
     const detailedObj = new THREE.Object3D();
-    //detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-    //detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
+    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
     // Hide atmosphere beyond some multiple of radius distance.
     // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -163,6 +163,7 @@ export class SphereObject extends RotatingObject {
 
   /**
    * @private
+   * @param {THREE.Color} Color of atmosphere
    */
   renderAtmosphere(radius, size, coefficient, power, color) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
@@ -235,12 +236,13 @@ export class SphereObject extends RotatingObject {
       ? new THREE.MeshLambertMaterial({
           // map,
           color: new THREE.Color(color),
+          //lightMap: noiseTexture,
           emissive: new THREE.Color(0xbbbbbb),
           emissiveMap: noiseTexture,
           side: THREE.DoubleSide,
           shadowSide: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.5,
         })
       : new THREE.MeshBasicMaterial({
           map,
@@ -252,7 +254,37 @@ export class SphereObject extends RotatingObject {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
-    return mesh;
+
+    const coefficient = 0.8;
+    const power = 2.0;
+    const glowMesh = new THREE.Mesh(
+      geometry,
+      new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.merge([
+          THREE.UniformsLib.ambient,
+          THREE.UniformsLib.lights,
+          {
+            c: { value: coefficient },
+            p: { value: power },
+            color: { value: new THREE.Color(color) },
+          },
+        ]),
+        vertexShader: ATMOSPHERE_SHADER_VERTEX,
+        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+        //side: THREE.FrontSide,
+        side: THREE.BackSide,
+        //blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+        lights: true,
+      }),
+    );
+
+    const ret = new THREE.Object3D();
+    ret.add(mesh);
+    ret.add(glowMesh);
+
+    return ret;
   }
 
   /**

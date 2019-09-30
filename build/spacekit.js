@@ -52047,7 +52047,9 @@ var Spacekit = (function (exports) {
       float E1 = M + adjusted_e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
-      for (int foo=0; foo < 100; foo++) {
+
+      #pragma unroll_loop
+      for ( int i = 0; i < 100; i ++ ) {
         E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
@@ -52163,17 +52165,51 @@ var Spacekit = (function (exports) {
   varying vec3 vecPos;
   varying vec3 vecNormal;
 
+#if NUM_POINT_LIGHTS > 1
   struct PointLight {
+    vec3 position;
     vec3 color;
-    vec3 position; // light position, in camera coordinates
-    float distance; // used for attenuation purposes. Since
-                    // we're writing our own shader, it can
-                    // really be anything we want (as long as
-                    // we assign it to our light in its
-                    // "distance" field
+    float distance;
+    float decay;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+    float shadowCameraNear;
+    float shadowCameraFar;
   };
 
   uniform PointLight pointLights[NUM_POINT_LIGHTS];
+#endif
+#if NUM_DIR_LIGHTS > 1
+  struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+
+    float distance;  // ?
+  };
+
+  uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
+#endif
+  struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float distance;
+    float decay;
+    float coneCos;
+    float penumbraCos;
+    int shadow;
+    float shadowBias;
+    float shadowRadius;
+    vec2 shadowMapSize;
+  };
+
+  uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
 
   void main() {
     //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
@@ -52183,10 +52219,26 @@ var Spacekit = (function (exports) {
 
     // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-    for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
-        vec3 lightDirection = normalize(vecPos - pointLights[l].position);
+#if NUM_POINT_LIGHTS > 1
+    for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - pointLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * pointLights[l].color
+                           * pointLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+#if NUM_DIR_LIGHTS > 1
+    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * directionalLights[i].color
+                           * 1.0 /* intensity */;
+    }
+#endif
+    for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+        vec3 lightDirection = normalize(vecPos - spotLights[i].position);
+        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                           * spotLights[i].color
                            * 1.0 /* intensity */;
     }
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
@@ -54309,8 +54361,8 @@ var Spacekit = (function (exports) {
 	      radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
 	    const detailedObj = new Object3D();
-	    //detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-	    //detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+	    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
+	    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
 
 	    // Hide atmosphere beyond some multiple of radius distance.
 	    // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -54323,6 +54375,7 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
+	   * @param {THREE.Color} Color of atmosphere
 	   */
 	  renderAtmosphere(radius, size, coefficient, power, color) {
 	    const geometry = new SphereGeometry(radius + size, 32, 32);
@@ -54395,12 +54448,13 @@ var Spacekit = (function (exports) {
 	      ? new MeshLambertMaterial({
 	          // map,
 	          color: new Color(color),
+	          //lightMap: noiseTexture,
 	          emissive: new Color(0xbbbbbb),
 	          emissiveMap: noiseTexture,
 	          side: DoubleSide,
 	          shadowSide: DoubleSide,
 	          transparent: true,
-	          opacity: 0.8,
+	          opacity: 0.5,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
@@ -54412,7 +54466,37 @@ var Spacekit = (function (exports) {
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
-	    return mesh;
+
+	    const coefficient = 0.8;
+	    const power = 2.0;
+	    const glowMesh = new Mesh(
+	      geometry,
+	      new ShaderMaterial({
+	        uniforms: UniformsUtils.merge([
+	          UniformsLib.ambient,
+	          UniformsLib.lights,
+	          {
+	            c: { value: coefficient },
+	            p: { value: power },
+	            color: { value: new Color(color) },
+	          },
+	        ]),
+	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
+	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+	        //side: THREE.FrontSide,
+	        side: BackSide,
+	        //blending: THREE.AdditiveBlending,
+	        transparent: true,
+	        depthWrite: false,
+	        lights: true,
+	      }),
+	    );
+
+	    const ret = new Object3D();
+	    ret.add(mesh);
+	    ret.add(glowMesh);
+
+	    return ret;
 	  }
 
 	  /**

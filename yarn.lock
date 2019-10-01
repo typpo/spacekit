@@ -1719,6 +1719,11 @@ pluralize@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-7.0.0.tgz#298b89df8b93b0221dbf421ad2b1b1ea23fc6777"
 
+postprocessing@^6.8.0:
+  version "6.8.0"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.8.0.tgz#adbfadef93c51c872b78efb6026469d907d6666b"
+  integrity sha512-R6GX21Q+s1IATHg5qNgMfs+vKLVK4H6936lL2idI3ZdgHezrbz66GQUpNTIZtVSkYrIy0f9rsceIqdxkcg93WQ==
+
 prelude-ls@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz#21932a549f5e52ffd9a827f570e04be62a97da54"

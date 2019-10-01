@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import {
+  EffectComposer,
+  BlendFunction,
+  EffectPass,
+  GodRaysEffect,
+  KernelSize,
+  SMAAEffect,
+  RenderPass,
+} from 'postprocessing';
 
 import { Camera } from './Camera';
 import { KeplerParticles } from './KeplerParticles';
@@ -97,9 +106,6 @@ export class Simulation {
     this._isPaused = options.startPaused || false;
     this.onTick = null;
 
-    this._scene = null;
-    this._renderer = null;
-
     this._enableCameraDrift = false;
     this._cameraDefaultPos = rescaleArray([0, -10, 5]);
     if (this._options.camera) {
@@ -117,13 +123,18 @@ export class Simulation {
     this._subscribedObjects = {};
     this._particles = null;
 
-    this._renderEnabled = true;
-    this._boundAnimate = this.animate.bind(this);
-
     // stats.js panel
     this._stats = null;
     this._fps = 1;
     this._lastUpdatedTime = Date.now();
+
+    // Rendering
+    this._renderEnabled = true;
+    this.animate = this.animate.bind(this);
+
+    this._scene = null;
+    this._renderer = null;
+    this._composer = null;
 
     this.init();
     this.animate();
@@ -197,6 +208,9 @@ export class Simulation {
       },
       this,
     );
+
+    // Set up effect composer, etc.
+    this.initPasses();
   }
 
   /**
@@ -237,6 +251,68 @@ export class Simulation {
   /**
    * @private
    */
+  initPasses() {
+    //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
+    //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
+
+    const camera = this._camera.get3jsCamera();
+
+    const sunGeometry = new THREE.SphereBufferGeometry(
+      rescaleNumber(0.004),
+      16,
+      16,
+    );
+    const sunMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffddaa,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
+    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
+    sun.updateMatrix();
+    sun.updateMatrixWorld();
+    console.log('wtf', sun.position);
+
+    const godRaysEffect = new GodRaysEffect(camera, sun, {
+      /*
+      height: rescaleNumber(0.1),
+      kernelSize: KernelSize.SMALL,
+      density: 0.96,
+      decay: 0.92,
+      weight: 0.3,
+      exposure: 0.54,
+      samples: 60,
+      clampMax: 1.0
+      */
+      /*
+      resolutionScale: 1,
+          density: 0.8,
+          decay: 0.95,
+          weight: 0.9,
+          samples: 100
+          */
+      color: 0xfff5f2,
+      blur: false,
+    });
+    //godRaysEffect.dithering = true;
+
+    const renderPass = new RenderPass(this._scene, camera);
+    renderPass.renderToScreen = false;
+
+    const effectPass = new EffectPass(camera, /*smaaEffect,*/ godRaysEffect);
+    effectPass.renderToScreen = true;
+
+    const composer = new EffectComposer(this._renderer);
+    composer.addPass(renderPass);
+    composer.addPass(effectPass);
+    this._composer = composer;
+  }
+
+  /**
+   * @private
+   */
   update() {
     for (const objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {
@@ -266,7 +342,7 @@ export class Simulation {
       return;
     }
 
-    window.requestAnimationFrame(this._boundAnimate);
+    window.requestAnimationFrame(this.animate);
 
     if (this._stats) {
       this._stats.begin();
@@ -295,7 +371,8 @@ export class Simulation {
     this._camera.update();
 
     // Update three.js scene
-    this._renderer.render(this._scene, this._camera.get3jsCamera());
+    //this._renderer.render(this._scene, this._camera.get3jsCamera());
+    this._composer.render(0.1);
 
     if (this.onTick) {
       this.onTick();

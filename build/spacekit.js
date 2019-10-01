@@ -51999,6 +51999,3937 @@ var Spacekit = (function (exports) {
 	};
 
 	/**
+	 * postprocessing v6.8.0 build Tue Oct 01 2019
+	 * https://github.com/vanruesc/postprocessing
+	 * Copyright 2019 Raoul van Rüschen, Zlib
+	 */
+
+	var vertexShader = "varying vec2 vUv;void main(){vUv=position.xy*0.5+0.5;gl_Position=vec4(position.xy,1.0,1.0);}";
+
+	var fragmentShader$2 = "#include <common>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;void main(){vec4 sum=texture2D(inputBuffer,vUv0);sum+=texture2D(inputBuffer,vUv1);sum+=texture2D(inputBuffer,vUv2);sum+=texture2D(inputBuffer,vUv3);gl_FragColor=sum*0.25;\n#include <dithering_fragment>\n}";
+
+	var vertexShader$2 = "uniform vec2 texelSize;uniform vec2 halfTexelSize;uniform float kernel;uniform float scale;/*Packing multiple texture coordinates into one varying and using a swizzle toextract them in the fragment shader still causes a dependent texture read.*/varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;void main(){vec2 uv=position.xy*0.5+0.5;vec2 dUv=(texelSize*vec2(kernel)+halfTexelSize)*scale;vUv0=vec2(uv.x-dUv.x,uv.y+dUv.y);vUv1=vec2(uv.x+dUv.x,uv.y+dUv.y);vUv2=vec2(uv.x+dUv.x,uv.y-dUv.y);vUv3=vec2(uv.x-dUv.x,uv.y-dUv.y);gl_Position=vec4(position.xy,1.0,1.0);}";
+
+	/**
+	 * An optimised convolution shader material.
+	 *
+	 * This material supports dithering.
+	 *
+	 * Based on the GDC2003 Presentation by Masaki Kawase, Bunkasha Games:
+	 *  Frame Buffer Postprocessing Effects in DOUBLE-S.T.E.A.L (Wreckless)
+	 * and an article by Filip Strugar, Intel:
+	 *  An investigation of fast real-time GPU-based image blur algorithms
+	 *
+	 * Further modified according to Apple's
+	 * [Best Practices for Shaders](https://goo.gl/lmRoM5).
+	 */
+
+	class ConvolutionMaterial extends ShaderMaterial {
+
+		/**
+		 * Constructs a new convolution material.
+		 *
+		 * @param {Vector2} [texelSize] - The absolute screen texel size.
+		 */
+
+		constructor(texelSize = new Vector2()) {
+
+			super({
+
+				type: "ConvolutionMaterial",
+
+				uniforms: {
+
+					inputBuffer: new Uniform(null),
+					texelSize: new Uniform(new Vector2()),
+					halfTexelSize: new Uniform(new Vector2()),
+					kernel: new Uniform(0.0),
+					scale: new Uniform(1.0)
+
+				},
+
+				fragmentShader: fragmentShader$2,
+				vertexShader: vertexShader$2,
+
+				depthWrite: false,
+				depthTest: false
+
+			});
+
+			this.setTexelSize(texelSize.x, texelSize.y);
+
+			/**
+			 * The current kernel size.
+			 *
+			 * @type {KernelSize}
+			 */
+
+			this.kernelSize = KernelSize.LARGE;
+
+		}
+
+		/**
+		 * Returns the kernel.
+		 *
+		 * @return {Float32Array} The kernel.
+		 */
+
+		getKernel() {
+
+			return kernelPresets[this.kernelSize];
+
+		}
+
+		/**
+		 * Sets the texel size.
+		 *
+		 * @param {Number} x - The texel width.
+		 * @param {Number} y - The texel height.
+		 */
+
+		setTexelSize(x, y) {
+
+			this.uniforms.texelSize.value.set(x, y);
+			this.uniforms.halfTexelSize.value.set(x, y).multiplyScalar(0.5);
+
+		}
+
+	}
+
+	/**
+	 * The Kawase blur kernel presets.
+	 *
+	 * @type {Float32Array[]}
+	 * @private
+	 */
+
+	const kernelPresets = [
+		new Float32Array([0.0, 0.0]),
+		new Float32Array([0.0, 1.0, 1.0]),
+		new Float32Array([0.0, 1.0, 1.0, 2.0]),
+		new Float32Array([0.0, 1.0, 2.0, 2.0, 3.0]),
+		new Float32Array([0.0, 1.0, 2.0, 3.0, 4.0, 4.0, 5.0]),
+		new Float32Array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 8.0, 9.0, 10.0])
+	];
+
+	/**
+	 * A kernel size enumeration.
+	 *
+	 * @type {Object}
+	 * @property {Number} VERY_SMALL - A very small kernel that matches a 7x7 Gauss blur kernel.
+	 * @property {Number} SMALL - A small kernel that matches a 15x15 Gauss blur kernel.
+	 * @property {Number} MEDIUM - A medium sized kernel that matches a 23x23 Gauss blur kernel.
+	 * @property {Number} LARGE - A large kernel that matches a 35x35 Gauss blur kernel.
+	 * @property {Number} VERY_LARGE - A very large kernel that matches a 63x63 Gauss blur kernel.
+	 * @property {Number} HUGE - A huge kernel that matches a 127x127 Gauss blur kernel.
+	 */
+
+	const KernelSize = {
+
+		VERY_SMALL: 0,
+		SMALL: 1,
+		MEDIUM: 2,
+		LARGE: 3,
+		VERY_LARGE: 4,
+		HUGE: 5
+
+	};
+
+	var fragmentShader$3 = "uniform sampler2D inputBuffer;uniform float opacity;varying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);gl_FragColor=opacity*texel;}";
+
+	/**
+	 * A simple copy shader material.
+	 */
+
+	class CopyMaterial extends ShaderMaterial {
+
+		/**
+		 * Constructs a new copy material.
+		 */
+
+		constructor() {
+
+			super({
+
+				type: "CopyMaterial",
+
+				uniforms: {
+
+					inputBuffer: new Uniform(null),
+					opacity: new Uniform(1.0)
+
+				},
+
+				fragmentShader: fragmentShader$3,
+				vertexShader,
+
+				depthWrite: false,
+				depthTest: false
+
+			});
+
+		}
+
+	}
+
+	var fragmentShader$5 = "uniform sampler2D depthBuffer0;uniform sampler2D depthBuffer1;uniform sampler2D inputBuffer;varying vec2 vUv;void main(){float d0=texture2D(depthBuffer0,vUv).r;float d1=texture2D(depthBuffer1,vUv).r;if(d0<d1){discard;}gl_FragColor=texture2D(inputBuffer,vUv);}";
+
+	/**
+	 * A depth mask shader material.
+	 *
+	 * This material masks a color buffer by comparing two depth textures.
+	 */
+
+	class DepthMaskMaterial extends ShaderMaterial {
+
+		/**
+		 * Constructs a new depth mask material.
+		 */
+
+		constructor() {
+
+			super({
+
+				type: "DepthMaskMaterial",
+
+				uniforms: {
+
+					depthBuffer0: new Uniform(null),
+					depthBuffer1: new Uniform(null),
+					inputBuffer: new Uniform(null)
+
+				},
+
+				fragmentShader: fragmentShader$5,
+				vertexShader,
+
+				depthWrite: false,
+				depthTest: false
+
+			});
+
+		}
+
+	}
+
+	var fragmentTemplate = "#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform sampler2D depthBuffer;uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;float readDepth(const in vec2 uv){\n#if DEPTH_PACKING == 3201\nreturn unpackRGBAToDepth(texture2D(depthBuffer,uv));\n#else\nreturn texture2D(depthBuffer,uv).r;\n#endif\n}FRAGMENT_HEADvoid main(){FRAGMENT_MAIN_UVvec4 color0=texture2D(inputBuffer,UV);vec4 color1=vec4(0.0);FRAGMENT_MAIN_IMAGEgl_FragColor=color0;\n#include <dithering_fragment>\n}";
+
+	var vertexTemplate = "uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;VERTEX_HEADvoid main(){vUv=position.xy*0.5+0.5;VERTEX_MAIN_SUPPORTgl_Position=vec4(position.xy,1.0,1.0);}";
+
+	/**
+	 * An effect material for compound shaders.
+	 *
+	 * This material supports dithering.
+	 *
+	 * @implements {Resizable}
+	 */
+
+	class EffectMaterial extends ShaderMaterial {
+
+		/**
+		 * Constructs a new effect material.
+		 *
+		 * @param {Map<String, String>} shaderParts - A collection of shader snippets.
+		 * @param {Map<String, String>} defines - A collection of preprocessor macro definitions.
+		 * @param {Map<String, Uniform>} uniforms - A collection of uniforms.
+		 * @param {Camera} [camera=null] - A camera.
+		 * @param {Boolean} [dithering=false] - Whether dithering should be enabled.
+		 */
+
+		constructor(shaderParts, defines, uniforms, camera = null, dithering = false) {
+
+			super({
+
+				type: "EffectMaterial",
+
+				defines: {
+
+					DEPTH_PACKING: "0"
+
+				},
+
+				uniforms: {
+
+					inputBuffer: new Uniform(null),
+					depthBuffer: new Uniform(null),
+
+					resolution: new Uniform(new Vector2()),
+					texelSize: new Uniform(new Vector2()),
+
+					cameraNear: new Uniform(0.3),
+					cameraFar: new Uniform(1000.0),
+					aspect: new Uniform(1.0),
+					time: new Uniform(0.0)
+
+				},
+
+				fragmentShader: fragmentTemplate.replace(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD))
+					.replace(Section.FRAGMENT_MAIN_UV, shaderParts.get(Section.FRAGMENT_MAIN_UV))
+					.replace(Section.FRAGMENT_MAIN_IMAGE, shaderParts.get(Section.FRAGMENT_MAIN_IMAGE)),
+
+				vertexShader: vertexTemplate.replace(Section.VERTEX_HEAD, shaderParts.get(Section.VERTEX_HEAD))
+					.replace(Section.VERTEX_MAIN_SUPPORT, shaderParts.get(Section.VERTEX_MAIN_SUPPORT)),
+
+				dithering: dithering,
+				depthWrite: false,
+				depthTest: false
+
+			});
+
+			if(defines !== null) {
+
+				for(const entry of defines.entries()) {
+
+					this.defines[entry[0]] = entry[1];
+
+				}
+
+			}
+
+			if(uniforms !== null) {
+
+				for(const entry of uniforms.entries()) {
+
+					this.uniforms[entry[0]] = entry[1];
+
+				}
+
+			}
+
+			this.adoptCameraSettings(camera);
+
+		}
+
+		/**
+		 * The current depth packing.
+		 *
+		 * @type {Number}
+		 */
+
+		get depthPacking() {
+
+			return Number.parseInt(this.defines.DEPTH_PACKING);
+
+		}
+
+		/**
+		 * Sets the depth packing.
+		 *
+		 * Use `BasicDepthPacking` or `RGBADepthPacking` if your depth texture
+		 * contains packed depth.
+		 *
+		 * You'll need to call {@link EffectPass#recompile} after changing this value.
+		 *
+		 * @type {Number}
+		 */
+
+		set depthPacking(value) {
+
+			this.defines.DEPTH_PACKING = value.toFixed(0);
+
+		}
+
+		/**
+		 * Sets the resolution.
+		 *
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
+		 */
+
+		setSize(width, height) {
+
+			width = Math.max(width, 1.0);
+			height = Math.max(height, 1.0);
+
+			this.uniforms.resolution.value.set(width, height);
+			this.uniforms.texelSize.value.set(1.0 / width, 1.0 / height);
+			this.uniforms.aspect.value = width / height;
+
+		}
+
+		/**
+		 * Adopts the settings of the given camera.
+		 *
+		 * @param {Camera} [camera=null] - A camera.
+		 */
+
+		adoptCameraSettings(camera = null) {
+
+			if(camera !== null) {
+
+				this.uniforms.cameraNear.value = camera.near;
+				this.uniforms.cameraFar.value = camera.far;
+
+				if(camera instanceof PerspectiveCamera) {
+
+					this.defines.PERSPECTIVE_CAMERA = "1";
+
+				} else {
+
+					delete this.defines.PERSPECTIVE_CAMERA;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * An enumeration of shader code placeholders used by the {@link EffectPass}.
+	 *
+	 * @type {Object}
+	 * @property {String} FRAGMENT_HEAD - A placeholder for function and variable declarations inside the fragment shader.
+	 * @property {String} FRAGMENT_MAIN_UV - A placeholder for UV transformations inside the fragment shader.
+	 * @property {String} FRAGMENT_MAIN_IMAGE - A placeholder for color calculations inside the fragment shader.
+	 * @property {String} VERTEX_HEAD - A placeholder for function and variable declarations inside the vertex shader.
+	 * @property {String} VERTEX_MAIN_SUPPORT - A placeholder for supporting calculations inside the vertex shader.
+	 */
+
+	const Section = {
+
+		FRAGMENT_HEAD: "FRAGMENT_HEAD",
+		FRAGMENT_MAIN_UV: "FRAGMENT_MAIN_UV",
+		FRAGMENT_MAIN_IMAGE: "FRAGMENT_MAIN_IMAGE",
+		VERTEX_HEAD: "VERTEX_HEAD",
+		VERTEX_MAIN_SUPPORT: "VERTEX_MAIN_SUPPORT"
+
+	};
+
+	var fragmentShader$6 = "#include <common>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform vec2 lightPosition;uniform float exposure;uniform float decay;uniform float density;uniform float weight;uniform float clampMax;varying vec2 vUv;void main(){vec2 coord=vUv;vec2 delta=coord-lightPosition;delta*=1.0/SAMPLES_FLOAT*density;float illuminationDecay=1.0;vec4 texel;vec4 color=vec4(0.0);/*Estimate the probability of occlusion at each pixel by summing samplesalong a ray to the light position.*/for(int i=0;i<SAMPLES_INT;++i){coord-=delta;texel=texture2D(inputBuffer,coord);texel*=illuminationDecay*weight;color+=texel;illuminationDecay*=decay;}gl_FragColor=clamp(color*exposure,0.0,clampMax);\n#include <dithering_fragment>\n}";
+
+	/**
+	 * A crepuscular rays shader material.
+	 *
+	 * This material supports dithering.
+	 *
+	 * References:
+	 *
+	 * Thibaut Despoulain, 2012:
+	 *  [(WebGL) Volumetric Light Approximation in Three.js](
+	 *  http://bkcore.com/blog/3d/webgl-three-js-volumetric-light-godrays.html)
+	 *
+	 * Nvidia, GPU Gems 3, 2008:
+	 *  [Chapter 13. Volumetric Light Scattering as a Post-Process](
+	 *  https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch13.html)
+	 */
+
+	class GodRaysMaterial extends ShaderMaterial {
+
+		/**
+		 * Constructs a new god rays material.
+		 *
+		 * @param {Vector2} lightPosition - The light position in screen space.
+		 */
+
+		constructor(lightPosition) {
+
+			super({
+
+				type: "GodRaysMaterial",
+
+				defines: {
+
+					SAMPLES_INT: "60",
+					SAMPLES_FLOAT: "60.0"
+
+				},
+
+				uniforms: {
+
+					inputBuffer: new Uniform(null),
+					lightPosition: new Uniform(lightPosition),
+
+					density: new Uniform(1.0),
+					decay: new Uniform(1.0),
+					weight: new Uniform(1.0),
+					exposure: new Uniform(1.0),
+					clampMax: new Uniform(1.0)
+
+				},
+
+				fragmentShader: fragmentShader$6,
+				vertexShader,
+
+				depthWrite: false,
+				depthTest: false
+
+			});
+
+		}
+
+		/**
+		 * The amount of samples per pixel.
+		 *
+		 * @type {Number}
+		 */
+
+		get samples() {
+
+			return Number.parseInt(this.defines.SAMPLES_INT);
+
+		}
+
+		/**
+		 * Sets the amount of samples per pixel.
+		 *
+		 * @type {Number}
+		 */
+
+		set samples(value) {
+
+			value = Math.floor(value);
+
+			this.defines.SAMPLES_INT = value.toFixed(0);
+			this.defines.SAMPLES_FLOAT = value.toFixed(1);
+			this.needsUpdate = true;
+
+		}
+
+	}
+
+	/**
+	 * Shared fullscreen geometry.
+	 *
+	 * @type {BufferGeometry}
+	 * @private
+	 */
+
+	let geometry$1 = null;
+
+	/**
+	 * Returns a shared fullscreen triangle.
+	 *
+	 * The size of the screen is 2x2 units (NDC). A triangle that fills the screen
+	 * needs to be 4 units wide and 4 units tall.
+	 *
+	 * @private
+	 * @return {BufferGeometry} The fullscreen geometry.
+	 */
+
+	function getFullscreenTriangle() {
+
+		if(geometry$1 === null) {
+
+			const vertices = new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]);
+			const uvs = new Float32Array([0, 0, 2, 0, 0, 2]);
+			geometry$1 = new BufferGeometry();
+			geometry$1.addAttribute("position", new BufferAttribute(vertices, 3));
+			geometry$1.addAttribute("uv", new BufferAttribute(uvs, 2));
+
+		}
+
+		return geometry$1;
+
+	}
+
+	/**
+	 * An abstract pass.
+	 *
+	 * Passes that do not rely on the depth buffer should explicitly disable the
+	 * depth test and depth write flags of their fullscreen shader material.
+	 *
+	 * Fullscreen passes use a shared fullscreen triangle:
+	 * https://michaldrobot.com/2014/04/01/gcn-execution-patterns-in-full-screen-passes/
+	 *
+	 * @implements {Initializable}
+	 * @implements {Resizable}
+	 * @implements {Disposable}
+	 */
+
+	class Pass {
+
+		/**
+		 * Constructs a new pass.
+		 *
+		 * @param {String} [name] - The name of this pass. Does not have to be unique.
+		 * @param {Scene} [scene] - The scene to render. The default scene contains a single mesh that fills the screen.
+		 * @param {Camera} [camera] - The camera. The default camera perfectly captures the screen mesh.
+		 */
+
+		constructor(name = "Pass", scene = new Scene(), camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)) {
+
+			/**
+			 * The name of this pass.
+			 *
+			 * @type {String}
+			 */
+
+			this.name = name;
+
+			/**
+			 * The scene to render.
+			 *
+			 * @type {Scene}
+			 * @protected
+			 */
+
+			this.scene = scene;
+
+			/**
+			 * The camera.
+			 *
+			 * @type {Camera}
+			 * @protected
+			 */
+
+			this.camera = camera;
+
+			/**
+			 * A mesh that fills the screen.
+			 *
+			 * @type {Mesh}
+			 * @private
+			 */
+
+			this.screen = null;
+
+			/**
+			 * Only relevant for subclassing.
+			 *
+			 * Indicates whether the {@link EffectComposer} should swap the frame
+			 * buffers after this pass has finished rendering.
+			 *
+			 * Set this to `false` if this pass doesn't render to the output buffer or
+			 * the screen. Otherwise, the contents of the input buffer will be lost.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.needsSwap = true;
+
+			/**
+			 * Only relevant for subclassing.
+			 *
+			 * Indicates whether the {@link EffectComposer} should prepare a depth
+			 * texture for this pass.
+			 *
+			 * Set this to `true` if this pass relies on depth information from a
+			 * preceding {@link RenderPass}.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.needsDepthTexture = false;
+
+			/**
+			 * Indicates whether this pass should render to screen.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.renderToScreen = false;
+
+			/**
+			 * Indicates whether this pass should be executed.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.enabled = true;
+
+		}
+
+		/**
+		 * Returns the current fullscreen material.
+		 *
+		 * @return {Material} The current fullscreen material, or null if there is none.
+		 */
+
+		getFullscreenMaterial() {
+
+			return (this.screen !== null) ? this.screen.material : null;
+
+		}
+
+		/**
+		 * Sets the fullscreen material.
+		 *
+		 * The material will be assigned to a mesh that fills the screen. The mesh
+		 * will be created once a material is assigned via this method.
+		 *
+		 * @protected
+		 * @param {Material} material - A fullscreen material.
+		 */
+
+		setFullscreenMaterial(material) {
+
+			let screen = this.screen;
+
+			if(screen !== null) {
+
+				screen.material = material;
+
+			} else {
+
+				screen = new Mesh(getFullscreenTriangle(), material);
+				screen.frustumCulled = false;
+
+				if(this.scene === null) {
+
+					this.scene = new Scene();
+
+				}
+
+				this.scene.add(screen);
+				this.screen = screen;
+
+			}
+
+		}
+
+		/**
+		 * Returns the current depth texture.
+		 *
+		 * @return {Texture} The current depth texture, or null if there is none.
+		 */
+
+		getDepthTexture() {
+
+			return null;
+
+		}
+
+		/**
+		 * Sets the depth texture.
+		 *
+		 * You may override this method if your pass relies on the depth information
+		 * of a preceding {@link RenderPass}.
+		 *
+		 * @param {Texture} depthTexture - A depth texture.
+		 * @param {Number} [depthPacking=0] - The depth packing.
+		 */
+
+		setDepthTexture(depthTexture, depthPacking = 0) {}
+
+		/**
+		 * Renders the effect.
+		 *
+		 * This is an abstract method that must be overridden.
+		 *
+		 * @abstract
+		 * @throws {Error} An error is thrown if the method is not overridden.
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			throw new Error("Render method not implemented!");
+
+		}
+
+		/**
+		 * Updates this pass with the renderer's size.
+		 *
+		 * You may override this method in case you want to be informed about the size
+		 * of the main frame buffer.
+		 *
+		 * The {@link EffectComposer} calls this method before this pass is
+		 * initialized and every time its own size is updated.
+		 *
+		 * @param {Number} width - The renderer's width.
+		 * @param {Number} height - The renderer's height.
+		 * @example this.myRenderTarget.setSize(width, height);
+		 */
+
+		setSize(width, height) {}
+
+		/**
+		 * Performs initialization tasks.
+		 *
+		 * By overriding this method you gain access to the renderer. You'll also be
+		 * able to configure your custom render targets to use the appropriate format
+		 * (RGB or RGBA).
+		 *
+		 * The provided renderer can be used to warm up special off-screen render
+		 * targets by performing a preliminary render operation.
+		 *
+		 * The {@link EffectComposer} calls this method when this pass is added to its
+		 * queue, but not before its size has been set.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
+		 * @example if(!alpha) { this.myRenderTarget.texture.format = RGBFormat; }
+		 */
+
+		initialize(renderer, alpha) {}
+
+		/**
+		 * Performs a shallow search for disposable properties and deletes them. The
+		 * pass will be inoperative after this method was called!
+		 *
+		 * Disposable objects:
+		 *  - WebGLRenderTarget
+		 *  - Material
+		 *  - Texture
+		 *
+		 * The {@link EffectComposer} calls this method when it is being destroyed.
+		 * You may, however, use it independently to free memory when you are certain
+		 * that you don't need this pass anymore.
+		 */
+
+		dispose() {
+
+			const material = this.getFullscreenMaterial();
+
+			if(material !== null) {
+
+				material.dispose();
+
+			}
+
+			for(const key of Object.keys(this)) {
+
+				if(this[key] !== null && typeof this[key].dispose === "function") {
+
+					/** @ignore */
+					this[key].dispose();
+
+				}
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * An auto sizing constant.
+	 *
+	 * @type {Number}
+	 * @private
+	 */
+
+	const AUTO_SIZE = -1;
+
+	/**
+	 * An efficient, incremental blur pass.
+	 */
+
+	class BlurPass extends Pass {
+
+		/**
+		 * Constructs a new blur pass.
+		 *
+		 * @param {Object} [options] - The options.
+		 * @param {Number} [options.resolutionScale=0.5] - Deprecated. Adjust the height or width instead for consistent results.
+		 * @param {Number} [options.width=BlurPass.AUTO_SIZE] - The blur render width.
+		 * @param {Number} [options.height=BlurPass.AUTO_SIZE] - The blur render height.
+		 * @param {KernelSize} [options.kernelSize=KernelSize.LARGE] - The blur kernel size.
+		 */
+
+		constructor({
+			resolutionScale = 0.5,
+			width = AUTO_SIZE,
+			height = AUTO_SIZE,
+			kernelSize = KernelSize.LARGE
+		} = {}) {
+
+			super("BlurPass");
+
+			/**
+			 * A render target.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.renderTargetX = new WebGLRenderTarget(1, 1, {
+				minFilter: LinearFilter,
+				magFilter: LinearFilter,
+				stencilBuffer: false,
+				depthBuffer: false
+			});
+
+			this.renderTargetX.texture.name = "Blur.TargetX";
+
+			/**
+			 * A second render target.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.renderTargetY = this.renderTargetX.clone();
+			this.renderTargetY.texture.name = "Blur.TargetY";
+
+			/**
+			 * The current main render size.
+			 *
+			 * @type {Vector2}
+			 * @private
+			 */
+
+			this.originalSize = new Vector2();
+
+			/**
+			 * The absolute render resolution.
+			 *
+			 * @type {Vector2}
+			 * @private
+			 */
+
+			this.resolution = new Vector2(width, height);
+
+			/**
+			 * The current resolution scale.
+			 *
+			 * @type {Number}
+			 * @private
+			 * @deprecated
+			 */
+
+			this.resolutionScale = resolutionScale;
+
+			/**
+			 * A convolution shader material.
+			 *
+			 * @type {ConvolutionMaterial}
+			 * @private
+			 */
+
+			this.convolutionMaterial = new ConvolutionMaterial();
+
+			/**
+			 * A convolution shader material that uses dithering.
+			 *
+			 * @type {ConvolutionMaterial}
+			 * @private
+			 */
+
+			this.ditheredConvolutionMaterial = new ConvolutionMaterial();
+			this.ditheredConvolutionMaterial.dithering = true;
+
+			/**
+			 * Whether the blurred result should also be dithered using noise.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.dithering = false;
+
+			this.kernelSize = kernelSize;
+
+		}
+
+		/**
+		 * The current width of the internal render targets.
+		 *
+		 * @type {Number}
+		 */
+
+		get width() {
+
+			return this.renderTargetX.width;
+
+		}
+
+		/**
+		 * Sets the render width.
+		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render height and aspect ratio.
+		 *
+		 * @type {Number}
+		 */
+
+		set width(value) {
+
+			this.resolution.x = value;
+			this.setSize(this.originalSize.x, this.originalSize.y);
+
+		}
+
+		/**
+		 * The current height of the internal render targets.
+		 *
+		 * @type {Number}
+		 */
+
+		get height() {
+
+			return this.renderTargetX.height;
+
+		}
+
+		/**
+		 * Sets the render height.
+		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render width and aspect ratio.
+		 *
+		 * @type {Number}
+		 */
+
+		set height(value) {
+
+			this.resolution.y = value;
+			this.setSize(this.originalSize.x, this.originalSize.y);
+
+		}
+
+		/**
+		 * The current blur scale.
+		 *
+		 * @type {Number}
+		 */
+
+		get scale() {
+
+			return this.convolutionMaterial.uniforms.scale.value;
+
+		}
+
+		/**
+		 * Sets the blur scale.
+		 *
+		 * This value influences the overall blur strength and should not be greater
+		 * than 1. For larger blurs please increase the {@link kernelSize}!
+		 *
+		 * Note that the blur strength is closely tied to the resolution. For a smooth
+		 * transition from no blur to full blur, set the width or the height to a high
+		 * enough value.
+		 *
+		 * @type {Number}
+		 */
+
+		set scale(value) {
+
+			this.convolutionMaterial.uniforms.scale.value = value;
+			this.ditheredConvolutionMaterial.uniforms.scale.value = value;
+
+		}
+
+		/**
+		 * The kernel size.
+		 *
+		 * @type {KernelSize}
+		 */
+
+		get kernelSize() {
+
+			return this.convolutionMaterial.kernelSize;
+
+		}
+
+		/**
+		 * Sets the kernel size.
+		 *
+		 * Larger kernels require more processing power but scale well with larger
+		 * render resolutions.
+		 *
+		 * @type {KernelSize}
+		 */
+
+		set kernelSize(value) {
+
+			this.convolutionMaterial.kernelSize = value;
+			this.ditheredConvolutionMaterial.kernelSize = value;
+
+		}
+
+		/**
+		 * Returns the original resolution.
+		 *
+		 * @return {Vector2} The original resolution received via {@link setSize}.
+		 * @deprecated Added for internal use only.
+		 */
+
+		getOriginalSize() {
+
+			return this.originalSize;
+
+		}
+
+		/**
+		 * Returns the current resolution scale.
+		 *
+		 * @return {Number} The resolution scale.
+		 * @deprecated Adjust the width or height instead.
+		 */
+
+		getResolutionScale() {
+
+			return this.resolutionScale;
+
+		}
+
+		/**
+		 * Sets the resolution scale.
+		 *
+		 * @param {Number} scale - The new resolution scale.
+		 * @deprecated Adjust the width or height instead.
+		 */
+
+		setResolutionScale(scale) {
+
+			this.resolutionScale = scale;
+			this.setSize(this.originalSize.x, this.originalSize.y);
+
+		}
+
+		/**
+		 * Blurs the input buffer and writes the result to the output buffer. The
+		 * input buffer remains intact, unless it's also the output buffer.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const scene = this.scene;
+			const camera = this.camera;
+
+			const renderTargetX = this.renderTargetX;
+			const renderTargetY = this.renderTargetY;
+
+			let material = this.convolutionMaterial;
+			let uniforms = material.uniforms;
+			const kernel = material.getKernel();
+
+			let lastRT = inputBuffer;
+			let destRT;
+			let i, l;
+
+			this.setFullscreenMaterial(material);
+
+			// Apply the multi-pass blur.
+			for(i = 0, l = kernel.length - 1; i < l; ++i) {
+
+				// Alternate between targets.
+				destRT = ((i % 2) === 0) ? renderTargetX : renderTargetY;
+
+				uniforms.kernel.value = kernel[i];
+				uniforms.inputBuffer.value = lastRT.texture;
+				renderer.setRenderTarget(destRT);
+				renderer.render(scene, camera);
+
+				lastRT = destRT;
+
+			}
+
+			if(this.dithering) {
+
+				material = this.ditheredConvolutionMaterial;
+				uniforms = material.uniforms;
+				this.setFullscreenMaterial(material);
+
+			}
+
+			uniforms.kernel.value = kernel[i];
+			uniforms.inputBuffer.value = lastRT.texture;
+			renderer.setRenderTarget(this.renderToScreen ? null : outputBuffer);
+			renderer.render(scene, camera);
+
+		}
+
+		/**
+		 * Updates the size of this pass.
+		 *
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
+		 */
+
+		setSize(width, height) {
+
+			const resolution = this.resolution;
+			const aspect = width / height;
+
+			this.originalSize.set(width, height);
+
+			if(resolution.x !== AUTO_SIZE && resolution.y !== AUTO_SIZE) {
+
+				width = Math.max(1, resolution.x);
+				height = Math.max(1, resolution.y);
+
+			} else if(resolution.x !== AUTO_SIZE) {
+
+				width = Math.max(1, resolution.x);
+				height = Math.round(Math.max(1, resolution.y) / aspect);
+
+			} else if(resolution.y !== AUTO_SIZE) {
+
+				width = Math.round(Math.max(1, resolution.y) * aspect);
+				height = Math.max(1, resolution.y);
+
+			} else {
+
+				width = Math.max(1, Math.round(width * this.resolutionScale));
+				height = Math.max(1, Math.round(height * this.resolutionScale));
+
+			}
+
+			this.renderTargetX.setSize(width, height);
+			this.renderTargetY.setSize(width, height);
+
+			this.convolutionMaterial.setTexelSize(1.0 / width, 1.0 / height);
+			this.ditheredConvolutionMaterial.setTexelSize(1.0 / width, 1.0 / height);
+
+		}
+
+		/**
+		 * Performs initialization tasks.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
+		 */
+
+		initialize(renderer, alpha) {
+
+			if(!alpha) {
+
+				this.renderTargetX.texture.format = RGBFormat;
+				this.renderTargetY.texture.format = RGBFormat;
+
+			}
+
+		}
+
+		/**
+		 * An auto sizing flag that can be used for the render {@link BlurPass.width}
+		 * and {@link BlurPass.height}.
+		 *
+		 * It's recommended to set the height or the width to an absolute value for
+		 * consistent blur results across different devices and resolutions.
+		 *
+		 * @type {Number}
+		 */
+
+		static get AUTO_SIZE() {
+
+			return AUTO_SIZE;
+
+		}
+
+	}
+
+	/**
+	 * A pass that disables the stencil test.
+	 */
+
+	class ClearMaskPass extends Pass {
+
+		/**
+		 * Constructs a new clear mask pass.
+		 */
+
+		constructor() {
+
+			super("ClearMaskPass", null, null);
+
+			this.needsSwap = false;
+
+		}
+
+		/**
+		 * Disables the global stencil test.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const stencil = renderer.state.buffers.stencil;
+
+			stencil.setLocked(false);
+			stencil.setTest(false);
+
+		}
+
+	}
+
+	/**
+	 * Stores the original clear color of the renderer.
+	 *
+	 * @type {Color}
+	 * @private
+	 */
+
+	const color = new Color();
+
+	/**
+	 * A pass that clears the input buffer or the screen.
+	 */
+
+	class ClearPass extends Pass {
+
+		/**
+		 * Constructs a new clear pass.
+		 *
+		 * @param {Boolean} [color=true] - Determines whether the color buffer should be cleared.
+		 * @param {Boolean} [depth=true] - Determines whether the depth buffer should be cleared.
+		 * @param {Boolean} [stencil=false] - Determines whether the stencil buffer should be cleared.
+		 */
+
+		constructor(color = true, depth = true, stencil = false) {
+
+			super("ClearPass", null, null);
+
+			this.needsSwap = false;
+
+			/**
+			 * Indicates whether the color buffer should be cleared.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.color = color;
+
+			/**
+			 * Indicates whether the depth buffer should be cleared.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.depth = depth;
+
+			/**
+			 * Indicates whether the stencil buffer should be cleared.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.stencil = stencil;
+
+			/**
+			 * An override clear color.
+			 *
+			 * The default value is null.
+			 *
+			 * @type {Color}
+			 */
+
+			this.overrideClearColor = null;
+
+			/**
+			 * An override clear alpha.
+			 *
+			 * The default value is -1.
+			 *
+			 * @type {Number}
+			 */
+
+			this.overrideClearAlpha = -1.0;
+
+		}
+
+		/**
+		 * Clears the input buffer or the screen.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const overrideClearColor = this.overrideClearColor;
+			const overrideClearAlpha = this.overrideClearAlpha;
+			const clearAlpha = renderer.getClearAlpha();
+
+			const hasOverrideClearColor = (overrideClearColor !== null);
+			const hasOverrideClearAlpha = (overrideClearAlpha >= 0.0);
+
+			if(hasOverrideClearColor) {
+
+				color.copy(renderer.getClearColor());
+				renderer.setClearColor(overrideClearColor, hasOverrideClearAlpha ?
+					overrideClearAlpha : clearAlpha);
+
+			} else if(hasOverrideClearAlpha) {
+
+				renderer.setClearAlpha(overrideClearAlpha);
+
+			}
+
+			renderer.setRenderTarget(this.renderToScreen ? null : inputBuffer);
+			renderer.clear(this.color, this.depth, this.stencil);
+
+			if(hasOverrideClearColor) {
+
+				renderer.setClearColor(color, clearAlpha);
+
+			} else if(hasOverrideClearAlpha) {
+
+				renderer.setClearAlpha(clearAlpha);
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * A pass that renders a given scene into the input buffer or to screen.
+	 *
+	 * This pass uses a {@link ClearPass} to clear the target buffer.
+	 */
+
+	class RenderPass extends Pass {
+
+		/**
+		 * Constructs a new render pass.
+		 *
+		 * @param {Scene} scene - The scene to render.
+		 * @param {Camera} camera - The camera to use to render the scene.
+		 * @param {Material} [overrideMaterial=null] - An override material for the scene.
+		 */
+
+		constructor(scene, camera, overrideMaterial = null) {
+
+			super("RenderPass", scene, camera);
+
+			this.needsSwap = false;
+
+			/**
+			 * An override material.
+			 *
+			 * @type {Material}
+			 */
+
+			this.overrideMaterial = overrideMaterial;
+
+			/**
+			 * A clear pass.
+			 *
+			 * @type {ClearPass}
+			 * @private
+			 */
+
+			this.clearPass = new ClearPass();
+
+			/**
+			 * A depth texture.
+			 *
+			 * @type {DepthTexture}
+			 * @private
+			 */
+
+			this.depthTexture = null;
+
+		}
+
+		/**
+		 * Indicates whether the target buffer should be cleared before rendering.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get clear() {
+
+			return this.clearPass.enabled;
+
+		}
+
+		/**
+		 * Enables or disables auto clear.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set clear(value) {
+
+			this.clearPass.enabled = value;
+
+		}
+
+		/**
+		 * Returns the clear pass.
+		 *
+		 * @return {ClearPass} The clear pass.
+		 */
+
+		getClearPass() {
+
+			return this.clearPass;
+
+		}
+
+		/**
+		 * Returns the current depth texture.
+		 *
+		 * @return {Texture} The current depth texture, or null if there is none.
+		 */
+
+		getDepthTexture() {
+
+			return this.depthTexture;
+
+		}
+
+		/**
+		 * Sets the depth texture.
+		 *
+		 * The provided texture will be attached to the input buffer unless this pass
+		 * renders to screen.
+		 *
+		 * @param {Texture} depthTexture - A depth texture.
+		 * @param {Number} [depthPacking=0] - The depth packing.
+		 */
+
+		setDepthTexture(depthTexture, depthPacking = 0) {
+
+			this.depthTexture = depthTexture;
+
+		}
+
+		/**
+		 * Renders the scene.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const scene = this.scene;
+			const renderTarget = this.renderToScreen ? null : inputBuffer;
+			const overrideMaterial = scene.overrideMaterial;
+
+			if(this.depthTexture !== null && !this.renderToScreen) {
+
+				inputBuffer.depthTexture = this.depthTexture;
+				outputBuffer.depthTexture = null;
+
+			}
+
+			if(this.clear) {
+
+				this.clearPass.renderToScreen = this.renderToScreen;
+				this.clearPass.render(renderer, inputBuffer);
+
+			}
+
+			scene.overrideMaterial = this.overrideMaterial;
+			renderer.setRenderTarget(renderTarget);
+			renderer.render(scene, this.camera);
+			scene.overrideMaterial = overrideMaterial;
+
+		}
+
+	}
+
+	/**
+	 * A blend function enumeration.
+	 *
+	 * @type {Object}
+	 * @property {Number} SKIP - No blending. The effect will not be included in the final shader.
+	 * @property {Number} ADD - Additive blending. Fast, but may produce washed out results.
+	 * @property {Number} ALPHA - Alpha blending. Blends based on the alpha value of the new color.
+	 * @property {Number} AVERAGE - Average blending.
+	 * @property {Number} COLOR_BURN - Color burn.
+	 * @property {Number} COLOR_DODGE - Color dodge.
+	 * @property {Number} DARKEN - Prioritize darker colors.
+	 * @property {Number} DIFFERENCE - Color difference.
+	 * @property {Number} EXCLUSION - Color exclusion.
+	 * @property {Number} LIGHTEN - Prioritize lighter colors.
+	 * @property {Number} MULTIPLY - Color multiplication.
+	 * @property {Number} DIVIDE - Color division.
+	 * @property {Number} NEGATION - Color negation.
+	 * @property {Number} NORMAL - Normal blending. The new color overwrites the old one.
+	 * @property {Number} OVERLAY - Color overlay.
+	 * @property {Number} REFLECT - Color reflection.
+	 * @property {Number} SCREEN - Screen blending. The two colors are effectively projected on a white screen simultaneously.
+	 * @property {Number} SOFT_LIGHT - Soft light blending.
+	 * @property {Number} SUBTRACT - Color subtraction.
+	 */
+
+	const BlendFunction = {
+
+		SKIP: 0,
+		ADD: 1,
+		ALPHA: 2,
+		AVERAGE: 3,
+		COLOR_BURN: 4,
+		COLOR_DODGE: 5,
+		DARKEN: 6,
+		DIFFERENCE: 7,
+		EXCLUSION: 8,
+		LIGHTEN: 9,
+		MULTIPLY: 10,
+		DIVIDE: 11,
+		NEGATION: 12,
+		NORMAL: 13,
+		OVERLAY: 14,
+		REFLECT: 15,
+		SCREEN: 16,
+		SOFT_LIGHT: 17,
+		SUBTRACT: 18
+
+	};
+
+	var addBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return min(x+y,1.0)*opacity+x*(1.0-opacity);}";
+
+	var alphaBlendFunction = "vec3 blend(const in vec3 x,const in vec3 y,const in float opacity){return y*opacity+x*(1.0-opacity);}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){float a=min(y.a,opacity);return vec4(blend(x.rgb,y.rgb,a),max(x.a,a));}";
+
+	var averageBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return(x+y)*0.5*opacity+x*(1.0-opacity);}";
+
+	var colorBurnBlendFunction = "float blend(const in float x,const in float y){return(y==0.0)? y : max(1.0-(1.0-x)/y,0.0);}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var colorDodgeBlendFunction = "float blend(const in float x,const in float y){return(y==1.0)? y : min(x/(1.0-y),1.0);}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var darkenBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return min(x,y)*opacity+x*(1.0-opacity);}";
+
+	var differenceBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return abs(x-y)*opacity+x*(1.0-opacity);}";
+
+	var exclusionBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return(x+y-2.0*x*y)*opacity+x*(1.0-opacity);}";
+
+	var lightenBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return max(x,y)*opacity+x*(1.0-opacity);}";
+
+	var multiplyBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return x*y*opacity+x*(1.0-opacity);}";
+
+	var divideBlendFunction = "float blend(const in float x,const in float y){return(y>0.0)? min(x/y,1.0): 1.0;}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var negationBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return(1.0-abs(1.0-x-y))*opacity+x*(1.0-opacity);}";
+
+	var normalBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return y*opacity+x*(1.0-opacity);}";
+
+	var overlayBlendFunction = "float blend(const in float x,const in float y){return(x<0.5)?(2.0*x*y):(1.0-2.0*(1.0-x)*(1.0-y));}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var reflectBlendFunction = "float blend(const in float x,const in float y){return(y==1.0)? y : min(x*x/(1.0-y),1.0);}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var screenBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return(1.0-(1.0-x)*(1.0-y))*opacity+x*(1.0-opacity);}";
+
+	var softLightBlendFunction = "float blend(const in float x,const in float y){return(y<0.5)?(2.0*x*y+x*x*(1.0-2.0*y)):(sqrt(x)*(2.0*y-1.0)+2.0*x*(1.0-y));}vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){vec4 z=vec4(blend(x.r,y.r),blend(x.g,y.g),blend(x.b,y.b),blend(x.a,y.a));return z*opacity+x*(1.0-opacity);}";
+
+	var subtractBlendFunction = "vec4 blend(const in vec4 x,const in vec4 y,const in float opacity){return max(x+y-1.0,0.0)*opacity+x*(1.0-opacity);}";
+
+	/**
+	 * A blend function shader code catalogue.
+	 *
+	 * @type {Map<BlendFunction, String>}
+	 * @private
+	 */
+
+	const blendFunctions = new Map([
+		[BlendFunction.SKIP, null],
+		[BlendFunction.ADD, addBlendFunction],
+		[BlendFunction.ALPHA, alphaBlendFunction],
+		[BlendFunction.AVERAGE, averageBlendFunction],
+		[BlendFunction.COLOR_BURN, colorBurnBlendFunction],
+		[BlendFunction.COLOR_DODGE, colorDodgeBlendFunction],
+		[BlendFunction.DARKEN, darkenBlendFunction],
+		[BlendFunction.DIFFERENCE, differenceBlendFunction],
+		[BlendFunction.EXCLUSION, exclusionBlendFunction],
+		[BlendFunction.LIGHTEN, lightenBlendFunction],
+		[BlendFunction.MULTIPLY, multiplyBlendFunction],
+		[BlendFunction.DIVIDE, divideBlendFunction],
+		[BlendFunction.NEGATION, negationBlendFunction],
+		[BlendFunction.NORMAL, normalBlendFunction],
+		[BlendFunction.OVERLAY, overlayBlendFunction],
+		[BlendFunction.REFLECT, reflectBlendFunction],
+		[BlendFunction.SCREEN, screenBlendFunction],
+		[BlendFunction.SOFT_LIGHT, softLightBlendFunction],
+		[BlendFunction.SUBTRACT, subtractBlendFunction]
+	]);
+
+	/**
+	 * A blend mode.
+	 */
+
+	class BlendMode {
+
+		/**
+		 * Constructs a new blend mode.
+		 *
+		 * @param {BlendFunction} blendFunction - The blend function to use.
+		 * @param {Number} opacity - The opacity of the color that will be blended with the base color.
+		 */
+
+		constructor(blendFunction, opacity = 1.0) {
+
+			/**
+			 * The blend function.
+			 *
+			 * @type {BlendFunction}
+			 */
+
+			this.blendFunction = blendFunction;
+
+			/**
+			 * The opacity of the color that will be blended with the base color.
+			 *
+			 * @type {Uniform}
+			 */
+
+			this.opacity = new Uniform(opacity);
+
+		}
+
+		/**
+		 * Returns the blend function shader code.
+		 *
+		 * @return {String} The blend function shader code.
+		 */
+
+		getShaderCode() {
+
+			return blendFunctions.get(this.blendFunction);
+
+		}
+
+	}
+
+	/**
+	 * An abstract effect.
+	 *
+	 * Effects can be combined using the {@link EffectPass}.
+	 *
+	 * @implements {Initializable}
+	 * @implements {Resizable}
+	 * @implements {Disposable}
+	 */
+
+	class Effect {
+
+		/**
+		 * Constructs a new effect.
+		 *
+		 * @param {String} name - The name of this effect. Doesn't have to be unique.
+		 * @param {String} fragmentShader - The fragment shader. This shader is required.
+		 * @param {Object} [options] - Additional options.
+		 * @param {EffectAttribute} [options.attributes=EffectAttribute.NONE] - The effect attributes that determine the execution priority and resource requirements.
+		 * @param {BlendFunction} [options.blendFunction=BlendFunction.SCREEN] - The blend function of this effect.
+		 * @param {Map<String, String>} [options.defines] - Custom preprocessor macro definitions. Keys are names and values are code.
+		 * @param {Map<String, Uniform>} [options.uniforms] - Custom shader uniforms. Keys are names and values are uniforms.
+		 * @param {Set<WebGLExtension>} [options.extensions] - WebGL extensions.
+		 * @param {String} [options.vertexShader=null] - The vertex shader. Most effects don't need one.
+		 */
+
+		constructor(name, fragmentShader, {
+			attributes = EffectAttribute.NONE,
+			blendFunction = BlendFunction.SCREEN,
+			defines = new Map(),
+			uniforms = new Map(),
+			extensions = null,
+			vertexShader = null
+		} = {}) {
+
+			/**
+			 * The name of this effect.
+			 *
+			 * @type {String}
+			 */
+
+			this.name = name;
+
+			/**
+			 * The effect attributes.
+			 *
+			 * Effects that have the same attributes will be executed in the order in
+			 * which they were registered. Some attributes imply a higher priority.
+			 *
+			 * @type {EffectAttribute}
+			 */
+
+			this.attributes = attributes;
+
+			/**
+			 * The fragment shader.
+			 *
+			 * @type {String}
+			 */
+
+			this.fragmentShader = fragmentShader;
+
+			/**
+			 * The vertex shader.
+			 *
+			 * @type {String}
+			 */
+
+			this.vertexShader = vertexShader;
+
+			/**
+			 * Preprocessor macro definitions.
+			 *
+			 * You'll need to call {@link EffectPass#recompile} after changing a macro.
+			 *
+			 * @type {Map<String, String>}
+			 */
+
+			this.defines = defines;
+
+			/**
+			 * Shader uniforms.
+			 *
+			 * You may freely modify the values of these uniforms at runtime. However,
+			 * uniforms must not be removed or added after the effect was created.
+			 *
+			 * @type {Map<String, Uniform>}
+			 */
+
+			this.uniforms = uniforms;
+
+			/**
+			 * WebGL extensions that are required by this effect.
+			 *
+			 * You'll need to call {@link EffectPass#recompile} after adding or removing
+			 * an extension.
+			 *
+			 * @type {Set<WebGLExtension>}
+			 */
+
+			this.extensions = extensions;
+
+			/**
+			 * The blend mode of this effect.
+			 *
+			 * The result of this effect will be blended with the result of the previous
+			 * effect using this blend mode.
+			 *
+			 * Feel free to adjust the opacity of the blend mode at runtime. However,
+			 * you'll need to call {@link EffectPass#recompile} if you change the blend
+			 * function.
+			 *
+			 * @type {BlendMode}
+			 */
+
+			this.blendMode = new BlendMode(blendFunction);
+
+		}
+
+		/**
+		 * Sets the depth texture.
+		 *
+		 * You may override this method if your effect requires direct access to the
+		 * depth texture that is bound to the associated {@link EffectPass}.
+		 *
+		 * @param {Texture} depthTexture - A depth texture.
+		 * @param {Number} [depthPacking=0] - The depth packing.
+		 */
+
+		setDepthTexture(depthTexture, depthPacking = 0) {}
+
+		/**
+		 * Updates the effect by performing supporting operations.
+		 *
+		 * This method is called by the {@link EffectPass} right before the main
+		 * fullscreen render operation, even if the blend function is set to `SKIP`.
+		 *
+		 * You may override this method if you need to render additional off-screen
+		 * textures or update custom uniforms.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 */
+
+		update(renderer, inputBuffer, deltaTime) {}
+
+		/**
+		 * Updates the size of this effect.
+		 *
+		 * You may override this method in case you want to be informed about the main
+		 * render size.
+		 *
+		 * The {@link EffectPass} calls this method before this effect is initialized
+		 * and every time its own size is updated.
+		 *
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
+		 * @example this.myRenderTarget.setSize(width, height);
+		 */
+
+		setSize(width, height) {}
+
+		/**
+		 * Performs initialization tasks.
+		 *
+		 * By overriding this method you gain access to the renderer. You'll also be
+		 * able to configure your custom render targets to use the appropriate format
+		 * (RGB or RGBA).
+		 *
+		 * The provided renderer can be used to warm up special off-screen render
+		 * targets by performing a preliminary render operation.
+		 *
+		 * The {@link EffectPass} calls this method during its own initialization
+		 * which happens after the size has been set.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
+		 * @example if(!alpha) { this.myRenderTarget.texture.format = RGBFormat; }
+		 */
+
+		initialize(renderer, alpha) {}
+
+		/**
+		 * Performs a shallow search for properties that define a dispose method and
+		 * deletes them. The effect will be inoperative after this method was called!
+		 *
+		 * Disposable objects:
+		 *  - render targets
+		 *  - materials
+		 *  - textures
+		 *
+		 * The {@link EffectPass} calls this method when it is being destroyed. Do not
+		 * call this method directly.
+		 */
+
+		dispose() {
+
+			for(const key of Object.keys(this)) {
+
+				if(this[key] !== null && typeof this[key].dispose === "function") {
+
+					/** @ignore */
+					this[key].dispose();
+
+				}
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * An enumeration of effect attributes.
+	 *
+	 * Attributes can be concatenated using the bitwise OR operator.
+	 *
+	 * @type {Object}
+	 * @property {Number} CONVOLUTION - Describes effects that fetch additional samples from the input buffer. There cannot be more than one effect with this attribute per {@link EffectPass}.
+	 * @property {Number} DEPTH - Describes effects that require a depth texture.
+	 * @property {Number} NONE - No attributes. Most effects don't need to specify any attributes.
+	 * @example
+	 * const attributes = EffectAttribute.CONVOLUTION | EffectAttribute.DEPTH;
+	 */
+
+	const EffectAttribute = {
+
+		CONVOLUTION: 2,
+		DEPTH: 1,
+		NONE: 0
+
+	};
+
+	/**
+	 * Finds and collects substrings that match the given regular expression.
+	 *
+	 * @private
+	 * @param {RegExp} regExp - A regular expression.
+	 * @param {String} string - A string.
+	 * @return {String[]} The matching substrings.
+	 */
+
+	function findSubstrings(regExp, string) {
+
+		const substrings = [];
+		let result;
+
+		while((result = regExp.exec(string)) !== null) {
+
+			substrings.push(result[1]);
+
+		}
+
+		return substrings;
+
+	}
+
+	/**
+	 * Prefixes substrings within the given strings.
+	 *
+	 * @private
+	 * @param {String} prefix - A prefix.
+	 * @param {String[]} substrings - The substrings.
+	 * @param {Map<String, String>} strings - A collection of named strings.
+	 */
+
+	function prefixSubstrings(prefix, substrings, strings) {
+
+		let prefixed, regExp;
+
+		for(const substring of substrings) {
+
+			prefixed = "$1" + prefix + substring.charAt(0).toUpperCase() + substring.slice(1);
+			regExp = new RegExp("([^\\.])(\\b" + substring + "\\b)", "g");
+
+			for(const entry of strings.entries()) {
+
+				if(entry[1] !== null) {
+
+					strings.set(entry[0], entry[1].replace(regExp, prefixed));
+
+				}
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * Integrates the given effect.
+	 *
+	 * @private
+	 * @param {String} prefix - A prefix.
+	 * @param {Effect} effect - An effect.
+	 * @param {Map<String, String>} shaderParts - The shader parts.
+	 * @param {Map<BlendFunction, BlendMode>} blendModes - The blend modes.
+	 * @param {Map<String, String>} defines - The macro definitions.
+	 * @param {Map<String, Uniform>} uniforms - The uniforms.
+	 * @param {EffectAttribute} attributes - The global, collective attributes.
+	 * @return {Object} The results.
+	 * @property {String[]} varyings - The varyings used by the given effect.
+	 * @property {Boolean} transformedUv - Indicates whether the effect transforms UV coordinates in the fragment shader.
+	 * @property {Boolean} readDepth - Indicates whether the effect actually uses depth in the fragment shader.
+	 */
+
+	function integrateEffect(prefix, effect, shaderParts, blendModes, defines, uniforms, attributes) {
+
+		const functionRegExp = /(?:\w+\s+(\w+)\([\w\s,]*\)\s*{[^}]+})/g;
+		const varyingRegExp = /(?:varying\s+\w+\s+(\w*))/g;
+
+		const blendMode = effect.blendMode;
+		const shaders = new Map([
+			["fragment", effect.fragmentShader],
+			["vertex", effect.vertexShader]
+		]);
+
+		const mainImageExists = (shaders.get("fragment") !== undefined && shaders.get("fragment").indexOf("mainImage") >= 0);
+		const mainUvExists = (shaders.get("fragment") !== undefined && shaders.get("fragment").indexOf("mainUv") >= 0);
+
+		let varyings = [], names = [];
+		let transformedUv = false;
+		let readDepth = false;
+
+		if(shaders.get("fragment") === undefined) {
+
+			console.error("Missing fragment shader", effect);
+
+		} else if(mainUvExists && (attributes & EffectAttribute.CONVOLUTION) !== 0) {
+
+			console.error("Effects that transform UV coordinates are incompatible with convolution effects", effect);
+
+		} else if(!mainImageExists && !mainUvExists) {
+
+			console.error("The fragment shader contains neither a mainImage nor a mainUv function", effect);
+
+		} else {
+
+			if(mainUvExists) {
+
+				shaderParts.set(Section.FRAGMENT_MAIN_UV, shaderParts.get(Section.FRAGMENT_MAIN_UV) +
+					"\t" + prefix + "MainUv(UV);\n");
+
+				transformedUv = true;
+
+			}
+
+			if(shaders.get("vertex") !== null && shaders.get("vertex").indexOf("mainSupport") >= 0) {
+
+				let string = "\t" + prefix + "MainSupport(";
+
+				// Check if the vertex shader expects uv coordinates.
+				if(shaders.get("vertex").indexOf("uv") >= 0) {
+
+					string += "vUv";
+
+				}
+
+				string += ");\n";
+
+				shaderParts.set(Section.VERTEX_MAIN_SUPPORT,
+					shaderParts.get(Section.VERTEX_MAIN_SUPPORT) + string);
+
+				varyings = varyings.concat(findSubstrings(varyingRegExp, shaders.get("vertex")));
+				names = names.concat(varyings).concat(findSubstrings(functionRegExp, shaders.get("vertex")));
+
+			}
+
+			names = names.concat(findSubstrings(functionRegExp, shaders.get("fragment")))
+				.concat(Array.from(effect.uniforms.keys()))
+				.concat(Array.from(effect.defines.keys()));
+
+			// Store prefixed uniforms and macros.
+			effect.uniforms.forEach((value, key) => uniforms.set(prefix + key.charAt(0).toUpperCase() + key.slice(1), value));
+			effect.defines.forEach((value, key) => defines.set(prefix + key.charAt(0).toUpperCase() + key.slice(1), value));
+
+			// Prefix varyings, functions, uniforms and macros.
+			prefixSubstrings(prefix, names, defines);
+			prefixSubstrings(prefix, names, shaders);
+
+			// Collect unique blend modes.
+			blendModes.set(blendMode.blendFunction, blendMode);
+
+			if(mainImageExists) {
+
+				let string = prefix + "MainImage(color0, UV, ";
+
+				// The effect may sample depth in a different shader.
+				if((attributes & EffectAttribute.DEPTH) !== 0 && shaders.get("fragment").indexOf("depth") >= 0) {
+
+					string += "depth, ";
+					readDepth = true;
+
+				}
+
+				string += "color1);\n\t";
+
+				// Include the blend opacity uniform of this effect.
+				const blendOpacity = prefix + "BlendOpacity";
+				uniforms.set(blendOpacity, blendMode.opacity);
+
+				// Blend the result of this effect with the input color.
+				string += "color0 = blend" + blendMode.blendFunction +
+					"(color0, color1, " + blendOpacity + ");\n\n\t";
+
+				shaderParts.set(Section.FRAGMENT_MAIN_IMAGE,
+					shaderParts.get(Section.FRAGMENT_MAIN_IMAGE) + string);
+
+				shaderParts.set(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD) +
+					"uniform float " + blendOpacity + ";\n\n");
+
+			}
+
+			// Include the modified code in the final shader.
+			shaderParts.set(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD) +
+				shaders.get("fragment") + "\n");
+
+			if(shaders.get("vertex") !== null) {
+
+				shaderParts.set(Section.VERTEX_HEAD, shaderParts.get(Section.VERTEX_HEAD) +
+					shaders.get("vertex") + "\n");
+
+			}
+
+		}
+
+		return { varyings, transformedUv, readDepth };
+
+	}
+
+	/**
+	 * An effect pass.
+	 *
+	 * Use this pass to combine {@link Effect} instances.
+	 */
+
+	class EffectPass extends Pass {
+
+		/**
+		 * Constructs a new effect pass.
+		 *
+		 * The provided effects will be organized and merged for optimal performance.
+		 *
+		 * @param {Camera} camera - The main camera. The camera's type and settings will be available to all effects.
+		 * @param {...Effect} effects - The effects that will be rendered by this pass.
+		 */
+
+		constructor(camera, ...effects) {
+
+			super("EffectPass");
+
+			/**
+			 * The main camera.
+			 *
+			 * @type {Camera}
+			 * @private
+			 */
+
+			this.mainCamera = camera;
+
+			/**
+			 * The effects, sorted by attribute priority, DESC.
+			 *
+			 * @type {Effect[]}
+			 * @private
+			 */
+
+			this.effects = effects.sort((a, b) => (b.attributes - a.attributes));
+
+			/**
+			 * The current render size.
+			 *
+			 * @type {Vector2}
+			 * @private
+			 */
+
+			this.size = new Vector2();
+
+			/**
+			 * Indicates whether this pass should skip rendering.
+			 *
+			 * Effects will still be updated, even if this flag is true.
+			 *
+			 * @type {Boolean}
+			 * @private
+			 */
+
+			this.skipRendering = false;
+
+			/**
+			 * Indicates whether dithering is enabled.
+			 *
+			 * @type {Boolean}
+			 * @private
+			 */
+
+			this.quantize = false;
+
+			/**
+			 * The amount of shader uniforms that this pass uses.
+			 *
+			 * @type {Number}
+			 * @private
+			 */
+
+			this.uniforms = 0;
+
+			/**
+			 * The amount of shader varyings that this pass uses.
+			 *
+			 * @type {Number}
+			 * @private
+			 */
+
+			this.varyings = 0;
+
+			/**
+			 * A time offset.
+			 *
+			 * Elapsed time will start at this value.
+			 *
+			 * @type {Number}
+			 */
+
+			this.minTime = 1.0;
+
+			/**
+			 * The maximum time.
+			 *
+			 * If the elapsed time exceeds this value, it will be reset.
+			 *
+			 * @type {Number}
+			 */
+
+			this.maxTime = 1e3;
+
+		}
+
+		/**
+		 * Indicates whether dithering is enabled.
+		 *
+		 * Color quantization reduces banding artifacts but degrades performance.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get dithering() {
+
+			return this.quantize;
+
+		}
+
+		/**
+		 * Enables or disables dithering.
+		 *
+		 * Note that some effects have their own dithering setting.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set dithering(value) {
+
+			if(this.quantize !== value) {
+
+				const material = this.getFullscreenMaterial();
+
+				if(material !== null) {
+
+					material.dithering = value;
+					material.needsUpdate = true;
+
+				}
+
+				this.quantize = value;
+
+			}
+
+		}
+
+		/**
+		 * Creates a compound shader material.
+		 *
+		 * @private
+		 * @return {Material} The new material.
+		 */
+
+		createMaterial() {
+
+			const blendRegExp = /\bblend\b/g;
+
+			const shaderParts = new Map([
+				[Section.FRAGMENT_HEAD, ""],
+				[Section.FRAGMENT_MAIN_UV, ""],
+				[Section.FRAGMENT_MAIN_IMAGE, ""],
+				[Section.VERTEX_HEAD, ""],
+				[Section.VERTEX_MAIN_SUPPORT, ""]
+			]);
+
+			const blendModes = new Map();
+			const defines = new Map();
+			const uniforms = new Map();
+			const extensions = new Set();
+
+			let id = 0, varyings = 0, attributes = 0;
+			let transformedUv = false;
+			let readDepth = false;
+			let result;
+
+			for(const effect of this.effects) {
+
+				if(effect.blendMode.blendFunction === BlendFunction.SKIP) {
+
+					// Check if this effect relies on depth and then continue.
+					attributes |= (effect.attributes & EffectAttribute.DEPTH);
+
+				} else if((attributes & EffectAttribute.CONVOLUTION) !== 0 && (effect.attributes & EffectAttribute.CONVOLUTION) !== 0) {
+
+					console.error("Convolution effects cannot be merged", effect);
+
+				} else {
+
+					attributes |= effect.attributes;
+
+					result = integrateEffect(("e" + id++), effect, shaderParts, blendModes, defines, uniforms, attributes);
+
+					varyings += result.varyings.length;
+					transformedUv = transformedUv || result.transformedUv;
+					readDepth = readDepth || result.readDepth;
+
+					if(effect.extensions !== null) {
+
+						// Collect the WebGL extensions that are required by this effect.
+						for(const extension of effect.extensions) {
+
+							extensions.add(extension);
+
+						}
+
+					}
+
+				}
+
+			}
+
+			// Integrate the relevant blend functions.
+			for(const blendMode of blendModes.values()) {
+
+				shaderParts.set(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD) +
+					blendMode.getShaderCode().replace(blendRegExp, "blend" + blendMode.blendFunction) + "\n");
+
+			}
+
+			// Check if any effect relies on depth.
+			if((attributes & EffectAttribute.DEPTH) !== 0) {
+
+				// Only read depth if any effect actually uses this information.
+				if(readDepth) {
+
+					shaderParts.set(Section.FRAGMENT_MAIN_IMAGE, "float depth = readDepth(UV);\n\n\t" +
+						shaderParts.get(Section.FRAGMENT_MAIN_IMAGE));
+
+				}
+
+				this.needsDepthTexture = true;
+
+			}
+
+			// Check if any effect transforms UVs in the fragment shader.
+			if(transformedUv) {
+
+				shaderParts.set(Section.FRAGMENT_MAIN_UV, "vec2 transformedUv = vUv;\n" +
+					shaderParts.get(Section.FRAGMENT_MAIN_UV));
+
+				defines.set("UV", "transformedUv");
+
+			} else {
+
+				defines.set("UV", "vUv");
+
+			}
+
+			shaderParts.forEach((value, key, map) => map.set(key, value.trim()));
+
+			this.uniforms = uniforms.size;
+			this.varyings = varyings;
+
+			this.skipRendering = (id === 0);
+			this.needsSwap = !this.skipRendering;
+
+			const material = new EffectMaterial(shaderParts, defines, uniforms, this.mainCamera, this.dithering);
+
+			if(extensions.size > 0) {
+
+				// Enable required WebGL extensions.
+				for(const extension of extensions) {
+
+					material.extensions[extension] = true;
+
+				}
+
+			}
+
+			return material;
+
+		}
+
+		/**
+		 * Destroys the current fullscreen shader material and builds a new one.
+		 *
+		 * Warning: This method performs a relatively expensive shader recompilation.
+		 */
+
+		recompile() {
+
+			let material = this.getFullscreenMaterial();
+			let depthTexture = null;
+			let depthPacking = 0;
+
+			if(material !== null) {
+
+				depthTexture = material.uniforms.depthBuffer.value;
+				depthPacking = material.depthPacking;
+				material.dispose();
+
+				this.uniforms = 0;
+				this.varyings = 0;
+
+			}
+
+			material = this.createMaterial();
+			material.setSize(this.size.x, this.size.y);
+			this.setFullscreenMaterial(material);
+			this.setDepthTexture(depthTexture, depthPacking);
+
+		}
+
+		/**
+		 * Returns the current depth texture.
+		 *
+		 * @return {Texture} The current depth texture, or null if there is none.
+		 */
+
+		getDepthTexture() {
+
+			const material = this.getFullscreenMaterial();
+
+			return (material !== null) ? material.uniforms.depthBuffer.value : null;
+
+		}
+
+		/**
+		 * Sets the depth texture.
+		 *
+		 * @param {Texture} depthTexture - A depth texture.
+		 * @param {Number} [depthPacking=0] - The depth packing.
+		 */
+
+		setDepthTexture(depthTexture, depthPacking = 0) {
+
+			const material = this.getFullscreenMaterial();
+
+			material.uniforms.depthBuffer.value = depthTexture;
+			material.depthPacking = depthPacking;
+			material.needsUpdate = true;
+
+			for(const effect of this.effects) {
+
+				effect.setDepthTexture(depthTexture, depthPacking);
+
+			}
+
+		}
+
+		/**
+		 * Renders the effect.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const material = this.getFullscreenMaterial();
+			const time = material.uniforms.time.value + deltaTime;
+
+			for(const effect of this.effects) {
+
+				effect.update(renderer, inputBuffer, deltaTime);
+
+			}
+
+			if(!this.skipRendering || this.renderToScreen) {
+
+				material.uniforms.inputBuffer.value = inputBuffer.texture;
+				material.uniforms.time.value = (time <= this.maxTime) ? time : this.minTime;
+				renderer.setRenderTarget(this.renderToScreen ? null : outputBuffer);
+				renderer.render(this.scene, this.camera);
+
+			}
+
+		}
+
+		/**
+		 * Updates the size of this pass.
+		 *
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
+		 */
+
+		setSize(width, height) {
+
+			const material = this.getFullscreenMaterial();
+
+			if(material !== null) {
+
+				material.setSize(width, height);
+
+			}
+
+			this.size.set(width, height);
+
+			for(const effect of this.effects) {
+
+				effect.setSize(width, height);
+
+			}
+
+		}
+
+		/**
+		 * Performs initialization tasks.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
+		 */
+
+		initialize(renderer, alpha) {
+
+			// Initialize effects before building the final shader.
+			for(const effect of this.effects) {
+
+				effect.initialize(renderer, alpha);
+
+			}
+
+			// Generate the fullscreen material.
+			this.setFullscreenMaterial(this.createMaterial());
+			this.getFullscreenMaterial().setSize(this.size.x, this.size.y);
+
+			// Compare required resources with capabilities.
+			const capabilities = renderer.capabilities;
+			let max = Math.min(capabilities.maxFragmentUniforms, capabilities.maxVertexUniforms);
+
+			if(this.uniforms > max) {
+
+				console.warn("The current rendering context doesn't support more than " + max + " uniforms, but " + this.uniforms + " were defined");
+
+			}
+
+			max = capabilities.maxVaryings;
+
+			if(this.varyings > max) {
+
+				console.warn("The current rendering context doesn't support more than " + max + " varyings, but " + this.varyings + " were defined");
+
+			}
+
+		}
+
+		/**
+		 * Deletes disposable objects.
+		 *
+		 * This pass will be inoperative after this method was called!
+		 */
+
+		dispose() {
+
+			super.dispose();
+
+			for(const effect of this.effects) {
+
+				effect.dispose();
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * A mask pass.
+	 *
+	 * This pass requires that the input and output buffers have a stencil buffer.
+	 * You can enable the stencil buffer via the {@link EffectComposer} constructor.
+	 */
+
+	class MaskPass extends Pass {
+
+		/**
+		 * Constructs a new mask pass.
+		 *
+		 * @param {Scene} scene - The scene to render.
+		 * @param {Camera} camera - The camera to use.
+		 */
+
+		constructor(scene, camera) {
+
+			super("MaskPass", scene, camera);
+
+			this.needsSwap = false;
+
+			/**
+			 * A clear pass.
+			 *
+			 * @type {ClearPass}
+			 * @private
+			 */
+
+			this.clearPass = new ClearPass(false, false, true);
+
+			/**
+			 * Inverse flag.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.inverse = false;
+
+		}
+
+		/**
+		 * Indicates whether this pass should clear the stencil buffer.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get clear() {
+
+			return this.clearPass.enabled;
+
+		}
+
+		/**
+		 * Enables or disables auto clear.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set clear(value) {
+
+			this.clearPass.enabled = value;
+
+		}
+
+		/**
+		 * Renders the effect.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			const context = renderer.getContext();
+			const buffers = renderer.state.buffers;
+
+			const scene = this.scene;
+			const camera = this.camera;
+			const clearPass = this.clearPass;
+
+			const writeValue = this.inverse ? 0 : 1;
+			const clearValue = 1 - writeValue;
+
+			// Don't update color or depth.
+			buffers.color.setMask(false);
+			buffers.depth.setMask(false);
+
+			// Lock the buffers.
+			buffers.color.setLocked(true);
+			buffers.depth.setLocked(true);
+
+			// Configure the stencil.
+			buffers.stencil.setTest(true);
+			buffers.stencil.setOp(context.REPLACE, context.REPLACE, context.REPLACE);
+			buffers.stencil.setFunc(context.ALWAYS, writeValue, 0xffffffff);
+			buffers.stencil.setClear(clearValue);
+			buffers.stencil.setLocked(true);
+
+			// Clear the stencil.
+			if(this.clear) {
+
+				if(this.renderToScreen) {
+
+					clearPass.render(renderer, null);
+
+				} else {
+
+					clearPass.render(renderer, inputBuffer);
+					clearPass.render(renderer, outputBuffer);
+
+				}
+
+			}
+
+			// Draw the mask.
+			if(this.renderToScreen) {
+
+				renderer.setRenderTarget(null);
+				renderer.render(scene, camera);
+
+			} else {
+
+				renderer.setRenderTarget(inputBuffer);
+				renderer.render(scene, camera);
+				renderer.setRenderTarget(outputBuffer);
+				renderer.render(scene, camera);
+
+			}
+
+			// Unlock the buffers.
+			buffers.color.setLocked(false);
+			buffers.depth.setLocked(false);
+
+			// Only render where the stencil is set to 1.
+			buffers.stencil.setLocked(false);
+			buffers.stencil.setFunc(context.EQUAL, 1, 0xffffffff);
+			buffers.stencil.setOp(context.KEEP, context.KEEP, context.KEEP);
+			buffers.stencil.setLocked(true);
+
+		}
+
+	}
+
+	/**
+	 * A shader pass.
+	 *
+	 * Renders any shader material as a fullscreen effect.
+	 *
+	 * This pass should not be used to create multiple chained effects. For a more
+	 * efficient solution, please refer to the {@link EffectPass}.
+	 */
+
+	class ShaderPass extends Pass {
+
+		/**
+		 * Constructs a new shader pass.
+		 *
+		 * @param {ShaderMaterial} material - A shader material.
+		 * @param {String} [input="inputBuffer"] - The name of the input buffer uniform.
+		 */
+
+		constructor(material, input = "inputBuffer") {
+
+			super("ShaderPass");
+
+			this.setFullscreenMaterial(material);
+
+			/**
+			 * The input buffer uniform.
+			 *
+			 * @type {String}
+			 * @private
+			 */
+
+			this.uniform = null;
+			this.setInput(input);
+
+		}
+
+		/**
+		 * Sets the name of the input buffer uniform.
+		 *
+		 * Most fullscreen materials modify texels from an input texture. This pass
+		 * automatically assigns the main input buffer to the uniform identified by
+		 * the given name.
+		 *
+		 * @param {String} input - The name of the input buffer uniform.
+		 */
+
+		setInput(input) {
+
+			const material = this.getFullscreenMaterial();
+
+			this.uniform = null;
+
+			if(material !== null) {
+
+				const uniforms = material.uniforms;
+
+				if(uniforms !== undefined && uniforms[input] !== undefined) {
+
+					this.uniform = uniforms[input];
+
+				}
+
+			}
+
+		}
+
+		/**
+		 * Renders the effect.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {WebGLRenderTarget} outputBuffer - A frame buffer that serves as the output render target unless this pass renders to screen.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 * @param {Boolean} [stencilTest] - Indicates whether a stencil mask is active.
+		 */
+
+		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
+
+			if(this.uniform !== null) {
+
+				this.uniform.value = inputBuffer.texture;
+
+			}
+
+			renderer.setRenderTarget(this.renderToScreen ? null : outputBuffer);
+			renderer.render(this.scene, this.camera);
+
+		}
+
+	}
+
+	/**
+	 * The EffectComposer may be used in place of a normal WebGLRenderer.
+	 *
+	 * The auto clear behaviour of the provided renderer will be disabled to prevent
+	 * unnecessary clear operations.
+	 *
+	 * It is common practice to use a {@link RenderPass} as the first pass to
+	 * automatically clear the buffers and render a scene for further processing.
+	 *
+	 * @implements {Resizable}
+	 * @implements {Disposable}
+	 */
+
+	class EffectComposer {
+
+		/**
+		 * Constructs a new effect composer.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer that should be used.
+		 * @param {Object} [options] - The options.
+		 * @param {Boolean} [options.depthBuffer=true] - Whether the main render targets should have a depth buffer.
+		 * @param {Boolean} [options.stencilBuffer=false] - Whether the main render targets should have a stencil buffer.
+		 */
+
+		constructor(renderer = null, { depthBuffer = true, stencilBuffer = false } = {}) {
+
+			/**
+			 * The renderer.
+			 *
+			 * You may replace the renderer at any time by using
+			 * {@link EffectComposer#replaceRenderer}.
+			 *
+			 * @type {WebGLRenderer}
+			 * @private
+			 */
+
+			this.renderer = renderer;
+
+			/**
+			 * The input buffer.
+			 *
+			 * Reading from and writing to the same render target should be avoided.
+			 * Therefore, two seperate yet identical buffers are used.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.inputBuffer = null;
+
+			/**
+			 * The output buffer.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.outputBuffer = null;
+
+			if(this.renderer !== null) {
+
+				this.renderer.autoClear = false;
+				this.inputBuffer = this.createBuffer(depthBuffer, stencilBuffer);
+				this.outputBuffer = this.inputBuffer.clone();
+
+			}
+
+			/**
+			 * A copy pass used for copying masked scenes.
+			 *
+			 * @type {ShaderPass}
+			 * @private
+			 */
+
+			this.copyPass = new ShaderPass(new CopyMaterial());
+
+			/**
+			 * A depth texture.
+			 *
+			 * @type {DepthTexture}
+			 * @private
+			 */
+
+			this.depthTexture = null;
+
+			/**
+			 * The passes.
+			 *
+			 * @type {Pass[]}
+			 * @private
+			 */
+
+			this.passes = [];
+
+		}
+
+		/**
+		 * Returns the WebGL renderer.
+		 *
+		 * @return {WebGLRenderer} The renderer.
+		 */
+
+		getRenderer() {
+
+			return this.renderer;
+
+		}
+
+		/**
+		 * Replaces the current renderer with the given one.
+		 *
+		 * The auto clear mechanism of the provided renderer will be disabled. If the
+		 * new render size differs from the previous one, all passes will be updated.
+		 *
+		 * By default, the DOM element of the current renderer will automatically be
+		 * removed from its parent node and the DOM element of the new renderer will
+		 * take its place.
+		 *
+		 * @param {WebGLRenderer} renderer - The new renderer.
+		 * @param {Boolean} updateDOM - Indicates whether the old canvas should be replaced by the new one in the DOM.
+		 * @return {WebGLRenderer} The old renderer.
+		 */
+
+		replaceRenderer(renderer, updateDOM = true) {
+
+			const oldRenderer = this.renderer;
+
+			if(oldRenderer !== null && oldRenderer !== renderer) {
+
+				const oldSize = oldRenderer.getSize(new Vector2());
+				const newSize = renderer.getSize(new Vector2());
+				const parent = oldRenderer.domElement.parentNode;
+
+				this.renderer = renderer;
+				this.renderer.autoClear = false;
+
+				if(!oldSize.equals(newSize)) {
+
+					this.setSize();
+
+				}
+
+				if(updateDOM && parent !== null) {
+
+					parent.removeChild(oldRenderer.domElement);
+					parent.appendChild(renderer.domElement);
+
+				}
+
+			}
+
+			return oldRenderer;
+
+		}
+
+		/**
+		 * Creates a depth texture attachment that will be provided to all passes.
+		 *
+		 * Note: When a shader reads from a depth texture and writes to a render
+		 * target that uses the same depth texture attachment, the depth information
+		 * will be lost. This happens even if `depthWrite` is disabled.
+		 *
+		 * @private
+		 * @return {DepthTexture} The depth texture.
+		 */
+
+		createDepthTexture() {
+
+			const depthTexture = this.depthTexture = new DepthTexture();
+
+			if(this.inputBuffer.stencilBuffer) {
+
+				depthTexture.format = DepthStencilFormat;
+				depthTexture.type = UnsignedInt248Type;
+
+			}
+
+			return depthTexture;
+
+		}
+
+		/**
+		 * Creates a new render target by replicating the renderer's canvas.
+		 *
+		 * The created render target uses a linear filter for texel minification and
+		 * magnification. Its render texture format depends on whether the renderer
+		 * uses the alpha channel. Mipmaps are disabled.
+		 *
+		 * @param {Boolean} depthBuffer - Whether the render target should have a depth buffer.
+		 * @param {Boolean} stencilBuffer - Whether the render target should have a stencil buffer.
+		 * @return {WebGLRenderTarget} A new render target that equals the renderer's canvas.
+		 */
+
+		createBuffer(depthBuffer, stencilBuffer) {
+
+			const drawingBufferSize = this.renderer.getDrawingBufferSize(new Vector2());
+			const alpha = this.renderer.getContext().getContextAttributes().alpha;
+
+			const renderTarget = new WebGLRenderTarget(drawingBufferSize.width, drawingBufferSize.height, {
+				minFilter: LinearFilter,
+				magFilter: LinearFilter,
+				format: alpha ? RGBAFormat : RGBFormat,
+				depthBuffer: depthBuffer,
+				stencilBuffer: stencilBuffer
+			});
+
+			renderTarget.texture.name = "EffectComposer.Buffer";
+			renderTarget.texture.generateMipmaps = false;
+
+			return renderTarget;
+
+		}
+
+		/**
+		 * Adds a pass, optionally at a specific index.
+		 *
+		 * @param {Pass} pass - A new pass.
+		 * @param {Number} [index] - An index at which the pass should be inserted.
+		 */
+
+		addPass(pass, index) {
+
+			const passes = this.passes;
+			const renderer = this.renderer;
+			const drawingBufferSize = renderer.getDrawingBufferSize(new Vector2());
+
+			pass.setSize(drawingBufferSize.width, drawingBufferSize.height);
+			pass.initialize(renderer, renderer.getContext().getContextAttributes().alpha);
+
+			if(index !== undefined) {
+
+				passes.splice(index, 0, pass);
+
+			} else {
+
+				passes.push(pass);
+
+			}
+
+			if(pass.needsDepthTexture || this.depthTexture !== null) {
+
+				if(this.depthTexture === null) {
+
+					const depthTexture = this.createDepthTexture();
+
+					for(pass of passes) {
+
+						pass.setDepthTexture(depthTexture);
+
+					}
+
+				} else {
+
+					pass.setDepthTexture(this.depthTexture);
+
+				}
+
+			}
+
+		}
+
+		/**
+		 * Removes a pass.
+		 *
+		 * @param {Pass} pass - The pass.
+		 */
+
+		removePass(pass) {
+
+			const passes = this.passes;
+			const removed = (passes.splice(passes.indexOf(pass), 1).length > 0);
+
+			if(removed && this.depthTexture !== null) {
+
+				const reducer = (a, b) => a || b.needsDepthTexture;
+				const depthTextureRequired = passes.reduce(reducer, false);
+
+				if(!depthTextureRequired) {
+
+					this.depthTexture.dispose();
+					this.depthTexture = null;
+
+					this.inputBuffer.depthTexture = null;
+					this.outputBuffer.depthTexture = null;
+
+					for(pass of passes) {
+
+						pass.setDepthTexture(null);
+
+					}
+
+				}
+
+			}
+
+		}
+
+		/**
+		 * Renders all enabled passes in the order in which they were added.
+		 *
+		 * @param {Number} deltaTime - The time between the last frame and the current one in seconds.
+		 */
+
+		render(deltaTime) {
+
+			const renderer = this.renderer;
+			const copyPass = this.copyPass;
+
+			let inputBuffer = this.inputBuffer;
+			let outputBuffer = this.outputBuffer;
+
+			let stencilTest = false;
+			let context, stencil, buffer;
+
+			for(const pass of this.passes) {
+
+				if(pass.enabled) {
+
+					pass.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest);
+
+					if(pass.needsSwap) {
+
+						if(stencilTest) {
+
+							copyPass.renderToScreen = pass.renderToScreen;
+							context = renderer.getContext();
+							stencil = renderer.state.buffers.stencil;
+
+							// Preserve the unaffected pixels.
+							stencil.setFunc(context.NOTEQUAL, 1, 0xffffffff);
+							copyPass.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest);
+							stencil.setFunc(context.EQUAL, 1, 0xffffffff);
+
+						}
+
+						buffer = inputBuffer;
+						inputBuffer = outputBuffer;
+						outputBuffer = buffer;
+
+					}
+
+					if(pass instanceof MaskPass) {
+
+						stencilTest = true;
+
+					} else if(pass instanceof ClearMaskPass) {
+
+						stencilTest = false;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		/**
+		 * Sets the size of the buffers and the renderer's output canvas.
+		 *
+		 * Every pass will be informed of the new size. It's up to each pass how that
+		 * information is used.
+		 *
+		 * If no width or height is specified, the render targets and passes will be
+		 * updated with the current size of the renderer.
+		 *
+		 * @param {Number} [width] - The width.
+		 * @param {Number} [height] - The height.
+		 */
+
+		setSize(width, height) {
+
+			const renderer = this.renderer;
+
+			if(width === undefined || height === undefined) {
+
+				const size = renderer.getSize(new Vector2());
+				width = size.width; height = size.height;
+
+			}
+
+			// Update the logical render size.
+			renderer.setSize(width, height);
+
+			// The drawing buffer size takes the device pixel ratio into account.
+			const drawingBufferSize = renderer.getDrawingBufferSize(new Vector2());
+
+			this.inputBuffer.setSize(drawingBufferSize.width, drawingBufferSize.height);
+			this.outputBuffer.setSize(drawingBufferSize.width, drawingBufferSize.height);
+
+			for(const pass of this.passes) {
+
+				pass.setSize(drawingBufferSize.width, drawingBufferSize.height);
+
+			}
+
+		}
+
+		/**
+		 * Resets this composer by deleting all passes and creating new buffers.
+		 */
+
+		reset() {
+
+			const renderTarget = this.createBuffer(
+				this.inputBuffer.depthBuffer,
+				this.inputBuffer.stencilBuffer
+			);
+
+			this.dispose();
+
+			// Reanimate.
+			this.inputBuffer = renderTarget;
+			this.outputBuffer = renderTarget.clone();
+			this.depthTexture = null;
+			this.copyPass = new ShaderPass(new CopyMaterial());
+
+		}
+
+		/**
+		 * Destroys this composer and all passes.
+		 *
+		 * This method deallocates all disposable objects created by the passes. It
+		 * also deletes the main frame buffers of this composer.
+		 */
+
+		dispose() {
+
+			for(const pass of this.passes) {
+
+				pass.dispose();
+
+			}
+
+			this.passes = [];
+
+			if(this.inputBuffer !== null) {
+
+				this.inputBuffer.dispose();
+				this.inputBuffer = null;
+
+			}
+
+			if(this.outputBuffer !== null) {
+
+				this.outputBuffer.dispose();
+				this.outputBuffer = null;
+
+			}
+
+			if(this.depthTexture !== null) {
+
+				this.depthTexture.dispose();
+
+			}
+
+			this.copyPass.dispose();
+
+		}
+
+	}
+
+	var fragmentShader$a = "uniform sampler2D texture;\n#ifdef ASPECT_CORRECTION\nvarying vec2 vUv2;\n#endif\nvoid mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){\n#ifdef ASPECT_CORRECTION\noutputColor=texture2D(texture,vUv2);\n#else\noutputColor=texture2D(texture,uv);\n#endif\n}";
+
+	/**
+	 * A vector.
+	 *
+	 * @type {Vector3}
+	 * @private
+	 */
+
+	const v = new Vector3();
+
+	/**
+	 * A matrix.
+	 *
+	 * @type {Matrix4}
+	 * @private
+	 */
+
+	const m = new Matrix4();
+
+	/**
+	 * A god rays effect.
+	 */
+
+	class GodRaysEffect extends Effect {
+
+		/**
+		 * Constructs a new god rays effect.
+		 *
+		 * @param {Camera} camera - The main camera.
+		 * @param {Mesh|Points} lightSource - The light source. Must not write depth and has to be flagged as transparent.
+		 * @param {Object} [options] - The options.
+		 * @param {BlendFunction} [options.blendFunction=BlendFunction.SCREEN] - The blend function of this effect.
+		 * @param {Number} [options.samples=60.0] - The number of samples per pixel.
+		 * @param {Number} [options.density=0.96] - The density of the light rays.
+		 * @param {Number} [options.decay=0.9] - An illumination decay factor.
+		 * @param {Number} [options.weight=0.4] - A light ray weight factor.
+		 * @param {Number} [options.exposure=0.6] - A constant attenuation coefficient.
+		 * @param {Number} [options.clampMax=1.0] - An upper bound for the saturation of the overall effect.
+		 * @param {Number} [options.resolutionScale=0.5] - Deprecated. Use height or width instead.
+		 * @param {Number} [options.width=BlurPass.AUTO_SIZE] - The render width.
+		 * @param {Number} [options.height=BlurPass.AUTO_SIZE] - The render height.
+		 * @param {KernelSize} [options.kernelSize=KernelSize.SMALL] - The blur kernel size. Has no effect if blur is disabled.
+		 * @param {Number} [options.blur=true] - Whether the god rays should be blurred to reduce artifacts.
+		 */
+
+		constructor(camera, lightSource, {
+			blendFunction = BlendFunction.SCREEN,
+			samples = 60.0,
+			density = 0.96,
+			decay = 0.9,
+			weight = 0.4,
+			exposure = 0.6,
+			clampMax = 1.0,
+			resolutionScale = 0.5,
+			width = BlurPass.AUTO_SIZE,
+			height = BlurPass.AUTO_SIZE,
+			kernelSize = KernelSize.SMALL,
+			blur = true
+		} = {}) {
+
+			super("GodRaysEffect", fragmentShader$a, {
+
+				blendFunction,
+				attributes: EffectAttribute.DEPTH,
+
+				uniforms: new Map([
+					["texture", new Uniform(null)]
+				])
+
+			});
+
+			/**
+			 * The main camera.
+			 *
+			 * @type {Camera}
+			 * @private
+			 */
+
+			this.camera = camera;
+
+			/**
+			 * The light source.
+			 *
+			 * @type {Mesh|Points}
+			 * @private
+			 */
+
+			this.lightSource = lightSource;
+			this.lightSource.material.depthWrite = false;
+			this.lightSource.material.transparent = true;
+
+			/**
+			 * A scene that only contains the light source.
+			 *
+			 * @type {Scene}
+			 * @private
+			 */
+
+			this.lightScene = new Scene();
+
+			/**
+			 * The light position in screen space.
+			 *
+			 * @type {Vector3}
+			 * @private
+			 */
+
+			this.screenPosition = new Vector2();
+
+			/**
+			 * A render target.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.renderTargetX = new WebGLRenderTarget(1, 1, {
+				minFilter: LinearFilter,
+				magFilter: LinearFilter,
+				stencilBuffer: false,
+				depthBuffer: false
+			});
+
+			this.renderTargetX.texture.name = "GodRays.TargetX";
+
+			/**
+			 * A render target.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.renderTargetY = this.renderTargetX.clone();
+			this.renderTargetY.texture.name = "GodRays.TargetY";
+			this.uniforms.get("texture").value = this.renderTargetY.texture;
+
+			/**
+			 * A render target for the light scene.
+			 *
+			 * @type {WebGLRenderTarget}
+			 * @private
+			 */
+
+			this.renderTargetLight = this.renderTargetX.clone();
+			this.renderTargetLight.texture.name = "GodRays.Light";
+			this.renderTargetLight.depthBuffer = true;
+			this.renderTargetLight.depthTexture = new DepthTexture();
+
+			/**
+			 * A pass that only renders the light source.
+			 *
+			 * @type {RenderPass}
+			 * @private
+			 */
+
+			this.renderPassLight = new RenderPass(this.lightScene, camera);
+			this.renderPassLight.getClearPass().overrideClearColor = new Color(0x000000);
+
+			/**
+			 * A clear pass.
+			 *
+			 * @type {ClearPass}
+			 * @private
+			 */
+
+			this.clearPass = new ClearPass(true, false, false);
+
+			/**
+			 * A blur pass that reduces aliasing artifacts and makes the light softer.
+			 *
+			 * Disable this pass to improve performance.
+			 *
+			 * @type {BlurPass}
+			 */
+
+			this.blurPass = new BlurPass({ resolutionScale, width, height, kernelSize });
+
+			/**
+			 * A depth mask pass.
+			 *
+			 * @type {ShaderPass}
+			 * @private
+			 */
+
+			this.depthMaskPass = new ShaderPass(new DepthMaskMaterial());
+
+			/**
+			 * A god rays blur pass.
+			 *
+			 * @type {ShaderPass}
+			 * @private
+			 */
+
+			this.godRaysPass = new ShaderPass((() => {
+
+				const material = new GodRaysMaterial(this.screenPosition);
+				material.uniforms.density.value = density;
+				material.uniforms.decay.value = decay;
+				material.uniforms.weight.value = weight;
+				material.uniforms.exposure.value = exposure;
+				material.uniforms.clampMax.value = clampMax;
+
+				return material;
+
+			})());
+
+			this.samples = samples;
+			this.blur = blur;
+
+		}
+
+		/**
+		 * A texture that contains the intermediate result of this effect.
+		 *
+		 * This texture will be applied to the scene colors unless the blend function
+		 * is set to `SKIP`.
+		 *
+		 * @type {Texture}
+		 */
+
+		get texture() {
+
+			return this.renderTargetY.texture;
+
+		}
+
+		/**
+		 * The internal god rays material.
+		 *
+		 * @type {GodRaysMaterial}
+		 */
+
+		get godRaysMaterial() {
+
+			return this.godRaysPass.getFullscreenMaterial();
+
+		}
+
+		/**
+		 * The current width of the internal render targets.
+		 *
+		 * @type {Number}
+		 */
+
+		get width() {
+
+			return this.blurPass.width;
+
+		}
+
+		/**
+		 * Sets the render width.
+		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render height and aspect ratio.
+		 *
+		 * @type {Number}
+		 */
+
+		set width(value) {
+
+			const blurPass = this.blurPass;
+			blurPass.width = value;
+
+			this.renderTargetX.setSize(blurPass.width, blurPass.height);
+			this.renderTargetY.setSize(blurPass.width, blurPass.height);
+			this.renderTargetLight.setSize(blurPass.width, blurPass.height);
+
+		}
+
+		/**
+		 * The current height of the internal render targets.
+		 *
+		 * @type {Number}
+		 */
+
+		get height() {
+
+			return this.blurPass.height;
+
+		}
+
+		/**
+		 * Sets the render height.
+		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render width and aspect ratio.
+		 *
+		 * @type {Number}
+		 */
+
+		set height(value) {
+
+			const blurPass = this.blurPass;
+			blurPass.height = value;
+
+			this.renderTargetX.setSize(blurPass.width, blurPass.height);
+			this.renderTargetY.setSize(blurPass.width, blurPass.height);
+			this.renderTargetLight.setSize(blurPass.width, blurPass.height);
+
+		}
+
+		/**
+		 * Indicates whether dithering is enabled.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get dithering() {
+
+			return this.godRaysMaterial.dithering;
+
+		}
+
+		/**
+		 * Enables or disables dithering.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set dithering(value) {
+
+			const material = this.godRaysMaterial;
+
+			material.dithering = value;
+			material.needsUpdate = true;
+
+		}
+
+		/**
+		 * Indicates whether the god rays should be blurred to reduce artifacts.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get blur() {
+
+			return this.blurPass.enabled;
+
+		}
+
+		/**
+		 * @type {Boolean}
+		 */
+
+		set blur(value) {
+
+			this.blurPass.enabled = value;
+
+		}
+
+		/**
+		 * The blur kernel size.
+		 *
+		 * @type {KernelSize}
+		 * @deprecated Use blurPass.kernelSize instead.
+		 */
+
+		get kernelSize() {
+
+			return this.blurPass.kernelSize;
+
+		}
+
+		/**
+		 * Sets the blur kernel size.
+		 *
+		 * @type {KernelSize}
+		 * @deprecated Use blurPass.kernelSize instead.
+		 */
+
+		set kernelSize(value) {
+
+			this.blurPass.kernelSize = value;
+
+		}
+
+		/**
+		 * Returns the current resolution scale.
+		 *
+		 * @return {Number} The resolution scale.
+		 * @deprecated Adjust the width or height instead.
+		 */
+
+		getResolutionScale() {
+
+			return this.blurPass.getResolutionScale();
+
+		}
+
+		/**
+		 * Sets the resolution scale.
+		 *
+		 * @param {Number} scale - The new resolution scale.
+		 * @deprecated Adjust the width or height instead.
+		 */
+
+		setResolutionScale(scale) {
+
+			const originalSize = this.blurPass.getOriginalSize();
+			this.blurPass.setResolutionScale(scale);
+			this.setSize(originalSize.x, originalSize.y);
+
+		}
+
+		/**
+		 * The number of samples per pixel.
+		 *
+		 * @type {Number}
+		 */
+
+		get samples() {
+
+			return this.godRaysMaterial.samples;
+
+		}
+
+		/**
+		 * A higher sample count improves quality at the cost of performance.
+		 *
+		 * @type {Number}
+		 */
+
+		set samples(value) {
+
+			this.godRaysMaterial.samples = value;
+
+		}
+
+		/**
+		 * Sets the depth texture.
+		 *
+		 * @param {Texture} depthTexture - A depth texture.
+		 * @param {Number} [depthPacking=0] - The depth packing.
+		 */
+
+		setDepthTexture(depthTexture, depthPacking = 0) {
+
+			const material = this.depthMaskPass.getFullscreenMaterial();
+
+			material.uniforms.depthBuffer0.value = depthTexture;
+			material.uniforms.depthBuffer1.value = this.renderTargetLight.depthTexture;
+
+		}
+
+		/**
+		 * Updates this effect.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {WebGLRenderTarget} inputBuffer - A frame buffer that contains the result of the previous pass.
+		 * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
+		 */
+
+		update(renderer, inputBuffer, deltaTime) {
+
+			const lightSource = this.lightSource;
+			const parent = lightSource.parent;
+			const matrixAutoUpdate = lightSource.matrixAutoUpdate;
+
+			const renderTargetX = this.renderTargetX;
+			const renderTargetLight = this.renderTargetLight;
+
+			if(!matrixAutoUpdate) {
+
+				// Remember the local transformation to restore it later.
+				m.copy(lightSource.matrix);
+
+			}
+
+			// Enable depth write for the light scene render pass.
+			lightSource.material.depthWrite = true;
+
+			// The light source may be inside a group; apply all transformations.
+			lightSource.matrixAutoUpdate = false;
+			lightSource.updateWorldMatrix(true, false);
+			lightSource.matrix.copy(lightSource.matrixWorld);
+
+			// Render the light source and mask it based on depth.
+			this.lightScene.add(lightSource);
+			this.renderPassLight.render(renderer, renderTargetLight);
+			this.clearPass.render(renderer, renderTargetX);
+			this.depthMaskPass.render(renderer, renderTargetLight, renderTargetX);
+
+			// Restore the original values.
+			lightSource.material.depthWrite = false;
+			lightSource.matrixAutoUpdate = matrixAutoUpdate;
+
+			if(!matrixAutoUpdate) {
+
+				lightSource.matrix.copy(m);
+
+			}
+
+			if(parent !== null) {
+
+				parent.add(lightSource);
+
+			}
+
+			// Calculate the screen light position and translate it to [0.0, 1.0].
+			v.setFromMatrixPosition(lightSource.matrixWorld).project(this.camera);
+			this.screenPosition.set(
+				Math.max(0.0, Math.min(1.0, (v.x + 1.0) * 0.5)),
+				Math.max(0.0, Math.min(1.0, (v.y + 1.0) * 0.5)),
+			);
+
+			if(this.blur) {
+
+				// Blur the masked scene to reduce artifacts.
+				this.blurPass.render(renderer, renderTargetX, renderTargetX);
+
+			}
+
+			// Blur the masked scene along radial lines towards the light source.
+			this.godRaysPass.render(renderer, renderTargetX, this.renderTargetY);
+
+		}
+
+		/**
+		 * Updates the size of internal render targets.
+		 *
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
+		 */
+
+		setSize(width, height) {
+
+			this.blurPass.setSize(width, height);
+
+			this.renderPassLight.setSize(width, height);
+			this.depthMaskPass.setSize(width, height);
+			this.godRaysPass.setSize(width, height);
+
+			width = this.blurPass.width;
+			height = this.blurPass.height;
+
+			this.renderTargetX.setSize(width, height);
+			this.renderTargetY.setSize(width, height);
+			this.renderTargetLight.setSize(width, height);
+
+		}
+
+		/**
+		 * Performs initialization tasks.
+		 *
+		 * @param {WebGLRenderer} renderer - The renderer.
+		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
+		 */
+
+		initialize(renderer, alpha) {
+
+			this.blurPass.initialize(renderer, alpha);
+			this.renderPassLight.initialize(renderer, alpha);
+			this.depthMaskPass.initialize(renderer, alpha);
+			this.godRaysPass.initialize(renderer, alpha);
+
+			if(!alpha) {
+
+				this.renderTargetX.texture.format = RGBFormat;
+				this.renderTargetY.texture.format = RGBFormat;
+				this.renderTargetLight.texture.format = RGBFormat;
+
+			}
+
+		}
+
+	}
+
+	/**
+	 * Half PI.
+	 *
+	 * @type {Number}
+	 * @private
+	 */
+
+	const HALF_PI = Math.PI * 0.5;
+
+	/**
+	 * This dictionary returns which edges are active for a certain bilinear fetch:
+	 * it's the reverse lookup of the bilinear function.
+	 *
+	 * @type {Map}
+	 * @private
+	 */
+
+	const edges = new Map([
+
+		[bilinear([0, 0, 0, 0]), [0, 0, 0, 0]],
+		[bilinear([0, 0, 0, 1]), [0, 0, 0, 1]],
+		[bilinear([0, 0, 1, 0]), [0, 0, 1, 0]],
+		[bilinear([0, 0, 1, 1]), [0, 0, 1, 1]],
+
+		[bilinear([0, 1, 0, 0]), [0, 1, 0, 0]],
+		[bilinear([0, 1, 0, 1]), [0, 1, 0, 1]],
+		[bilinear([0, 1, 1, 0]), [0, 1, 1, 0]],
+		[bilinear([0, 1, 1, 1]), [0, 1, 1, 1]],
+
+		[bilinear([1, 0, 0, 0]), [1, 0, 0, 0]],
+		[bilinear([1, 0, 0, 1]), [1, 0, 0, 1]],
+		[bilinear([1, 0, 1, 0]), [1, 0, 1, 0]],
+		[bilinear([1, 0, 1, 1]), [1, 0, 1, 1]],
+
+		[bilinear([1, 1, 0, 0]), [1, 1, 0, 0]],
+		[bilinear([1, 1, 0, 1]), [1, 1, 0, 1]],
+		[bilinear([1, 1, 1, 0]), [1, 1, 1, 0]],
+		[bilinear([1, 1, 1, 1]), [1, 1, 1, 1]]
+
+	]);
+
+	/**
+	 * Linearly interpolates between two values.
+	 *
+	 * @private
+	 * @param {Number} a - The initial value.
+	 * @param {Number} b - The target value.
+	 * @param {Number} p - The interpolation value.
+	 * @return {Number} The interpolated value.
+	 */
+
+	function lerp$1(a, b, p) {
+
+		return a + (b - a) * p;
+
+	}
+
+	/**
+	 * Calculates the bilinear fetch for a certain edge combination.
+	 *
+	 *     e[0]       e[1]
+	 *
+	 *              x <-------- Sample Position: (-0.25, -0.125)
+	 *     e[2]       e[3] <--- Current Pixel [3]: (0.0, 0.0)
+	 *
+	 * @private
+	 * @param {Number[]} e - The edge combination.
+	 * @return {Number} The interpolated value.
+	 */
+
+	function bilinear(e) {
+
+		const a = lerp$1(e[0], e[1], 1.0 - 0.25);
+		const b = lerp$1(e[2], e[3], 1.0 - 0.25);
+
+		return lerp$1(a, b, 1.0 - 0.125);
+
+	}
+
+	/**
 	 * @ignore
 	 */
 	function getOrbitShaderFragment() {
@@ -54933,9 +58864,6 @@ var Spacekit = (function (exports) {
 	    this._isPaused = options.startPaused || false;
 	    this.onTick = null;
 
-	    this._scene = null;
-	    this._renderer = null;
-
 	    this._enableCameraDrift = false;
 	    this._cameraDefaultPos = rescaleArray([0, -10, 5]);
 	    if (this._options.camera) {
@@ -54953,13 +58881,18 @@ var Spacekit = (function (exports) {
 	    this._subscribedObjects = {};
 	    this._particles = null;
 
-	    this._renderEnabled = true;
-	    this._boundAnimate = this.animate.bind(this);
-
 	    // stats.js panel
 	    this._stats = null;
 	    this._fps = 1;
 	    this._lastUpdatedTime = Date.now();
+
+	    // Rendering
+	    this._renderEnabled = true;
+	    this.animate = this.animate.bind(this);
+
+	    this._scene = null;
+	    this._renderer = null;
+	    this._composer = null;
 
 	    this.init();
 	    this.animate();
@@ -55033,6 +58966,9 @@ var Spacekit = (function (exports) {
 	      },
 	      this,
 	    );
+
+	    // Set up effect composer, etc.
+	    this.initPasses();
 	  }
 
 	  /**
@@ -55073,6 +59009,68 @@ var Spacekit = (function (exports) {
 	  /**
 	   * @private
 	   */
+	  initPasses() {
+	    //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
+	    //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
+
+	    const camera = this._camera.get3jsCamera();
+
+	    const sunGeometry = new SphereBufferGeometry(
+	      rescaleNumber(0.004),
+	      16,
+	      16,
+	    );
+	    const sunMaterial = new MeshBasicMaterial({
+	      color: 0xffddaa,
+	      transparent: true,
+	      depthWrite: false,
+	      fog: false,
+	    });
+	    const sun = new Mesh(sunGeometry, sunMaterial);
+	    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
+	    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
+	    sun.updateMatrix();
+	    sun.updateMatrixWorld();
+	    console.log('wtf', sun.position);
+
+	    const godRaysEffect = new GodRaysEffect(camera, sun, {
+	      /*
+	      height: rescaleNumber(0.1),
+	      kernelSize: KernelSize.SMALL,
+	      density: 0.96,
+	      decay: 0.92,
+	      weight: 0.3,
+	      exposure: 0.54,
+	      samples: 60,
+	      clampMax: 1.0
+	      */
+	      /*
+	      resolutionScale: 1,
+	          density: 0.8,
+	          decay: 0.95,
+	          weight: 0.9,
+	          samples: 100
+	          */
+	      color: 0xfff5f2,
+	      blur: false,
+	    });
+	    //godRaysEffect.dithering = true;
+
+	    const renderPass = new RenderPass(this._scene, camera);
+	    renderPass.renderToScreen = false;
+
+	    const effectPass = new EffectPass(camera, /*smaaEffect,*/ godRaysEffect);
+	    effectPass.renderToScreen = true;
+
+	    const composer = new EffectComposer(this._renderer);
+	    composer.addPass(renderPass);
+	    composer.addPass(effectPass);
+	    this._composer = composer;
+	  }
+
+	  /**
+	   * @private
+	   */
 	  update() {
 	    for (const objId in this._subscribedObjects) {
 	      if (this._subscribedObjects.hasOwnProperty(objId)) {
@@ -55102,7 +59100,7 @@ var Spacekit = (function (exports) {
 	      return;
 	    }
 
-	    window.requestAnimationFrame(this._boundAnimate);
+	    window.requestAnimationFrame(this.animate);
 
 	    if (this._stats) {
 	      this._stats.begin();
@@ -55131,7 +59129,8 @@ var Spacekit = (function (exports) {
 	    this._camera.update();
 
 	    // Update three.js scene
-	    this._renderer.render(this._scene, this._camera.get3jsCamera());
+	    //this._renderer.render(this._scene, this._camera.get3jsCamera());
+	    this._composer.render(0.1);
 
 	    if (this.onTick) {
 	      this.onTick();

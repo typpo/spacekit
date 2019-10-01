@@ -56289,7 +56289,7 @@ var Spacekit = (function (exports) {
         vec3 lightDirection = normalize(vecPos - spotLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * spotLights[i].color
-                           * 0.4 /* intensity */;
+                           * 0.6 /* intensity */;
     }
 #endif
 
@@ -58360,10 +58360,10 @@ var Spacekit = (function (exports) {
 	    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
 	    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
 
-	    //this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
-	    //this._obj.add(this.renderRingGlow(66900, 92000, 0x5f5651));
-	    //this._obj.add(this.renderRingGlow(66900, 117580, 0xccb193));
-	    this._obj.add(this.renderRingGlow(66900, 136775, 0x9f8d77));
+	    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
+	    this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
+	    this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
+	    this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
 	    /*
 	    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
@@ -58542,7 +58542,6 @@ var Spacekit = (function (exports) {
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
-
 	    return mesh;
 	  }
 
@@ -58561,15 +58560,25 @@ var Spacekit = (function (exports) {
 	    });
 	    */
 
+	    const ringGeometry = new RingGeometry(
+	      outerRadiusSize * 0.99,
+	      outerRadiusSize,
+	      segments,
+	      5,
+	      0,
+	      Math.PI * 2,
+	    );
+
+	    const thickness = rescaleNumber(0.000025);
 	    const glowGeometry = new CylinderGeometry(
 	      outerRadiusSize,
 	      outerRadiusSize,
-	      rescaleNumber(0.00005),
+	      thickness,
 	      segments,
 	    );
 
-	    const coefficient = 0.5;
-	    const power = 4.0;
+	    const coefficient = 1;
+	    const power = 3.0;
 
 	    //const noiseTexture = generateNoise(1.0, 255);
 
@@ -58603,11 +58612,12 @@ var Spacekit = (function (exports) {
 
 	    const glowMesh = new Mesh(
 	      glowGeometry,
+	      //ringGeometry,
 	      /*
 	      new THREE.MeshStandardMaterial({
 	        color,
 	        transparent: true,
-	        side: THREE.FrontSide,
+	        side: THREE.DoubleSide,
 	        depthWrite: false,
 	      }),
 	      */
@@ -58629,6 +58639,8 @@ var Spacekit = (function (exports) {
 	      //translucentShader,
 	    );
 	    glowMesh.rotation.x = Math.PI / 2;
+	    glowMesh.receiveShadow = true;
+	    glowMesh.position.y -= thickness / 2;
 	    return glowMesh;
 	  }
 

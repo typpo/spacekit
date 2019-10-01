@@ -383,7 +383,7 @@ export const RING_SHADER_FRAGMENT = `
         vec3 lightDirection = normalize(vecPos - spotLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * spotLights[i].color
-                           * 0.4 /* intensity */;
+                           * 0.6 /* intensity */;
     }
 #endif
 

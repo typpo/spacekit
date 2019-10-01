@@ -1,7 +1,7 @@
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
-  unitsPerAu: 10.0,
+  unitsPerAu: 100.0,
   camera: {
     initialPosition: [
       0.0014980565625981512,
@@ -20,7 +20,7 @@ viz.createLight([0.025, 0.025, 0.005]);
 viz.createObject(
   'sun',
   Object.assign(Spacekit.SpaceObjectPresets.SUN, {
-    position: [50, 50, 12.5],
+    position: [500, 500, 12.5],
   }),
 );
 */

@@ -55874,7 +55874,6 @@ var Spacekit = (function (exports) {
       float lastdiff = abs(E1-E0);
       E0 = E1;
 
-      #pragma unroll_loop
       for ( int i = 0; i < 100; i ++ ) {
         E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
@@ -56076,7 +56075,7 @@ var Spacekit = (function (exports) {
   }
 `;
 
-	const RING_SHADER_VERTEX = `
+	const RING_GLOW_SHADER_VERTEX = `
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
@@ -56098,7 +56097,7 @@ var Spacekit = (function (exports) {
   }
 `;
 
-	const RING_SHADER_FRAGMENT = `
+	const RING_GLOW_SHADER_FRAGMENT = `
   uniform float c;
   uniform float p;
   uniform vec3 color;
@@ -56189,6 +56188,39 @@ var Spacekit = (function (exports) {
 #endif
 
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+  }
+`;
+
+	const RING_SHADER_VERTEX = `
+  varying vec3 vPos;
+
+  void main() {
+    vPos = position;
+    vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+    gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+  }
+`;
+
+	const RING_SHADER_FRAGMENT = `
+  uniform sampler2D texture;
+  uniform float innerRadius;
+  uniform float outerRadius;
+
+  varying vec3 vPos;
+
+  vec4 color() {
+    vec2 uv = vec2(0);
+    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
+    if (uv.x < 0.0 || uv.x > 1.0) {
+      discard;
+    }
+
+    vec4 pixel = texture2D(texture, uv);
+    return pixel;
+  }
+
+  void main() {
+    gl_FragColor = color();
   }
 `;
 
@@ -58205,7 +58237,6 @@ var Spacekit = (function (exports) {
 	    let map;
 	    if (this._options.textureUrl) {
 	      map = new TextureLoader().load(this._options.textureUrl);
-	      map.minFilter = LinearFilter;
 	      map.anisotropy = 16;
 	    }
 
@@ -58229,9 +58260,12 @@ var Spacekit = (function (exports) {
 	        ? new MeshLambertMaterial({
 	            map,
 	            reflectivity: 0.5,
+	            depthTest: true,
+	            depthWrite: true,
 	          })
 	        : new MeshBasicMaterial({
 	            map,
+	            color,
 	          });
 	      const mesh = new Mesh(sphereGeometry, material);
 	      mesh.receiveShadow = true;
@@ -58263,10 +58297,10 @@ var Spacekit = (function (exports) {
 	    this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
 	    this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
 	    */
-	    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
 	    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
 	    this._obj.add(allRings);
+	    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
@@ -58306,8 +58340,12 @@ var Spacekit = (function (exports) {
 	      radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
 	    const detailedObj = new Object3D();
-	    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-	    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+	    detailedObj.add(
+	      this.renderAtmosphereComponent(radius, innerSize, 0.8, 2.0, color),
+	    );
+	    detailedObj.add(
+	      this.renderAtmosphereComponent(radius, outerSize, 0.5, 4.0, color),
+	    );
 
 	    // Hide atmosphere beyond some multiple of radius distance.
 	    // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -58322,7 +58360,7 @@ var Spacekit = (function (exports) {
 	   * @private
 	   * @param {THREE.Color} color Color of atmosphere
 	   */
-	  renderAtmosphere(radius, size, coefficient, power, color) {
+	  renderAtmosphereComponent(radius, size, coefficient, power, color) {
 	    const geometry = new SphereGeometry(radius + size, 32, 32);
 	    const mesh = new Mesh(
 	      geometry,
@@ -58356,7 +58394,7 @@ var Spacekit = (function (exports) {
 	   * @param {Number} outerRadiusSize Outer radius in true coordinates
 	   * @param {Number} segments Number of segments in ring
 	   */
-	  generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+	  getRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
 	    /*
 	    const geometry = new THREE.RingBufferGeometry(innerRadiusSize, outerRadiusSize, segments);
 	    var pos = geometry.attributes.position;
@@ -58390,7 +58428,7 @@ var Spacekit = (function (exports) {
 	    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
 	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
 
-	    const geometry = this.generateRingGeometry(
+	    const geometry = this.getRingGeometry(
 	      innerRadiusSize,
 	      outerRadiusSize,
 	      segments,
@@ -58425,38 +58463,12 @@ var Spacekit = (function (exports) {
 	            innerRadius: { value: innerRadiusSize },
 	            outerRadius: { value: outerRadiusSize },
 	          },
-	          vertexShader: `
-            varying vec3 vPos;
-
-            void main() {
-              vPos = position;
-              vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-              gl_Position = projectionMatrix * vec4(viewPosition, 1.);
-            }
-          `,
-	          fragmentShader: `
-            uniform sampler2D texture;
-            uniform float innerRadius;
-            uniform float outerRadius;
-
-            varying vec3 vPos;
-
-            vec4 color() {
-              vec2 uv = vec2(0);
-              uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
-              if (uv.x < 0.0 || uv.x > 1.0) {
-                discard;
-              }
-
-              vec4 pixel = texture2D(texture, uv);
-              return pixel;
-            }
-
-            void main() {
-              gl_FragColor = color();
-            }
-          `,
+	          vertexShader: RING_SHADER_VERTEX,
+	          fragmentShader: RING_SHADER_FRAGMENT,
 	          transparent: true,
+	          depthTest: true,
+	          depthWrite: true,
+	          side: DoubleSide,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
@@ -58477,7 +58489,7 @@ var Spacekit = (function (exports) {
 
 	    // Now set up the rings glow...
 	    /*
-	    const baseRingGeometry = this.generateRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
+	    const baseRingGeometry = this.getRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
 	    const glowGeometry = new THREE.ExtrudeGeometry(baseRingGeometry, {
 	      amount: 2,
 	      steps: 1,
@@ -58556,8 +58568,8 @@ var Spacekit = (function (exports) {
 	            color: { value: new Color(color) },
 	          },
 	        ]),
-	        vertexShader: RING_SHADER_VERTEX,
-	        fragmentShader: RING_SHADER_FRAGMENT,
+	        vertexShader: RING_GLOW_SHADER_VERTEX,
+	        fragmentShader: RING_GLOW_SHADER_FRAGMENT,
 	        side: BackSide,
 	        lights: true,
 	      }),
@@ -58914,7 +58926,7 @@ var Spacekit = (function (exports) {
 	  initRenderer() {
 	    const renderer = new WebGLRenderer({
 	      antialias: true,
-	      logarithmicDepthBuffer: true,
+	      //logarithmicDepthBuffer: true,
 	    });
 	    renderer.shadowMap.enabled = true;
 	    renderer.shadowMap.type = PCFSoftShadowMap;
@@ -59061,8 +59073,8 @@ var Spacekit = (function (exports) {
 	    this._camera.update();
 
 	    // Update three.js scene
-	    //this._renderer.render(this._scene, this._camera.get3jsCamera());
-	    this._composer.render(0.1);
+	    this._renderer.render(this._scene, this._camera.get3jsCamera());
+	    //this._composer.render(0.1);
 
 	    if (this.onTick) {
 	      this.onTick();

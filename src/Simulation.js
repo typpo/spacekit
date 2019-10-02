@@ -220,7 +220,7 @@ export class Simulation {
   initRenderer() {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      logarithmicDepthBuffer: true,
+      //logarithmicDepthBuffer: true,
     });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -367,8 +367,8 @@ export class Simulation {
     this._camera.update();
 
     // Update three.js scene
-    //this._renderer.render(this._scene, this._camera.get3jsCamera());
-    this._composer.render(0.1);
+    this._renderer.render(this._scene, this._camera.get3jsCamera());
+    //this._composer.render(0.1);
 
     if (this.onTick) {
       this.onTick();

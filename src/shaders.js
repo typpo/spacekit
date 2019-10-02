@@ -50,7 +50,6 @@ export function getOrbitShaderVertex() {
       float lastdiff = abs(E1-E0);
       E0 = E1;
 
-      #pragma unroll_loop
       for ( int i = 0; i < 100; i ++ ) {
         E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
@@ -275,7 +274,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   }
 `;
 
-export const RING_SHADER_VERTEX = `
+export const RING_GLOW_SHADER_VERTEX = `
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
@@ -297,7 +296,7 @@ export const RING_SHADER_VERTEX = `
   }
 `;
 
-export const RING_SHADER_FRAGMENT = `
+export const RING_GLOW_SHADER_FRAGMENT = `
   uniform float c;
   uniform float p;
   uniform vec3 color;
@@ -388,5 +387,38 @@ export const RING_SHADER_FRAGMENT = `
 #endif
 
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+  }
+`;
+
+export const RING_SHADER_VERTEX = `
+  varying vec3 vPos;
+
+  void main() {
+    vPos = position;
+    vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+    gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+  }
+`;
+
+export const RING_SHADER_FRAGMENT = `
+  uniform sampler2D texture;
+  uniform float innerRadius;
+  uniform float outerRadius;
+
+  varying vec3 vPos;
+
+  vec4 color() {
+    vec2 uv = vec2(0);
+    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
+    if (uv.x < 0.0 || uv.x > 1.0) {
+      discard;
+    }
+
+    vec4 pixel = texture2D(texture, uv);
+    return pixel;
+  }
+
+  void main() {
+    gl_FragColor = color();
   }
 `;

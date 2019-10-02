@@ -9,6 +9,8 @@ import {
   ATMOSPHERE_SHADER_FRAGMENT,
   RING_SHADER_VERTEX,
   RING_SHADER_FRAGMENT,
+  RING_GLOW_SHADER_VERTEX,
+  RING_GLOW_SHADER_FRAGMENT,
 } from './shaders';
 
 const noiseTexture = THREE.ImageUtils.loadTexture('./noise.jpg');
@@ -78,7 +80,6 @@ export class SphereObject extends RotatingObject {
     let map;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
-      map.minFilter = THREE.LinearFilter;
       map.anisotropy = 16;
     }
 
@@ -102,9 +103,12 @@ export class SphereObject extends RotatingObject {
         ? new THREE.MeshLambertMaterial({
             map,
             reflectivity: 0.5,
+            depthTest: true,
+            depthWrite: true,
           })
         : new THREE.MeshBasicMaterial({
             map,
+            color,
           });
       const mesh = new THREE.Mesh(sphereGeometry, material);
       mesh.receiveShadow = true;
@@ -136,10 +140,10 @@ export class SphereObject extends RotatingObject {
     this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
     this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
     */
-    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
     const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
     this._obj.add(allRings);
+    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
@@ -179,8 +183,12 @@ export class SphereObject extends RotatingObject {
       radius * (this._options.atmosphere.outerSizeRatio || 0.15);
 
     const detailedObj = new THREE.Object3D();
-    detailedObj.add(this.renderAtmosphere(radius, innerSize, 0.8, 2.0, color));
-    detailedObj.add(this.renderAtmosphere(radius, outerSize, 0.5, 4.0, color));
+    detailedObj.add(
+      this.renderAtmosphereComponent(radius, innerSize, 0.8, 2.0, color),
+    );
+    detailedObj.add(
+      this.renderAtmosphereComponent(radius, outerSize, 0.5, 4.0, color),
+    );
 
     // Hide atmosphere beyond some multiple of radius distance.
     // TODO(ian): This effect is somewhat jarring when the atmosphere first
@@ -195,7 +203,7 @@ export class SphereObject extends RotatingObject {
    * @private
    * @param {THREE.Color} color Color of atmosphere
    */
-  renderAtmosphere(radius, size, coefficient, power, color) {
+  renderAtmosphereComponent(radius, size, coefficient, power, color) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
     const mesh = new THREE.Mesh(
       geometry,
@@ -229,7 +237,7 @@ export class SphereObject extends RotatingObject {
    * @param {Number} outerRadiusSize Outer radius in true coordinates
    * @param {Number} segments Number of segments in ring
    */
-  generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+  getRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
     /*
     const geometry = new THREE.RingBufferGeometry(innerRadiusSize, outerRadiusSize, segments);
     var pos = geometry.attributes.position;
@@ -263,7 +271,7 @@ export class SphereObject extends RotatingObject {
     const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
     const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
 
-    const geometry = this.generateRingGeometry(
+    const geometry = this.getRingGeometry(
       innerRadiusSize,
       outerRadiusSize,
       segments,
@@ -298,38 +306,12 @@ export class SphereObject extends RotatingObject {
             innerRadius: { value: innerRadiusSize },
             outerRadius: { value: outerRadiusSize },
           },
-          vertexShader: `
-            varying vec3 vPos;
-
-            void main() {
-              vPos = position;
-              vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-              gl_Position = projectionMatrix * vec4(viewPosition, 1.);
-            }
-          `,
-          fragmentShader: `
-            uniform sampler2D texture;
-            uniform float innerRadius;
-            uniform float outerRadius;
-
-            varying vec3 vPos;
-
-            vec4 color() {
-              vec2 uv = vec2(0);
-              uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
-              if (uv.x < 0.0 || uv.x > 1.0) {
-                discard;
-              }
-
-              vec4 pixel = texture2D(texture, uv);
-              return pixel;
-            }
-
-            void main() {
-              gl_FragColor = color();
-            }
-          `,
+          vertexShader: RING_SHADER_VERTEX,
+          fragmentShader: RING_SHADER_FRAGMENT,
           transparent: true,
+          depthTest: true,
+          depthWrite: true,
+          side: THREE.DoubleSide,
         })
       : new THREE.MeshBasicMaterial({
           map,
@@ -351,7 +333,7 @@ export class SphereObject extends RotatingObject {
 
     // Now set up the rings glow...
     /*
-    const baseRingGeometry = this.generateRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
+    const baseRingGeometry = this.getRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
     const glowGeometry = new THREE.ExtrudeGeometry(baseRingGeometry, {
       amount: 2,
       steps: 1,
@@ -430,8 +412,8 @@ export class SphereObject extends RotatingObject {
             color: { value: new THREE.Color(color) },
           },
         ]),
-        vertexShader: RING_SHADER_VERTEX,
-        fragmentShader: RING_SHADER_FRAGMENT,
+        vertexShader: RING_GLOW_SHADER_VERTEX,
+        fragmentShader: RING_GLOW_SHADER_FRAGMENT,
         side: THREE.BackSide,
         lights: true,
       }),

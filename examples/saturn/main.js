@@ -41,7 +41,7 @@ const saturn = viz.createSphere('saturn', {
   rotation: {
     //enable: true,
   },
-  //axialTilt: 26.73,
+  axialTilt: 26.73,
 });
 viz.zoomToFit(saturn);
 

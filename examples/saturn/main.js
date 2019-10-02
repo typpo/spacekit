@@ -16,14 +16,12 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 viz.createLight([0.025, 0.025, 0.005]);
 //viz.createAmbientLight(0x222222);
 
-/*
 viz.createObject(
   'sun',
   Object.assign(Spacekit.SpaceObjectPresets.SUN, {
     position: [500, 500, 12.5],
   }),
 );
-*/
 
 // Create a starry background using Yale Bright Star Catalog Data.
 viz.createStars();
@@ -43,7 +41,7 @@ const saturn = viz.createSphere('saturn', {
   rotation: {
     //enable: true,
   },
-  axialTilt: 26.73,
+  //axialTilt: 26.73,
 });
 viz.zoomToFit(saturn);
 

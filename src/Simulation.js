@@ -6,6 +6,7 @@ import {
   BlendFunction,
   EffectPass,
   GodRaysEffect,
+  BloomEffect,
   KernelSize,
   SMAAEffect,
   RenderPass,
@@ -257,6 +258,7 @@ export class Simulation {
 
     const camera = this._camera.get3jsCamera();
 
+    /*
     const sunGeometry = new THREE.SphereBufferGeometry(
       rescaleNumber(0.004),
       16,
@@ -273,35 +275,29 @@ export class Simulation {
     sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
     sun.updateMatrix();
     sun.updateMatrixWorld();
-    console.log('wtf', sun.position);
 
     const godRaysEffect = new GodRaysEffect(camera, sun, {
-      /*
-      height: rescaleNumber(0.1),
-      kernelSize: KernelSize.SMALL,
-      density: 0.96,
-      decay: 0.92,
-      weight: 0.3,
-      exposure: 0.54,
-      samples: 60,
-      clampMax: 1.0
-      */
-      /*
-      resolutionScale: 1,
-          density: 0.8,
-          decay: 0.95,
-          weight: 0.9,
-          samples: 100
-          */
       color: 0xfff5f2,
       blur: false,
     });
+    */
     //godRaysEffect.dithering = true;
+
+    const bloomEffect = new BloomEffect(this._scene, camera, {
+      width: 240,
+      height: 240,
+      luminanceThreshold: 0.2,
+    });
+    bloomEffect.inverted = true;
+    bloomEffect.blendMode.opacity.value = 2.3;
 
     const renderPass = new RenderPass(this._scene, camera);
     renderPass.renderToScreen = false;
 
-    const effectPass = new EffectPass(camera, /*smaaEffect,*/ godRaysEffect);
+    const effectPass = new EffectPass(
+      camera,
+      /*smaaEffect, godRaysEffect*/ bloomEffect,
+    );
     effectPass.renderToScreen = true;
 
     const composer = new EffectComposer(this._renderer);

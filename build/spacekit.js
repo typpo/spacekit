@@ -52172,46 +52172,6 @@ var Spacekit = (function (exports) {
 
 	}
 
-	var fragmentShader$5 = "uniform sampler2D depthBuffer0;uniform sampler2D depthBuffer1;uniform sampler2D inputBuffer;varying vec2 vUv;void main(){float d0=texture2D(depthBuffer0,vUv).r;float d1=texture2D(depthBuffer1,vUv).r;if(d0<d1){discard;}gl_FragColor=texture2D(inputBuffer,vUv);}";
-
-	/**
-	 * A depth mask shader material.
-	 *
-	 * This material masks a color buffer by comparing two depth textures.
-	 */
-
-	class DepthMaskMaterial extends ShaderMaterial {
-
-		/**
-		 * Constructs a new depth mask material.
-		 */
-
-		constructor() {
-
-			super({
-
-				type: "DepthMaskMaterial",
-
-				uniforms: {
-
-					depthBuffer0: new Uniform(null),
-					depthBuffer1: new Uniform(null),
-					inputBuffer: new Uniform(null)
-
-				},
-
-				fragmentShader: fragmentShader$5,
-				vertexShader,
-
-				depthWrite: false,
-				depthTest: false
-
-			});
-
-		}
-
-	}
-
 	var fragmentTemplate = "#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform sampler2D depthBuffer;uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;float readDepth(const in vec2 uv){\n#if DEPTH_PACKING == 3201\nreturn unpackRGBAToDepth(texture2D(depthBuffer,uv));\n#else\nreturn texture2D(depthBuffer,uv).r;\n#endif\n}FRAGMENT_HEADvoid main(){FRAGMENT_MAIN_UVvec4 color0=texture2D(inputBuffer,UV);vec4 color1=vec4(0.0);FRAGMENT_MAIN_IMAGEgl_FragColor=color0;\n#include <dithering_fragment>\n}";
 
 	var vertexTemplate = "uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;VERTEX_HEADvoid main(){vUv=position.xy*0.5+0.5;VERTEX_MAIN_SUPPORTgl_Position=vec4(position.xy,1.0,1.0);}";
@@ -52397,59 +52357,55 @@ var Spacekit = (function (exports) {
 
 	};
 
-	var fragmentShader$6 = "#include <common>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform vec2 lightPosition;uniform float exposure;uniform float decay;uniform float density;uniform float weight;uniform float clampMax;varying vec2 vUv;void main(){vec2 coord=vUv;vec2 delta=coord-lightPosition;delta*=1.0/SAMPLES_FLOAT*density;float illuminationDecay=1.0;vec4 texel;vec4 color=vec4(0.0);/*Estimate the probability of occlusion at each pixel by summing samplesalong a ray to the light position.*/for(int i=0;i<SAMPLES_INT;++i){coord-=delta;texel=texture2D(inputBuffer,coord);texel*=illuminationDecay*weight;color+=texel;illuminationDecay*=decay;}gl_FragColor=clamp(color*exposure,0.0,clampMax);\n#include <dithering_fragment>\n}";
+	var fragmentShader$7 = "#include <common>\nuniform sampler2D inputBuffer;\n#ifdef RANGE\nuniform vec2 range;\n#elif defined(THRESHOLD)\nuniform float threshold;uniform float smoothing;\n#endif\nvarying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);float l=linearToRelativeLuminance(texel.rgb);\n#ifdef RANGE\nfloat low=step(range.x,l);float high=step(l,range.y);l*=low*high;\n#elif defined(THRESHOLD)\nl=smoothstep(threshold,threshold+smoothing,l);\n#endif\n#ifdef COLOR\ngl_FragColor=vec4(texel.rgb*l,l);\n#else\ngl_FragColor=vec4(l);\n#endif\n}";
 
 	/**
-	 * A crepuscular rays shader material.
+	 * A luminance shader material.
 	 *
-	 * This material supports dithering.
+	 * This shader produces a greyscale luminance map that describes the absolute
+	 * amount of light emitted by a scene. It can also be configured to output
+	 * colours that are scaled with their respective luminance value. Additionally,
+	 * a range may be provided to mask out undesired texels.
 	 *
-	 * References:
+	 * The alpha channel always contains the luminance value.
 	 *
-	 * Thibaut Despoulain, 2012:
-	 *  [(WebGL) Volumetric Light Approximation in Three.js](
-	 *  http://bkcore.com/blog/3d/webgl-three-js-volumetric-light-godrays.html)
+	 * On luminance coefficients:
+	 *  http://www.poynton.com/notes/colour_and_gamma/ColorFAQ.html#RTFToC9
 	 *
-	 * Nvidia, GPU Gems 3, 2008:
-	 *  [Chapter 13. Volumetric Light Scattering as a Post-Process](
-	 *  https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch13.html)
+	 * Coefficients for different colour spaces:
+	 *  https://hsto.org/getpro/habr/post_images/2ab/69d/084/2ab69d084f9a597e032624bcd74d57a7.png
+	 *
+	 * Luminance range reference:
+	 *  https://cycling74.com/2007/05/23/your-first-shader/#.Vty9FfkrL4Z
 	 */
 
-	class GodRaysMaterial extends ShaderMaterial {
+	class LuminanceMaterial extends ShaderMaterial {
 
 		/**
-		 * Constructs a new god rays material.
+		 * Constructs a new luminance material.
 		 *
-		 * @param {Vector2} lightPosition - The light position in screen space.
+		 * @param {Boolean} [colorOutput=false] - Defines whether the shader should output colors scaled with their luminance value.
+		 * @param {Vector2} [luminanceRange] - If provided, the shader will mask out texels that aren't in the specified luminance range.
 		 */
 
-		constructor(lightPosition) {
+		constructor(colorOutput = false, luminanceRange = null) {
+
+			const useRange = (luminanceRange !== null);
 
 			super({
 
-				type: "GodRaysMaterial",
-
-				defines: {
-
-					SAMPLES_INT: "60",
-					SAMPLES_FLOAT: "60.0"
-
-				},
+				type: "LuminanceMaterial",
 
 				uniforms: {
 
 					inputBuffer: new Uniform(null),
-					lightPosition: new Uniform(lightPosition),
-
-					density: new Uniform(1.0),
-					decay: new Uniform(1.0),
-					weight: new Uniform(1.0),
-					exposure: new Uniform(1.0),
-					clampMax: new Uniform(1.0)
+					threshold: new Uniform(0.0),
+					smoothing: new Uniform(1.0),
+					range: new Uniform(useRange ? luminanceRange : new Vector2())
 
 				},
 
-				fragmentShader: fragmentShader$6,
+				fragmentShader: fragmentShader$7,
 				vertexShader,
 
 				depthWrite: false,
@@ -52457,32 +52413,194 @@ var Spacekit = (function (exports) {
 
 			});
 
-		}
-
-		/**
-		 * The amount of samples per pixel.
-		 *
-		 * @type {Number}
-		 */
-
-		get samples() {
-
-			return Number.parseInt(this.defines.SAMPLES_INT);
+			this.colorOutput = colorOutput;
+			this.useThreshold = true;
+			this.useRange = useRange;
 
 		}
 
 		/**
-		 * Sets the amount of samples per pixel.
+		 * The luminance threshold.
 		 *
 		 * @type {Number}
 		 */
 
-		set samples(value) {
+		get threshold() {
 
-			value = Math.floor(value);
+			return this.uniforms.threshold.value;
 
-			this.defines.SAMPLES_INT = value.toFixed(0);
-			this.defines.SAMPLES_FLOAT = value.toFixed(1);
+		}
+
+		/**
+		 * Sets the luminance threshold.
+		 *
+		 * @type {Number}
+		 */
+
+		set threshold(value) {
+
+			this.uniforms.threshold.value = value;
+
+		}
+
+		/**
+		 * The luminance threshold smoothing.
+		 *
+		 * @type {Number}
+		 */
+
+		get smoothing() {
+
+			return this.uniforms.smoothing.value;
+
+		}
+
+		/**
+		 * Sets the luminance threshold smoothing.
+		 *
+		 * @type {Number}
+		 */
+
+		set smoothing(value) {
+
+			this.uniforms.smoothing.value = value;
+
+		}
+
+		/**
+		 * Indicates whether the luminance threshold is enabled.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get useThreshold() {
+
+			return (this.defines.THRESHOLD !== undefined);
+
+		}
+
+		/**
+		 * Enables or disables the luminance threshold.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set useThreshold(value) {
+
+			value ? (this.defines.THRESHOLD = "1") : (delete this.defines.THRESHOLD);
+
+			this.needsUpdate = true;
+
+		}
+
+		/**
+		 * Indicates whether color output is enabled.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get colorOutput() {
+
+			return (this.defines.COLOR !== undefined);
+
+		}
+
+		/**
+		 * Enables or disables color output.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set colorOutput(value) {
+
+			value ? (this.defines.COLOR = "1") : (delete this.defines.COLOR);
+
+			this.needsUpdate = true;
+
+		}
+
+		/**
+		 * Enables or disables color output.
+		 *
+		 * @deprecated Use colorOutput instead.
+		 * @param {Boolean} enabled - Whether color output should be enabled.
+		 */
+
+		setColorOutputEnabled(enabled) {
+
+			enabled ? (this.defines.COLOR = "1") : (delete this.defines.COLOR);
+
+			this.needsUpdate = true;
+
+		}
+
+		/**
+		 * Indicates whether luminance masking is enabled.
+		 *
+		 * @type {Boolean}
+		 */
+
+		get useRange() {
+
+			return (this.defines.RANGE !== undefined);
+
+		}
+
+		/**
+		 * Enables or disables luminance masking.
+		 *
+		 * If enabled, the threshold will be ignored.
+		 *
+		 * @type {Boolean}
+		 */
+
+		set useRange(value) {
+
+			value ? (this.defines.RANGE = "1") : (delete this.defines.RANGE);
+
+			this.needsUpdate = true;
+
+		}
+
+		/**
+		 * Indicates whether luminance masking is enabled.
+		 *
+		 * @type {Boolean}
+		 * @deprecated Use useRange instead.
+		 */
+
+		get luminanceRange() {
+
+			return (this.defines.RANGE !== undefined);
+
+		}
+
+		/**
+		 * Enables or disables luminance masking.
+		 *
+		 * @type {Boolean}
+		 * @deprecated Use useRange instead.
+		 */
+
+		set luminanceRange(value) {
+
+			value ? (this.defines.RANGE = "1") : (delete this.defines.RANGE);
+
+			this.needsUpdate = true;
+
+		}
+
+		/**
+		 * Enables or disables the luminance mask.
+		 *
+		 * @deprecated Use luminanceRange instead.
+		 * @param {Boolean} enabled - Whether the luminance mask should be enabled.
+		 */
+
+		setLuminanceRangeEnabled(enabled) {
+
+			enabled ? (this.defines.RANGE = "1") : (delete this.defines.RANGE);
+
 			this.needsUpdate = true;
 
 		}
@@ -55284,68 +55402,40 @@ var Spacekit = (function (exports) {
 	var fragmentShader$a = "uniform sampler2D texture;\n#ifdef ASPECT_CORRECTION\nvarying vec2 vUv2;\n#endif\nvoid mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){\n#ifdef ASPECT_CORRECTION\noutputColor=texture2D(texture,vUv2);\n#else\noutputColor=texture2D(texture,uv);\n#endif\n}";
 
 	/**
-	 * A vector.
+	 * A bloom effect.
 	 *
-	 * @type {Vector3}
-	 * @private
+	 * This effect uses the fast Kawase convolution technique and a luminance filter
+	 * to blur bright highlights.
 	 */
 
-	const v = new Vector3();
-
-	/**
-	 * A matrix.
-	 *
-	 * @type {Matrix4}
-	 * @private
-	 */
-
-	const m = new Matrix4();
-
-	/**
-	 * A god rays effect.
-	 */
-
-	class GodRaysEffect extends Effect {
+	class BloomEffect extends Effect {
 
 		/**
-		 * Constructs a new god rays effect.
+		 * Constructs a new bloom effect.
 		 *
-		 * @param {Camera} camera - The main camera.
-		 * @param {Mesh|Points} lightSource - The light source. Must not write depth and has to be flagged as transparent.
 		 * @param {Object} [options] - The options.
 		 * @param {BlendFunction} [options.blendFunction=BlendFunction.SCREEN] - The blend function of this effect.
-		 * @param {Number} [options.samples=60.0] - The number of samples per pixel.
-		 * @param {Number} [options.density=0.96] - The density of the light rays.
-		 * @param {Number} [options.decay=0.9] - An illumination decay factor.
-		 * @param {Number} [options.weight=0.4] - A light ray weight factor.
-		 * @param {Number} [options.exposure=0.6] - A constant attenuation coefficient.
-		 * @param {Number} [options.clampMax=1.0] - An upper bound for the saturation of the overall effect.
+		 * @param {Number} [options.luminanceThreshold=0.9] - The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1].
+		 * @param {Number} [options.luminanceSmoothing=0.025] - Controls the smoothness of the luminance threshold. Range is [0, 1].
 		 * @param {Number} [options.resolutionScale=0.5] - Deprecated. Use height or width instead.
 		 * @param {Number} [options.width=BlurPass.AUTO_SIZE] - The render width.
 		 * @param {Number} [options.height=BlurPass.AUTO_SIZE] - The render height.
-		 * @param {KernelSize} [options.kernelSize=KernelSize.SMALL] - The blur kernel size. Has no effect if blur is disabled.
-		 * @param {Number} [options.blur=true] - Whether the god rays should be blurred to reduce artifacts.
+		 * @param {KernelSize} [options.kernelSize=KernelSize.LARGE] - The blur kernel size.
 		 */
 
-		constructor(camera, lightSource, {
+		constructor({
 			blendFunction = BlendFunction.SCREEN,
-			samples = 60.0,
-			density = 0.96,
-			decay = 0.9,
-			weight = 0.4,
-			exposure = 0.6,
-			clampMax = 1.0,
+			luminanceThreshold = 0.9,
+			luminanceSmoothing = 0.025,
 			resolutionScale = 0.5,
 			width = BlurPass.AUTO_SIZE,
 			height = BlurPass.AUTO_SIZE,
-			kernelSize = KernelSize.SMALL,
-			blur = true
+			kernelSize = KernelSize.LARGE
 		} = {}) {
 
-			super("GodRaysEffect", fragmentShader$a, {
+			super("BloomEffect", fragmentShader$a, {
 
 				blendFunction,
-				attributes: EffectAttribute.DEPTH,
 
 				uniforms: new Map([
 					["texture", new Uniform(null)]
@@ -55354,105 +55444,29 @@ var Spacekit = (function (exports) {
 			});
 
 			/**
-			 * The main camera.
-			 *
-			 * @type {Camera}
-			 * @private
-			 */
-
-			this.camera = camera;
-
-			/**
-			 * The light source.
-			 *
-			 * @type {Mesh|Points}
-			 * @private
-			 */
-
-			this.lightSource = lightSource;
-			this.lightSource.material.depthWrite = false;
-			this.lightSource.material.transparent = true;
-
-			/**
-			 * A scene that only contains the light source.
-			 *
-			 * @type {Scene}
-			 * @private
-			 */
-
-			this.lightScene = new Scene();
-
-			/**
-			 * The light position in screen space.
-			 *
-			 * @type {Vector3}
-			 * @private
-			 */
-
-			this.screenPosition = new Vector2();
-
-			/**
 			 * A render target.
 			 *
 			 * @type {WebGLRenderTarget}
 			 * @private
 			 */
 
-			this.renderTargetX = new WebGLRenderTarget(1, 1, {
+			this.renderTarget = new WebGLRenderTarget(1, 1, {
 				minFilter: LinearFilter,
 				magFilter: LinearFilter,
 				stencilBuffer: false,
 				depthBuffer: false
 			});
 
-			this.renderTargetX.texture.name = "GodRays.TargetX";
+			this.renderTarget.texture.name = "Bloom.Target";
+			this.renderTarget.texture.generateMipmaps = false;
+
+			this.uniforms.get("texture").value = this.renderTarget.texture;
 
 			/**
-			 * A render target.
+			 * A blur pass.
 			 *
-			 * @type {WebGLRenderTarget}
-			 * @private
-			 */
-
-			this.renderTargetY = this.renderTargetX.clone();
-			this.renderTargetY.texture.name = "GodRays.TargetY";
-			this.uniforms.get("texture").value = this.renderTargetY.texture;
-
-			/**
-			 * A render target for the light scene.
-			 *
-			 * @type {WebGLRenderTarget}
-			 * @private
-			 */
-
-			this.renderTargetLight = this.renderTargetX.clone();
-			this.renderTargetLight.texture.name = "GodRays.Light";
-			this.renderTargetLight.depthBuffer = true;
-			this.renderTargetLight.depthTexture = new DepthTexture();
-
-			/**
-			 * A pass that only renders the light source.
-			 *
-			 * @type {RenderPass}
-			 * @private
-			 */
-
-			this.renderPassLight = new RenderPass(this.lightScene, camera);
-			this.renderPassLight.getClearPass().overrideClearColor = new Color(0x000000);
-
-			/**
-			 * A clear pass.
-			 *
-			 * @type {ClearPass}
-			 * @private
-			 */
-
-			this.clearPass = new ClearPass(true, false, false);
-
-			/**
-			 * A blur pass that reduces aliasing artifacts and makes the light softer.
-			 *
-			 * Disable this pass to improve performance.
+			 * Do not adjust the width or height of this pass directly. Use
+			 * {@link width} or {@link height} instead.
 			 *
 			 * @type {BlurPass}
 			 */
@@ -55460,36 +55474,17 @@ var Spacekit = (function (exports) {
 			this.blurPass = new BlurPass({ resolutionScale, width, height, kernelSize });
 
 			/**
-			 * A depth mask pass.
+			 * A luminance shader pass.
+			 *
+			 * You may disable this pass to deactivate luminance filtering.
 			 *
 			 * @type {ShaderPass}
-			 * @private
 			 */
 
-			this.depthMaskPass = new ShaderPass(new DepthMaskMaterial());
+			this.luminancePass = new ShaderPass(new LuminanceMaterial(true));
 
-			/**
-			 * A god rays blur pass.
-			 *
-			 * @type {ShaderPass}
-			 * @private
-			 */
-
-			this.godRaysPass = new ShaderPass((() => {
-
-				const material = new GodRaysMaterial(this.screenPosition);
-				material.uniforms.density.value = density;
-				material.uniforms.decay.value = decay;
-				material.uniforms.weight.value = weight;
-				material.uniforms.exposure.value = exposure;
-				material.uniforms.clampMax.value = clampMax;
-
-				return material;
-
-			})());
-
-			this.samples = samples;
-			this.blur = blur;
+			this.luminanceMaterial.threshold = luminanceThreshold;
+			this.luminanceMaterial.smoothing = luminanceSmoothing;
 
 		}
 
@@ -55504,19 +55499,19 @@ var Spacekit = (function (exports) {
 
 		get texture() {
 
-			return this.renderTargetY.texture;
+			return this.renderTarget.texture;
 
 		}
 
 		/**
-		 * The internal god rays material.
+		 * The luminance material.
 		 *
-		 * @type {GodRaysMaterial}
+		 * @type {LuminanceMaterial}
 		 */
 
-		get godRaysMaterial() {
+		get luminanceMaterial() {
 
-			return this.godRaysPass.getFullscreenMaterial();
+			return this.luminancePass.getFullscreenMaterial();
 
 		}
 
@@ -55545,10 +55540,7 @@ var Spacekit = (function (exports) {
 
 			const blurPass = this.blurPass;
 			blurPass.width = value;
-
-			this.renderTargetX.setSize(blurPass.width, blurPass.height);
-			this.renderTargetY.setSize(blurPass.width, blurPass.height);
-			this.renderTargetLight.setSize(blurPass.width, blurPass.height);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -55577,10 +55569,7 @@ var Spacekit = (function (exports) {
 
 			const blurPass = this.blurPass;
 			blurPass.height = value;
-
-			this.renderTargetX.setSize(blurPass.width, blurPass.height);
-			this.renderTargetY.setSize(blurPass.width, blurPass.height);
-			this.renderTargetLight.setSize(blurPass.width, blurPass.height);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -55588,11 +55577,12 @@ var Spacekit = (function (exports) {
 		 * Indicates whether dithering is enabled.
 		 *
 		 * @type {Boolean}
+		 * @deprecated Use blurPass.dithering instead.
 		 */
 
 		get dithering() {
 
-			return this.godRaysMaterial.dithering;
+			return this.blurPass.dithering;
 
 		}
 
@@ -55600,36 +55590,12 @@ var Spacekit = (function (exports) {
 		 * Enables or disables dithering.
 		 *
 		 * @type {Boolean}
+		 * @deprecated Use blurPass.dithering instead.
 		 */
 
 		set dithering(value) {
 
-			const material = this.godRaysMaterial;
-
-			material.dithering = value;
-			material.needsUpdate = true;
-
-		}
-
-		/**
-		 * Indicates whether the god rays should be blurred to reduce artifacts.
-		 *
-		 * @type {Boolean}
-		 */
-
-		get blur() {
-
-			return this.blurPass.enabled;
-
-		}
-
-		/**
-		 * @type {Boolean}
-		 */
-
-		set blur(value) {
-
-			this.blurPass.enabled = value;
+			this.blurPass.dithering = value;
 
 		}
 
@@ -55647,8 +55613,6 @@ var Spacekit = (function (exports) {
 		}
 
 		/**
-		 * Sets the blur kernel size.
-		 *
 		 * @type {KernelSize}
 		 * @deprecated Use blurPass.kernelSize instead.
 		 */
@@ -55656,6 +55620,30 @@ var Spacekit = (function (exports) {
 		set kernelSize(value) {
 
 			this.blurPass.kernelSize = value;
+
+		}
+
+		/**
+		 * @type {Number}
+		 * @deprecated Use luminanceMaterial.threshold and luminanceMaterial.smoothing instead.
+		 */
+
+		get distinction() {
+
+			console.warn(this.name, "The distinction field has been removed, use luminanceMaterial.threshold and luminanceMaterial.smoothing instead.");
+
+			return 1.0;
+
+		}
+
+		/**
+		 * @type {Number}
+		 * @deprecated Use luminanceMaterial.threshold and luminanceMaterial.smoothing instead.
+		 */
+
+		set distinction(value) {
+
+			console.warn(this.name, "The distinction field has been removed, use luminanceMaterial.threshold and luminanceMaterial.smoothing instead.");
 
 		}
 
@@ -55681,49 +55669,9 @@ var Spacekit = (function (exports) {
 
 		setResolutionScale(scale) {
 
-			const originalSize = this.blurPass.getOriginalSize();
-			this.blurPass.setResolutionScale(scale);
-			this.setSize(originalSize.x, originalSize.y);
-
-		}
-
-		/**
-		 * The number of samples per pixel.
-		 *
-		 * @type {Number}
-		 */
-
-		get samples() {
-
-			return this.godRaysMaterial.samples;
-
-		}
-
-		/**
-		 * A higher sample count improves quality at the cost of performance.
-		 *
-		 * @type {Number}
-		 */
-
-		set samples(value) {
-
-			this.godRaysMaterial.samples = value;
-
-		}
-
-		/**
-		 * Sets the depth texture.
-		 *
-		 * @param {Texture} depthTexture - A depth texture.
-		 * @param {Number} [depthPacking=0] - The depth packing.
-		 */
-
-		setDepthTexture(depthTexture, depthPacking = 0) {
-
-			const material = this.depthMaskPass.getFullscreenMaterial();
-
-			material.uniforms.depthBuffer0.value = depthTexture;
-			material.uniforms.depthBuffer1.value = this.renderTargetLight.depthTexture;
+			const blurPass = this.blurPass;
+			blurPass.setResolutionScale(scale);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -55737,66 +55685,18 @@ var Spacekit = (function (exports) {
 
 		update(renderer, inputBuffer, deltaTime) {
 
-			const lightSource = this.lightSource;
-			const parent = lightSource.parent;
-			const matrixAutoUpdate = lightSource.matrixAutoUpdate;
+			const renderTarget = this.renderTarget;
 
-			const renderTargetX = this.renderTargetX;
-			const renderTargetLight = this.renderTargetLight;
+			if(this.luminancePass.enabled) {
 
-			if(!matrixAutoUpdate) {
+				this.luminancePass.render(renderer, inputBuffer, renderTarget);
+				this.blurPass.render(renderer, renderTarget, renderTarget);
 
-				// Remember the local transformation to restore it later.
-				m.copy(lightSource.matrix);
+			} else {
 
-			}
-
-			// Enable depth write for the light scene render pass.
-			lightSource.material.depthWrite = true;
-
-			// The light source may be inside a group; apply all transformations.
-			lightSource.matrixAutoUpdate = false;
-			lightSource.updateWorldMatrix(true, false);
-			lightSource.matrix.copy(lightSource.matrixWorld);
-
-			// Render the light source and mask it based on depth.
-			this.lightScene.add(lightSource);
-			this.renderPassLight.render(renderer, renderTargetLight);
-			this.clearPass.render(renderer, renderTargetX);
-			this.depthMaskPass.render(renderer, renderTargetLight, renderTargetX);
-
-			// Restore the original values.
-			lightSource.material.depthWrite = false;
-			lightSource.matrixAutoUpdate = matrixAutoUpdate;
-
-			if(!matrixAutoUpdate) {
-
-				lightSource.matrix.copy(m);
+				this.blurPass.render(renderer, inputBuffer, renderTarget);
 
 			}
-
-			if(parent !== null) {
-
-				parent.add(lightSource);
-
-			}
-
-			// Calculate the screen light position and translate it to [0.0, 1.0].
-			v.setFromMatrixPosition(lightSource.matrixWorld).project(this.camera);
-			this.screenPosition.set(
-				Math.max(0.0, Math.min(1.0, (v.x + 1.0) * 0.5)),
-				Math.max(0.0, Math.min(1.0, (v.y + 1.0) * 0.5)),
-			);
-
-			if(this.blur) {
-
-				// Blur the masked scene to reduce artifacts.
-				this.blurPass.render(renderer, renderTargetX, renderTargetX);
-
-			}
-
-			// Blur the masked scene along radial lines towards the light source.
-			this.godRaysPass.render(renderer, renderTargetX, this.renderTargetY);
 
 		}
 
@@ -55809,18 +55709,9 @@ var Spacekit = (function (exports) {
 
 		setSize(width, height) {
 
-			this.blurPass.setSize(width, height);
-
-			this.renderPassLight.setSize(width, height);
-			this.depthMaskPass.setSize(width, height);
-			this.godRaysPass.setSize(width, height);
-
-			width = this.blurPass.width;
-			height = this.blurPass.height;
-
-			this.renderTargetX.setSize(width, height);
-			this.renderTargetY.setSize(width, height);
-			this.renderTargetLight.setSize(width, height);
+			const blurPass = this.blurPass;
+			blurPass.setSize(width, height);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -55834,21 +55725,25 @@ var Spacekit = (function (exports) {
 		initialize(renderer, alpha) {
 
 			this.blurPass.initialize(renderer, alpha);
-			this.renderPassLight.initialize(renderer, alpha);
-			this.depthMaskPass.initialize(renderer, alpha);
-			this.godRaysPass.initialize(renderer, alpha);
 
 			if(!alpha) {
 
-				this.renderTargetX.texture.format = RGBFormat;
-				this.renderTargetY.texture.format = RGBFormat;
-				this.renderTargetLight.texture.format = RGBFormat;
+				this.renderTarget.texture.format = RGBFormat;
 
 			}
 
 		}
 
 	}
+
+	/**
+	 * A matrix.
+	 *
+	 * @type {Matrix4}
+	 * @private
+	 */
+
+	const m = new Matrix4();
 
 	/**
 	 * Half PI.
@@ -58311,6 +58206,7 @@ var Spacekit = (function (exports) {
 	    if (this._options.textureUrl) {
 	      map = new TextureLoader().load(this._options.textureUrl);
 	      map.minFilter = LinearFilter;
+	      map.anisotropy = 16;
 	    }
 
 	    // TODO(ian): Clouds and rings
@@ -58355,20 +58251,22 @@ var Spacekit = (function (exports) {
 	      this._obj.add(this.renderFullAtmosphere());
 	    }
 
+	    /*
 	    this._obj.add(this.renderRings('D', 66900, 74510, 0x242424));
 	    this._obj.add(this.renderRings('C', 74658, 92000, 0x5f5651));
 	    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
 	    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
+	    */
 
+	    /*
 	    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
 	    this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
 	    this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
-	    this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
-
-	    /*
-	    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
-	    this._obj.add(allRings);
 	    */
+	    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
+
+	    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
+	    this._obj.add(allRings);
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
@@ -58459,6 +58357,16 @@ var Spacekit = (function (exports) {
 	   * @param {Number} segments Number of segments in ring
 	   */
 	  generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+	    /*
+	    const geometry = new THREE.RingBufferGeometry(innerRadiusSize, outerRadiusSize, segments);
+	    var pos = geometry.attributes.position;
+	    var v3 = new THREE.Vector3();
+	    for (let i = 0; i < pos.count; i++){
+	      v3.fromBufferAttribute(pos, i);
+	      geometry.attributes.uv.setXY(i, v3.length() < 4 ? 0 : 1, 1);
+	    }
+	    return geometry;
+	    */
 	    return new RingGeometry(
 	      innerRadiusSize,
 	      outerRadiusSize,
@@ -58467,28 +58375,6 @@ var Spacekit = (function (exports) {
 	      0,
 	      Math.PI * 2,
 	    );
-	    /*
-	    const geometry = new THREE.RingBufferGeometry(
-	      innerRadiusSize,
-	      outerRadiusSize,
-	      segments,
-	    );
-
-	    const uvs = geometry.attributes.uv.array;
-	    // Loop and initialization taken from RingBufferGeometry
-	    let phiSegments = geometry.parameters.phiSegments || 0;
-	    let thetaSegments = geometry.parameters.thetaSegments || 0;
-	    phiSegments = phiSegments !== undefined ? Math.max(1, phiSegments) : 1;
-	    thetaSegments =
-	      thetaSegments !== undefined ? Math.max(3, thetaSegments) : 8;
-	    for (let c = 0, j = 0; j <= phiSegments; j++) {
-	      for (let i = 0; i <= thetaSegments; i++) {
-	        (uvs[c++] = i / thetaSegments), (uvs[c++] = j / phiSegments);
-	      }
-	    }
-
-	    return geometry;
-	    */
 	  }
 
 	  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
@@ -58509,28 +58395,68 @@ var Spacekit = (function (exports) {
 	      outerRadiusSize,
 	      segments,
 	    );
-	    const map = ImageUtils.loadTexture('./saturn_rings.png');
+	    //const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
+	    const map = ImageUtils.loadTexture('./saturn_rings_top.png');
+	    map.anisotropy = 16;
 
 	    // TODO(ian): Yes this is above 255 but I want more bright particles than not...
 	    //const noiseTexture = generateNoise(1.0, 500, 1024);
 
 	    const material = this._simulation.isUsingLightSources()
-	      ? new MeshPhongMaterial({
-	          //map
-	          color: new Color(color),
-	          //lightMap: noiseTexture,
-	          //emissive: new THREE.Color(0xbbbbbb),
-	          //emissiveMap: noiseTexture,
-	          side: DoubleSide,
-	          shadowSide: DoubleSide,
+	      ? /*
+	      ? new THREE.MeshLambertMaterial({
+	          map,
+	          //color: new THREE.Color(color),
+	          side: THREE.DoubleSide,
+	          shadowSide: THREE.DoubleSide,
 
 	          transparent: true,
-	          opacity: 1,
-	          alphaMap: noiseTexture,
-	          alphaTest: 0.5,
-	          bumpMap: noiseTexture,
+	          opacity: 0.9,
+	          //alphaMap: noiseTexture,
+	          alphaTest: 0.1,
+	          //bumpMap: noiseTexture,
 
 	          reflectivity: 0.5,
+	        })
+	        */
+	        new ShaderMaterial({
+	          uniforms: {
+	            texture: { value: map },
+	            innerRadius: { value: innerRadiusSize },
+	            outerRadius: { value: outerRadiusSize },
+	          },
+	          vertexShader: `
+            varying vec3 vPos;
+
+            void main() {
+              vPos = position;
+              vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+              gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+            }
+          `,
+	          fragmentShader: `
+            uniform sampler2D texture;
+            uniform float innerRadius;
+            uniform float outerRadius;
+
+            varying vec3 vPos;
+
+            vec4 color() {
+              vec2 uv = vec2(0);
+              uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
+              if (uv.x < 0.0 || uv.x > 1.0) {
+                discard;
+              }
+
+              vec4 pixel = texture2D(texture, uv);
+              return pixel;
+            }
+
+            void main() {
+              gl_FragColor = color();
+            }
+          `,
+	          transparent: true,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
@@ -58618,7 +58544,6 @@ var Spacekit = (function (exports) {
 	        color,
 	        transparent: true,
 	        side: THREE.DoubleSide,
-	        depthWrite: false,
 	      }),
 	      */
 	      new ShaderMaterial({
@@ -59027,51 +58952,46 @@ var Spacekit = (function (exports) {
 
 	    const camera = this._camera.get3jsCamera();
 
-	    const sunGeometry = new SphereBufferGeometry(
+	    /*
+	    const sunGeometry = new THREE.SphereBufferGeometry(
 	      rescaleNumber(0.004),
 	      16,
 	      16,
 	    );
-	    const sunMaterial = new MeshBasicMaterial({
+	    const sunMaterial = new THREE.MeshBasicMaterial({
 	      color: 0xffddaa,
 	      transparent: true,
 	      depthWrite: false,
 	      fog: false,
 	    });
-	    const sun = new Mesh(sunGeometry, sunMaterial);
+	    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 	    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
 	    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
 	    sun.updateMatrix();
 	    sun.updateMatrixWorld();
-	    console.log('wtf', sun.position);
 
 	    const godRaysEffect = new GodRaysEffect(camera, sun, {
-	      /*
-	      height: rescaleNumber(0.1),
-	      kernelSize: KernelSize.SMALL,
-	      density: 0.96,
-	      decay: 0.92,
-	      weight: 0.3,
-	      exposure: 0.54,
-	      samples: 60,
-	      clampMax: 1.0
-	      */
-	      /*
-	      resolutionScale: 1,
-	          density: 0.8,
-	          decay: 0.95,
-	          weight: 0.9,
-	          samples: 100
-	          */
 	      color: 0xfff5f2,
 	      blur: false,
 	    });
+	    */
 	    //godRaysEffect.dithering = true;
+
+	    const bloomEffect = new BloomEffect(this._scene, camera, {
+	      width: 240,
+	      height: 240,
+	      luminanceThreshold: 0.2,
+	    });
+	    bloomEffect.inverted = true;
+	    bloomEffect.blendMode.opacity.value = 2.3;
 
 	    const renderPass = new RenderPass(this._scene, camera);
 	    renderPass.renderToScreen = false;
 
-	    const effectPass = new EffectPass(camera, /*smaaEffect,*/ godRaysEffect);
+	    const effectPass = new EffectPass(
+	      camera,
+	      /*smaaEffect, godRaysEffect*/ bloomEffect,
+	    );
 	    effectPass.renderToScreen = true;
 
 	    const composer = new EffectComposer(this._renderer);

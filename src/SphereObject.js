@@ -79,6 +79,7 @@ export class SphereObject extends RotatingObject {
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
       map.minFilter = THREE.LinearFilter;
+      map.anisotropy = 16;
     }
 
     // TODO(ian): Clouds and rings
@@ -123,20 +124,22 @@ export class SphereObject extends RotatingObject {
       this._obj.add(this.renderFullAtmosphere());
     }
 
+    /*
     this._obj.add(this.renderRings('D', 66900, 74510, 0x242424));
     this._obj.add(this.renderRings('C', 74658, 92000, 0x5f5651));
     this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
     this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
+    */
 
+    /*
     this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
     this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
     this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
-    this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
-
-    /*
-    const allRings = this.renderRings('All', 74500, 136780, 0xffffff);
-    this._obj.add(allRings);
     */
+    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
+
+    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
+    this._obj.add(allRings);
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
@@ -227,6 +230,16 @@ export class SphereObject extends RotatingObject {
    * @param {Number} segments Number of segments in ring
    */
   generateRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
+    /*
+    const geometry = new THREE.RingBufferGeometry(innerRadiusSize, outerRadiusSize, segments);
+    var pos = geometry.attributes.position;
+    var v3 = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++){
+      v3.fromBufferAttribute(pos, i);
+      geometry.attributes.uv.setXY(i, v3.length() < 4 ? 0 : 1, 1);
+    }
+    return geometry;
+    */
     return new THREE.RingGeometry(
       innerRadiusSize,
       outerRadiusSize,
@@ -235,28 +248,6 @@ export class SphereObject extends RotatingObject {
       0,
       Math.PI * 2,
     );
-    /*
-    const geometry = new THREE.RingBufferGeometry(
-      innerRadiusSize,
-      outerRadiusSize,
-      segments,
-    );
-
-    const uvs = geometry.attributes.uv.array;
-    // Loop and initialization taken from RingBufferGeometry
-    let phiSegments = geometry.parameters.phiSegments || 0;
-    let thetaSegments = geometry.parameters.thetaSegments || 0;
-    phiSegments = phiSegments !== undefined ? Math.max(1, phiSegments) : 1;
-    thetaSegments =
-      thetaSegments !== undefined ? Math.max(3, thetaSegments) : 8;
-    for (let c = 0, j = 0; j <= phiSegments; j++) {
-      for (let i = 0; i <= thetaSegments; i++) {
-        (uvs[c++] = i / thetaSegments), (uvs[c++] = j / phiSegments);
-      }
-    }
-
-    return geometry;
-    */
   }
 
   renderRings(name, innerRadiusKm, outerRadiusKm, color) {
@@ -277,28 +268,68 @@ export class SphereObject extends RotatingObject {
       outerRadiusSize,
       segments,
     );
-    const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
+    //const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
+    const map = THREE.ImageUtils.loadTexture('./saturn_rings_top.png');
+    map.anisotropy = 16;
 
     // TODO(ian): Yes this is above 255 but I want more bright particles than not...
     //const noiseTexture = generateNoise(1.0, 500, 1024);
 
     const material = this._simulation.isUsingLightSources()
-      ? new THREE.MeshPhongMaterial({
-          //map
-          color: new THREE.Color(color),
-          //lightMap: noiseTexture,
-          //emissive: new THREE.Color(0xbbbbbb),
-          //emissiveMap: noiseTexture,
+      ? /*
+      ? new THREE.MeshLambertMaterial({
+          map,
+          //color: new THREE.Color(color),
           side: THREE.DoubleSide,
           shadowSide: THREE.DoubleSide,
 
           transparent: true,
-          opacity: 1,
-          alphaMap: noiseTexture,
-          alphaTest: 0.5,
-          bumpMap: noiseTexture,
+          opacity: 0.9,
+          //alphaMap: noiseTexture,
+          alphaTest: 0.1,
+          //bumpMap: noiseTexture,
 
           reflectivity: 0.5,
+        })
+        */
+        new THREE.ShaderMaterial({
+          uniforms: {
+            texture: { value: map },
+            innerRadius: { value: innerRadiusSize },
+            outerRadius: { value: outerRadiusSize },
+          },
+          vertexShader: `
+            varying vec3 vPos;
+
+            void main() {
+              vPos = position;
+              vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+              gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+            }
+          `,
+          fragmentShader: `
+            uniform sampler2D texture;
+            uniform float innerRadius;
+            uniform float outerRadius;
+
+            varying vec3 vPos;
+
+            vec4 color() {
+              vec2 uv = vec2(0);
+              uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
+              if (uv.x < 0.0 || uv.x > 1.0) {
+                discard;
+              }
+
+              vec4 pixel = texture2D(texture, uv);
+              return pixel;
+            }
+
+            void main() {
+              gl_FragColor = color();
+            }
+          `,
+          transparent: true,
         })
       : new THREE.MeshBasicMaterial({
           map,
@@ -387,7 +418,6 @@ export class SphereObject extends RotatingObject {
         color,
         transparent: true,
         side: THREE.DoubleSide,
-        depthWrite: false,
       }),
       */
       new THREE.ShaderMaterial({

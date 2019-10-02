@@ -56193,11 +56193,16 @@ var Spacekit = (function (exports) {
 
 	const RING_SHADER_VERTEX = `
   varying vec3 vPos;
+	varying vec3 vWorldPosition;
+  varying vec3 vNormal;
 
   void main() {
     vPos = position;
-    vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-    gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+    vec3 worldPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+    gl_Position = projectionMatrix * vec4(worldPosition, 1.);
+
+    vNormal = normalMatrix * normal;
+    vWorldPosition = worldPosition;
   }
 `;
 
@@ -56205,8 +56210,11 @@ var Spacekit = (function (exports) {
   uniform sampler2D texture;
   uniform float innerRadius;
   uniform float outerRadius;
+  uniform vec3 lightPosition;
 
+  varying vec3 vNormal;
   varying vec3 vPos;
+  varying vec3 vWorldPosition;
 
   vec4 color() {
     vec2 uv = vec2(0);
@@ -56219,8 +56227,14 @@ var Spacekit = (function (exports) {
     return pixel;
   }
 
+  vec4 lights() {
+    vec3 lightDirection = normalize(lightPosition - vWorldPosition);
+    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+    return vec4(c, c, c, 1.0);
+  }
+
   void main() {
-    gl_FragColor = color();
+    gl_FragColor = color() * lights();
   }
 `;
 
@@ -58462,6 +58476,7 @@ var Spacekit = (function (exports) {
 	            texture: { value: map },
 	            innerRadius: { value: innerRadiusSize },
 	            outerRadius: { value: outerRadiusSize },
+	            lightPosition: { value: new Vector3(500, 500, 12.5) },
 	          },
 	          vertexShader: RING_SHADER_VERTEX,
 	          fragmentShader: RING_SHADER_FRAGMENT,

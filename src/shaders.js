@@ -392,11 +392,16 @@ export const RING_GLOW_SHADER_FRAGMENT = `
 
 export const RING_SHADER_VERTEX = `
   varying vec3 vPos;
+	varying vec3 vWorldPosition;
+  varying vec3 vNormal;
 
   void main() {
     vPos = position;
-    vec3 viewPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-    gl_Position = projectionMatrix * vec4(viewPosition, 1.);
+    vec3 worldPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
+    gl_Position = projectionMatrix * vec4(worldPosition, 1.);
+
+    vNormal = normalMatrix * normal;
+    vWorldPosition = worldPosition;
   }
 `;
 
@@ -404,8 +409,11 @@ export const RING_SHADER_FRAGMENT = `
   uniform sampler2D texture;
   uniform float innerRadius;
   uniform float outerRadius;
+  uniform vec3 lightPosition;
 
+  varying vec3 vNormal;
   varying vec3 vPos;
+  varying vec3 vWorldPosition;
 
   vec4 color() {
     vec2 uv = vec2(0);
@@ -418,7 +426,13 @@ export const RING_SHADER_FRAGMENT = `
     return pixel;
   }
 
+  vec4 lights() {
+    vec3 lightDirection = normalize(lightPosition - vWorldPosition);
+    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+    return vec4(c, c, c, 1.0);
+  }
+
   void main() {
-    gl_FragColor = color();
+    gl_FragColor = color() * lights();
   }
 `;

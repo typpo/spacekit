@@ -305,6 +305,7 @@ export class SphereObject extends RotatingObject {
             texture: { value: map },
             innerRadius: { value: innerRadiusSize },
             outerRadius: { value: outerRadiusSize },
+            lightPosition: { value: new THREE.Vector3(500, 500, 12.5) },
           },
           vertexShader: RING_SHADER_VERTEX,
           fragmentShader: RING_SHADER_FRAGMENT,

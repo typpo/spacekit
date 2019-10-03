@@ -56196,18 +56196,31 @@ var Spacekit = (function (exports) {
 	varying vec3 vWorldPosition;
   varying vec3 vNormal;
 
+  ${ShaderChunk['shadowmap_pars_vertex']}
+
   void main() {
     vPos = position;
-    vec3 worldPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-    gl_Position = projectionMatrix * vec4(worldPosition, 1.);
+    vec4 worldPosition = (modelMatrix * vec4(position, 1.));
+    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);
 
     vNormal = normalMatrix * normal;
-    vWorldPosition = worldPosition;
+    vWorldPosition = worldPosition.xyz;
+
+    ${ShaderChunk['shadowmap_vertex']}
   }
 `;
 
+	/*
+	621: 	SpotLight spotLight;
+	622:
+	623: 		spotLight = spotLights[ 0 ];
+	624: 		shadow *= bool( spotLight.shadow ) ? getShadow( spotShadowMap[ 0 ], spotLight.shadowMapSize, spotLight.shadowBias, spotLight.shadowRadius, vSpotShadowCoord[ 0 ] ) : 1.0;
+	625:
+	626: 	#endif
+	 */
+
 	const RING_SHADER_FRAGMENT = `
-  uniform sampler2D texture;
+  uniform sampler2D ringTexture;
   uniform float innerRadius;
   uniform float outerRadius;
   uniform vec3 lightPosition;
@@ -56216,6 +56229,13 @@ var Spacekit = (function (exports) {
   varying vec3 vPos;
   varying vec3 vWorldPosition;
 
+  ${ShaderChunk['common']}
+  ${ShaderChunk['packing']}
+  ${ShaderChunk['bsdfs']}
+  ${ShaderChunk['lights_pars_begin']}
+  ${ShaderChunk['shadowmap_pars_fragment']}
+  ${ShaderChunk['shadowmask_pars_fragment']}
+
   vec4 color() {
     vec2 uv = vec2(0);
     uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
@@ -56223,14 +56243,18 @@ var Spacekit = (function (exports) {
       discard;
     }
 
-    vec4 pixel = texture2D(texture, uv);
+    vec4 pixel = texture2D(ringTexture, uv);
     return pixel;
   }
 
   vec4 lights() {
     vec3 lightDirection = normalize(lightPosition - vWorldPosition);
+
     float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
-    return vec4(c, c, c, 1.0);
+
+    float shadowMask = getShadowMask();
+    vec3 outgoingLight = vec3(c, c, c) * shadowMask;
+    return vec4(outgoingLight, 1.0);
   }
 
   void main() {
@@ -58447,12 +58471,29 @@ var Spacekit = (function (exports) {
 	      outerRadiusSize,
 	      segments,
 	    );
-	    //const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
-	    const map = ImageUtils.loadTexture('./saturn_rings_top.png');
+	    //const map = new THREE.TextureLoader().load('./saturn_rings.png');
+	    const map = new TextureLoader().load('./saturn_rings_top.png');
+	    //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
 	    map.anisotropy = 16;
 
 	    // TODO(ian): Yes this is above 255 but I want more bright particles than not...
 	    //const noiseTexture = generateNoise(1.0, 500, 1024);
+
+	    // TODO(ian): Follow recommendation for defining ShaderMaterials here:
+	    // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
+	    const uniforms = UniformsUtils.merge([
+	      UniformsLib.ambient,
+	      UniformsLib.lights,
+	      UniformsLib.shadowmap,
+	      {
+	        ringTexture: { value: null },
+	        innerRadius: { value: innerRadiusSize },
+	        outerRadius: { value: outerRadiusSize },
+	        lightPosition: { value: null },
+	      },
+	    ]);
+	    uniforms.ringTexture.value = map;
+	    uniforms.lightPosition.value = new Vector3(500, 500, 12.5);
 
 	    const material = this._simulation.isUsingLightSources()
 	      ? /*
@@ -58472,29 +58513,33 @@ var Spacekit = (function (exports) {
 	        })
 	        */
 	        new ShaderMaterial({
-	          uniforms: {
-	            texture: { value: map },
-	            innerRadius: { value: innerRadiusSize },
-	            outerRadius: { value: outerRadiusSize },
-	            lightPosition: { value: new Vector3(500, 500, 12.5) },
-	          },
+	          uniforms,
+	          lights: true,
 	          vertexShader: RING_SHADER_VERTEX,
 	          fragmentShader: RING_SHADER_FRAGMENT,
 	          transparent: true,
-	          depthTest: true,
-	          depthWrite: true,
 	          side: DoubleSide,
 	        })
 	      : new MeshBasicMaterial({
 	          map,
 	          side: DoubleSide,
 	          transparent: true,
+	          alphaTest: 0.1,
 	          opacity: 0.8,
 	        });
 
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
+
+	    // https://stackoverflow.com/questions/43848330/three-js-shadows-cast-by-partially-transparent-mesh
+	    var customDepthMaterial = new MeshDepthMaterial({
+	      depthPacking: RGBADepthPacking,
+	      map, // or, alphaMap: myAlphaMap
+	      alphaTest: 0.5,
+	    });
+
+	    mesh.customDepthMaterial = customDepthMaterial;
 	    return mesh;
 	  }
 
@@ -59234,7 +59279,7 @@ var Spacekit = (function (exports) {
 	    pointLight.shadow.camera.top = rescaleNumber(0.005);
 	    pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
 	    */
-	    pointLight.shadow.bias = 0; //0.0001 * -10;
+	    pointLight.shadow.bias = 0.0001 * -16;
 	    window.shadow = pointLight.shadow;
 
 	    //const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);

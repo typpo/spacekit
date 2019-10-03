@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { getScaleFactor } from './Scale';
 
 /**
@@ -395,18 +397,31 @@ export const RING_SHADER_VERTEX = `
 	varying vec3 vWorldPosition;
   varying vec3 vNormal;
 
+  ${THREE.ShaderChunk['shadowmap_pars_vertex']}
+
   void main() {
     vPos = position;
-    vec3 worldPosition = (modelViewMatrix * vec4(position, 1.)).xyz;
-    gl_Position = projectionMatrix * vec4(worldPosition, 1.);
+    vec4 worldPosition = (modelMatrix * vec4(position, 1.));
+    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);
 
     vNormal = normalMatrix * normal;
-    vWorldPosition = worldPosition;
+    vWorldPosition = worldPosition.xyz;
+
+    ${THREE.ShaderChunk['shadowmap_vertex']}
   }
 `;
 
+/*
+621: 	SpotLight spotLight;
+622:
+623: 		spotLight = spotLights[ 0 ];
+624: 		shadow *= bool( spotLight.shadow ) ? getShadow( spotShadowMap[ 0 ], spotLight.shadowMapSize, spotLight.shadowBias, spotLight.shadowRadius, vSpotShadowCoord[ 0 ] ) : 1.0;
+625:
+626: 	#endif
+ */
+
 export const RING_SHADER_FRAGMENT = `
-  uniform sampler2D texture;
+  uniform sampler2D ringTexture;
   uniform float innerRadius;
   uniform float outerRadius;
   uniform vec3 lightPosition;
@@ -415,6 +430,13 @@ export const RING_SHADER_FRAGMENT = `
   varying vec3 vPos;
   varying vec3 vWorldPosition;
 
+  ${THREE.ShaderChunk['common']}
+  ${THREE.ShaderChunk['packing']}
+  ${THREE.ShaderChunk['bsdfs']}
+  ${THREE.ShaderChunk['lights_pars_begin']}
+  ${THREE.ShaderChunk['shadowmap_pars_fragment']}
+  ${THREE.ShaderChunk['shadowmask_pars_fragment']}
+
   vec4 color() {
     vec2 uv = vec2(0);
     uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
@@ -422,14 +444,18 @@ export const RING_SHADER_FRAGMENT = `
       discard;
     }
 
-    vec4 pixel = texture2D(texture, uv);
+    vec4 pixel = texture2D(ringTexture, uv);
     return pixel;
   }
 
   vec4 lights() {
     vec3 lightDirection = normalize(lightPosition - vWorldPosition);
+
     float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
-    return vec4(c, c, c, 1.0);
+
+    float shadowMask = getShadowMask();
+    vec3 outgoingLight = vec3(c, c, c) * shadowMask;
+    return vec4(outgoingLight, 1.0);
   }
 
   void main() {

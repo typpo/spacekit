@@ -276,12 +276,29 @@ export class SphereObject extends RotatingObject {
       outerRadiusSize,
       segments,
     );
-    //const map = THREE.ImageUtils.loadTexture('./saturn_rings.png');
-    const map = THREE.ImageUtils.loadTexture('./saturn_rings_top.png');
+    //const map = new THREE.TextureLoader().load('./saturn_rings.png');
+    const map = new THREE.TextureLoader().load('./saturn_rings_top.png');
+    //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
     map.anisotropy = 16;
 
     // TODO(ian): Yes this is above 255 but I want more bright particles than not...
     //const noiseTexture = generateNoise(1.0, 500, 1024);
+
+    // TODO(ian): Follow recommendation for defining ShaderMaterials here:
+    // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
+    const uniforms = THREE.UniformsUtils.merge([
+      THREE.UniformsLib.ambient,
+      THREE.UniformsLib.lights,
+      THREE.UniformsLib.shadowmap,
+      {
+        ringTexture: { value: null },
+        innerRadius: { value: innerRadiusSize },
+        outerRadius: { value: outerRadiusSize },
+        lightPosition: { value: null },
+      },
+    ]);
+    uniforms.ringTexture.value = map;
+    uniforms.lightPosition.value = new THREE.Vector3(500, 500, 12.5);
 
     const material = this._simulation.isUsingLightSources()
       ? /*
@@ -301,29 +318,33 @@ export class SphereObject extends RotatingObject {
         })
         */
         new THREE.ShaderMaterial({
-          uniforms: {
-            texture: { value: map },
-            innerRadius: { value: innerRadiusSize },
-            outerRadius: { value: outerRadiusSize },
-            lightPosition: { value: new THREE.Vector3(500, 500, 12.5) },
-          },
+          uniforms,
+          lights: true,
           vertexShader: RING_SHADER_VERTEX,
           fragmentShader: RING_SHADER_FRAGMENT,
           transparent: true,
-          depthTest: true,
-          depthWrite: true,
           side: THREE.DoubleSide,
         })
       : new THREE.MeshBasicMaterial({
           map,
           side: THREE.DoubleSide,
           transparent: true,
+          alphaTest: 0.1,
           opacity: 0.8,
         });
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
+
+    // https://stackoverflow.com/questions/43848330/three-js-shadows-cast-by-partially-transparent-mesh
+    var customDepthMaterial = new THREE.MeshDepthMaterial({
+      depthPacking: THREE.RGBADepthPacking,
+      map, // or, alphaMap: myAlphaMap
+      alphaTest: 0.5,
+    });
+
+    mesh.customDepthMaterial = customDepthMaterial;
     return mesh;
   }
 

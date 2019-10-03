@@ -513,7 +513,7 @@ export class Simulation {
     pointLight.shadow.camera.top = rescaleNumber(0.005);
     pointLight.shadow.camera.bottom = -rescaleNumber(0.005);
     */
-    pointLight.shadow.bias = 0; //0.0001 * -10;
+    pointLight.shadow.bias = 0.0001 * -16;
     window.shadow = pointLight.shadow;
 
     //const cameraHelper = new THREE.CameraHelper(pointLight.shadow.camera);

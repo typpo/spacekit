@@ -77,7 +77,7 @@ const guiState = {
       viz.setDate(new Date(input));
     }
   },
-  'Shadow Bias': 0,
+  'Shadow Bias': -16,
 };
 const gui = new dat.GUI();
 gui.add(guiState, 'Speed', 0, 20).onChange(val => {
@@ -144,7 +144,7 @@ gui.add(guiState, 'Hide labels').onChange(() => {
 });
 gui.add(guiState, 'Set Date');
 
-gui.add(guiState, 'Shadow Bias', -10, 10, 0.5).onChange(val => {
+gui.add(guiState, 'Shadow Bias', -20, 20, 0.5).onChange(val => {
   window.shadow.bias = val * 0.0001;
 });
 

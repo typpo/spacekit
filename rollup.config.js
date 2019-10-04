@@ -1,5 +1,7 @@
 import commonjs from 'rollup-plugin-commonjs';
+import livereload from 'rollup-plugin-livereload';
 import resolve from 'rollup-plugin-node-resolve';
+import serve from 'rollup-plugin-serve';
 
 export default {
   input: 'src/spacekit.js',
@@ -10,5 +12,10 @@ export default {
       file: 'build/spacekit.js',
     },
   ],
-  plugins: [resolve(), commonjs()],
+  plugins: [
+    resolve(),
+    commonjs(),
+    livereload(),
+    serve({ port: 8001, contentBase: ['.'] }),
+  ],
 };

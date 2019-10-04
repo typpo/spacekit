@@ -238,16 +238,23 @@ export class SphereObject extends RotatingObject {
    * @param {Number} segments Number of segments in ring
    */
   getRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
-    /*
-    const geometry = new THREE.RingBufferGeometry(innerRadiusSize, outerRadiusSize, segments);
-    var pos = geometry.attributes.position;
-    var v3 = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i++){
+    const geometry = new THREE.RingBufferGeometry(
+      innerRadiusSize,
+      outerRadiusSize,
+      segments,
+    );
+    const pos = geometry.attributes.position;
+    const v3 = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
       v3.fromBufferAttribute(pos, i);
-      geometry.attributes.uv.setXY(i, v3.length() < 4 ? 0 : 1, 1);
+      geometry.attributes.uv.setXY(
+        i,
+        v3.length() < (innerRadiusSize + outerRadiusSize) / 2 ? 0 : 1,
+        1,
+      );
     }
     return geometry;
-    */
+    /*
     return new THREE.RingGeometry(
       innerRadiusSize,
       outerRadiusSize,
@@ -256,17 +263,12 @@ export class SphereObject extends RotatingObject {
       0,
       Math.PI * 2,
     );
+    */
   }
 
   renderRings(name, innerRadiusKm, outerRadiusKm, color) {
     const radius = this.getScaledRadius();
     const segments = 128;
-
-    //const geometry = new THREE.RingGeometry(1.2 * radius, 2 * radius, segments, 5, 0, Math.PI * 2);
-    //const geometry = new THREE.RingGeometry(2 * radius, 4 * radius, segments, 5, 0, Math.PI * 2);
-
-    //const geometry = new THREE.BoxGeometry(4 * radius, 4 * radius, 0.001);
-    //const geometry = new THREE.BoxGeometry(radius/2, radius/2, radius/2);
 
     const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
     const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
@@ -276,16 +278,13 @@ export class SphereObject extends RotatingObject {
       outerRadiusSize,
       segments,
     );
-    //const map = new THREE.TextureLoader().load('./saturn_rings.png');
     const map = new THREE.TextureLoader().load('./saturn_rings_top.png');
     //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
     map.anisotropy = 16;
 
-    // TODO(ian): Yes this is above 255 but I want more bright particles than not...
-    //const noiseTexture = generateNoise(1.0, 500, 1024);
-
     // TODO(ian): Follow recommendation for defining ShaderMaterials here:
     // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
+    /*
     const uniforms = THREE.UniformsUtils.merge([
       THREE.UniformsLib.ambient,
       THREE.UniformsLib.lights,
@@ -299,33 +298,26 @@ export class SphereObject extends RotatingObject {
     ]);
     uniforms.ringTexture.value = map;
     uniforms.lightPosition.value = new THREE.Vector3(500, 500, 12.5);
+    */
 
     const material = this._simulation.isUsingLightSources()
-      ? /*
       ? new THREE.MeshLambertMaterial({
           map,
-          //color: new THREE.Color(color),
           side: THREE.DoubleSide,
-          shadowSide: THREE.DoubleSide,
-
           transparent: true,
-          opacity: 0.9,
-          //alphaMap: noiseTexture,
-          alphaTest: 0.1,
-          //bumpMap: noiseTexture,
-
-          reflectivity: 0.5,
         })
-        */
-        new THREE.ShaderMaterial({
+      : /*
+        ? new THREE.ShaderMaterial({
           uniforms,
           lights: true,
           vertexShader: RING_SHADER_VERTEX,
           fragmentShader: RING_SHADER_FRAGMENT,
           transparent: true,
+          alphaTest: 0.1,
           side: THREE.DoubleSide,
         })
-      : new THREE.MeshBasicMaterial({
+        */
+        new THREE.MeshBasicMaterial({
           map,
           side: THREE.DoubleSide,
           transparent: true,
@@ -337,14 +329,15 @@ export class SphereObject extends RotatingObject {
     mesh.receiveShadow = true;
     mesh.castShadow = true;
 
-    // https://stackoverflow.com/questions/43848330/three-js-shadows-cast-by-partially-transparent-mesh
-    var customDepthMaterial = new THREE.MeshDepthMaterial({
+    const alphaMap = new THREE.TextureLoader().load('./saturn_rings_alpha.png');
+    const customDepthMaterial = new THREE.MeshDepthMaterial({
       depthPacking: THREE.RGBADepthPacking,
       map, // or, alphaMap: myAlphaMap
-      alphaTest: 0.5,
+      alphaMap,
+      alphaTest: 0.1,
     });
-
     mesh.customDepthMaterial = customDepthMaterial;
+
     return mesh;
   }
 

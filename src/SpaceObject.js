@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
-import { rescaleArray } from './Scale';
+import { rescaleArray, rescaleNumber } from './Scale';
 
 /**
  * @private
@@ -103,7 +103,7 @@ export class SpaceObject {
     this._showLabel = false;
     this._lastLabelUpdate = 0;
 
-    this._position = this._options.position || [0, 0, 0];
+    this._position = rescaleArray(this._options.position || [0, 0, 0]);
     this._orbitAround = undefined;
     this._scale = this._options.scale || [1, 1, 1];
 
@@ -278,19 +278,6 @@ export class SpaceObject {
     }
 
     return sprite;
-
-    /*
-    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
-    light.position.set.apply(this, this._position);
-
-    const lensflare = new THREE.Lensflare();
-    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new
-                                                    THREE.Color(0xffffff),
-                                                    THREE.AdditiveBlending));
-
-    light.add(lensflare);
-    return light;
-   */
   }
 
   /**
@@ -350,9 +337,9 @@ export class SpaceObject {
    * @param {Number} z Z position
    */
   setPosition(x, y, z) {
-    this._position[0] = x;
-    this._position[1] = y;
-    this._position[2] = z;
+    this._position[0] = rescaleNumber(x);
+    this._position[1] = rescaleNumber(y);
+    this._position[2] = rescaleNumber(z);
   }
 
   /**

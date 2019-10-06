@@ -19,7 +19,7 @@ viz.createLight([0.025, 0.025, 0.005]);
 viz.createObject(
   'sun',
   Object.assign(Spacekit.SpaceObjectPresets.SUN, {
-    position: [500, 500, 12.5],
+    position: [5, 5, 0.125],
   }),
 );
 

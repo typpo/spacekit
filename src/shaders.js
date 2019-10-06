@@ -257,10 +257,9 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
 #endif
 #if NUM_DIR_LIGHTS > 0
     for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * directionalLights[i].color
-                           * 1.0 /* intensity */;
+      addedLights.rgb += clamp(dot(directionalLights[i].direction, vecNormal), 0.0, 1.0)
+                         * directionalLights[i].color
+                         * 1.0;
     }
 #endif
 #if NUM_SPOT_LIGHTS > 0
@@ -307,68 +306,19 @@ export const RING_GLOW_SHADER_FRAGMENT = `
   varying vec3 vecPos;
   varying vec3 vecNormal;
 
-#if NUM_POINT_LIGHTS > 0
-  struct PointLight {
-    vec3 position;
-    vec3 color;
-    float distance;
-    float decay;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-    float shadowCameraNear;
-    float shadowCameraFar;
-  };
-
-  uniform PointLight pointLights[NUM_POINT_LIGHTS];
-#endif
-#if NUM_DIR_LIGHTS > 0
-  struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-
-    float distance;  // ?
-  };
-
-  uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
-#endif
-#if NUM_SPOT_LIGHTS > 0
-  struct SpotLight {
-    vec3 position;
-    vec3 direction;
-    vec3 color;
-    float distance;
-    float decay;
-    float coneCos;
-    float penumbraCos;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-  };
-
-  uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
-#endif
+  ${THREE.ShaderChunk['lights_pars_begin']}
 
   void main() {
-    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
-    //gl_FragColor = vec4(color, 1.0) * intensity;
-
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
 
-    // Pretty basic lambertian lighting...
+    // Lambertian lighting from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
 #if NUM_POINT_LIGHTS > 0
     for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
         vec3 lightDirection = normalize(vecPos - pointLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * pointLights[i].color
-                           * 1.0 /* intensity */;
+                           * 0.6 /* intensity */;
     }
 #endif
 #if NUM_DIR_LIGHTS > 0
@@ -376,7 +326,7 @@ export const RING_GLOW_SHADER_FRAGMENT = `
         vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
         addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
                            * directionalLights[i].color
-                           * 1.0 /* intensity */;
+                           * 0.6 /* intensity */;
     }
 #endif
 #if NUM_SPOT_LIGHTS > 0

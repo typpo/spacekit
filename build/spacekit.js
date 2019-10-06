@@ -56073,73 +56073,6 @@ var Spacekit = (function (exports) {
   }
 `;
 
-	const RING_GLOW_SHADER_VERTEX = `
-  varying vec2 vUv;
-  varying vec3 vecPos;
-  varying vec3 vecNormal;
-  //varying vec3 vNormal;
-
-  void main() {
-    //vNormal = normalize(normalMatrix * normal);
-    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
-    vUv = uv;
-    // Since the light is in camera coordinates,
-    // I'll need the vertex position in camera coords too
-    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
-    // That's NOT exacly how you should transform your
-    // normals but this will work fine, since my model
-    // matrix is pretty basic
-    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
-    gl_Position = projectionMatrix * vec4(vecPos, 1.0);
-  }
-`;
-
-	const RING_GLOW_SHADER_FRAGMENT = `
-  uniform float c;
-  uniform float p;
-  uniform vec3 color;
-
-  varying vec2 vUv;
-  varying vec3 vecPos;
-  varying vec3 vecNormal;
-
-  ${ShaderChunk['lights_pars_begin']}
-
-  void main() {
-    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
-
-    // Lambertian lighting from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material
-    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-#if NUM_POINT_LIGHTS > 0
-    for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - pointLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * pointLights[i].color
-                           * 0.6 /* intensity */;
-    }
-#endif
-#if NUM_DIR_LIGHTS > 0
-    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - directionalLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * directionalLights[i].color
-                           * 0.6 /* intensity */;
-    }
-#endif
-#if NUM_SPOT_LIGHTS > 0
-    for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - spotLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * spotLights[i].color
-                           * 0.6 /* intensity */;
-    }
-#endif
-
-    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
-  }
-`;
-
 	const RING_SHADER_VERTEX = `
   varying vec3 vPos;
   varying vec3 vWorldPosition;
@@ -58219,8 +58152,6 @@ var Spacekit = (function (exports) {
 	      map = new TextureLoader().load(this._options.textureUrl);
 	    }
 
-	    // TODO(ian): Clouds and rings
-
 	    const detailedObj = new LOD();
 	    const levelsOfDetail = this._options.levelsOfDetail || [
 	      { radii: 0, segments: 64 },
@@ -58264,22 +58195,8 @@ var Spacekit = (function (exports) {
 	      this._obj.add(this.renderFullAtmosphere());
 	    }
 
-	    /*
-	    this._obj.add(this.renderRings('D', 66900, 74510, 0x242424));
-	    this._obj.add(this.renderRings('C', 74658, 92000, 0x5f5651));
-	    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
-	    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
-	    */
-
-	    /*
-	    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
-	    this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
-	    this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
-	    */
-
 	    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
 	    this._obj.add(allRings);
-	    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
@@ -58469,104 +58386,6 @@ var Spacekit = (function (exports) {
 	    mesh.customDepthMaterial = customDepthMaterial;
 
 	    return mesh;
-	  }
-
-	  renderRingGlow(innerRadiusKm, outerRadiusKm, color) {
-	    const segments = 128;
-	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
-
-	    // Now set up the rings glow...
-	    /*
-	    const baseRingGeometry = this.getRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
-	    const glowGeometry = new THREE.ExtrudeGeometry(baseRingGeometry, {
-	      amount: 2,
-	      steps: 1,
-	      bevelEnabled: true,
-	      curveSegments: 8,
-	    });
-	    */
-
-	    const ringGeometry = new RingGeometry(
-	      outerRadiusSize * 0.99,
-	      outerRadiusSize,
-	      segments,
-	      5,
-	      0,
-	      Math.PI * 2,
-	    );
-
-	    const thickness = rescaleNumber(0.000025);
-	    const glowGeometry = new CylinderGeometry(
-	      outerRadiusSize,
-	      outerRadiusSize,
-	      thickness,
-	      segments,
-	    );
-
-	    const coefficient = 1;
-	    const power = 3.0;
-
-	    //const noiseTexture = generateNoise(1.0, 255);
-
-	    /*
-	    const translucentUniforms = THREE.UniformsUtils.clone(
-	      TranslucentShader.uniforms,
-	    );
-	    translucentUniforms['map'] = noiseTexture;
-	    translucentUniforms['diffuse'].value = new THREE.Vector3(1.0, 0.2, 0.2);
-	    translucentUniforms['shininess'].value = 500;
-
-	    translucentUniforms['thicknessMap'].value = noiseTexture;
-	    translucentUniforms['thicknessColor'].value = new THREE.Vector3(
-	      0.5,
-	      0.3,
-	      0.0,
-	    );
-	    translucentUniforms['thicknessDistortion'].value = 0.1;
-	    translucentUniforms['thicknessAmbient'].value = 0.4;
-	    translucentUniforms['thicknessAttenuation'].value = 0.8;
-	    translucentUniforms['thicknessPower'].value = 2.0;
-	    translucentUniforms['thicknessScale'].value = 16.0;
-	    const translucentShader = new THREE.ShaderMaterial({
-	      uniforms: translucentUniforms,
-	      vertexShader: TranslucentShader.vertexShader,
-	      fragmentShader: TranslucentShader.fragmentShader,
-	      lights: true,
-	    });
-	    translucentShader.extensions.derivatives = true;
-	    */
-
-	    const glowMesh = new Mesh(
-	      glowGeometry,
-	      //ringGeometry,
-	      /*
-	      new THREE.MeshStandardMaterial({
-	        color,
-	        transparent: true,
-	        side: THREE.DoubleSide,
-	      }),
-	      */
-	      new ShaderMaterial({
-	        uniforms: UniformsUtils.merge([
-	          UniformsLib.ambient,
-	          UniformsLib.lights,
-	          {
-	            c: { value: coefficient },
-	            p: { value: power },
-	            color: { value: new Color(color) },
-	          },
-	        ]),
-	        vertexShader: RING_GLOW_SHADER_VERTEX,
-	        fragmentShader: RING_GLOW_SHADER_FRAGMENT,
-	        side: BackSide,
-	        lights: true,
-	      }),
-	      //translucentShader,
-	    );
-	    glowMesh.rotation.x = Math.PI / 2;
-	    glowMesh.receiveShadow = true;
-	    glowMesh.position.y -= thickness / 2;
-	    return glowMesh;
 	  }
 
 	  /**

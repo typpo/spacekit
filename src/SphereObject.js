@@ -9,8 +9,6 @@ import {
   ATMOSPHERE_SHADER_FRAGMENT,
   RING_SHADER_VERTEX,
   RING_SHADER_FRAGMENT,
-  RING_GLOW_SHADER_VERTEX,
-  RING_GLOW_SHADER_FRAGMENT,
 } from './shaders';
 
 const noiseTexture = THREE.ImageUtils.loadTexture('./noise.jpg');
@@ -82,8 +80,6 @@ export class SphereObject extends RotatingObject {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
     }
 
-    // TODO(ian): Clouds and rings
-
     const detailedObj = new THREE.LOD();
     const levelsOfDetail = this._options.levelsOfDetail || [
       { radii: 0, segments: 64 },
@@ -127,22 +123,8 @@ export class SphereObject extends RotatingObject {
       this._obj.add(this.renderFullAtmosphere());
     }
 
-    /*
-    this._obj.add(this.renderRings('D', 66900, 74510, 0x242424));
-    this._obj.add(this.renderRings('C', 74658, 92000, 0x5f5651));
-    this._obj.add(this.renderRings('B', 92000, 117580, 0xccb193));
-    this._obj.add(this.renderRings('A', 122170, 136775, 0x9f8d77));
-    */
-
-    /*
-    this._obj.add(this.renderRingGlow(66900, 74510, 0x242424));
-    this._obj.add(this.renderRingGlow(74658, 92000, 0x5f5651));
-    this._obj.add(this.renderRingGlow(92000, 117580, 0xccb193));
-    */
-
     const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
     this._obj.add(allRings);
-    //this._obj.add(this.renderRingGlow(122170, 136775, 0x9f8d77));
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
@@ -332,105 +314,6 @@ export class SphereObject extends RotatingObject {
     mesh.customDepthMaterial = customDepthMaterial;
 
     return mesh;
-  }
-
-  renderRingGlow(innerRadiusKm, outerRadiusKm, color) {
-    const segments = 128;
-    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
-    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
-
-    // Now set up the rings glow...
-    /*
-    const baseRingGeometry = this.getRingGeometry(innerRadiusSize * 0.9, outerRadiusSize * 1.1, segments);
-    const glowGeometry = new THREE.ExtrudeGeometry(baseRingGeometry, {
-      amount: 2,
-      steps: 1,
-      bevelEnabled: true,
-      curveSegments: 8,
-    });
-    */
-
-    const ringGeometry = new THREE.RingGeometry(
-      outerRadiusSize * 0.99,
-      outerRadiusSize,
-      segments,
-      5,
-      0,
-      Math.PI * 2,
-    );
-
-    const thickness = rescaleNumber(0.000025);
-    const glowGeometry = new THREE.CylinderGeometry(
-      outerRadiusSize,
-      outerRadiusSize,
-      thickness,
-      segments,
-    );
-
-    const coefficient = 1;
-    const power = 3.0;
-
-    //const noiseTexture = generateNoise(1.0, 255);
-
-    /*
-    const translucentUniforms = THREE.UniformsUtils.clone(
-      TranslucentShader.uniforms,
-    );
-    translucentUniforms['map'] = noiseTexture;
-    translucentUniforms['diffuse'].value = new THREE.Vector3(1.0, 0.2, 0.2);
-    translucentUniforms['shininess'].value = 500;
-
-    translucentUniforms['thicknessMap'].value = noiseTexture;
-    translucentUniforms['thicknessColor'].value = new THREE.Vector3(
-      0.5,
-      0.3,
-      0.0,
-    );
-    translucentUniforms['thicknessDistortion'].value = 0.1;
-    translucentUniforms['thicknessAmbient'].value = 0.4;
-    translucentUniforms['thicknessAttenuation'].value = 0.8;
-    translucentUniforms['thicknessPower'].value = 2.0;
-    translucentUniforms['thicknessScale'].value = 16.0;
-    const translucentShader = new THREE.ShaderMaterial({
-      uniforms: translucentUniforms,
-      vertexShader: TranslucentShader.vertexShader,
-      fragmentShader: TranslucentShader.fragmentShader,
-      lights: true,
-    });
-    translucentShader.extensions.derivatives = true;
-    */
-
-    const glowMesh = new THREE.Mesh(
-      glowGeometry,
-      //ringGeometry,
-      /*
-      new THREE.MeshStandardMaterial({
-        color,
-        transparent: true,
-        side: THREE.DoubleSide,
-      }),
-      */
-      new THREE.ShaderMaterial({
-        uniforms: THREE.UniformsUtils.merge([
-          THREE.UniformsLib.ambient,
-          THREE.UniformsLib.lights,
-          {
-            c: { value: coefficient },
-            p: { value: power },
-            color: { value: new THREE.Color(color) },
-          },
-        ]),
-        vertexShader: RING_GLOW_SHADER_VERTEX,
-        fragmentShader: RING_GLOW_SHADER_FRAGMENT,
-        side: THREE.BackSide,
-        lights: true,
-      }),
-      //translucentShader,
-    );
-    glowMesh.rotation.x = Math.PI / 2;
-    glowMesh.receiveShadow = true;
-    glowMesh.position.y -= thickness / 2;
-    return glowMesh;
   }
 
   /**

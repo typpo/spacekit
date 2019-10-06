@@ -56041,36 +56041,33 @@ var Spacekit = (function (exports) {
 #endif
 
   void main() {
-    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
-    //gl_FragColor = vec4(color, 1.0) * intensity;
-
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
 
     // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-#if NUM_POINT_LIGHTS > 0
-    for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - pointLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * pointLights[i].color
-                           * 1.0 /* intensity */;
-    }
-#endif
-#if NUM_DIR_LIGHTS > 0
-    for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-      addedLights.rgb += clamp(dot(directionalLights[i].direction, vecNormal), 0.0, 1.0)
-                         * directionalLights[i].color
-                         * 1.0;
-    }
-#endif
-#if NUM_SPOT_LIGHTS > 0
-    for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
-        vec3 lightDirection = normalize(vecPos - spotLights[i].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * spotLights[i].color
-                           * 1.0 /* intensity */;
-    }
-#endif
+    #if NUM_POINT_LIGHTS > 0
+      for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+          vec3 lightDirection = normalize(vecPos - pointLights[i].position);
+          addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                             * pointLights[i].color
+                             * 1.0 /* intensity */;
+      }
+    #endif
+    #if NUM_DIR_LIGHTS > 0
+      for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+        addedLights.rgb += clamp(dot(directionalLights[i].direction, vecNormal), 0.0, 1.0)
+                           * directionalLights[i].color
+                           * 1.0;
+      }
+    #endif
+    #if NUM_SPOT_LIGHTS > 0
+      for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+          vec3 lightDirection = normalize(vecPos - spotLights[i].position);
+          addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                             * spotLights[i].color
+                             * 1.0 /* intensity */;
+      }
+    #endif
 
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
@@ -56166,7 +56163,6 @@ var Spacekit = (function (exports) {
   uniform sampler2D ringTexture;
   uniform float innerRadius;
   uniform float outerRadius;
-  uniform vec3 lightPosition;
 
   varying vec3 vNormal;
   varying vec3 vPos;
@@ -56191,9 +56187,25 @@ var Spacekit = (function (exports) {
   }
 
   vec4 lights() {
-    vec3 lightDirection = normalize(lightPosition - vWorldPosition);
-
-    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+    float c = 0.0;
+    vec3 lightDirection;
+    #if NUM_POINT_LIGHTS > 0
+      for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+        lightDirection = normalize(vWorldPosition - pointLights[i].position);
+        c += 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+      }
+    #endif
+    #if NUM_DIR_LIGHTS > 0
+      for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+        c += 0.35 + max(0.0, dot(vNormal, directionalLights[i].direction)) * 0.4;
+      }
+    #endif
+    #if NUM_SPOT_LIGHTS > 0
+      for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+        lightDirection = normalize(vWorldPosition - spotLights[i].position);
+        c += 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+      }
+    #endif
 
     float shadowMask = getShadowMask();
     vec3 outgoingLight = vec3(c, c, c) * shadowMask;
@@ -58415,11 +58427,9 @@ var Spacekit = (function (exports) {
 	        ringTexture: { value: null },
 	        innerRadius: { value: innerRadiusSize },
 	        outerRadius: { value: outerRadiusSize },
-	        lightPosition: { value: null },
 	      },
 	    ]);
 	    uniforms.ringTexture.value = map;
-	    uniforms.lightPosition.value = new Vector3(500, 500, 12.5);
 
 	    const material = this._simulation.isUsingLightSources()
 	      ? /*new THREE.MeshLambertMaterial({

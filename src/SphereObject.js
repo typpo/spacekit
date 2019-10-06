@@ -290,11 +290,9 @@ export class SphereObject extends RotatingObject {
         ringTexture: { value: null },
         innerRadius: { value: innerRadiusSize },
         outerRadius: { value: outerRadiusSize },
-        lightPosition: { value: null },
       },
     ]);
     uniforms.ringTexture.value = map;
-    uniforms.lightPosition.value = new THREE.Vector3(500, 500, 12.5);
 
     const material = this._simulation.isUsingLightSources()
       ? /*new THREE.MeshLambertMaterial({

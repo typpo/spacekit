@@ -80,7 +80,6 @@ export class SphereObject extends RotatingObject {
     let map;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
-      map.anisotropy = 16;
     }
 
     // TODO(ian): Clouds and rings
@@ -280,11 +279,9 @@ export class SphereObject extends RotatingObject {
     );
     const map = new THREE.TextureLoader().load('./saturn_rings_top.png');
     //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
-    map.anisotropy = 16;
 
     // TODO(ian): Follow recommendation for defining ShaderMaterials here:
     // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
-    /*
     const uniforms = THREE.UniformsUtils.merge([
       THREE.UniformsLib.ambient,
       THREE.UniformsLib.lights,
@@ -298,16 +295,15 @@ export class SphereObject extends RotatingObject {
     ]);
     uniforms.ringTexture.value = map;
     uniforms.lightPosition.value = new THREE.Vector3(500, 500, 12.5);
-    */
 
     const material = this._simulation.isUsingLightSources()
-      ? new THREE.MeshLambertMaterial({
+      ? /*new THREE.MeshLambertMaterial({
           map,
           side: THREE.DoubleSide,
           transparent: true,
         })
-      : /*
-        ? new THREE.ShaderMaterial({
+        */
+        new THREE.ShaderMaterial({
           uniforms,
           lights: true,
           vertexShader: RING_SHADER_VERTEX,
@@ -316,8 +312,7 @@ export class SphereObject extends RotatingObject {
           alphaTest: 0.1,
           side: THREE.DoubleSide,
         })
-        */
-        new THREE.MeshBasicMaterial({
+      : new THREE.MeshBasicMaterial({
           map,
           side: THREE.DoubleSide,
           transparent: true,

@@ -394,7 +394,7 @@ export const RING_GLOW_SHADER_FRAGMENT = `
 
 export const RING_SHADER_VERTEX = `
   varying vec3 vPos;
-	varying vec3 vWorldPosition;
+  varying vec3 vWorldPosition;
   varying vec3 vNormal;
 
   ${THREE.ShaderChunk['shadowmap_pars_vertex']}
@@ -410,15 +410,6 @@ export const RING_SHADER_VERTEX = `
     ${THREE.ShaderChunk['shadowmap_vertex']}
   }
 `;
-
-/*
-621: 	SpotLight spotLight;
-622:
-623: 		spotLight = spotLights[ 0 ];
-624: 		shadow *= bool( spotLight.shadow ) ? getShadow( spotShadowMap[ 0 ], spotLight.shadowMapSize, spotLight.shadowBias, spotLight.shadowRadius, vSpotShadowCoord[ 0 ] ) : 1.0;
-625:
-626: 	#endif
- */
 
 export const RING_SHADER_FRAGMENT = `
   uniform sampler2D ringTexture;

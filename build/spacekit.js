@@ -50779,7 +50779,11 @@ var Spacekit = (function (exports) {
 	    // Controls
 	    // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
 	    // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
-	    const controls = new OrbitControls(this._camera, this._simulationElt);
+
+	    // TODO(ian): Access this better
+	    const renderer = this._context.simulation._renderer;
+
+	    const controls = new OrbitControls(this._camera, renderer.domElement);
 	    controls.enableDamping = true;
 	    controls.enablePan = true;
 	    controls.zoomSpeed = 1.5;
@@ -59176,6 +59180,7 @@ var Spacekit = (function (exports) {
 	   */
 	  getContext() {
 	    return {
+				simulation: this,
 	      options: this._options,
 	      objects: {
 	        particles: this._particles,

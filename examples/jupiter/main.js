@@ -50,7 +50,7 @@ viz.loadNaturalSatellites().then(loader => {
 // Set up gui and user interactions
 const guiState = {
   Speed: 0.1,
-  Show: 'All',
+  Highlight: 'All',
   'Hide other orbits': false,
   'Hide labels': false,
   'Set Date': function() {
@@ -113,7 +113,7 @@ function updateFilterDisplay(tag) {
   });
 }
 
-gui.add(guiState, 'Show', Object.keys(tagFilters)).onChange(catString => {
+gui.add(guiState, 'Highlight', Object.keys(tagFilters)).onChange(catString => {
   const tag = tagFilters[catString];
   updateFilterDisplay(tag);
 });

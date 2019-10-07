@@ -728,6 +728,7 @@ export class Simulation {
    */
   getContext() {
     return {
+      simulation: this,
       options: this._options,
       objects: {
         particles: this._particles,

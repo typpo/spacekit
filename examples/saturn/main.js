@@ -63,7 +63,7 @@ viz.loadNaturalSatellites().then(loader => {
 // Set up gui and user interactions
 const guiState = {
   Speed: 0.1,
-  Show: 'All',
+  Highlight: 'All',
   'Hide other orbits': false,
   'Hide labels': false,
   'Set Date': function() {
@@ -81,13 +81,10 @@ gui.add(guiState, 'Speed', 0, 20).onChange(val => {
 // Map from a category string to the tag in NaturalSatellites object.
 const tagFilters = {
   All: 'ALL',
-  Galilean: 'GALILEAN',
-  'Prograde orbits': 'PROGRADE',
-  'Retrograde orbits': 'RETROGRADE',
-  'Himalia group': 'HIMALIA',
-  'Carme group': 'CARME',
-  'Ananke group': 'ANANKE',
-  'Pasiphae group': 'PASIPHAE',
+  'Regular orbits': 'REGULAR',
+  'Irregular orbits': 'IRREGULAR',
+  'Newly discovered': 'NEWLY_DISCOVERED',
+  'Lost (unconfirmed)': 'LOST',
 };
 
 function resetDisplay() {
@@ -126,7 +123,7 @@ function updateFilterDisplay(tag) {
   });
 }
 
-gui.add(guiState, 'Show', Object.keys(tagFilters)).onChange(catString => {
+gui.add(guiState, 'Highlight', Object.keys(tagFilters)).onChange(catString => {
   const tag = tagFilters[catString];
   updateFilterDisplay(tag);
 });

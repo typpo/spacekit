@@ -3,6 +3,14 @@ import livereload from 'rollup-plugin-livereload';
 import resolve from 'rollup-plugin-node-resolve';
 import serve from 'rollup-plugin-serve';
 
+const plugins = [resolve(), commonjs()];
+
+if (process.env.ENABLE_DEV_SERVER) {
+  // envar set via `yarn build:watch`
+  plugins.push(livereload());
+  plugins.push(serve({ port: 8001, contentBase: ['.'] }));
+}
+
 export default {
   input: 'src/spacekit.js',
   output: [
@@ -12,10 +20,5 @@ export default {
       file: 'build/spacekit.js',
     },
   ],
-  plugins: [
-    resolve(),
-    commonjs(),
-    livereload(),
-    serve({ port: 8001, contentBase: ['.'] }),
-  ],
+  plugins,
 };

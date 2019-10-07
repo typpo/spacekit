@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "rollup -c",
-    "build:watch": "rollup -c -w",
+    "build:watch": "ENABLE_DEV_SERVER=1 rollup -c -w",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "docs": "esdoc",

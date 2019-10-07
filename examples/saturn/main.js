@@ -12,13 +12,14 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a light source somewhere off in the distance.
-viz.createLight([0.025, 0.025, 0.005]);
+const SUN_POS = [5, 5, 1];
+viz.createLight(SUN_POS);
 //viz.createAmbientLight(0x222222);
 
 viz.createObject(
   'sun',
   Object.assign(Spacekit.SpaceObjectPresets.SUN, {
-    position: [5, 5, 0.125],
+    position: SUN_POS,
   }),
 );
 

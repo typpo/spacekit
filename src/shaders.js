@@ -318,33 +318,34 @@ export const RING_SHADER_FRAGMENT = `
     return pixel;
   }
 
-  vec4 lights() {
-    float c = 0.0;
-    vec3 lightDirection;
-    #if NUM_POINT_LIGHTS > 0
-      for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
-        lightDirection = normalize(vWorldPosition - pointLights[i].position);
-        c += 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
-      }
-    #endif
-    #if NUM_DIR_LIGHTS > 0
-      for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-        c += 0.35 + max(0.0, dot(vNormal, directionalLights[i].direction)) * 0.4;
-      }
-    #endif
-    #if NUM_SPOT_LIGHTS > 0
-      for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
-        lightDirection = normalize(vWorldPosition - spotLights[i].position);
-        c += 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
-      }
-    #endif
+  vec3 shadow() {
+    // TODO(ian): planet and sun position uniforms
+    // sun position in saturn test
+    vec3 lightPos = vec3(500.0, 500.0, 125.0);
 
-    float shadowMask = getShadowMask();
-    vec3 outgoingLight = vec3(c, c, c) * shadowMask;
-    return vec4(outgoingLight, 1.0);
+    vec3 lightDir = normalize(vPos - lightPos);
+    vec3 planetPos = vec3(0);
+
+    vec3 ringPos = vPos - planetPos;
+    float posDotLightDir = dot(ringPos, lightDir);
+    float posDotLightDir2 = posDotLightDir * posDotLightDir;
+    float radius = 0.0389259903; // radius of saturn in coordinate system
+    float radius2 = radius * radius;
+    if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {
+      return vec3(0.0);
+    }
+    return vec3(1.0);
+  }
+
+  vec3 lights() {
+    vec3 lightPos = vec3(500.0, 500.0, 125.0);
+    vec3 lightDirection = normalize(vWorldPosition - lightPos);
+    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+
+    return vec3(c);
   }
 
   void main() {
-    gl_FragColor = color() * lights();
+    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);
   }
 `;

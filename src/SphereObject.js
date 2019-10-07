@@ -9,6 +9,8 @@ import {
   ATMOSPHERE_SHADER_FRAGMENT,
   RING_SHADER_VERTEX,
   RING_SHADER_FRAGMENT,
+  SPHERE_SHADER_VERTEX,
+  SPHERE_SHADER_FRAGMENT,
 } from './shaders';
 
 const noiseTexture = THREE.ImageUtils.loadTexture('./noise.jpg');
@@ -94,12 +96,25 @@ export class SphereObject extends RotatingObject {
         level.segments,
       );
       const color = this._options.color || 0xbbbbbb;
+
+      const uniforms = {
+        sphereTexture: { value: null },
+      };
+      // TODO(ian): Handle if no map
+      uniforms.sphereTexture.value = map;
       const material = this._simulation.isUsingLightSources()
-        ? new THREE.MeshLambertMaterial({
+        ? /*new THREE.MeshLambertMaterial({
             map,
             reflectivity: 0.5,
             depthTest: true,
             depthWrite: true,
+          })
+          */
+          new THREE.ShaderMaterial({
+            uniforms,
+            vertexShader: SPHERE_SHADER_VERTEX,
+            fragmentShader: SPHERE_SHADER_FRAGMENT,
+            transparent: true,
           })
         : new THREE.MeshBasicMaterial({
             map,

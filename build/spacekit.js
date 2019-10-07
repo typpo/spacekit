@@ -56028,6 +56028,54 @@ var Spacekit = (function (exports) {
   }
 `;
 
+	const SPHERE_SHADER_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vUv = uv;
+    vViewPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    vNormal = normalMatrix * normal;
+
+    vec4 worldPosition = (modelMatrix * vec4(position, 1.));
+
+    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);
+  }
+`;
+
+	const SPHERE_SHADER_FRAGMENT = `
+  uniform sampler2D sphereTexture;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+
+  void main() {
+    // TODO(ian): planet and sun position uniforms
+    // sun position in saturn test
+    vec3 lightPos = vec3(500.0, 500.0, 125.0);
+
+    vec3 normal = normalize(vNormal);   //   ???
+    vec3 lightDir = normalize(vViewPosition - lightPos);
+    vec3 positionDir = normalize(vViewPosition);
+
+    float lightCosAngle = -dot(lightDir, normal);
+    float cameraCosAngle = -dot(positionDir, normal);
+
+    // Calculate light sources
+    vec3 incomingLight = vec3(1.0);   // TODO(ian): color of starlight
+
+    float cameraLightIntensity = 1.0;
+    vec3 cameraLight = vec3(cameraLightIntensity * saturate(cameraCosAngle));
+    vec3 diffuseLight = saturate(incomingLight * saturate(lightCosAngle) + cameraLight);
+
+
+    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(diffuseLight, 1.0);
+    //gl_FragColor = vec4(vec3(1.0) * saturate(lightCosAngle), 1.0);
+  }
+`;
+
 	const RING_SHADER_VERTEX = `
   varying vec3 vPos;
   varying vec3 vWorldPosition;
@@ -58122,12 +58170,25 @@ var Spacekit = (function (exports) {
 	        level.segments,
 	      );
 	      const color = this._options.color || 0xbbbbbb;
+
+	      const uniforms = {
+	        sphereTexture: { value: null },
+	      };
+	      // TODO(ian): Handle if no map
+	      uniforms.sphereTexture.value = map;
 	      const material = this._simulation.isUsingLightSources()
-	        ? new MeshLambertMaterial({
+	        ? /*new THREE.MeshLambertMaterial({
 	            map,
 	            reflectivity: 0.5,
 	            depthTest: true,
 	            depthWrite: true,
+	          })
+	          */
+	          new ShaderMaterial({
+	            uniforms,
+	            vertexShader: SPHERE_SHADER_VERTEX,
+	            fragmentShader: SPHERE_SHADER_FRAGMENT,
+	            transparent: true,
 	          })
 	        : new MeshBasicMaterial({
 	            map,

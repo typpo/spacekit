@@ -40,7 +40,7 @@ const saturn = viz.createSphere('saturn', {
 });
 viz.zoomToFit(saturn);
 
-saturn.addRings(66900, 136775, './saturn_rings_top.png');
+saturn.addRings(74270.580913, 140478.924731, './saturn_rings_top.png');
 
 // Add its moons
 const moonObjs = [];

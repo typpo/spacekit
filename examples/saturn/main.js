@@ -12,15 +12,24 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 });
 
 // Create a light source somewhere off in the distance.
-viz.createLight([1, 1, 1]);
+const SUN_POS = [5, 5, 1];
+viz.createLight(SUN_POS);
+//viz.createAmbientLight(0x222222);
+
+viz.createObject(
+  'sun',
+  Object.assign(Spacekit.SpaceObjectPresets.SUN, {
+    position: SUN_POS,
+  }),
+);
 
 // Create a starry background using Yale Bright Star Catalog Data.
 viz.createStars();
 
-// Create jupiter
-const jupiter = viz.createSphere('jupiter', {
-  textureUrl: './jupiter2_4k.jpg',
-  radius: 71492 / 149598000, // radius in AU, so jupiter is shown to scale
+// Create saturn
+const saturn = viz.createSphere('saturn', {
+  textureUrl: './th_saturn.png',
+  radius: 58232.503 / 149598000, // radius in AU, so saturn is shown to scale
   levelsOfDetail: [
     { radii: 0, segments: 64 },
     { radii: 30, segments: 16 },
@@ -30,17 +39,21 @@ const jupiter = viz.createSphere('jupiter', {
     enable: true,
   },
 });
-viz.zoomToFit(jupiter);
+viz.zoomToFit(saturn);
+
+saturn.addRings(74270.580913, 140478.924731, './saturn_rings_top.png');
 
 // Add its moons
 const moonObjs = [];
-let jupiterSatellites = [];
+let saturnSatellites = [];
 viz.loadNaturalSatellites().then(loader => {
-  jupiterSatellites = loader.getSatellitesForPlanet('jupiter');
-  jupiterSatellites.forEach(moon => {
+  saturnSatellites = loader.getSatellitesForPlanet('saturn');
+  saturnSatellites.forEach(moon => {
+    const ephem = moon.ephem.copy();
+    // Add Saturn's axial tilt.
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
-      ephem: moon.ephem,
+      ephem,
       particleSize: 50,
     });
     moonObjs.push(obj);
@@ -68,13 +81,10 @@ gui.add(guiState, 'Speed', 0, 20).onChange(val => {
 // Map from a category string to the tag in NaturalSatellites object.
 const tagFilters = {
   All: 'ALL',
-  Galilean: 'GALILEAN',
-  'Prograde orbits': 'PROGRADE',
-  'Retrograde orbits': 'RETROGRADE',
-  'Himalia group': 'HIMALIA',
-  'Carme group': 'CARME',
-  'Ananke group': 'ANANKE',
-  'Pasiphae group': 'PASIPHAE',
+  'Regular orbits': 'REGULAR',
+  'Irregular orbits': 'IRREGULAR',
+  'Newly discovered': 'NEWLY_DISCOVERED',
+  'Lost (unconfirmed)': 'LOST',
 };
 
 function resetDisplay() {
@@ -93,7 +103,7 @@ function updateFilterDisplay(tag) {
   }
 
   const matching = new Set(
-    jupiterSatellites.filter(moon => moon.tags.has(tag)).map(moon => moon.name),
+    saturnSatellites.filter(moon => moon.tags.has(tag)).map(moon => moon.name),
   );
 
   const showLabels = !guiState['Hide labels'];
@@ -123,6 +133,6 @@ gui.add(guiState, 'Hide other orbits').onChange(() => {
 gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
-gui.add(guiState, 'Set Date');
+//gui.add(guiState, 'Set Date');
 
 window.THREE = Spacekit.THREE;

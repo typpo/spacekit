@@ -1,6 +1,16 @@
 import * as THREE from 'three';
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import {
+  EffectComposer,
+  BlendFunction,
+  EffectPass,
+  GodRaysEffect,
+  BloomEffect,
+  KernelSize,
+  SMAAEffect,
+  RenderPass,
+} from 'postprocessing';
 
 import { Camera } from './Camera';
 import { KeplerParticles } from './KeplerParticles';
@@ -97,9 +107,6 @@ export class Simulation {
     this._isPaused = options.startPaused || false;
     this.onTick = null;
 
-    this._scene = null;
-    this._renderer = null;
-
     this._enableCameraDrift = false;
     this._cameraDefaultPos = rescaleArray([0, -10, 5]);
     if (this._options.camera) {
@@ -113,17 +120,23 @@ export class Simulation {
 
     this._camera = null;
     this._isUsingLightSources = false;
+    this._lightPosition = null;
 
     this._subscribedObjects = {};
     this._particles = null;
-
-    this._renderEnabled = true;
-    this._boundAnimate = this.animate.bind(this);
 
     // stats.js panel
     this._stats = null;
     this._fps = 1;
     this._lastUpdatedTime = Date.now();
+
+    // Rendering
+    this._renderEnabled = true;
+    this.animate = this.animate.bind(this);
+
+    this._scene = null;
+    this._renderer = null;
+    this._composer = null;
 
     this.init();
     this.animate();
@@ -197,6 +210,9 @@ export class Simulation {
       },
       this,
     );
+
+    // Set up effect composer, etc.
+    this.initPasses();
   }
 
   /**
@@ -205,8 +221,14 @@ export class Simulation {
   initRenderer() {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      logarithmicDepthBuffer: true,
+      //logarithmicDepthBuffer: true,
     });
+    renderer.gammaInput = true;
+    renderer.gammaOutput = true;
+    console.info(
+      'Max texture resolution:',
+      renderer.capabilities.maxTextureSize,
+    );
 
     const maxPrecision = renderer.capabilities.getMaxPrecision();
     if (maxPrecision !== 'highp') {
@@ -224,6 +246,63 @@ export class Simulation {
     this._simulationElt.appendChild(renderer.domElement);
 
     this._renderer = renderer;
+  }
+
+  /**
+   * @private
+   */
+  initPasses() {
+    //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
+    //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
+
+    const camera = this._camera.get3jsCamera();
+
+    /*
+    const sunGeometry = new THREE.SphereBufferGeometry(
+      rescaleNumber(0.004),
+      16,
+      16,
+    );
+    const sunMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffddaa,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
+    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
+    sun.updateMatrix();
+    sun.updateMatrixWorld();
+
+    const godRaysEffect = new GodRaysEffect(camera, sun, {
+      color: 0xfff5f2,
+      blur: false,
+    });
+    */
+    //godRaysEffect.dithering = true;
+
+    const bloomEffect = new BloomEffect(this._scene, camera, {
+      width: 240,
+      height: 240,
+      luminanceThreshold: 0.2,
+    });
+    bloomEffect.inverted = true;
+    bloomEffect.blendMode.opacity.value = 2.3;
+
+    const renderPass = new RenderPass(this._scene, camera);
+    renderPass.renderToScreen = false;
+
+    const effectPass = new EffectPass(
+      camera,
+      /*smaaEffect, godRaysEffect*/ bloomEffect,
+    );
+    effectPass.renderToScreen = true;
+
+    const composer = new EffectComposer(this._renderer);
+    composer.addPass(renderPass);
+    composer.addPass(effectPass);
+    this._composer = composer;
   }
 
   /**
@@ -258,7 +337,7 @@ export class Simulation {
       return;
     }
 
-    window.requestAnimationFrame(this._boundAnimate);
+    window.requestAnimationFrame(this.animate);
 
     if (this._stats) {
       this._stats.begin();
@@ -288,6 +367,7 @@ export class Simulation {
 
     // Update three.js scene
     this._renderer.render(this._scene, this._camera.get3jsCamera());
+    //this._composer.render(0.1);
 
     if (this.onTick) {
       this.onTick();
@@ -396,23 +476,36 @@ export class Simulation {
    * @param {Number} color Color of light, default 0xFFFFFF
    */
   createLight(pos = undefined, color = 0xffffff) {
-    const pointLight = new THREE.PointLight(
-      color,
-      1 /* intensity */,
-      rescaleNumber(0) /* distance */,
-      rescaleNumber(2) /* decay */,
-    );
+    if (this._lightPosition) {
+      console.warn(
+        "Spacekit doesn't support more than one light source for SphereObjects",
+      );
+    }
+    this._lightPosition = new THREE.Vector3();
+
+    // Pointlight is for standard meshes created by ShapeObjects.
+    // TODO(ian): Remove this point light.
+    const pointLight = new THREE.PointLight();
+
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
+      this._lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
       pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     } else {
       // The light comes from the camera.
+      // FIXME(ian): This only affects the point source.
       this._camera.get3jsCameraControls().addEventListener('change', () => {
+        this._lightPosition.copy(this._camera.get3jsCamera().position);
         pointLight.position.copy(this._camera.get3jsCamera().position);
       });
     }
+
     this._scene.add(pointLight);
     this._isUsingLightSources = true;
+  }
+
+  getLightPosition() {
+    return this._lightPosition;
   }
 
   isUsingLightSources() {
@@ -635,6 +728,7 @@ export class Simulation {
    */
   getContext() {
     return {
+      simulation: this,
       options: this._options,
       objects: {
         particles: this._particles,

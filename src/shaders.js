@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 import { getScaleFactor } from './Scale';
 
 /**
@@ -49,7 +51,8 @@ export function getOrbitShaderVertex() {
       float E1 = M + adjusted_e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
-      for (int foo=0; foo < 100; foo++) {
+
+      for ( int i = 0; i < 100; i ++ ) {
         E1 = M + adjusted_e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
@@ -156,10 +159,14 @@ export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
 `;
 
 export const ATMOSPHERE_SHADER_VERTEX = `
+  uniform vec3 lightPos;
+
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
-  varying vec3 vNormal;
+  //varying vec3 vNormal;
+
+  varying vec3 vViewLightPos;
 
   void main() {
     //vNormal = normalize(normalMatrix * normal);
@@ -173,8 +180,8 @@ export const ATMOSPHERE_SHADER_VERTEX = `
     // normals but this will work fine, since my model
     // matrix is pretty basic
     vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
-    gl_Position = projectionMatrix *
-                  vec4(vecPos, 1.0);
+    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;
+    gl_Position = projectionMatrix * vec4(vecPos, 1.0);
   }
 `;
 
@@ -187,33 +194,118 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
-
-  struct PointLight {
-    vec3 color;
-    vec3 position; // light position, in camera coordinates
-    float distance; // used for attenuation purposes. Since
-                    // we're writing our own shader, it can
-                    // really be anything we want (as long as
-                    // we assign it to our light in its
-                    // "distance" field
-  };
-
-  uniform PointLight pointLights[NUM_POINT_LIGHTS];
+  varying vec3  vViewLightPos;
 
   void main() {
-    //float intensity = pow(c - dot(vNormal, vec3(0.0, 0.0, 1.0)), p);
-    //gl_FragColor = vec4(color, 1.0) * intensity;
-
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
 
-    // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-    for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
-        vec3 lightDirection = normalize(vecPos - pointLights[l].position);
-        addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                           * pointLights[l].color
-                           * 1.0 /* intensity */;
-    }
+    vec3 lightDirection = normalize(vecPos - vViewLightPos);
+    addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                       * 1.0 /* intensity */;
+                       // * pointLights[i].color
+
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+  }
+`;
+
+export const SPHERE_SHADER_VERTEX = `
+  uniform vec3 lightPos;
+
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewLightPos;
+  varying vec3 vNormal;
+
+  void main() {
+    vUv = uv;
+    vec4 vViewPosition4 = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = vViewPosition4.xyz;
+    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;
+    vNormal = normalMatrix * normal;
+
+    gl_Position = projectionMatrix * vViewPosition4;
+  }
+`;
+
+export const SPHERE_SHADER_FRAGMENT = `
+  uniform sampler2D sphereTexture;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+  varying vec3 vViewLightPos;
+
+  void main() {
+    vec3 normal = normalize(vNormal);
+    vec3 lightDir = normalize(vViewLightPos - vViewPosition);
+    float lambertian = max(dot(normal, lightDir), 0.0);
+    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);
+  }
+`;
+
+export const RING_SHADER_VERTEX = `
+  varying vec3 vPos;
+  varying vec3 vWorldPosition;
+  varying vec3 vNormal;
+
+  void main() {
+    vPos = position;
+    vec4 worldPosition = (modelMatrix * vec4(position, 1.));
+    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);
+
+    vNormal = normalMatrix * normal;
+    vWorldPosition = worldPosition.xyz;
+  }
+`;
+
+export const RING_SHADER_FRAGMENT = `
+  uniform sampler2D ringTexture;
+  uniform float innerRadius;
+  uniform float outerRadius;
+  uniform vec3 lightPos;
+
+  varying vec3 vNormal;
+  varying vec3 vPos;
+  varying vec3 vWorldPosition;
+
+  vec4 color() {
+    vec2 uv = vec2(0);
+    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);
+    if (uv.x < 0.0 || uv.x > 1.0) {
+      discard;
+    }
+
+    vec4 pixel = texture2D(ringTexture, uv);
+    return pixel;
+  }
+
+  vec3 shadow() {
+    // TODO(ian): planet and sun position uniforms
+    // sun position in saturn test
+
+    vec3 lightDir = normalize(vPos - lightPos);
+    vec3 planetPos = vec3(0);
+
+    vec3 ringPos = vPos - planetPos;
+    float posDotLightDir = dot(ringPos, lightDir);
+    float posDotLightDir2 = posDotLightDir * posDotLightDir;
+    float radius = 0.0389259903; // radius of saturn in coordinate system
+    float radius2 = radius * radius;
+    if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {
+      return vec3(0.0);
+    }
+    return vec3(1.0);
+  }
+
+  vec3 lights() {
+    vec3 lightDirection = normalize(vWorldPosition - lightPos);
+    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
+
+    return vec3(c);
+  }
+
+  void main() {
+    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);
   }
 `;

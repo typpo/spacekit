@@ -21,10 +21,13 @@
     "prettier": "^1.18.2",
     "rollup": "^0.67.4",
     "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-livereload": "^1.0.3",
     "rollup-plugin-node-resolve": "^4.0.0"
   },
   "dependencies": {
     "julian": "^0.2.0",
+    "postprocessing": "^6.8.0",
+    "rollup-plugin-serve": "^1.0.1",
     "three": "^0.107.0"
   }
 }

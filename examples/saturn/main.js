@@ -4,9 +4,9 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   unitsPerAu: 100.0,
   camera: {
     initialPosition: [
-      0.0014980565625981512,
-      -0.030445338891231168,
-      0.03616394298897485,
+      0.1739865009560048,
+      -0.12915937125168006,
+      0.10357994703146715,
     ],
   },
 });
@@ -39,7 +39,6 @@ const saturn = viz.createSphere('saturn', {
     enable: true,
   },
 });
-viz.zoomToFit(saturn);
 
 saturn.addRings(74270.580913, 140478.924731, './saturn_rings_top.png');
 

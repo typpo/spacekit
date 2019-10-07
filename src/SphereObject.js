@@ -97,29 +97,28 @@ export class SphereObject extends RotatingObject {
       );
       const color = this._options.color || 0xbbbbbb;
 
-      const uniforms = {
-        sphereTexture: { value: null },
-      };
-      // TODO(ian): Handle if no map
-      uniforms.sphereTexture.value = map;
-      const material = this._simulation.isUsingLightSources()
-        ? /*new THREE.MeshLambertMaterial({
-            map,
-            reflectivity: 0.5,
-            depthTest: true,
-            depthWrite: true,
-          })
-          */
-          new THREE.ShaderMaterial({
-            uniforms,
-            vertexShader: SPHERE_SHADER_VERTEX,
-            fragmentShader: SPHERE_SHADER_FRAGMENT,
-            transparent: true,
-          })
-        : new THREE.MeshBasicMaterial({
-            map,
-            color,
-          });
+      let material;
+      if (this._simulation.isUsingLightSources()) {
+        const uniforms = {
+          sphereTexture: { value: null },
+          lightPos: { value: new THREE.Vector3() },
+        };
+        // TODO(ian): Handle if no map
+        uniforms.sphereTexture.value = map;
+        uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+        material = new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader: SPHERE_SHADER_VERTEX,
+          fragmentShader: SPHERE_SHADER_FRAGMENT,
+          transparent: true,
+        });
+      } else {
+        material = new THREE.MeshBasicMaterial({
+          map,
+          color,
+        });
+      }
+
       const mesh = new THREE.Mesh(sphereGeometry, material);
       mesh.receiveShadow = true;
       mesh.castShadow = true;
@@ -143,8 +142,6 @@ export class SphereObject extends RotatingObject {
 
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
-      // FIXME(ian): Remove
-      this._obj.rotation.x += rad(this._options.axialTilt);
     }
 
     this._renderMethod = 'SPHERE';
@@ -170,6 +167,11 @@ export class SphereObject extends RotatingObject {
    * outer one.
    */
   renderFullAtmosphere() {
+    if (!this._simulation.isUsingLightSources()) {
+      console.warn('Cannot render atmosphere without a light source');
+      return;
+    }
+
     const radius = this.getScaledRadius();
     const color = new THREE.Color(this._options.atmosphere.color || 0xffffff);
 
@@ -201,28 +203,24 @@ export class SphereObject extends RotatingObject {
    */
   renderAtmosphereComponent(radius, size, coefficient, power, color) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
-    const mesh = new THREE.Mesh(
-      geometry,
-      new THREE.ShaderMaterial({
-        uniforms: THREE.UniformsUtils.merge([
-          THREE.UniformsLib.ambient,
-          THREE.UniformsLib.lights,
-          {
-            c: { value: coefficient },
-            p: { value: power },
-            color: { value: color },
-          },
-        ]),
-        vertexShader: ATMOSPHERE_SHADER_VERTEX,
-        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
-        //side: THREE.FrontSide,
-        side: THREE.BackSide,
-        //blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-        lights: true,
-      }),
-    );
+    const uniforms = {
+      c: { value: coefficient },
+      p: { value: power },
+      color: { value: color },
+      lightPos: { value: new THREE.Vector3() },
+    };
+    uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: ATMOSPHERE_SHADER_VERTEX,
+      fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false,
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
     return mesh;
   }
 
@@ -277,43 +275,42 @@ export class SphereObject extends RotatingObject {
     const map = new THREE.TextureLoader().load('./saturn_rings_top.png');
     //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
 
-    // TODO(ian): Follow recommendation for defining ShaderMaterials here:
-    // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
-    const uniforms = THREE.UniformsUtils.merge([
-      THREE.UniformsLib.ambient,
-      THREE.UniformsLib.lights,
-      THREE.UniformsLib.shadowmap,
-      {
-        ringTexture: { value: null },
-        innerRadius: { value: innerRadiusSize },
-        outerRadius: { value: outerRadiusSize },
-      },
-    ]);
-    uniforms.ringTexture.value = map;
+    let material;
+    if (this._simulation.isUsingLightSources()) {
+      // TODO(ian): Follow recommendation for defining ShaderMaterials here:
+      // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
+      const uniforms = THREE.UniformsUtils.merge([
+        THREE.UniformsLib.ambient,
+        THREE.UniformsLib.lights,
+        THREE.UniformsLib.shadowmap,
+        {
+          ringTexture: { value: null },
+          innerRadius: { value: innerRadiusSize },
+          outerRadius: { value: outerRadiusSize },
+          lightPos: { value: new THREE.Vector3() },
+        },
+      ]);
+      uniforms.ringTexture.value = map;
+      uniforms.lightPos.value.copy(this._simulation.getLightPosition());
 
-    const material = this._simulation.isUsingLightSources()
-      ? /*new THREE.MeshLambertMaterial({
-          map,
-          side: THREE.DoubleSide,
-          transparent: true,
-        })
-        */
-        new THREE.ShaderMaterial({
-          uniforms,
-          lights: true,
-          vertexShader: RING_SHADER_VERTEX,
-          fragmentShader: RING_SHADER_FRAGMENT,
-          transparent: true,
-          alphaTest: 0.1,
-          side: THREE.DoubleSide,
-        })
-      : new THREE.MeshBasicMaterial({
-          map,
-          side: THREE.DoubleSide,
-          transparent: true,
-          alphaTest: 0.1,
-          opacity: 0.8,
-        });
+      material = new THREE.ShaderMaterial({
+        uniforms,
+        lights: true,
+        vertexShader: RING_SHADER_VERTEX,
+        fragmentShader: RING_SHADER_FRAGMENT,
+        transparent: true,
+        alphaTest: 0.1,
+        side: THREE.DoubleSide,
+      });
+    } else {
+      material = new THREE.MeshBasicMaterial({
+        map,
+        side: THREE.DoubleSide,
+        transparent: true,
+        alphaTest: 0.1,
+        opacity: 0.8,
+      });
+    }
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.receiveShadow = true;

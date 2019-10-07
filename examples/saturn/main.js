@@ -9,7 +9,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
       0.03616394298897485,
     ],
   },
-  startPaused: true,
 });
 
 // Create a light source somewhere off in the distance.
@@ -41,12 +40,11 @@ const saturn = viz.createSphere('saturn', {
   rotation: {
     //enable: true,
   },
-  axialTilt: 26.73,
+  //axialTilt: 26.73,
 });
 viz.zoomToFit(saturn);
 
 // Add its moons
-/*
 const moonObjs = [];
 let saturnSatellites = [];
 viz.loadNaturalSatellites().then(loader => {
@@ -54,7 +52,6 @@ viz.loadNaturalSatellites().then(loader => {
   saturnSatellites.forEach(moon => {
     const ephem = moon.ephem.copy();
     // Add Saturn's axial tilt.
-    ephem.set('i', moon.ephem.get('i', 'deg') + 26.73, 'deg');
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
       ephem,
@@ -63,7 +60,6 @@ viz.loadNaturalSatellites().then(loader => {
     moonObjs.push(obj);
   });
 });
-*/
 
 // Set up gui and user interactions
 const guiState = {
@@ -77,7 +73,6 @@ const guiState = {
       viz.setDate(new Date(input));
     }
   },
-  'Shadow Bias': -16,
 };
 const gui = new dat.GUI();
 gui.add(guiState, 'Speed', 0, 20).onChange(val => {
@@ -143,9 +138,5 @@ gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
 gui.add(guiState, 'Set Date');
-
-gui.add(guiState, 'Shadow Bias', -20, 20, 0.5).onChange(val => {
-  window.shadow.bias = val * 0.0001;
-});
 
 window.THREE = Spacekit.THREE;

@@ -120,6 +120,7 @@ export class Simulation {
 
     this._camera = null;
     this._isUsingLightSources = false;
+    this._lightPosition = null;
 
     this._subscribedObjects = {};
     this._particles = null;
@@ -222,8 +223,6 @@ export class Simulation {
       antialias: true,
       //logarithmicDepthBuffer: true,
     });
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.gammaInput = true;
     renderer.gammaOutput = true;
     console.info(
@@ -477,49 +476,36 @@ export class Simulation {
    * @param {Number} color Color of light, default 0xFFFFFF
    */
   createLight(pos = undefined, color = 0xffffff) {
-    const light1 = new THREE.PointLight(
-      color,
-      1 /* intensity */,
-      rescaleNumber(0) /* distance */,
-      rescaleNumber(2) /* decay */,
-    );
-    const light = new THREE.DirectionalLight(color, 1);
-    //const light = new THREE.SpotLight(color, 1);
-    light.angle = Math.PI / 16;
+    if (this._lightPosition) {
+      console.warn(
+        "Spacekit doesn't support more than one light source for SphereObjects",
+      );
+    }
+    this._lightPosition = new THREE.Vector3();
+
+    // Pointlight is for standard meshes created by ShapeObjects.
+    // TODO(ian): Remove this point light.
+    const pointLight = new THREE.PointLight();
+
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
-      light.position.set(rescaled[0], rescaled[1], rescaled[2]);
+      this._lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
+      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     } else {
       // The light comes from the camera.
+      // FIXME(ian): This only affects the point source.
       this._camera.get3jsCameraControls().addEventListener('change', () => {
-        light.position.copy(this._camera.get3jsCamera().position);
+        this._lightPosition.copy(this._camera.get3jsCamera().position);
+        pointLight.position.copy(this._camera.get3jsCamera().position);
       });
     }
-    light.castShadow = true;
-    light.shadow.mapSize.width = 1024 * 4;
-    light.shadow.mapSize.height = 1024 * 4;
 
-    // TODO(ian): Make these dynamic
-
-    //light.shadow.camera.near = rescaleNumber(0.6);
-    //light.shadow.camera.far = rescaleNumber(0.8);
-    light.shadow.camera.near = rescaleNumber(0.025);
-    light.shadow.camera.far = rescaleNumber(0.05);
-
-    /*
-    light.shadow.camera.left = -rescaleNumber(0.005);
-    light.shadow.camera.right = rescaleNumber(0.005);
-    light.shadow.camera.top = rescaleNumber(0.005);
-    light.shadow.camera.bottom = -rescaleNumber(0.005);
-    */
-    light.shadow.bias = 0.0001 * -16;
-    window.shadow = light.shadow;
-
-    //const cameraHelper = new THREE.CameraHelper(light.shadow.camera);
-    //this._scene.add(cameraHelper);
-
-    this._scene.add(light);
+    this._scene.add(pointLight);
     this._isUsingLightSources = true;
+  }
+
+  getLightPosition() {
+    return this._lightPosition;
   }
 
   isUsingLightSources() {

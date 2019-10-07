@@ -50860,6 +50860,9 @@ var Spacekit = (function (exports) {
 
 	    // Handle control movements
 	    this._cameraControls.update();
+
+	    // Update camera matrix
+	    this._camera.updateMatrixWorld();
 	  }
 	}
 
@@ -55960,10 +55963,14 @@ var Spacekit = (function (exports) {
 `;
 
 	const ATMOSPHERE_SHADER_VERTEX = `
+  uniform vec3 lightPos;
+
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
   //varying vec3 vNormal;
+
+  varying vec3 vViewLightPos;
 
   void main() {
     //vNormal = normalize(normalMatrix * normal);
@@ -55977,8 +55984,8 @@ var Spacekit = (function (exports) {
     // normals but this will work fine, since my model
     // matrix is pretty basic
     vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
-    gl_Position = projectionMatrix *
-                  vec4(vecPos, 1.0);
+    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;
+    gl_Position = projectionMatrix * vec4(vecPos, 1.0);
   }
 `;
 
@@ -55991,56 +55998,37 @@ var Spacekit = (function (exports) {
   varying vec2 vUv;
   varying vec3 vecPos;
   varying vec3 vecNormal;
-
-  ${ShaderChunk['common']}
-  ${ShaderChunk['lights_pars_begin']}
+  varying vec3  vViewLightPos;
 
   void main() {
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
 
-    // Pretty basic lambertian lighting...
     vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);
-    #if NUM_POINT_LIGHTS > 0
-      for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
-          vec3 lightDirection = normalize(vecPos - pointLights[i].position);
-          addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                             * pointLights[i].color
-                             * 1.0 /* intensity */;
-      }
-    #endif
-    #if NUM_DIR_LIGHTS > 0
-      for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-        addedLights.rgb += clamp(dot(directionalLights[i].direction, vecNormal), 0.0, 1.0)
-                           * directionalLights[i].color
-                           * 1.0;
-      }
-    #endif
-    #if NUM_SPOT_LIGHTS > 0
-      for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
-          vec3 lightDirection = normalize(vecPos - spotLights[i].position);
-          addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
-                             * spotLights[i].color
-                             * 1.0 /* intensity */;
-      }
-    #endif
+    vec3 lightDirection = normalize(vecPos - vViewLightPos);
+    addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)
+                       * 1.0 /* intensity */;
+                       // * pointLights[i].color
 
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
   }
 `;
 
 	const SPHERE_SHADER_VERTEX = `
+  uniform vec3 lightPos;
+
   varying vec2 vUv;
   varying vec3 vViewPosition;
+  varying vec3 vViewLightPos;
   varying vec3 vNormal;
 
   void main() {
     vUv = uv;
-    vViewPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    vec4 vViewPosition4 = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = vViewPosition4.xyz;
+    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;
     vNormal = normalMatrix * normal;
 
-    vec4 worldPosition = (modelMatrix * vec4(position, 1.));
-
-    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);
+    gl_Position = projectionMatrix * vViewPosition4;
   }
 `;
 
@@ -56050,29 +56038,13 @@ var Spacekit = (function (exports) {
   varying vec2 vUv;
   varying vec3 vNormal;
   varying vec3 vViewPosition;
+  varying vec3 vViewLightPos;
 
   void main() {
-    // TODO(ian): planet and sun position uniforms
-    // sun position in saturn test
-    vec3 lightPos = vec3(500.0, 500.0, 125.0);
-
-    vec3 normal = normalize(vNormal);   //   ???
-    vec3 lightDir = normalize(vViewPosition - lightPos);
-    vec3 positionDir = normalize(vViewPosition);
-
-    float lightCosAngle = -dot(lightDir, normal);
-    float cameraCosAngle = -dot(positionDir, normal);
-
-    // Calculate light sources
-    vec3 incomingLight = vec3(1.0);   // TODO(ian): color of starlight
-
-    float cameraLightIntensity = 1.0;
-    vec3 cameraLight = vec3(cameraLightIntensity * saturate(cameraCosAngle));
-    vec3 diffuseLight = saturate(incomingLight * saturate(lightCosAngle) + cameraLight);
-
-
-    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(diffuseLight, 1.0);
-    //gl_FragColor = vec4(vec3(1.0) * saturate(lightCosAngle), 1.0);
+    vec3 normal = normalize(vNormal);
+    vec3 lightDir = normalize(vViewLightPos - vViewPosition);
+    float lambertian = max(dot(normal, lightDir), 0.0);
+    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);
   }
 `;
 
@@ -56081,8 +56053,6 @@ var Spacekit = (function (exports) {
   varying vec3 vWorldPosition;
   varying vec3 vNormal;
 
-  ${ShaderChunk['shadowmap_pars_vertex']}
-
   void main() {
     vPos = position;
     vec4 worldPosition = (modelMatrix * vec4(position, 1.));
@@ -56090,8 +56060,6 @@ var Spacekit = (function (exports) {
 
     vNormal = normalMatrix * normal;
     vWorldPosition = worldPosition.xyz;
-
-    ${ShaderChunk['shadowmap_vertex']}
   }
 `;
 
@@ -56099,17 +56067,11 @@ var Spacekit = (function (exports) {
   uniform sampler2D ringTexture;
   uniform float innerRadius;
   uniform float outerRadius;
+  uniform vec3 lightPos;
 
   varying vec3 vNormal;
   varying vec3 vPos;
   varying vec3 vWorldPosition;
-
-  ${ShaderChunk['common']}
-  ${ShaderChunk['packing']}
-  ${ShaderChunk['bsdfs']}
-  ${ShaderChunk['lights_pars_begin']}
-  ${ShaderChunk['shadowmap_pars_fragment']}
-  ${ShaderChunk['shadowmask_pars_fragment']}
 
   vec4 color() {
     vec2 uv = vec2(0);
@@ -56125,7 +56087,6 @@ var Spacekit = (function (exports) {
   vec3 shadow() {
     // TODO(ian): planet and sun position uniforms
     // sun position in saturn test
-    vec3 lightPos = vec3(500.0, 500.0, 125.0);
 
     vec3 lightDir = normalize(vPos - lightPos);
     vec3 planetPos = vec3(0);
@@ -56142,7 +56103,6 @@ var Spacekit = (function (exports) {
   }
 
   vec3 lights() {
-    vec3 lightPos = vec3(500.0, 500.0, 125.0);
     vec3 lightDirection = normalize(vWorldPosition - lightPos);
     float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;
 
@@ -58171,29 +58131,28 @@ var Spacekit = (function (exports) {
 	      );
 	      const color = this._options.color || 0xbbbbbb;
 
-	      const uniforms = {
-	        sphereTexture: { value: null },
-	      };
-	      // TODO(ian): Handle if no map
-	      uniforms.sphereTexture.value = map;
-	      const material = this._simulation.isUsingLightSources()
-	        ? /*new THREE.MeshLambertMaterial({
-	            map,
-	            reflectivity: 0.5,
-	            depthTest: true,
-	            depthWrite: true,
-	          })
-	          */
-	          new ShaderMaterial({
-	            uniforms,
-	            vertexShader: SPHERE_SHADER_VERTEX,
-	            fragmentShader: SPHERE_SHADER_FRAGMENT,
-	            transparent: true,
-	          })
-	        : new MeshBasicMaterial({
-	            map,
-	            color,
-	          });
+	      let material;
+	      if (this._simulation.isUsingLightSources()) {
+	        const uniforms = {
+	          sphereTexture: { value: null },
+	          lightPos: { value: new Vector3() },
+	        };
+	        // TODO(ian): Handle if no map
+	        uniforms.sphereTexture.value = map;
+	        uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+	        material = new ShaderMaterial({
+	          uniforms,
+	          vertexShader: SPHERE_SHADER_VERTEX,
+	          fragmentShader: SPHERE_SHADER_FRAGMENT,
+	          transparent: true,
+	        });
+	      } else {
+	        material = new MeshBasicMaterial({
+	          map,
+	          color,
+	        });
+	      }
+
 	      const mesh = new Mesh(sphereGeometry, material);
 	      mesh.receiveShadow = true;
 	      mesh.castShadow = true;
@@ -58217,8 +58176,6 @@ var Spacekit = (function (exports) {
 
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
-	      // FIXME(ian): Remove
-	      this._obj.rotation.x += rad(this._options.axialTilt);
 	    }
 
 	    this._renderMethod = 'SPHERE';
@@ -58244,6 +58201,11 @@ var Spacekit = (function (exports) {
 	   * outer one.
 	   */
 	  renderFullAtmosphere() {
+	    if (!this._simulation.isUsingLightSources()) {
+	      console.warn('Cannot render atmosphere without a light source');
+	      return;
+	    }
+
 	    const radius = this.getScaledRadius();
 	    const color = new Color(this._options.atmosphere.color || 0xffffff);
 
@@ -58275,27 +58237,26 @@ var Spacekit = (function (exports) {
 	   */
 	  renderAtmosphereComponent(radius, size, coefficient, power, color) {
 	    const geometry = new SphereGeometry(radius + size, 32, 32);
+	    const uniforms = {
+	      c: { value: coefficient },
+	      p: { value: power },
+	      color: { value: color },
+	      lightPos: { value: new Vector3() },
+	    };
+	    uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+
+	    const material = new ShaderMaterial({
+	      uniforms,
+	      vertexShader: ATMOSPHERE_SHADER_VERTEX,
+	      fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
+	      side: BackSide,
+	      transparent: true,
+	      depthWrite: false,
+	    });
+
 	    const mesh = new Mesh(
 	      geometry,
-	      new ShaderMaterial({
-	        uniforms: UniformsUtils.merge([
-	          UniformsLib.ambient,
-	          UniformsLib.lights,
-	          {
-	            c: { value: coefficient },
-	            p: { value: power },
-	            color: { value: color },
-	          },
-	        ]),
-	        vertexShader: ATMOSPHERE_SHADER_VERTEX,
-	        fragmentShader: ATMOSPHERE_SHADER_FRAGMENT,
-	        //side: THREE.FrontSide,
-	        side: BackSide,
-	        //blending: THREE.AdditiveBlending,
-	        transparent: true,
-	        depthWrite: false,
-	        lights: true,
-	      }),
+	      material,
 	    );
 	    return mesh;
 	  }
@@ -58351,43 +58312,42 @@ var Spacekit = (function (exports) {
 	    const map = new TextureLoader().load('./saturn_rings_top.png');
 	    //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
 
-	    // TODO(ian): Follow recommendation for defining ShaderMaterials here:
-	    // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
-	    const uniforms = UniformsUtils.merge([
-	      UniformsLib.ambient,
-	      UniformsLib.lights,
-	      UniformsLib.shadowmap,
-	      {
-	        ringTexture: { value: null },
-	        innerRadius: { value: innerRadiusSize },
-	        outerRadius: { value: outerRadiusSize },
-	      },
-	    ]);
-	    uniforms.ringTexture.value = map;
+	    let material;
+	    if (this._simulation.isUsingLightSources()) {
+	      // TODO(ian): Follow recommendation for defining ShaderMaterials here:
+	      // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
+	      const uniforms = UniformsUtils.merge([
+	        UniformsLib.ambient,
+	        UniformsLib.lights,
+	        UniformsLib.shadowmap,
+	        {
+	          ringTexture: { value: null },
+	          innerRadius: { value: innerRadiusSize },
+	          outerRadius: { value: outerRadiusSize },
+	          lightPos: { value: new Vector3() },
+	        },
+	      ]);
+	      uniforms.ringTexture.value = map;
+	      uniforms.lightPos.value.copy(this._simulation.getLightPosition());
 
-	    const material = this._simulation.isUsingLightSources()
-	      ? /*new THREE.MeshLambertMaterial({
-	          map,
-	          side: THREE.DoubleSide,
-	          transparent: true,
-	        })
-	        */
-	        new ShaderMaterial({
-	          uniforms,
-	          lights: true,
-	          vertexShader: RING_SHADER_VERTEX,
-	          fragmentShader: RING_SHADER_FRAGMENT,
-	          transparent: true,
-	          alphaTest: 0.1,
-	          side: DoubleSide,
-	        })
-	      : new MeshBasicMaterial({
-	          map,
-	          side: DoubleSide,
-	          transparent: true,
-	          alphaTest: 0.1,
-	          opacity: 0.8,
-	        });
+	      material = new ShaderMaterial({
+	        uniforms,
+	        lights: true,
+	        vertexShader: RING_SHADER_VERTEX,
+	        fragmentShader: RING_SHADER_FRAGMENT,
+	        transparent: true,
+	        alphaTest: 0.1,
+	        side: DoubleSide,
+	      });
+	    } else {
+	      material = new MeshBasicMaterial({
+	        map,
+	        side: DoubleSide,
+	        transparent: true,
+	        alphaTest: 0.1,
+	        opacity: 0.8,
+	      });
+	    }
 
 	    const mesh = new Mesh(geometry, material);
 	    mesh.receiveShadow = true;
@@ -58650,6 +58610,7 @@ var Spacekit = (function (exports) {
 
 	    this._camera = null;
 	    this._isUsingLightSources = false;
+	    this._lightPosition = null;
 
 	    this._subscribedObjects = {};
 	    this._particles = null;
@@ -58752,8 +58713,6 @@ var Spacekit = (function (exports) {
 	      antialias: true,
 	      //logarithmicDepthBuffer: true,
 	    });
-	    renderer.shadowMap.enabled = true;
-	    renderer.shadowMap.type = PCFSoftShadowMap;
 	    renderer.gammaInput = true;
 	    renderer.gammaOutput = true;
 	    console.info(
@@ -59007,49 +58966,34 @@ var Spacekit = (function (exports) {
 	   * @param {Number} color Color of light, default 0xFFFFFF
 	   */
 	  createLight(pos = undefined, color = 0xffffff) {
-	    const light1 = new PointLight(
-	      color,
-	      1 /* intensity */,
-	      rescaleNumber(0) /* distance */,
-	      rescaleNumber(2) /* decay */,
-	    );
-	    const light = new DirectionalLight(color, 1);
-	    //const light = new THREE.SpotLight(color, 1);
-	    light.angle = Math.PI / 16;
+	    if (this._lightPosition) {
+	      console.warn('Spacekit doesn\'t support more than one light source for SphereObjects');
+	    }
+	    this._lightPosition = new Vector3();
+
+	    // Pointlight is for standard meshes created by ShapeObjects.
+	    // TODO(ian): Remove this point light.
+	    const pointLight = new PointLight();
+
 	    if (typeof pos !== 'undefined') {
 	      const rescaled = rescaleArray(pos);
-	      light.position.set(rescaled[0], rescaled[1], rescaled[2]);
+	      this._lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
+	      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
 	    } else {
 	      // The light comes from the camera.
+	      // FIXME(ian): This only affects the point source.
 	      this._camera.get3jsCameraControls().addEventListener('change', () => {
-	        light.position.copy(this._camera.get3jsCamera().position);
+	        this._lightPosition.copy(this._camera.get3jsCamera().position);
+	        pointLight.position.copy(this._camera.get3jsCamera().position);
 	      });
 	    }
-	    light.castShadow = true;
-	    light.shadow.mapSize.width = 1024 * 4;
-	    light.shadow.mapSize.height = 1024 * 4;
 
-	    // TODO(ian): Make these dynamic
-
-	    //light.shadow.camera.near = rescaleNumber(0.6);
-	    //light.shadow.camera.far = rescaleNumber(0.8);
-	    light.shadow.camera.near = rescaleNumber(0.025);
-	    light.shadow.camera.far = rescaleNumber(0.05);
-
-	    /*
-	    light.shadow.camera.left = -rescaleNumber(0.005);
-	    light.shadow.camera.right = rescaleNumber(0.005);
-	    light.shadow.camera.top = rescaleNumber(0.005);
-	    light.shadow.camera.bottom = -rescaleNumber(0.005);
-	    */
-	    light.shadow.bias = 0.0001 * -16;
-	    window.shadow = light.shadow;
-
-	    //const cameraHelper = new THREE.CameraHelper(light.shadow.camera);
-	    //this._scene.add(cameraHelper);
-
-	    this._scene.add(light);
+	    this._scene.add(pointLight);
 	    this._isUsingLightSources = true;
+	  }
+
+	  getLightPosition() {
+	    return this._lightPosition;
 	  }
 
 	  isUsingLightSources() {

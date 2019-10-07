@@ -119,5 +119,8 @@ export class Camera {
 
     // Handle control movements
     this._cameraControls.update();
+
+    // Update camera matrix
+    this._camera.updateMatrixWorld();
   }
 }

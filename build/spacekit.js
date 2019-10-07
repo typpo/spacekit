@@ -58076,8 +58076,6 @@ var Spacekit = (function (exports) {
 	  },
 	};
 
-	const noiseTexture = ImageUtils.loadTexture('./noise.jpg');
-
 	/**
 	 * Simulates a planet or other object as a perfect sphere.
 	 */
@@ -58171,9 +58169,6 @@ var Spacekit = (function (exports) {
 	      this._obj.add(this.renderFullAtmosphere());
 	    }
 
-	    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
-	    this._obj.add(allRings);
-
 	    if (this._options.axialTilt) {
 	      this._obj.rotation.y += rad(this._options.axialTilt);
 	    }
@@ -58254,39 +58249,26 @@ var Spacekit = (function (exports) {
 	      depthWrite: false,
 	    });
 
-	    const mesh = new Mesh(
-	      geometry,
-	      material,
-	    );
+	    const mesh = new Mesh(geometry, material);
 	    return mesh;
 	  }
 
 	  /**
-	   * @private
-	   * Generate a ring geometry with correct UVs.
-	   * @param {Number} innerRadiusSize Inner radius in true coordinates
-	   * @param {Number} outerRadiusSize Outer radius in true coordinates
-	   * @param {Number} segments Number of segments in ring
+	   * Add rings around this object.
+	   * @param {Number} innerRadiusKm Inner radius of ring.
+	   * @param {Number} outerRadiusKm Outer radius of ring.
+	   * @param {String} texturePath Full path to 1xN ring texture. (each pixel
+	   * represents the color of a full circle within the ring)
+	   * @param {Number} segments  Number of segments to use to render ring.
+	   * (optional)
 	   */
-	  getRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
-	    const geometry = new RingBufferGeometry(
-	      innerRadiusSize,
-	      outerRadiusSize,
-	      segments,
-	    );
-	    const pos = geometry.attributes.position;
-	    const v3 = new Vector3();
-	    for (let i = 0; i < pos.count; i++) {
-	      v3.fromBufferAttribute(pos, i);
-	      geometry.attributes.uv.setXY(
-	        i,
-	        v3.length() < (innerRadiusSize + outerRadiusSize) / 2 ? 0 : 1,
-	        1,
-	      );
-	    }
-	    return geometry;
-	    /*
-	    return new THREE.RingGeometry(
+	  addRings(innerRadiusKm, outerRadiusKm, texturePath, segments = 128) {
+	    const radius = this.getScaledRadius();
+
+	    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
+	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+	    const geometry = new RingGeometry(
 	      innerRadiusSize,
 	      outerRadiusSize,
 	      segments,
@@ -58294,23 +58276,8 @@ var Spacekit = (function (exports) {
 	      0,
 	      Math.PI * 2,
 	    );
-	    */
-	  }
-
-	  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
-	    const radius = this.getScaledRadius();
-	    const segments = 128;
-
-	    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
-	    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
-
-	    const geometry = this.getRingGeometry(
-	      innerRadiusSize,
-	      outerRadiusSize,
-	      segments,
-	    );
-	    const map = new TextureLoader().load('./saturn_rings_top.png');
-	    //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
+	    // TODO(ian): Load from base path.
+	    const map = new TextureLoader().load(texturePath);
 
 	    let material;
 	    if (this._simulation.isUsingLightSources()) {
@@ -58353,16 +58320,7 @@ var Spacekit = (function (exports) {
 	    mesh.receiveShadow = true;
 	    mesh.castShadow = true;
 
-	    const alphaMap = new TextureLoader().load('./saturn_rings_alpha.png');
-	    const customDepthMaterial = new MeshDepthMaterial({
-	      depthPacking: RGBADepthPacking,
-	      map, // or, alphaMap: myAlphaMap
-	      alphaMap,
-	      alphaTest: 0.1,
-	    });
-	    mesh.customDepthMaterial = customDepthMaterial;
-
-	    return mesh;
+	    this._obj.add(mesh);
 	  }
 
 	  /**
@@ -58967,7 +58925,9 @@ var Spacekit = (function (exports) {
 	   */
 	  createLight(pos = undefined, color = 0xffffff) {
 	    if (this._lightPosition) {
-	      console.warn('Spacekit doesn\'t support more than one light source for SphereObjects');
+	      console.warn(
+	        "Spacekit doesn't support more than one light source for SphereObjects",
+	      );
 	    }
 	    this._lightPosition = new Vector3();
 

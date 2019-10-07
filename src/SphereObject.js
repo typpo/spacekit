@@ -13,37 +13,6 @@ import {
   SPHERE_SHADER_FRAGMENT,
 } from './shaders';
 
-const noiseTexture = THREE.ImageUtils.loadTexture('./noise.jpg');
-
-const NOISE_TEXTURE_SIZE = 512;
-
-let generatedNoise = undefined;
-function generateNoise(opacity, magnitude, size = NOISE_TEXTURE_SIZE) {
-  // TODO(ian): Make this a static image.
-  if (generatedNoise) {
-    //return generatedNoise;
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-
-  const ctx = canvas.getContext('2d');
-  for (let x = 0; x < canvas.width; x++) {
-    for (let y = 0; y < canvas.height; y++) {
-      const number = Math.floor(Math.random() * magnitude);
-      ctx.fillStyle =
-        'rgba(' + number + ',' + number + ',' + number + ',' + opacity + ')';
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-  const noiseTexture = new THREE.Texture(canvas);
-  noiseTexture.needsUpdate = true;
-  noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
-
-  generatedNoise = noiseTexture;
-  return noiseTexture;
-}
-
 /**
  * Simulates a planet or other object as a perfect sphere.
  */
@@ -137,9 +106,6 @@ export class SphereObject extends RotatingObject {
       this._obj.add(this.renderFullAtmosphere());
     }
 
-    const allRings = this.renderRings('All', 66900, 136775, 0xffffff);
-    this._obj.add(allRings);
-
     if (this._options.axialTilt) {
       this._obj.rotation.y += rad(this._options.axialTilt);
     }
@@ -225,31 +191,21 @@ export class SphereObject extends RotatingObject {
   }
 
   /**
-   * @private
-   * Generate a ring geometry with correct UVs.
-   * @param {Number} innerRadiusSize Inner radius in true coordinates
-   * @param {Number} outerRadiusSize Outer radius in true coordinates
-   * @param {Number} segments Number of segments in ring
+   * Add rings around this object.
+   * @param {Number} innerRadiusKm Inner radius of ring.
+   * @param {Number} outerRadiusKm Outer radius of ring.
+   * @param {String} texturePath Full path to 1xN ring texture. (each pixel
+   * represents the color of a full circle within the ring)
+   * @param {Number} segments  Number of segments to use to render ring.
+   * (optional)
    */
-  getRingGeometry(innerRadiusSize, outerRadiusSize, segments) {
-    const geometry = new THREE.RingBufferGeometry(
-      innerRadiusSize,
-      outerRadiusSize,
-      segments,
-    );
-    const pos = geometry.attributes.position;
-    const v3 = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i++) {
-      v3.fromBufferAttribute(pos, i);
-      geometry.attributes.uv.setXY(
-        i,
-        v3.length() < (innerRadiusSize + outerRadiusSize) / 2 ? 0 : 1,
-        1,
-      );
-    }
-    return geometry;
-    /*
-    return new THREE.RingGeometry(
+  addRings(innerRadiusKm, outerRadiusKm, texturePath, segments = 128) {
+    const radius = this.getScaledRadius();
+
+    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
+    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+
+    const geometry = new THREE.RingGeometry(
       innerRadiusSize,
       outerRadiusSize,
       segments,
@@ -257,23 +213,8 @@ export class SphereObject extends RotatingObject {
       0,
       Math.PI * 2,
     );
-    */
-  }
-
-  renderRings(name, innerRadiusKm, outerRadiusKm, color) {
-    const radius = this.getScaledRadius();
-    const segments = 128;
-
-    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
-    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
-
-    const geometry = this.getRingGeometry(
-      innerRadiusSize,
-      outerRadiusSize,
-      segments,
-    );
-    const map = new THREE.TextureLoader().load('./saturn_rings_top.png');
-    //const map = new THREE.TextureLoader().load('./t00fri_gh_saturnrings.png');
+    // TODO(ian): Load from base path.
+    const map = new THREE.TextureLoader().load(texturePath);
 
     let material;
     if (this._simulation.isUsingLightSources()) {
@@ -316,16 +257,7 @@ export class SphereObject extends RotatingObject {
     mesh.receiveShadow = true;
     mesh.castShadow = true;
 
-    const alphaMap = new THREE.TextureLoader().load('./saturn_rings_alpha.png');
-    const customDepthMaterial = new THREE.MeshDepthMaterial({
-      depthPacking: THREE.RGBADepthPacking,
-      map, // or, alphaMap: myAlphaMap
-      alphaMap,
-      alphaTest: 0.1,
-    });
-    mesh.customDepthMaterial = customDepthMaterial;
-
-    return mesh;
+    this._obj.add(mesh);
   }
 
   /**

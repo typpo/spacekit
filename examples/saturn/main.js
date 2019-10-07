@@ -37,12 +37,10 @@ const saturn = viz.createSphere('saturn', {
   atmosphere: {
     enable: true,
   },
-  rotation: {
-    //enable: true,
-  },
-  //axialTilt: 26.73,
 });
 viz.zoomToFit(saturn);
+
+saturn.addRings(66900, 136775, './saturn_rings_top.png');
 
 // Add its moons
 const moonObjs = [];
@@ -137,6 +135,6 @@ gui.add(guiState, 'Hide other orbits').onChange(() => {
 gui.add(guiState, 'Hide labels').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });
-gui.add(guiState, 'Set Date');
+//gui.add(guiState, 'Set Date');
 
 window.THREE = Spacekit.THREE;

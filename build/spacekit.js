@@ -55992,53 +55992,8 @@ var Spacekit = (function (exports) {
   varying vec3 vecPos;
   varying vec3 vecNormal;
 
-#if NUM_POINT_LIGHTS > 0
-  struct PointLight {
-    vec3 position;
-    vec3 color;
-    float distance;
-    float decay;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-    float shadowCameraNear;
-    float shadowCameraFar;
-  };
-
-  uniform PointLight pointLights[NUM_POINT_LIGHTS];
-#endif
-#if NUM_DIR_LIGHTS > 0
-  struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-
-    float distance;  // ?
-  };
-
-  uniform DirectionalLight directionalLights[NUM_DIR_LIGHTS];
-#endif
-#if NUM_SPOT_LIGHTS > 0
-  struct SpotLight {
-    vec3 position;
-    vec3 direction;
-    vec3 color;
-    float distance;
-    float decay;
-    float coneCos;
-    float penumbraCos;
-    int shadow;
-    float shadowBias;
-    float shadowRadius;
-    vec2 shadowMapSize;
-  };
-
-  uniform SpotLight spotLights[NUM_SPOT_LIGHTS];
-#endif
+  ${ShaderChunk['common']}
+  ${ShaderChunk['lights_pars_begin']}
 
   void main() {
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);

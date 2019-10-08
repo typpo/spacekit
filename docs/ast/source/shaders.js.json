@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 4063,
+  "end": 8302,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 157,
+      "line": 312,
       "column": 0
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 4063,
+    "end": 8302,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 157,
+        "line": 312,
         "column": 0
       }
     },
@@ -31,7 +31,7 @@
       {
         "type": "ImportDeclaration",
         "start": 0,
-        "end": 41,
+        "end": 31,
         "loc": {
           "start": {
             "line": 1,
@@ -39,35 +39,104 @@
           },
           "end": {
             "line": 1,
+            "column": 31
+          }
+        },
+        "specifiers": [
+          {
+            "type": "ImportNamespaceSpecifier",
+            "start": 7,
+            "end": 17,
+            "loc": {
+              "start": {
+                "line": 1,
+                "column": 7
+              },
+              "end": {
+                "line": 1,
+                "column": 17
+              }
+            },
+            "local": {
+              "type": "Identifier",
+              "start": 12,
+              "end": 17,
+              "loc": {
+                "start": {
+                  "line": 1,
+                  "column": 12
+                },
+                "end": {
+                  "line": 1,
+                  "column": 17
+                },
+                "identifierName": "THREE"
+              },
+              "name": "THREE"
+            }
+          }
+        ],
+        "source": {
+          "type": "StringLiteral",
+          "start": 23,
+          "end": 30,
+          "loc": {
+            "start": {
+              "line": 1,
+              "column": 23
+            },
+            "end": {
+              "line": 1,
+              "column": 30
+            }
+          },
+          "extra": {
+            "rawValue": "three",
+            "raw": "'three'"
+          },
+          "value": "three"
+        }
+      },
+      {
+        "type": "ImportDeclaration",
+        "start": 33,
+        "end": 74,
+        "loc": {
+          "start": {
+            "line": 3,
+            "column": 0
+          },
+          "end": {
+            "line": 3,
             "column": 41
           }
         },
         "specifiers": [
           {
             "type": "ImportSpecifier",
-            "start": 9,
-            "end": 23,
+            "start": 42,
+            "end": 56,
             "loc": {
               "start": {
-                "line": 1,
+                "line": 3,
                 "column": 9
               },
               "end": {
-                "line": 1,
+                "line": 3,
                 "column": 23
               }
             },
             "imported": {
               "type": "Identifier",
-              "start": 9,
-              "end": 23,
+              "start": 42,
+              "end": 56,
               "loc": {
                 "start": {
-                  "line": 1,
+                  "line": 3,
                   "column": 9
                 },
                 "end": {
-                  "line": 1,
+                  "line": 3,
                   "column": 23
                 },
                 "identifierName": "getScaleFactor"
@@ -76,15 +145,15 @@
             },
             "local": {
               "type": "Identifier",
-              "start": 9,
-              "end": 23,
+              "start": 42,
+              "end": 56,
               "loc": {
                 "start": {
-                  "line": 1,
+                  "line": 3,
                   "column": 9
                 },
                 "end": {
-                  "line": 1,
+                  "line": 3,
                   "column": 23
                 },
                 "identifierName": "getScaleFactor"
@@ -95,15 +164,15 @@
         ],
         "source": {
           "type": "StringLiteral",
-          "start": 31,
-          "end": 40,
+          "start": 64,
+          "end": 73,
           "loc": {
             "start": {
-              "line": 1,
+              "line": 3,
               "column": 31
             },
             "end": {
-              "line": 1,
+              "line": 3,
               "column": 40
             }
           },
@@ -117,15 +186,15 @@
           {
             "type": "CommentBlock",
             "value": "*\n * @ignore\n ",
-            "start": 43,
-            "end": 61,
+            "start": 76,
+            "end": 94,
             "loc": {
               "start": {
-                "line": 3,
+                "line": 5,
                 "column": 0
               },
               "end": {
-                "line": 5,
+                "line": 7,
                 "column": 3
               }
             }
@@ -134,15 +203,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 62,
-        "end": 279,
+        "start": 95,
+        "end": 312,
         "loc": {
           "start": {
-            "line": 6,
+            "line": 8,
             "column": 0
           },
           "end": {
-            "line": 15,
+            "line": 17,
             "column": 1
           }
         },
@@ -150,29 +219,29 @@
         "source": null,
         "declaration": {
           "type": "FunctionDeclaration",
-          "start": 69,
-          "end": 279,
+          "start": 102,
+          "end": 312,
           "loc": {
             "start": {
-              "line": 6,
+              "line": 8,
               "column": 7
             },
             "end": {
-              "line": 15,
+              "line": 17,
               "column": 1
             }
           },
           "id": {
             "type": "Identifier",
-            "start": 78,
-            "end": 100,
+            "start": 111,
+            "end": 133,
             "loc": {
               "start": {
-                "line": 6,
+                "line": 8,
                 "column": 16
               },
               "end": {
-                "line": 6,
+                "line": 8,
                 "column": 38
               },
               "identifierName": "getOrbitShaderFragment"
@@ -186,44 +255,44 @@
           "params": [],
           "body": {
             "type": "BlockStatement",
-            "start": 103,
-            "end": 279,
+            "start": 136,
+            "end": 312,
             "loc": {
               "start": {
-                "line": 6,
+                "line": 8,
                 "column": 41
               },
               "end": {
-                "line": 15,
+                "line": 17,
                 "column": 1
               }
             },
             "body": [
               {
                 "type": "ReturnStatement",
-                "start": 107,
-                "end": 277,
+                "start": 140,
+                "end": 310,
                 "loc": {
                   "start": {
-                    "line": 7,
+                    "line": 9,
                     "column": 2
                   },
                   "end": {
-                    "line": 14,
+                    "line": 16,
                     "column": 4
                   }
                 },
                 "argument": {
                   "type": "TemplateLiteral",
-                  "start": 114,
-                  "end": 276,
+                  "start": 147,
+                  "end": 309,
                   "loc": {
                     "start": {
-                      "line": 7,
+                      "line": 9,
                       "column": 9
                     },
                     "end": {
-                      "line": 14,
+                      "line": 16,
                       "column": 3
                     }
                   },
@@ -231,15 +300,15 @@
                   "quasis": [
                     {
                       "type": "TemplateElement",
-                      "start": 115,
-                      "end": 275,
+                      "start": 148,
+                      "end": 308,
                       "loc": {
                         "start": {
-                          "line": 7,
+                          "line": 9,
                           "column": 10
                         },
                         "end": {
-                          "line": 14,
+                          "line": 16,
                           "column": 2
                         }
                       },
@@ -260,15 +329,15 @@
             {
               "type": "CommentBlock",
               "value": "*\n * @ignore\n ",
-              "start": 43,
-              "end": 61,
+              "start": 76,
+              "end": 94,
               "loc": {
                 "start": {
-                  "line": 3,
+                  "line": 5,
                   "column": 0
                 },
                 "end": {
-                  "line": 5,
+                  "line": 7,
                   "column": 3
                 }
               }
@@ -278,15 +347,15 @@
             {
               "type": "CommentBlock",
               "value": "*\n * @ignore\n ",
-              "start": 281,
-              "end": 299,
+              "start": 314,
+              "end": 332,
               "loc": {
                 "start": {
-                  "line": 17,
+                  "line": 19,
                   "column": 0
                 },
                 "end": {
-                  "line": 19,
+                  "line": 21,
                   "column": 3
                 }
               }
@@ -297,15 +366,15 @@
           {
             "type": "CommentBlock",
             "value": "*\n * @ignore\n ",
-            "start": 43,
-            "end": 61,
+            "start": 76,
+            "end": 94,
             "loc": {
               "start": {
-                "line": 3,
+                "line": 5,
                 "column": 0
               },
               "end": {
-                "line": 5,
+                "line": 7,
                 "column": 3
               }
             }
@@ -315,15 +384,15 @@
           {
             "type": "CommentBlock",
             "value": "*\n * @ignore\n ",
-            "start": 281,
-            "end": 299,
+            "start": 314,
+            "end": 332,
             "loc": {
               "start": {
-                "line": 17,
+                "line": 19,
                 "column": 0
               },
               "end": {
-                "line": 19,
+                "line": 21,
                 "column": 3
               }
             }
@@ -332,15 +401,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 300,
-        "end": 2899,
+        "start": 333,
+        "end": 2932,
         "loc": {
           "start": {
-            "line": 20,
+            "line": 22,
             "column": 0
           },
           "end": {
-            "line": 112,
+            "line": 115,
             "column": 1
           }
         },
@@ -348,29 +417,29 @@
         "source": null,
         "declaration": {
           "type": "FunctionDeclaration",
-          "start": 307,
-          "end": 2899,
+          "start": 340,
+          "end": 2932,
           "loc": {
             "start": {
-              "line": 20,
+              "line": 22,
               "column": 7
             },
             "end": {
-              "line": 112,
+              "line": 115,
               "column": 1
             }
           },
           "id": {
             "type": "Identifier",
-            "start": 316,
-            "end": 336,
+            "start": 349,
+            "end": 369,
             "loc": {
               "start": {
-                "line": 20,
+                "line": 22,
                 "column": 16
               },
               "end": {
-                "line": 20,
+                "line": 22,
                 "column": 36
               },
               "identifierName": "getOrbitShaderVertex"
@@ -384,101 +453,101 @@
           "params": [],
           "body": {
             "type": "BlockStatement",
-            "start": 339,
-            "end": 2899,
+            "start": 372,
+            "end": 2932,
             "loc": {
               "start": {
-                "line": 20,
+                "line": 22,
                 "column": 39
               },
               "end": {
-                "line": 112,
+                "line": 115,
                 "column": 1
               }
             },
             "body": [
               {
                 "type": "ReturnStatement",
-                "start": 343,
-                "end": 2897,
+                "start": 376,
+                "end": 2930,
                 "loc": {
                   "start": {
-                    "line": 21,
+                    "line": 23,
                     "column": 2
                   },
                   "end": {
-                    "line": 111,
+                    "line": 114,
                     "column": 4
                   }
                 },
                 "argument": {
                   "type": "TemplateLiteral",
-                  "start": 350,
-                  "end": 2896,
+                  "start": 383,
+                  "end": 2929,
                   "loc": {
                     "start": {
-                      "line": 21,
+                      "line": 23,
                       "column": 9
                     },
                     "end": {
-                      "line": 111,
+                      "line": 114,
                       "column": 3
                     }
                   },
                   "expressions": [
                     {
                       "type": "CallExpression",
-                      "start": 1393,
-                      "end": 1437,
+                      "start": 1426,
+                      "end": 1470,
                       "loc": {
                         "start": {
-                          "line": 65,
+                          "line": 68,
                           "column": 18
                         },
                         "end": {
-                          "line": 67,
+                          "line": 70,
                           "column": 7
                         }
                       },
                       "callee": {
                         "type": "MemberExpression",
-                        "start": 1393,
-                        "end": 1417,
+                        "start": 1426,
+                        "end": 1450,
                         "loc": {
                           "start": {
-                            "line": 65,
+                            "line": 68,
                             "column": 18
                           },
                           "end": {
-                            "line": 65,
+                            "line": 68,
                             "column": 42
                           }
                         },
                         "object": {
                           "type": "CallExpression",
-                          "start": 1393,
-                          "end": 1409,
+                          "start": 1426,
+                          "end": 1442,
                           "loc": {
                             "start": {
-                              "line": 65,
+                              "line": 68,
                               "column": 18
                             },
                             "end": {
-                              "line": 65,
+                              "line": 68,
                               "column": 34
                             }
                           },
                           "callee": {
                             "type": "Identifier",
-                            "start": 1393,
-                            "end": 1407,
+                            "start": 1426,
+                            "end": 1440,
                             "loc": {
                               "start": {
-                                "line": 65,
+                                "line": 68,
                                 "column": 18
                               },
                               "end": {
-                                "line": 65,
+                                "line": 68,
                                 "column": 32
                               },
                               "identifierName": "getScaleFactor"
@@ -489,15 +558,15 @@
                         },
                         "property": {
                           "type": "Identifier",
-                          "start": 1410,
-                          "end": 1417,
+                          "start": 1443,
+                          "end": 1450,
                           "loc": {
                             "start": {
-                              "line": 65,
+                              "line": 68,
                               "column": 35
                             },
                             "end": {
-                              "line": 65,
+                              "line": 68,
                               "column": 42
                             },
                             "identifierName": "toFixed"
@@ -509,15 +578,15 @@
                       "arguments": [
                         {
                           "type": "NumericLiteral",
-                          "start": 1427,
-                          "end": 1428,
+                          "start": 1460,
+                          "end": 1461,
                           "loc": {
                             "start": {
-                              "line": 66,
+                              "line": 69,
                               "column": 8
                             },
                             "end": {
-                              "line": 66,
+                              "line": 69,
                               "column": 9
                             }
                           },
@@ -533,35 +602,35 @@
                   "quasis": [
                     {
                       "type": "TemplateElement",
-                      "start": 351,
-                      "end": 1391,
+                      "start": 384,
+                      "end": 1424,
                       "loc": {
                         "start": {
-                          "line": 21,
+                          "line": 23,
                           "column": 10
                         },
                         "end": {
-                          "line": 65,
+                          "line": 68,
                           "column": 16
                         }
                       },
                       "value": {
-                        "raw": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 100; foo++) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = ",
-                        "cooked": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 100; foo++) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = "
+                        "raw": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n\n      for ( int i = 0; i < 100; i ++ ) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = ",
+                        "cooked": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n\n      for ( int i = 0; i < 100; i ++ ) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = "
                       },
                       "tail": false
                     },
                     {
                       "type": "TemplateElement",
-                      "start": 1438,
-                      "end": 2895,
+                      "start": 1471,
+                      "end": 2928,
                       "loc": {
                         "start": {
-                          "line": 67,
+                          "line": 70,
                           "column": 8
                         },
                         "end": {
-                          "line": 111,
+                          "line": 114,
                           "column": 2
                         }
                       },
@@ -581,15 +650,15 @@
             {
               "type": "CommentBlock",
               "value": "*\n * @ignore\n ",
-              "start": 281,
-              "end": 299,
+              "start": 314,
+              "end": 332,
               "loc": {
                 "start": {
-                  "line": 17,
+                  "line": 19,
                   "column": 0
                 },
                 "end": {
-                  "line": 19,
+                  "line": 21,
                   "column": 3
                 }
               }
@@ -601,15 +670,15 @@
           {
             "type": "CommentBlock",
             "value": "*\n * @ignore\n ",
-            "start": 281,
-            "end": 299,
+            "start": 314,
+            "end": 332,
             "loc": {
               "start": {
-                "line": 17,
+                "line": 19,
                 "column": 0
               },
               "end": {
-                "line": 19,
+                "line": 21,
                 "column": 3
               }
             }
@@ -618,15 +687,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 2901,
-        "end": 3097,
+        "start": 2934,
+        "end": 3130,
         "loc": {
           "start": {
-            "line": 114,
+            "line": 117,
             "column": 0
           },
           "end": {
-            "line": 121,
+            "line": 124,
             "column": 2
           }
         },
@@ -634,44 +703,44 @@
         "source": null,
         "declaration": {
           "type": "VariableDeclaration",
-          "start": 2908,
-          "end": 3097,
+          "start": 2941,
+          "end": 3130,
           "loc": {
             "start": {
-              "line": 114,
+              "line": 117,
               "column": 7
             },
             "end": {
-              "line": 121,
+              "line": 124,
               "column": 2
             }
           },
           "declarations": [
             {
               "type": "VariableDeclarator",
-              "start": 2914,
-              "end": 3096,
+              "start": 2947,
+              "end": 3129,
               "loc": {
                 "start": {
-                  "line": 114,
+                  "line": 117,
                   "column": 13
                 },
                 "end": {
-                  "line": 121,
+                  "line": 124,
                   "column": 1
                 }
               },
               "id": {
                 "type": "Identifier",
-                "start": 2914,
-                "end": 2934,
+                "start": 2947,
+                "end": 2967,
                 "loc": {
                   "start": {
-                    "line": 114,
+                    "line": 117,
                     "column": 13
                   },
                   "end": {
-                    "line": 114,
+                    "line": 117,
                     "column": 33
                   },
                   "identifierName": "STAR_SHADER_FRAGMENT"
@@ -680,15 +749,15 @@
               },
               "init": {
                 "type": "TemplateLiteral",
-                "start": 2937,
-                "end": 3096,
+                "start": 2970,
+                "end": 3129,
                 "loc": {
                   "start": {
-                    "line": 114,
+                    "line": 117,
                     "column": 36
                   },
                   "end": {
-                    "line": 121,
+                    "line": 124,
                     "column": 1
                   }
                 },
@@ -696,15 +765,15 @@
                 "quasis": [
                   {
                     "type": "TemplateElement",
-                    "start": 2938,
-                    "end": 3095,
+                    "start": 2971,
+                    "end": 3128,
                     "loc": {
                       "start": {
-                        "line": 114,
+                        "line": 117,
                         "column": 37
                       },
                       "end": {
-                        "line": 121,
+                        "line": 124,
                         "column": 0
                       }
                     },
@@ -725,15 +794,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 3099,
-        "end": 3384,
+        "start": 3132,
+        "end": 3417,
         "loc": {
           "start": {
-            "line": 123,
+            "line": 126,
             "column": 0
           },
           "end": {
-            "line": 133,
+            "line": 136,
             "column": 2
           }
         },
@@ -741,44 +810,44 @@
         "source": null,
         "declaration": {
           "type": "VariableDeclaration",
-          "start": 3106,
-          "end": 3384,
+          "start": 3139,
+          "end": 3417,
           "loc": {
             "start": {
-              "line": 123,
+              "line": 126,
               "column": 7
             },
             "end": {
-              "line": 133,
+              "line": 136,
               "column": 2
             }
           },
           "declarations": [
             {
               "type": "VariableDeclarator",
-              "start": 3112,
-              "end": 3383,
+              "start": 3145,
+              "end": 3416,
               "loc": {
                 "start": {
-                  "line": 123,
+                  "line": 126,
                   "column": 13
                 },
                 "end": {
-                  "line": 133,
+                  "line": 136,
                   "column": 1
                 }
               },
               "id": {
                 "type": "Identifier",
-                "start": 3112,
-                "end": 3130,
+                "start": 3145,
+                "end": 3163,
                 "loc": {
                   "start": {
-                    "line": 123,
+                    "line": 126,
                     "column": 13
                   },
                   "end": {
-                    "line": 123,
+                    "line": 126,
                     "column": 31
                   },
                   "identifierName": "STAR_SHADER_VERTEX"
@@ -787,15 +856,15 @@
               },
               "init": {
                 "type": "TemplateLiteral",
-                "start": 3133,
-                "end": 3383,
+                "start": 3166,
+                "end": 3416,
                 "loc": {
                   "start": {
-                    "line": 123,
+                    "line": 126,
                     "column": 34
                   },
                   "end": {
-                    "line": 133,
+                    "line": 136,
                     "column": 1
                   }
                 },
@@ -803,15 +872,15 @@
                 "quasis": [
                   {
                     "type": "TemplateElement",
-                    "start": 3134,
-                    "end": 3382,
+                    "start": 3167,
+                    "end": 3415,
                     "loc": {
                       "start": {
-                        "line": 123,
+                        "line": 126,
                         "column": 35
                       },
                       "end": {
-                        "line": 133,
+                        "line": 136,
                         "column": 0
                       }
                     },
@@ -832,15 +901,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 3386,
-        "end": 3738,
+        "start": 3419,
+        "end": 3771,
         "loc": {
           "start": {
-            "line": 135,
+            "line": 138,
             "column": 0
           },
           "end": {
-            "line": 145,
+            "line": 148,
             "column": 2
           }
         },
@@ -848,44 +917,44 @@
         "source": null,
         "declaration": {
           "type": "VariableDeclaration",
-          "start": 3393,
-          "end": 3738,
+          "start": 3426,
+          "end": 3771,
           "loc": {
             "start": {
-              "line": 135,
+              "line": 138,
               "column": 7
             },
             "end": {
-              "line": 145,
+              "line": 148,
               "column": 2
             }
           },
           "declarations": [
             {
               "type": "VariableDeclarator",
-              "start": 3399,
-              "end": 3737,
+              "start": 3432,
+              "end": 3770,
               "loc": {
                 "start": {
-                  "line": 135,
+                  "line": 138,
                   "column": 13
                 },
                 "end": {
-                  "line": 145,
+                  "line": 148,
                   "column": 1
                 }
               },
               "id": {
                 "type": "Identifier",
-                "start": 3399,
-                "end": 3429,
+                "start": 3432,
+                "end": 3462,
                 "loc": {
                   "start": {
-                    "line": 135,
+                    "line": 138,
                     "column": 13
                   },
                   "end": {
-                    "line": 135,
+                    "line": 138,
                     "column": 43
                   },
                   "identifierName": "GENERIC_PARTICLE_SHADER_VERTEX"
@@ -894,15 +963,15 @@
               },
               "init": {
                 "type": "TemplateLiteral",
-                "start": 3432,
-                "end": 3737,
+                "start": 3465,
+                "end": 3770,
                 "loc": {
                   "start": {
-                    "line": 135,
+                    "line": 138,
                     "column": 46
                   },
                   "end": {
-                    "line": 145,
+                    "line": 148,
                     "column": 1
                   }
                 },
@@ -910,15 +979,15 @@
                 "quasis": [
                   {
                     "type": "TemplateElement",
-                    "start": 3433,
-                    "end": 3736,
+                    "start": 3466,
+                    "end": 3769,
                     "loc": {
                       "start": {
-                        "line": 135,
+                        "line": 138,
                         "column": 47
                       },
                       "end": {
-                        "line": 145,
+                        "line": 148,
                         "column": 0
                       }
                     },
@@ -939,15 +1008,15 @@
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 3740,
-        "end": 4062,
+        "start": 3773,
+        "end": 4095,
         "loc": {
           "start": {
-            "line": 147,
+            "line": 150,
             "column": 0
           },
           "end": {
-            "line": 156,
+            "line": 159,
             "column": 2
           }
         },
@@ -955,44 +1024,44 @@
         "source": null,
         "declaration": {
           "type": "VariableDeclaration",
-          "start": 3747,
-          "end": 4062,
+          "start": 3780,
+          "end": 4095,
           "loc": {
             "start": {
-              "line": 147,
+              "line": 150,
               "column": 7
             },
             "end": {
-              "line": 156,
+              "line": 159,
               "column": 2
             }
           },
           "declarations": [
             {
               "type": "VariableDeclarator",
-              "start": 3753,
-              "end": 4061,
+              "start": 3786,
+              "end": 4094,
               "loc": {
                 "start": {
-                  "line": 147,
+                  "line": 150,
                   "column": 13
                 },
                 "end": {
-                  "line": 156,
+                  "line": 159,
                   "column": 1
                 }
               },
               "id": {
                 "type": "Identifier",
-                "start": 3753,
-                "end": 3785,
+                "start": 3786,
+                "end": 3818,
                 "loc": {
                   "start": {
-                    "line": 147,
+                    "line": 150,
                     "column": 13
                   },
                   "end": {
-                    "line": 147,
+                    "line": 150,
                     "column": 45
                   },
                   "identifierName": "GENERIC_PARTICLE_SHADER_FRAGMENT"
@@ -1001,15 +1070,15 @@
               },
               "init": {
                 "type": "TemplateLiteral",
-                "start": 3788,
-                "end": 4061,
+                "start": 3821,
+                "end": 4094,
                 "loc": {
                   "start": {
-                    "line": 147,
+                    "line": 150,
                     "column": 48
                   },
                   "end": {
-                    "line": 156,
+                    "line": 159,
                     "column": 1
                   }
                 },
@@ -1017,21 +1086,735 @@
                 "quasis": [
                   {
                     "type": "TemplateElement",
-                    "start": 3789,
-                    "end": 4060,
+                    "start": 3822,
+                    "end": 4093,
                     "loc": {
                       "start": {
-                        "line": 147,
+                        "line": 150,
                         "column": 49
                       },
                       "end": {
-                        "line": 156,
+                        "line": 159,
                         "column": 0
                       }
                     },
                     "value": {
                       "raw": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n",
                       "cooked": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 4097,
+        "end": 4937,
+        "loc": {
+          "start": {
+            "line": 161,
+            "column": 0
+          },
+          "end": {
+            "line": 186,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 4104,
+          "end": 4937,
+          "loc": {
+            "start": {
+              "line": 161,
+              "column": 7
+            },
+            "end": {
+              "line": 186,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 4110,
+              "end": 4936,
+              "loc": {
+                "start": {
+                  "line": 161,
+                  "column": 13
+                },
+                "end": {
+                  "line": 186,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 4110,
+                "end": 4134,
+                "loc": {
+                  "start": {
+                    "line": 161,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 161,
+                    "column": 37
+                  },
+                  "identifierName": "ATMOSPHERE_SHADER_VERTEX"
+                },
+                "name": "ATMOSPHERE_SHADER_VERTEX"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 4137,
+                "end": 4936,
+                "loc": {
+                  "start": {
+                    "line": 161,
+                    "column": 40
+                  },
+                  "end": {
+                    "line": 186,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 4138,
+                    "end": 4935,
+                    "loc": {
+                      "start": {
+                        "line": 161,
+                        "column": 41
+                      },
+                      "end": {
+                        "line": 186,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  //varying vec3 vNormal;\n\n  varying vec3 vViewLightPos;\n\n  void main() {\n    //vNormal = normalize(normalMatrix * normal);\n    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n\n    vUv = uv;\n    // Since the light is in camera coordinates,\n    // I'll need the vertex position in camera coords too\n    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n    // That's NOT exacly how you should transform your\n    // normals but this will work fine, since my model\n    // matrix is pretty basic\n    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    gl_Position = projectionMatrix * vec4(vecPos, 1.0);\n  }\n",
+                      "cooked": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  //varying vec3 vNormal;\n\n  varying vec3 vViewLightPos;\n\n  void main() {\n    //vNormal = normalize(normalMatrix * normal);\n    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n\n    vUv = uv;\n    // Since the light is in camera coordinates,\n    // I'll need the vertex position in camera coords too\n    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n    // That's NOT exacly how you should transform your\n    // normals but this will work fine, since my model\n    // matrix is pretty basic\n    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    gl_Position = projectionMatrix * vec4(vecPos, 1.0);\n  }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "trailingComments": [
+            {
+              "type": "CommentLine",
+              "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+              "start": 4939,
+              "end": 5058,
+              "loc": {
+                "start": {
+                  "line": 188,
+                  "column": 0
+                },
+                "end": {
+                  "line": 188,
+                  "column": 119
+                }
+              }
+            }
+          ],
+          "leadingComments": []
+        },
+        "trailingComments": [
+          {
+            "type": "CommentLine",
+            "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+            "start": 4939,
+            "end": 5058,
+            "loc": {
+              "start": {
+                "line": 188,
+                "column": 0
+              },
+              "end": {
+                "line": 188,
+                "column": 119
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 5059,
+        "end": 5700,
+        "loc": {
+          "start": {
+            "line": 189,
+            "column": 0
+          },
+          "end": {
+            "line": 210,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 5066,
+          "end": 5700,
+          "loc": {
+            "start": {
+              "line": 189,
+              "column": 7
+            },
+            "end": {
+              "line": 210,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 5072,
+              "end": 5699,
+              "loc": {
+                "start": {
+                  "line": 189,
+                  "column": 13
+                },
+                "end": {
+                  "line": 210,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 5072,
+                "end": 5098,
+                "loc": {
+                  "start": {
+                    "line": 189,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 189,
+                    "column": 39
+                  },
+                  "identifierName": "ATMOSPHERE_SHADER_FRAGMENT"
+                },
+                "name": "ATMOSPHERE_SHADER_FRAGMENT",
+                "leadingComments": null
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 5101,
+                "end": 5699,
+                "loc": {
+                  "start": {
+                    "line": 189,
+                    "column": 42
+                  },
+                  "end": {
+                    "line": 210,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 5102,
+                    "end": 5698,
+                    "loc": {
+                      "start": {
+                        "line": 189,
+                        "column": 43
+                      },
+                      "end": {
+                        "line": 210,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  uniform float c;\n  uniform float p;\n  uniform vec3 color;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  varying vec3  vViewLightPos;\n\n  void main() {\n    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);\n\n    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);\n    vec3 lightDirection = normalize(vecPos - vViewLightPos);\n    addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)\n                       * 1.0 /* intensity */;\n                       // * pointLights[i].color\n\n    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;\n  }\n",
+                      "cooked": "\n  uniform float c;\n  uniform float p;\n  uniform vec3 color;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  varying vec3  vViewLightPos;\n\n  void main() {\n    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);\n\n    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);\n    vec3 lightDirection = normalize(vecPos - vViewLightPos);\n    addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)\n                       * 1.0 /* intensity */;\n                       // * pointLights[i].color\n\n    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;\n  }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              },
+              "leadingComments": null
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [
+            {
+              "type": "CommentLine",
+              "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+              "start": 4939,
+              "end": 5058,
+              "loc": {
+                "start": {
+                  "line": 188,
+                  "column": 0
+                },
+                "end": {
+                  "line": 188,
+                  "column": 119
+                }
+              }
+            }
+          ],
+          "trailingComments": []
+        },
+        "leadingComments": [
+          {
+            "type": "CommentLine",
+            "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+            "start": 4939,
+            "end": 5058,
+            "loc": {
+              "start": {
+                "line": 188,
+                "column": 0
+              },
+              "end": {
+                "line": 188,
+                "column": 119
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 5702,
+        "end": 6163,
+        "loc": {
+          "start": {
+            "line": 212,
+            "column": 0
+          },
+          "end": {
+            "line": 229,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 5709,
+          "end": 6163,
+          "loc": {
+            "start": {
+              "line": 212,
+              "column": 7
+            },
+            "end": {
+              "line": 229,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 5715,
+              "end": 6162,
+              "loc": {
+                "start": {
+                  "line": 212,
+                  "column": 13
+                },
+                "end": {
+                  "line": 229,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 5715,
+                "end": 5735,
+                "loc": {
+                  "start": {
+                    "line": 212,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 212,
+                    "column": 33
+                  },
+                  "identifierName": "SPHERE_SHADER_VERTEX"
+                },
+                "name": "SPHERE_SHADER_VERTEX"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 5738,
+                "end": 6162,
+                "loc": {
+                  "start": {
+                    "line": 212,
+                    "column": 36
+                  },
+                  "end": {
+                    "line": 229,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 5739,
+                    "end": 6161,
+                    "loc": {
+                      "start": {
+                        "line": 212,
+                        "column": 37
+                      },
+                      "end": {
+                        "line": 229,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n  varying vec3 vNormal;\n\n  void main() {\n    vUv = uv;\n    vec4 vViewPosition4 = modelViewMatrix * vec4(position, 1.0);\n    vViewPosition = vViewPosition4.xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    vNormal = normalMatrix * normal;\n\n    gl_Position = projectionMatrix * vViewPosition4;\n  }\n",
+                      "cooked": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n  varying vec3 vNormal;\n\n  void main() {\n    vUv = uv;\n    vec4 vViewPosition4 = modelViewMatrix * vec4(position, 1.0);\n    vViewPosition = vViewPosition4.xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    vNormal = normalMatrix * normal;\n\n    gl_Position = projectionMatrix * vViewPosition4;\n  }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 6165,
+        "end": 6610,
+        "loc": {
+          "start": {
+            "line": 231,
+            "column": 0
+          },
+          "end": {
+            "line": 245,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 6172,
+          "end": 6610,
+          "loc": {
+            "start": {
+              "line": 231,
+              "column": 7
+            },
+            "end": {
+              "line": 245,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 6178,
+              "end": 6609,
+              "loc": {
+                "start": {
+                  "line": 231,
+                  "column": 13
+                },
+                "end": {
+                  "line": 245,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 6178,
+                "end": 6200,
+                "loc": {
+                  "start": {
+                    "line": 231,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 231,
+                    "column": 35
+                  },
+                  "identifierName": "SPHERE_SHADER_FRAGMENT"
+                },
+                "name": "SPHERE_SHADER_FRAGMENT"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 6203,
+                "end": 6609,
+                "loc": {
+                  "start": {
+                    "line": 231,
+                    "column": 38
+                  },
+                  "end": {
+                    "line": 245,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 6204,
+                    "end": 6608,
+                    "loc": {
+                      "start": {
+                        "line": 231,
+                        "column": 39
+                      },
+                      "end": {
+                        "line": 245,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  uniform sampler2D sphereTexture;\n\n  varying vec2 vUv;\n  varying vec3 vNormal;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n\n  void main() {\n    vec3 normal = normalize(vNormal);\n    vec3 lightDir = normalize(vViewLightPos - vViewPosition);\n    float lambertian = max(dot(normal, lightDir), 0.0);\n    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);\n  }\n",
+                      "cooked": "\n  uniform sampler2D sphereTexture;\n\n  varying vec2 vUv;\n  varying vec3 vNormal;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n\n  void main() {\n    vec3 normal = normalize(vNormal);\n    vec3 lightDir = normalize(vViewLightPos - vViewPosition);\n    float lambertian = max(dot(normal, lightDir), 0.0);\n    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);\n  }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 6612,
+        "end": 6986,
+        "loc": {
+          "start": {
+            "line": 247,
+            "column": 0
+          },
+          "end": {
+            "line": 260,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 6619,
+          "end": 6986,
+          "loc": {
+            "start": {
+              "line": 247,
+              "column": 7
+            },
+            "end": {
+              "line": 260,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 6625,
+              "end": 6985,
+              "loc": {
+                "start": {
+                  "line": 247,
+                  "column": 13
+                },
+                "end": {
+                  "line": 260,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 6625,
+                "end": 6643,
+                "loc": {
+                  "start": {
+                    "line": 247,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 247,
+                    "column": 31
+                  },
+                  "identifierName": "RING_SHADER_VERTEX"
+                },
+                "name": "RING_SHADER_VERTEX"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 6646,
+                "end": 6985,
+                "loc": {
+                  "start": {
+                    "line": 247,
+                    "column": 34
+                  },
+                  "end": {
+                    "line": 260,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 6647,
+                    "end": 6984,
+                    "loc": {
+                      "start": {
+                        "line": 247,
+                        "column": 35
+                      },
+                      "end": {
+                        "line": 260,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n  varying vec3 vNormal;\n\n  void main() {\n    vPos = position;\n    vec4 worldPosition = (modelMatrix * vec4(position, 1.));\n    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);\n\n    vNormal = normalMatrix * normal;\n    vWorldPosition = worldPosition.xyz;\n  }\n",
+                      "cooked": "\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n  varying vec3 vNormal;\n\n  void main() {\n    vPos = position;\n    vec4 worldPosition = (modelMatrix * vec4(position, 1.));\n    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);\n\n    vNormal = normalMatrix * normal;\n    vWorldPosition = worldPosition.xyz;\n  }\n"
+                    },
+                    "tail": true
+                  }
+                ]
+              }
+            }
+          ],
+          "kind": "const",
+          "leadingComments": [],
+          "trailingComments": []
+        }
+      },
+      {
+        "type": "ExportNamedDeclaration",
+        "start": 6988,
+        "end": 8301,
+        "loc": {
+          "start": {
+            "line": 262,
+            "column": 0
+          },
+          "end": {
+            "line": 311,
+            "column": 2
+          }
+        },
+        "specifiers": [],
+        "source": null,
+        "declaration": {
+          "type": "VariableDeclaration",
+          "start": 6995,
+          "end": 8301,
+          "loc": {
+            "start": {
+              "line": 262,
+              "column": 7
+            },
+            "end": {
+              "line": 311,
+              "column": 2
+            }
+          },
+          "declarations": [
+            {
+              "type": "VariableDeclarator",
+              "start": 7001,
+              "end": 8300,
+              "loc": {
+                "start": {
+                  "line": 262,
+                  "column": 13
+                },
+                "end": {
+                  "line": 311,
+                  "column": 1
+                }
+              },
+              "id": {
+                "type": "Identifier",
+                "start": 7001,
+                "end": 7021,
+                "loc": {
+                  "start": {
+                    "line": 262,
+                    "column": 13
+                  },
+                  "end": {
+                    "line": 262,
+                    "column": 33
+                  },
+                  "identifierName": "RING_SHADER_FRAGMENT"
+                },
+                "name": "RING_SHADER_FRAGMENT"
+              },
+              "init": {
+                "type": "TemplateLiteral",
+                "start": 7024,
+                "end": 8300,
+                "loc": {
+                  "start": {
+                    "line": 262,
+                    "column": 36
+                  },
+                  "end": {
+                    "line": 311,
+                    "column": 1
+                  }
+                },
+                "expressions": [],
+                "quasis": [
+                  {
+                    "type": "TemplateElement",
+                    "start": 7025,
+                    "end": 8299,
+                    "loc": {
+                      "start": {
+                        "line": 262,
+                        "column": 37
+                      },
+                      "end": {
+                        "line": 311,
+                        "column": 0
+                      }
+                    },
+                    "value": {
+                      "raw": "\n  uniform sampler2D ringTexture;\n  uniform float innerRadius;\n  uniform float outerRadius;\n  uniform vec3 lightPos;\n\n  varying vec3 vNormal;\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n\n  vec4 color() {\n    vec2 uv = vec2(0);\n    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);\n    if (uv.x < 0.0 || uv.x > 1.0) {\n      discard;\n    }\n\n    vec4 pixel = texture2D(ringTexture, uv);\n    return pixel;\n  }\n\n  vec3 shadow() {\n    // TODO(ian): planet and sun position uniforms\n    // sun position in saturn test\n\n    vec3 lightDir = normalize(vPos - lightPos);\n    vec3 planetPos = vec3(0);\n\n    vec3 ringPos = vPos - planetPos;\n    float posDotLightDir = dot(ringPos, lightDir);\n    float posDotLightDir2 = posDotLightDir * posDotLightDir;\n    float radius = 0.0389259903; // radius of saturn in coordinate system\n    float radius2 = radius * radius;\n    if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {\n      return vec3(0.0);\n    }\n    return vec3(1.0);\n  }\n\n  vec3 lights() {\n    vec3 lightDirection = normalize(vWorldPosition - lightPos);\n    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;\n\n    return vec3(c);\n  }\n\n  void main() {\n    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);\n  }\n",
+                      "cooked": "\n  uniform sampler2D ringTexture;\n  uniform float innerRadius;\n  uniform float outerRadius;\n  uniform vec3 lightPos;\n\n  varying vec3 vNormal;\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n\n  vec4 color() {\n    vec2 uv = vec2(0);\n    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);\n    if (uv.x < 0.0 || uv.x > 1.0) {\n      discard;\n    }\n\n    vec4 pixel = texture2D(ringTexture, uv);\n    return pixel;\n  }\n\n  vec3 shadow() {\n    // TODO(ian): planet and sun position uniforms\n    // sun position in saturn test\n\n    vec3 lightDir = normalize(vPos - lightPos);\n    vec3 planetPos = vec3(0);\n\n    vec3 ringPos = vPos - planetPos;\n    float posDotLightDir = dot(ringPos, lightDir);\n    float posDotLightDir2 = posDotLightDir * posDotLightDir;\n    float radius = 0.0389259903; // radius of saturn in coordinate system\n    float radius2 = radius * radius;\n    if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {\n      return vec3(0.0);\n    }\n    return vec3(1.0);\n  }\n\n  vec3 lights() {\n    vec3 lightDirection = normalize(vWorldPosition - lightPos);\n    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;\n\n    return vec3(c);\n  }\n\n  void main() {\n    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);\n  }\n"
                     },
                     "tail": true
                   }
@@ -1051,15 +1834,15 @@
     {
       "type": "CommentBlock",
       "value": "*\n * @ignore\n ",
-      "start": 43,
-      "end": 61,
+      "start": 76,
+      "end": 94,
       "loc": {
         "start": {
-          "line": 3,
+          "line": 5,
           "column": 0
         },
         "end": {
-          "line": 5,
+          "line": 7,
           "column": 3
         }
       }
@@ -1067,16 +1850,32 @@
     {
       "type": "CommentBlock",
       "value": "*\n * @ignore\n ",
-      "start": 281,
-      "end": 299,
+      "start": 314,
+      "end": 332,
       "loc": {
         "start": {
-          "line": 17,
+          "line": 19,
           "column": 0
         },
         "end": {
-          "line": 19,
+          "line": 21,
           "column": 3
+        }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+      "start": 4939,
+      "end": 5058,
+      "loc": {
+        "start": {
+          "line": 188,
+          "column": 0
+        },
+        "end": {
+          "line": 188,
+          "column": 119
         }
       }
     }
@@ -1112,16 +1911,18 @@
     },
     {
       "type": {
-        "label": "{",
+        "label": "*",
         "beforeExpr": true,
-        "startsExpr": true,
+        "startsExpr": false,
         "rightAssociative": false,
         "isLoop": false,
         "isAssign": false,
         "prefix": false,
         "postfix": false,
-        "binop": null
+        "binop": 10,
+        "updateContext": null
       },
+      "value": "*",
       "start": 7,
       "end": 8,
       "loc": {
@@ -1147,9 +1948,9 @@
         "postfix": false,
         "binop": null
       },
-      "value": "getScaleFactor",
+      "value": "as",
       "start": 9,
-      "end": 23,
+      "end": 11,
       "loc": {
         "start": {
           "line": 1,
@@ -1157,6 +1958,190 @@
         },
         "end": {
           "line": 1,
+          "column": 11
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "THREE",
+      "start": 12,
+      "end": 17,
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 12
+        },
+        "end": {
+          "line": 1,
+          "column": 17
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "from",
+      "start": 18,
+      "end": 22,
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 18
+        },
+        "end": {
+          "line": 1,
+          "column": 22
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "string",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "three",
+      "start": 23,
+      "end": 30,
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 23
+        },
+        "end": {
+          "line": 1,
+          "column": 30
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 30,
+      "end": 31,
+      "loc": {
+        "start": {
+          "line": 1,
+          "column": 30
+        },
+        "end": {
+          "line": 1,
+          "column": 31
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "import",
+        "keyword": "import",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "import",
+      "start": 33,
+      "end": 39,
+      "loc": {
+        "start": {
+          "line": 3,
+          "column": 0
+        },
+        "end": {
+          "line": 3,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "{",
+        "beforeExpr": true,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 40,
+      "end": 41,
+      "loc": {
+        "start": {
+          "line": 3,
+          "column": 7
+        },
+        "end": {
+          "line": 3,
+          "column": 8
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "getScaleFactor",
+      "start": 42,
+      "end": 56,
+      "loc": {
+        "start": {
+          "line": 3,
+          "column": 9
+        },
+        "end": {
+          "line": 3,
           "column": 23
         }
       }
@@ -1173,15 +2158,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 24,
-      "end": 25,
+      "start": 57,
+      "end": 58,
       "loc": {
         "start": {
-          "line": 1,
+          "line": 3,
           "column": 24
         },
         "end": {
-          "line": 1,
+          "line": 3,
           "column": 25
         }
       }
@@ -1199,15 +2184,15 @@
         "binop": null
       },
       "value": "from",
-      "start": 26,
-      "end": 30,
+      "start": 59,
+      "end": 63,
       "loc": {
         "start": {
-          "line": 1,
+          "line": 3,
           "column": 26
         },
         "end": {
-          "line": 1,
+          "line": 3,
           "column": 30
         }
       }
@@ -1226,15 +2211,15 @@
         "updateContext": null
       },
       "value": "./Scale",
-      "start": 31,
-      "end": 40,
+      "start": 64,
+      "end": 73,
       "loc": {
         "start": {
-          "line": 1,
+          "line": 3,
           "column": 31
         },
         "end": {
-          "line": 1,
+          "line": 3,
           "column": 40
         }
       }
@@ -1252,15 +2237,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 40,
-      "end": 41,
+      "start": 73,
+      "end": 74,
       "loc": {
         "start": {
-          "line": 1,
+          "line": 3,
           "column": 40
         },
         "end": {
-          "line": 1,
+          "line": 3,
           "column": 41
         }
       }
@@ -1268,15 +2253,15 @@
     {
       "type": "CommentBlock",
       "value": "*\n * @ignore\n ",
-      "start": 43,
-      "end": 61,
+      "start": 76,
+      "end": 94,
       "loc": {
         "start": {
-          "line": 3,
+          "line": 5,
           "column": 0
         },
         "end": {
-          "line": 5,
+          "line": 7,
           "column": 3
         }
       }
@@ -1296,15 +2281,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 62,
-      "end": 68,
+      "start": 95,
+      "end": 101,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 0
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 6
         }
       }
@@ -1323,15 +2308,15 @@
         "binop": null
       },
       "value": "function",
-      "start": 69,
-      "end": 77,
+      "start": 102,
+      "end": 110,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 7
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 15
         }
       }
@@ -1349,15 +2334,15 @@
         "binop": null
       },
       "value": "getOrbitShaderFragment",
-      "start": 78,
-      "end": 100,
+      "start": 111,
+      "end": 133,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 16
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 38
         }
       }
@@ -1374,15 +2359,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 100,
-      "end": 101,
+      "start": 133,
+      "end": 134,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 38
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 39
         }
       }
@@ -1399,15 +2384,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 101,
-      "end": 102,
+      "start": 134,
+      "end": 135,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 39
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 40
         }
       }
@@ -1424,15 +2409,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 103,
-      "end": 104,
+      "start": 136,
+      "end": 137,
       "loc": {
         "start": {
-          "line": 6,
+          "line": 8,
           "column": 41
         },
         "end": {
-          "line": 6,
+          "line": 8,
           "column": 42
         }
       }
@@ -1452,15 +2437,15 @@
         "updateContext": null
       },
       "value": "return",
-      "start": 107,
-      "end": 113,
+      "start": 140,
+      "end": 146,
       "loc": {
         "start": {
-          "line": 7,
+          "line": 9,
           "column": 2
         },
         "end": {
-          "line": 7,
+          "line": 9,
           "column": 8
         }
       }
@@ -1477,15 +2462,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 114,
-      "end": 115,
+      "start": 147,
+      "end": 148,
       "loc": {
         "start": {
-          "line": 7,
+          "line": 9,
           "column": 9
         },
         "end": {
-          "line": 7,
+          "line": 9,
           "column": 10
         }
       }
@@ -1504,15 +2489,15 @@
         "updateContext": null
       },
       "value": "\n    varying vec3 vColor;\n    uniform sampler2D texture;\n\n    void main() {\n      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);\n    }\n  ",
-      "start": 115,
-      "end": 275,
+      "start": 148,
+      "end": 308,
       "loc": {
         "start": {
-          "line": 7,
+          "line": 9,
           "column": 10
         },
         "end": {
-          "line": 14,
+          "line": 16,
           "column": 2
         }
       }
@@ -1529,15 +2514,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 275,
-      "end": 276,
+      "start": 308,
+      "end": 309,
       "loc": {
         "start": {
-          "line": 14,
+          "line": 16,
           "column": 2
         },
         "end": {
-          "line": 14,
+          "line": 16,
           "column": 3
         }
       }
@@ -1555,15 +2540,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 276,
-      "end": 277,
+      "start": 309,
+      "end": 310,
       "loc": {
         "start": {
-          "line": 14,
+          "line": 16,
           "column": 3
         },
         "end": {
-          "line": 14,
+          "line": 16,
           "column": 4
         }
       }
@@ -1580,15 +2565,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 278,
-      "end": 279,
+      "start": 311,
+      "end": 312,
       "loc": {
         "start": {
-          "line": 15,
+          "line": 17,
           "column": 0
         },
         "end": {
-          "line": 15,
+          "line": 17,
           "column": 1
         }
       }
@@ -1596,15 +2581,15 @@
     {
       "type": "CommentBlock",
       "value": "*\n * @ignore\n ",
-      "start": 281,
-      "end": 299,
+      "start": 314,
+      "end": 332,
       "loc": {
         "start": {
-          "line": 17,
+          "line": 19,
           "column": 0
         },
         "end": {
-          "line": 19,
+          "line": 21,
           "column": 3
         }
       }
@@ -1624,15 +2609,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 300,
-      "end": 306,
+      "start": 333,
+      "end": 339,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 0
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 6
         }
       }
@@ -1651,15 +2636,15 @@
         "binop": null
       },
       "value": "function",
-      "start": 307,
-      "end": 315,
+      "start": 340,
+      "end": 348,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 7
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 15
         }
       }
@@ -1677,15 +2662,15 @@
         "binop": null
       },
       "value": "getOrbitShaderVertex",
-      "start": 316,
-      "end": 336,
+      "start": 349,
+      "end": 369,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 16
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 36
         }
       }
@@ -1702,15 +2687,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 336,
-      "end": 337,
+      "start": 369,
+      "end": 370,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 36
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 37
         }
       }
@@ -1727,15 +2712,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 337,
-      "end": 338,
+      "start": 370,
+      "end": 371,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 37
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 38
         }
       }
@@ -1752,15 +2737,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 339,
-      "end": 340,
+      "start": 372,
+      "end": 373,
       "loc": {
         "start": {
-          "line": 20,
+          "line": 22,
           "column": 39
         },
         "end": {
-          "line": 20,
+          "line": 22,
           "column": 40
         }
       }
@@ -1780,15 +2765,15 @@
         "updateContext": null
       },
       "value": "return",
-      "start": 343,
-      "end": 349,
+      "start": 376,
+      "end": 382,
       "loc": {
         "start": {
-          "line": 21,
+          "line": 23,
           "column": 2
         },
         "end": {
-          "line": 21,
+          "line": 23,
           "column": 8
         }
       }
@@ -1805,15 +2790,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 350,
-      "end": 351,
+      "start": 383,
+      "end": 384,
       "loc": {
         "start": {
-          "line": 21,
+          "line": 23,
           "column": 9
         },
         "end": {
-          "line": 21,
+          "line": 23,
           "column": 10
         }
       }
@@ -1831,16 +2816,16 @@
         "binop": null,
         "updateContext": null
       },
-      "value": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n      for (int foo=0; foo < 100; foo++) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = ",
-      "start": 351,
-      "end": 1391,
+      "value": "\n    attribute vec3 fuzzColor;\n    attribute vec3 origin;\n    varying vec3 vColor;\n\n    attribute float size;\n\n    attribute float a;\n    attribute float e;\n    attribute float i;\n    attribute float om;\n    attribute float w;\n    attribute float wBar;\n    attribute float M;\n\n    vec3 getAstroPos() {\n      float i_rad = i;\n      float o_rad = om;\n      float p_rad = wBar;\n\n      float adjusted_e = e;\n      if (e >= 1.0) {\n        adjusted_e = 0.9;\n      }\n\n      // Estimate eccentric and true anom using iterative approximation (this\n      // is normally an intergral).\n      float E0 = M;\n      float E1 = M + adjusted_e * sin(E0);\n      float lastdiff = abs(E1-E0);\n      E0 = E1;\n\n      for ( int i = 0; i < 100; i ++ ) {\n        E1 = M + adjusted_e * sin(E0);\n        lastdiff = abs(E1-E0);\n        E0 = E1;\n        if (lastdiff < 0.0000001) {\n          break;\n        }\n      }\n\n      float E = E0;\n      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));\n\n      // Compute radius vector.\n      float r = ",
+      "start": 384,
+      "end": 1424,
       "loc": {
         "start": {
-          "line": 21,
+          "line": 23,
           "column": 10
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 16
         }
       }
@@ -1857,15 +2842,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1391,
-      "end": 1393,
+      "start": 1424,
+      "end": 1426,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 16
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 18
         }
       }
@@ -1883,15 +2868,15 @@
         "binop": null
       },
       "value": "getScaleFactor",
-      "start": 1393,
-      "end": 1407,
+      "start": 1426,
+      "end": 1440,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 18
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 32
         }
       }
@@ -1908,15 +2893,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1407,
-      "end": 1408,
+      "start": 1440,
+      "end": 1441,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 32
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 33
         }
       }
@@ -1933,15 +2918,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1408,
-      "end": 1409,
+      "start": 1441,
+      "end": 1442,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 33
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 34
         }
       }
@@ -1959,15 +2944,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 1409,
-      "end": 1410,
+      "start": 1442,
+      "end": 1443,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 34
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 35
         }
       }
@@ -1985,15 +2970,15 @@
         "binop": null
       },
       "value": "toFixed",
-      "start": 1410,
-      "end": 1417,
+      "start": 1443,
+      "end": 1450,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 35
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 42
         }
       }
@@ -2010,15 +2995,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1417,
-      "end": 1418,
+      "start": 1450,
+      "end": 1451,
       "loc": {
         "start": {
-          "line": 65,
+          "line": 68,
           "column": 42
         },
         "end": {
-          "line": 65,
+          "line": 68,
           "column": 43
         }
       }
@@ -2037,15 +3022,15 @@
         "updateContext": null
       },
       "value": 1,
-      "start": 1427,
-      "end": 1428,
+      "start": 1460,
+      "end": 1461,
       "loc": {
         "start": {
-          "line": 66,
+          "line": 69,
           "column": 8
         },
         "end": {
-          "line": 66,
+          "line": 69,
           "column": 9
         }
       }
@@ -2063,15 +3048,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 1428,
-      "end": 1429,
+      "start": 1461,
+      "end": 1462,
       "loc": {
         "start": {
-          "line": 66,
+          "line": 69,
           "column": 9
         },
         "end": {
-          "line": 66,
+          "line": 69,
           "column": 10
         }
       }
@@ -2088,15 +3073,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1436,
-      "end": 1437,
+      "start": 1469,
+      "end": 1470,
       "loc": {
         "start": {
-          "line": 67,
+          "line": 70,
           "column": 6
         },
         "end": {
-          "line": 67,
+          "line": 70,
           "column": 7
         }
       }
@@ -2113,15 +3098,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 1437,
-      "end": 1438,
+      "start": 1470,
+      "end": 1471,
       "loc": {
         "start": {
-          "line": 67,
+          "line": 70,
           "column": 7
         },
         "end": {
-          "line": 67,
+          "line": 70,
           "column": 8
         }
       }
@@ -2140,15 +3125,15 @@
         "updateContext": null
       },
       "value": " * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));\n\n      // Compute heliocentric coords.\n      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));\n      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));\n      return vec3(X, Y, Z);\n    }\n\n    /*\n    vec3 getAstroPosFast() {\n      float M1 = ma + (jd - epoch) * n;\n      float theta = M1 + 2. * e * sin(M1);\n\n      float cosT = cos(theta);\n\n      float r = a * (1. - e * e) / (1. + e * cosT);\n      float v0 = r * cosT;\n      float v1 = r * sin(theta);\n\n      float sinOm = sin(om);\n      float cosOm = cos(om);\n      float sinW = sin(w);\n      float cosW = cos(w);\n      float sinI = sin(i);\n      float cosI = cos(i);\n\n      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);\n      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);\n      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);\n\n      return vec3(X, Y, Z);\n    }\n    */\n\n    void main() {\n      vColor = fuzzColor;\n\n      //vec3 newpos = getAstroPosFast() + origin;\n      vec3 newpos = getAstroPos() + origin;\n      vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);\n      gl_Position = projectionMatrix * mvPosition;\n      gl_PointSize = size;\n    }\n  ",
-      "start": 1438,
-      "end": 2895,
+      "start": 1471,
+      "end": 2928,
       "loc": {
         "start": {
-          "line": 67,
+          "line": 70,
           "column": 8
         },
         "end": {
-          "line": 111,
+          "line": 114,
           "column": 2
         }
       }
@@ -2165,15 +3150,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 2895,
-      "end": 2896,
+      "start": 2928,
+      "end": 2929,
       "loc": {
         "start": {
-          "line": 111,
+          "line": 114,
           "column": 2
         },
         "end": {
-          "line": 111,
+          "line": 114,
           "column": 3
         }
       }
@@ -2191,15 +3176,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 2896,
-      "end": 2897,
+      "start": 2929,
+      "end": 2930,
       "loc": {
         "start": {
-          "line": 111,
+          "line": 114,
           "column": 3
         },
         "end": {
-          "line": 111,
+          "line": 114,
           "column": 4
         }
       }
@@ -2216,15 +3201,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 2898,
-      "end": 2899,
+      "start": 2931,
+      "end": 2932,
       "loc": {
         "start": {
-          "line": 112,
+          "line": 115,
           "column": 0
         },
         "end": {
-          "line": 112,
+          "line": 115,
           "column": 1
         }
       }
@@ -2244,15 +3229,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 2901,
-      "end": 2907,
+      "start": 2934,
+      "end": 2940,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 0
         },
         "end": {
-          "line": 114,
+          "line": 117,
           "column": 6
         }
       }
@@ -2272,15 +3257,15 @@
         "updateContext": null
       },
       "value": "const",
-      "start": 2908,
-      "end": 2913,
+      "start": 2941,
+      "end": 2946,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 7
         },
         "end": {
-          "line": 114,
+          "line": 117,
           "column": 12
         }
       }
@@ -2298,15 +3283,15 @@
         "binop": null
       },
       "value": "STAR_SHADER_FRAGMENT",
-      "start": 2914,
-      "end": 2934,
+      "start": 2947,
+      "end": 2967,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 13
         },
         "end": {
-          "line": 114,
+          "line": 117,
           "column": 33
         }
       }
@@ -2325,15 +3310,15 @@
         "updateContext": null
       },
       "value": "=",
-      "start": 2935,
-      "end": 2936,
+      "start": 2968,
+      "end": 2969,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 34
         },
         "end": {
-          "line": 114,
+          "line": 117,
           "column": 35
         }
       }
@@ -2350,15 +3335,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 2937,
-      "end": 2938,
+      "start": 2970,
+      "end": 2971,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 36
         },
         "end": {
-          "line": 114,
+          "line": 117,
           "column": 37
         }
       }
@@ -2377,15 +3362,15 @@
         "updateContext": null
       },
       "value": "\n    varying vec3 vColor;\n\n    void main() {\n      float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));\n      gl_FragColor = vec4(vColor, a);\n    }\n",
-      "start": 2938,
-      "end": 3095,
+      "start": 2971,
+      "end": 3128,
       "loc": {
         "start": {
-          "line": 114,
+          "line": 117,
           "column": 37
         },
         "end": {
-          "line": 121,
+          "line": 124,
           "column": 0
         }
       }
@@ -2402,15 +3387,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3095,
-      "end": 3096,
+      "start": 3128,
+      "end": 3129,
       "loc": {
         "start": {
-          "line": 121,
+          "line": 124,
           "column": 0
         },
         "end": {
-          "line": 121,
+          "line": 124,
           "column": 1
         }
       }
@@ -2428,15 +3413,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 3096,
-      "end": 3097,
+      "start": 3129,
+      "end": 3130,
       "loc": {
         "start": {
-          "line": 121,
+          "line": 124,
           "column": 1
         },
         "end": {
-          "line": 121,
+          "line": 124,
           "column": 2
         }
       }
@@ -2456,15 +3441,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 3099,
-      "end": 3105,
+      "start": 3132,
+      "end": 3138,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 0
         },
         "end": {
-          "line": 123,
+          "line": 126,
           "column": 6
         }
       }
@@ -2484,15 +3469,15 @@
         "updateContext": null
       },
       "value": "const",
-      "start": 3106,
-      "end": 3111,
+      "start": 3139,
+      "end": 3144,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 7
         },
         "end": {
-          "line": 123,
+          "line": 126,
           "column": 12
         }
       }
@@ -2510,15 +3495,15 @@
         "binop": null
       },
       "value": "STAR_SHADER_VERTEX",
-      "start": 3112,
-      "end": 3130,
+      "start": 3145,
+      "end": 3163,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 13
         },
         "end": {
-          "line": 123,
+          "line": 126,
           "column": 31
         }
       }
@@ -2537,15 +3522,15 @@
         "updateContext": null
       },
       "value": "=",
-      "start": 3131,
-      "end": 3132,
+      "start": 3164,
+      "end": 3165,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 32
         },
         "end": {
-          "line": 123,
+          "line": 126,
           "column": 33
         }
       }
@@ -2562,15 +3547,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3133,
-      "end": 3134,
+      "start": 3166,
+      "end": 3167,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 34
         },
         "end": {
-          "line": 123,
+          "line": 126,
           "column": 35
         }
       }
@@ -2589,15 +3574,15 @@
         "updateContext": null
       },
       "value": "\n    attribute float size;\n    varying vec3 vColor;\n\n    void main() {\n        vColor = color;\n        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n        gl_PointSize = size;\n        gl_Position = projectionMatrix * mvPosition;\n    }\n",
-      "start": 3134,
-      "end": 3382,
+      "start": 3167,
+      "end": 3415,
       "loc": {
         "start": {
-          "line": 123,
+          "line": 126,
           "column": 35
         },
         "end": {
-          "line": 133,
+          "line": 136,
           "column": 0
         }
       }
@@ -2614,15 +3599,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3382,
-      "end": 3383,
+      "start": 3415,
+      "end": 3416,
       "loc": {
         "start": {
-          "line": 133,
+          "line": 136,
           "column": 0
         },
         "end": {
-          "line": 133,
+          "line": 136,
           "column": 1
         }
       }
@@ -2640,15 +3625,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 3383,
-      "end": 3384,
+      "start": 3416,
+      "end": 3417,
       "loc": {
         "start": {
-          "line": 133,
+          "line": 136,
           "column": 1
         },
         "end": {
-          "line": 133,
+          "line": 136,
           "column": 2
         }
       }
@@ -2668,15 +3653,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 3386,
-      "end": 3392,
+      "start": 3419,
+      "end": 3425,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 0
         },
         "end": {
-          "line": 135,
+          "line": 138,
           "column": 6
         }
       }
@@ -2696,15 +3681,15 @@
         "updateContext": null
       },
       "value": "const",
-      "start": 3393,
-      "end": 3398,
+      "start": 3426,
+      "end": 3431,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 7
         },
         "end": {
-          "line": 135,
+          "line": 138,
           "column": 12
         }
       }
@@ -2722,15 +3707,15 @@
         "binop": null
       },
       "value": "GENERIC_PARTICLE_SHADER_VERTEX",
-      "start": 3399,
-      "end": 3429,
+      "start": 3432,
+      "end": 3462,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 13
         },
         "end": {
-          "line": 135,
+          "line": 138,
           "column": 43
         }
       }
@@ -2749,15 +3734,15 @@
         "updateContext": null
       },
       "value": "=",
-      "start": 3430,
-      "end": 3431,
+      "start": 3463,
+      "end": 3464,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 44
         },
         "end": {
-          "line": 135,
+          "line": 138,
           "column": 45
         }
       }
@@ -2774,15 +3759,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3432,
-      "end": 3433,
+      "start": 3465,
+      "end": 3466,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 46
         },
         "end": {
-          "line": 135,
+          "line": 138,
           "column": 47
         }
       }
@@ -2801,15 +3786,15 @@
         "updateContext": null
       },
       "value": "\n    attribute float size;\n    attribute vec3 customColor;\n    varying vec3 vColor;\n    void main() {\n      vColor = customColor;\n      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n      gl_PointSize = size * (300.0 / -mvPosition.z);\n      gl_Position = projectionMatrix * mvPosition;\n    }\n",
-      "start": 3433,
-      "end": 3736,
+      "start": 3466,
+      "end": 3769,
       "loc": {
         "start": {
-          "line": 135,
+          "line": 138,
           "column": 47
         },
         "end": {
-          "line": 145,
+          "line": 148,
           "column": 0
         }
       }
@@ -2826,15 +3811,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3736,
-      "end": 3737,
+      "start": 3769,
+      "end": 3770,
       "loc": {
         "start": {
-          "line": 145,
+          "line": 148,
           "column": 0
         },
         "end": {
-          "line": 145,
+          "line": 148,
           "column": 1
         }
       }
@@ -2852,15 +3837,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 3737,
-      "end": 3738,
+      "start": 3770,
+      "end": 3771,
       "loc": {
         "start": {
-          "line": 145,
+          "line": 148,
           "column": 1
         },
         "end": {
-          "line": 145,
+          "line": 148,
           "column": 2
         }
       }
@@ -2880,15 +3865,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 3740,
-      "end": 3746,
+      "start": 3773,
+      "end": 3779,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 0
         },
         "end": {
-          "line": 147,
+          "line": 150,
           "column": 6
         }
       }
@@ -2908,15 +3893,15 @@
         "updateContext": null
       },
       "value": "const",
-      "start": 3747,
-      "end": 3752,
+      "start": 3780,
+      "end": 3785,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 7
         },
         "end": {
-          "line": 147,
+          "line": 150,
           "column": 12
         }
       }
@@ -2934,15 +3919,15 @@
         "binop": null
       },
       "value": "GENERIC_PARTICLE_SHADER_FRAGMENT",
-      "start": 3753,
-      "end": 3785,
+      "start": 3786,
+      "end": 3818,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 13
         },
         "end": {
-          "line": 147,
+          "line": 150,
           "column": 45
         }
       }
@@ -2961,15 +3946,15 @@
         "updateContext": null
       },
       "value": "=",
-      "start": 3786,
-      "end": 3787,
+      "start": 3819,
+      "end": 3820,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 46
         },
         "end": {
-          "line": 147,
+          "line": 150,
           "column": 47
         }
       }
@@ -2986,15 +3971,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 3788,
-      "end": 3789,
+      "start": 3821,
+      "end": 3822,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 48
         },
         "end": {
-          "line": 147,
+          "line": 150,
           "column": 49
         }
       }
@@ -3013,15 +3998,15 @@
         "updateContext": null
       },
       "value": "\n    uniform vec3 color;\n    uniform sampler2D texture;\n    varying vec3 vColor;\n    void main() {\n      gl_FragColor = vec4(color * vColor, 1.0);\n      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);\n      if (gl_FragColor.a < ALPHATEST) discard;\n    }\n",
-      "start": 3789,
-      "end": 4060,
+      "start": 3822,
+      "end": 4093,
       "loc": {
         "start": {
-          "line": 147,
+          "line": 150,
           "column": 49
         },
         "end": {
-          "line": 156,
+          "line": 159,
           "column": 0
         }
       }
@@ -3038,15 +4023,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 4060,
-      "end": 4061,
+      "start": 4093,
+      "end": 4094,
       "loc": {
         "start": {
-          "line": 156,
+          "line": 159,
           "column": 0
         },
         "end": {
-          "line": 156,
+          "line": 159,
           "column": 1
         }
       }
@@ -3064,15 +4049,1303 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 4061,
-      "end": 4062,
+      "start": 4094,
+      "end": 4095,
       "loc": {
         "start": {
-          "line": 156,
+          "line": 159,
           "column": 1
         },
         "end": {
-          "line": 156,
+          "line": 159,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 4097,
+      "end": 4103,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 0
+        },
+        "end": {
+          "line": 161,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 4104,
+      "end": 4109,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 7
+        },
+        "end": {
+          "line": 161,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "ATMOSPHERE_SHADER_VERTEX",
+      "start": 4110,
+      "end": 4134,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 13
+        },
+        "end": {
+          "line": 161,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 4135,
+      "end": 4136,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 38
+        },
+        "end": {
+          "line": 161,
+          "column": 39
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 4137,
+      "end": 4138,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 40
+        },
+        "end": {
+          "line": 161,
+          "column": 41
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  //varying vec3 vNormal;\n\n  varying vec3 vViewLightPos;\n\n  void main() {\n    //vNormal = normalize(normalMatrix * normal);\n    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n\n    vUv = uv;\n    // Since the light is in camera coordinates,\n    // I'll need the vertex position in camera coords too\n    vecPos = (modelViewMatrix * vec4(position, 1.0)).xyz;\n    // That's NOT exacly how you should transform your\n    // normals but this will work fine, since my model\n    // matrix is pretty basic\n    vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    gl_Position = projectionMatrix * vec4(vecPos, 1.0);\n  }\n",
+      "start": 4138,
+      "end": 4935,
+      "loc": {
+        "start": {
+          "line": 161,
+          "column": 41
+        },
+        "end": {
+          "line": 186,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 4935,
+      "end": 4936,
+      "loc": {
+        "start": {
+          "line": 186,
+          "column": 0
+        },
+        "end": {
+          "line": 186,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 4936,
+      "end": 4937,
+      "loc": {
+        "start": {
+          "line": 186,
+          "column": 1
+        },
+        "end": {
+          "line": 186,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": "CommentLine",
+      "value": " With help from https://stackoverflow.com/questions/43621274/how-to-correctly-set-lighting-for-custom-shader-material",
+      "start": 4939,
+      "end": 5058,
+      "loc": {
+        "start": {
+          "line": 188,
+          "column": 0
+        },
+        "end": {
+          "line": 188,
+          "column": 119
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 5059,
+      "end": 5065,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 0
+        },
+        "end": {
+          "line": 189,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 5066,
+      "end": 5071,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 7
+        },
+        "end": {
+          "line": 189,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "ATMOSPHERE_SHADER_FRAGMENT",
+      "start": 5072,
+      "end": 5098,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 13
+        },
+        "end": {
+          "line": 189,
+          "column": 39
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 5099,
+      "end": 5100,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 40
+        },
+        "end": {
+          "line": 189,
+          "column": 41
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 5101,
+      "end": 5102,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 42
+        },
+        "end": {
+          "line": 189,
+          "column": 43
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  uniform float c;\n  uniform float p;\n  uniform vec3 color;\n\n  varying vec2 vUv;\n  varying vec3 vecPos;\n  varying vec3 vecNormal;\n  varying vec3  vViewLightPos;\n\n  void main() {\n    float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);\n\n    vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);\n    vec3 lightDirection = normalize(vecPos - vViewLightPos);\n    addedLights.rgb += clamp(dot(-lightDirection, vecNormal), 0.0, 1.0)\n                       * 1.0 /* intensity */;\n                       // * pointLights[i].color\n\n    gl_FragColor = vec4(color, 1.0) * intensity * addedLights;\n  }\n",
+      "start": 5102,
+      "end": 5698,
+      "loc": {
+        "start": {
+          "line": 189,
+          "column": 43
+        },
+        "end": {
+          "line": 210,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 5698,
+      "end": 5699,
+      "loc": {
+        "start": {
+          "line": 210,
+          "column": 0
+        },
+        "end": {
+          "line": 210,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 5699,
+      "end": 5700,
+      "loc": {
+        "start": {
+          "line": 210,
+          "column": 1
+        },
+        "end": {
+          "line": 210,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 5702,
+      "end": 5708,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 0
+        },
+        "end": {
+          "line": 212,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 5709,
+      "end": 5714,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 7
+        },
+        "end": {
+          "line": 212,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "SPHERE_SHADER_VERTEX",
+      "start": 5715,
+      "end": 5735,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 13
+        },
+        "end": {
+          "line": 212,
+          "column": 33
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 5736,
+      "end": 5737,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 34
+        },
+        "end": {
+          "line": 212,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 5738,
+      "end": 5739,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 36
+        },
+        "end": {
+          "line": 212,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  uniform vec3 lightPos;\n\n  varying vec2 vUv;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n  varying vec3 vNormal;\n\n  void main() {\n    vUv = uv;\n    vec4 vViewPosition4 = modelViewMatrix * vec4(position, 1.0);\n    vViewPosition = vViewPosition4.xyz;\n    vViewLightPos = (viewMatrix * vec4(lightPos, 1.0)).xyz;\n    vNormal = normalMatrix * normal;\n\n    gl_Position = projectionMatrix * vViewPosition4;\n  }\n",
+      "start": 5739,
+      "end": 6161,
+      "loc": {
+        "start": {
+          "line": 212,
+          "column": 37
+        },
+        "end": {
+          "line": 229,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 6161,
+      "end": 6162,
+      "loc": {
+        "start": {
+          "line": 229,
+          "column": 0
+        },
+        "end": {
+          "line": 229,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 6162,
+      "end": 6163,
+      "loc": {
+        "start": {
+          "line": 229,
+          "column": 1
+        },
+        "end": {
+          "line": 229,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 6165,
+      "end": 6171,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 0
+        },
+        "end": {
+          "line": 231,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 6172,
+      "end": 6177,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 7
+        },
+        "end": {
+          "line": 231,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "SPHERE_SHADER_FRAGMENT",
+      "start": 6178,
+      "end": 6200,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 13
+        },
+        "end": {
+          "line": 231,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 6201,
+      "end": 6202,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 36
+        },
+        "end": {
+          "line": 231,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 6203,
+      "end": 6204,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 38
+        },
+        "end": {
+          "line": 231,
+          "column": 39
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  uniform sampler2D sphereTexture;\n\n  varying vec2 vUv;\n  varying vec3 vNormal;\n  varying vec3 vViewPosition;\n  varying vec3 vViewLightPos;\n\n  void main() {\n    vec3 normal = normalize(vNormal);\n    vec3 lightDir = normalize(vViewLightPos - vViewPosition);\n    float lambertian = max(dot(normal, lightDir), 0.0);\n    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);\n  }\n",
+      "start": 6204,
+      "end": 6608,
+      "loc": {
+        "start": {
+          "line": 231,
+          "column": 39
+        },
+        "end": {
+          "line": 245,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 6608,
+      "end": 6609,
+      "loc": {
+        "start": {
+          "line": 245,
+          "column": 0
+        },
+        "end": {
+          "line": 245,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 6609,
+      "end": 6610,
+      "loc": {
+        "start": {
+          "line": 245,
+          "column": 1
+        },
+        "end": {
+          "line": 245,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 6612,
+      "end": 6618,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 0
+        },
+        "end": {
+          "line": 247,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 6619,
+      "end": 6624,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 7
+        },
+        "end": {
+          "line": 247,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "RING_SHADER_VERTEX",
+      "start": 6625,
+      "end": 6643,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 13
+        },
+        "end": {
+          "line": 247,
+          "column": 31
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 6644,
+      "end": 6645,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 32
+        },
+        "end": {
+          "line": 247,
+          "column": 33
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 6646,
+      "end": 6647,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 34
+        },
+        "end": {
+          "line": 247,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n  varying vec3 vNormal;\n\n  void main() {\n    vPos = position;\n    vec4 worldPosition = (modelMatrix * vec4(position, 1.));\n    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition.xyz, 1.);\n\n    vNormal = normalMatrix * normal;\n    vWorldPosition = worldPosition.xyz;\n  }\n",
+      "start": 6647,
+      "end": 6984,
+      "loc": {
+        "start": {
+          "line": 247,
+          "column": 35
+        },
+        "end": {
+          "line": 260,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 6984,
+      "end": 6985,
+      "loc": {
+        "start": {
+          "line": 260,
+          "column": 0
+        },
+        "end": {
+          "line": 260,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 6985,
+      "end": 6986,
+      "loc": {
+        "start": {
+          "line": 260,
+          "column": 1
+        },
+        "end": {
+          "line": 260,
+          "column": 2
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "export",
+        "keyword": "export",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "export",
+      "start": 6988,
+      "end": 6994,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 0
+        },
+        "end": {
+          "line": 262,
+          "column": 6
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "const",
+        "keyword": "const",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "const",
+      "start": 6995,
+      "end": 7000,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 7
+        },
+        "end": {
+          "line": 262,
+          "column": 12
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "name",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "value": "RING_SHADER_FRAGMENT",
+      "start": 7001,
+      "end": 7021,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 13
+        },
+        "end": {
+          "line": 262,
+          "column": 33
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "=",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": true,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "=",
+      "start": 7022,
+      "end": 7023,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 34
+        },
+        "end": {
+          "line": 262,
+          "column": 35
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 7024,
+      "end": 7025,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 36
+        },
+        "end": {
+          "line": 262,
+          "column": 37
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "template",
+        "beforeExpr": false,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "value": "\n  uniform sampler2D ringTexture;\n  uniform float innerRadius;\n  uniform float outerRadius;\n  uniform vec3 lightPos;\n\n  varying vec3 vNormal;\n  varying vec3 vPos;\n  varying vec3 vWorldPosition;\n\n  vec4 color() {\n    vec2 uv = vec2(0);\n    uv.x = (length(vPos) - innerRadius) / (outerRadius - innerRadius);\n    if (uv.x < 0.0 || uv.x > 1.0) {\n      discard;\n    }\n\n    vec4 pixel = texture2D(ringTexture, uv);\n    return pixel;\n  }\n\n  vec3 shadow() {\n    // TODO(ian): planet and sun position uniforms\n    // sun position in saturn test\n\n    vec3 lightDir = normalize(vPos - lightPos);\n    vec3 planetPos = vec3(0);\n\n    vec3 ringPos = vPos - planetPos;\n    float posDotLightDir = dot(ringPos, lightDir);\n    float posDotLightDir2 = posDotLightDir * posDotLightDir;\n    float radius = 0.0389259903; // radius of saturn in coordinate system\n    float radius2 = radius * radius;\n    if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {\n      return vec3(0.0);\n    }\n    return vec3(1.0);\n  }\n\n  vec3 lights() {\n    vec3 lightDirection = normalize(vWorldPosition - lightPos);\n    float c = 0.35 + max(0.0, dot(vNormal, lightDirection)) * 0.4;\n\n    return vec3(c);\n  }\n\n  void main() {\n    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);\n  }\n",
+      "start": 7025,
+      "end": 8299,
+      "loc": {
+        "start": {
+          "line": 262,
+          "column": 37
+        },
+        "end": {
+          "line": 311,
+          "column": 0
+        }
+      }
+    },
+    {
+      "type": {
+        "label": "`",
+        "beforeExpr": false,
+        "startsExpr": true,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null
+      },
+      "start": 8299,
+      "end": 8300,
+      "loc": {
+        "start": {
+          "line": 311,
+          "column": 0
+        },
+        "end": {
+          "line": 311,
+          "column": 1
+        }
+      }
+    },
+    {
+      "type": {
+        "label": ";",
+        "beforeExpr": true,
+        "startsExpr": false,
+        "rightAssociative": false,
+        "isLoop": false,
+        "isAssign": false,
+        "prefix": false,
+        "postfix": false,
+        "binop": null,
+        "updateContext": null
+      },
+      "start": 8300,
+      "end": 8301,
+      "loc": {
+        "start": {
+          "line": 311,
+          "column": 1
+        },
+        "end": {
+          "line": 311,
           "column": 2
         }
       }
@@ -3090,15 +5363,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 4063,
-      "end": 4063,
+      "start": 8302,
+      "end": 8302,
       "loc": {
         "start": {
-          "line": 157,
+          "line": 312,
           "column": 0
         },
         "end": {
-          "line": 157,
+          "line": 312,
           "column": 0
         }
       }

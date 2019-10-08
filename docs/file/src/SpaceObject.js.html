@@ -72,8 +72,14 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT">ATMOSPHERE_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_VERTEX">ATMOSPHERE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT">GENERIC_PARTICLE_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_VERTEX">GENERIC_PARTICLE_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-RING_SHADER_FRAGMENT">RING_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-RING_SHADER_VERTEX">RING_SHADER_VERTEX</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SPHERE_SHADER_FRAGMENT">SPHERE_SHADER_FRAGMENT</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SPHERE_SHADER_VERTEX">SPHERE_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_FRAGMENT">STAR_SHADER_FRAGMENT</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-STAR_SHADER_VERTEX">STAR_SHADER_VERTEX</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-THREE">THREE</a></span></span></li>
@@ -87,7 +93,7 @@
 import { EphemPresets } from &apos;./EphemPresets&apos;;
 import { Orbit } from &apos;./Orbit&apos;;
 import { getFullTextureUrl } from &apos;./util&apos;;
-import { rescaleArray } from &apos;./Scale&apos;;
+import { rescaleArray, rescaleNumber } from &apos;./Scale&apos;;
 
 /**
  * @private
@@ -187,7 +193,7 @@ export class SpaceObject {
     this._showLabel = false;
     this._lastLabelUpdate = 0;
 
-    this._position = this._options.position || [0, 0, 0];
+    this._position = rescaleArray(this._options.position || [0, 0, 0]);
     this._orbitAround = undefined;
     this._scale = this._options.scale || [1, 1, 1];
 
@@ -362,19 +368,6 @@ export class SpaceObject {
     }
 
     return sprite;
-
-    /*
-    const light = new THREE.PointLight( 0xffffff, 1.5, 2000 );
-    light.position.set.apply(this, this._position);
-
-    const lensflare = new THREE.Lensflare();
-    lensflare.addElement(new THREE.LensflareElement(texture, 500, 0, new
-                                                    THREE.Color(0xffffff),
-                                                    THREE.AdditiveBlending));
-
-    light.add(lensflare);
-    return light;
-   */
   }
 
   /**
@@ -387,12 +380,10 @@ export class SpaceObject {
       return this._orbit;
     }
     return new Orbit(this._options.ephem, {
-      color: this._options.theme
-        ? this._options.theme.orbitColor || 0x888888
-        : 0x888888,
+      color: this._options.theme ? this._options.theme.orbitColor : undefined,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
-        : null,
+        : undefined,
     });
   }
 
@@ -436,9 +427,9 @@ export class SpaceObject {
    * @param {Number} z Z position
    */
   setPosition(x, y, z) {
-    this._position[0] = x;
-    this._position[1] = y;
-    this._position[2] = z;
+    this._position[0] = rescaleNumber(x);
+    this._position[1] = rescaleNumber(y);
+    this._position[2] = rescaleNumber(z);
   }
 
   /**

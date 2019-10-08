@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "name": "SphereObject#renderAtmosphereComponent",
+    "filePath": "src/SphereObject.js",
+    "lines": [
+      {
+        "lineNumber": 165,
+        "line": "  /**"
+      },
+      {
+        "lineNumber": 166,
+        "line": "   * @private"
+      },
+      {
+        "lineNumber": 167,
+        "line": "   * @param {THREE.Color} color Color of atmosphere"
+      },
+      {
+        "lineNumber": 168,
+        "line": "   */"
+      },
+      {
+        "lineNumber": 169,
+        "line": "  renderAtmosphereComponent(radius, size, coefficient, power, color) {"
+      }
+    ],
+    "codeParams": [
+      "radius",
+      "size",
+      "coefficient",
+      "power",
+      "color"
+    ],
+    "docParams": [
+      "color"
+    ]
+  }
+]

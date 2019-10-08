@@ -1,5 +1,17 @@
 window.esdocSearchIndex = [
   [
+    "spacekit/src/shaders.js~atmosphere_shader_fragment",
+    "variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT",
+    "<span>ATMOSPHERE_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
+    "spacekit/src/shaders.js~atmosphere_shader_vertex",
+    "variable/index.html#static-variable-ATMOSPHERE_SHADER_VERTEX",
+    "<span>ATMOSPHERE_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
     "spacekit/src/camera.js~camera",
     "class/src/Camera.js~Camera.html",
     "<span>Camera</span> <span class=\"search-result-import-path\">spacekit/src/Camera.js</span>",
@@ -54,10 +66,34 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/shaders.js~ring_shader_fragment",
+    "variable/index.html#static-variable-RING_SHADER_FRAGMENT",
+    "<span>RING_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
+    "spacekit/src/shaders.js~ring_shader_vertex",
+    "variable/index.html#static-variable-RING_SHADER_VERTEX",
+    "<span>RING_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
     "spacekit/src/rotatingobject.js~rotatingobject",
     "class/src/RotatingObject.js~RotatingObject.html",
     "<span>RotatingObject</span> <span class=\"search-result-import-path\">spacekit/src/RotatingObject.js</span>",
     "class"
+  ],
+  [
+    "spacekit/src/shaders.js~sphere_shader_fragment",
+    "variable/index.html#static-variable-SPHERE_SHADER_FRAGMENT",
+    "<span>SPHERE_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
+  ],
+  [
+    "spacekit/src/shaders.js~sphere_shader_vertex",
+    "variable/index.html#static-variable-SPHERE_SHADER_VERTEX",
+    "<span>SPHERE_SHADER_VERTEX</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
+    "variable"
   ],
   [
     "spacekit/src/shaders.js~star_shader_fragment",
@@ -954,6 +990,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/simulation.js~simulation#getlightposition",
+    "class/src/Simulation.js~Simulation.html#instance-method-getLightPosition",
+    "src/Simulation.js~Simulation#getLightPosition",
+    "method"
+  ],
+  [
     "src/simulation.js~simulation#getscene",
     "class/src/Simulation.js~Simulation.html#instance-method-getScene",
     "src/Simulation.js~Simulation#getScene",
@@ -969,6 +1011,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#getviewer",
     "class/src/Simulation.js~Simulation.html#instance-method-getViewer",
     "src/Simulation.js~Simulation#getViewer",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#isusinglightsources",
+    "class/src/Simulation.js~Simulation.html#instance-method-isUsingLightSources",
+    "src/Simulation.js~Simulation#isUsingLightSources",
     "method"
   ],
   [
@@ -1168,6 +1216,12 @@ window.esdocSearchIndex = [
     "file/src/SphereObject.js.html",
     "src/SphereObject.js",
     "file"
+  ],
+  [
+    "src/sphereobject.js~sphereobject#addrings",
+    "class/src/SphereObject.js~SphereObject.html#instance-method-addRings",
+    "src/SphereObject.js~SphereObject#addRings",
+    "method"
   ],
   [
     "src/sphereobject.js~sphereobject#constructor",

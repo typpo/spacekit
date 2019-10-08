@@ -3921,9 +3921,9 @@
                         "line": 55,
                         "column": 11
                       },
-                      "identifierName": "km"
+                      "identifierName": "au"
                     },
-                    "name": "km"
+                    "name": "au"
                   },
                   "operator": "*",
                   "right": {
@@ -11987,7 +11987,7 @@
         "postfix": false,
         "binop": null
       },
-      "value": "km",
+      "value": "au",
       "start": 1400,
       "end": 1402,
       "loc": {

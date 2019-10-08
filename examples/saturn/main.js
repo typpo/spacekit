@@ -82,6 +82,7 @@ gui.add(guiState, 'Speed', 0, 20).onChange(val => {
 // Map from a category string to the tag in NaturalSatellites object.
 const tagFilters = {
   All: 'ALL',
+  None: 'NONE',
   'Regular orbits': 'REGULAR',
   'Irregular orbits': 'IRREGULAR',
   'Newly discovered': 'NEWLY_DISCOVERED',

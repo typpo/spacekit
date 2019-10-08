@@ -1,3 +1,7 @@
+/******************************************************************************
+ * Visualization setup and definitions
+ *****************************************************************************/
+
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jdPerSecond: 0.1,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
@@ -14,8 +18,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 // Create a light source somewhere off in the distance.
 const SUN_POS = [5, 5, 1];
 viz.createLight(SUN_POS);
-//viz.createAmbientLight(0x222222);
-
 viz.createObject(
   'sun',
   Object.assign(Spacekit.SpaceObjectPresets.SUN, {
@@ -29,7 +31,7 @@ viz.createStars();
 // Create saturn
 const saturn = viz.createSphere('saturn', {
   textureUrl: './th_saturn.png',
-  radius: 58232.503 / 149598000, // radius in AU, so saturn is shown to scale
+  radius: 58232.503 / 149598000, // radius in AU, so Saturn is shown to scale
   levelsOfDetail: [
     { radii: 0, segments: 64 },
     { radii: 30, segments: 16 },
@@ -39,7 +41,6 @@ const saturn = viz.createSphere('saturn', {
     enable: true,
   },
 });
-
 saturn.addRings(74270.580913, 140478.924731, './saturn_rings_top.png');
 
 // Add its moons
@@ -48,18 +49,19 @@ let saturnSatellites = [];
 viz.loadNaturalSatellites().then(loader => {
   saturnSatellites = loader.getSatellitesForPlanet('saturn');
   saturnSatellites.forEach(moon => {
-    const ephem = moon.ephem.copy();
-    // Add Saturn's axial tilt.
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
-      ephem,
+      ephem: moon.ephem,
       particleSize: 50,
     });
     moonObjs.push(obj);
   });
 });
 
-// Set up gui and user interactions
+/******************************************************************************
+ * GUI and User Interactions below
+ *****************************************************************************/
+
 const guiState = {
   Speed: 0.1,
   Highlight: 'All',
@@ -127,10 +129,10 @@ gui.add(guiState, 'Highlight', Object.keys(tagFilters)).onChange(catString => {
   updateFilterDisplay(tag);
 });
 gui.add(guiState, 'Hide other orbits').onChange(() => {
-  updateFilterDisplay(tagFilters[guiState.Show]);
+  updateFilterDisplay(tagFilters[guiState.Highlight]);
 });
 gui.add(guiState, 'Hide labels').onChange(() => {
-  updateFilterDisplay(tagFilters[guiState.Show]);
+  updateFilterDisplay(tagFilters[guiState.Highlight]);
 });
 //gui.add(guiState, 'Set Date');
 

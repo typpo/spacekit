@@ -64,7 +64,7 @@ viz.loadNaturalSatellites().then(loader => {
  *****************************************************************************/
 
 const guiState = {
-  Speed: 0.1,
+  Speed: 0.05,
   Highlight: 'All',
   'Hide other orbits': false,
   'Hide labels': false,

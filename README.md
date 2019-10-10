@@ -12,7 +12,7 @@ Note that this library is a work in progress and the API might change!
 
 # Terminology and components
 
-`Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it. See [documentation](https://typpo.github.io/spacekit/class/src/Simulation.js~Simulation.html) for full options.
+`Simulation`: the main container for your visualization.  A simulation is comprised by a `Camera` plus whatever you choose to put in it. See [documentation](https://typpo.github.io/spacekit/docs/class/src/Simulation.js~Simulation.html) for full options.
 ```javascript
 const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
  // Required

@@ -3,7 +3,7 @@
  *****************************************************************************/
 
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
-  jdPerSecond: 0.1,
+  jdPerSecond: 0.05,
   particleTextureUrl: '{{assets}}/sprites/fuzzyparticle.png',
   unitsPerAu: 100.0,
   camera: {
@@ -40,6 +40,7 @@ const saturn = viz.createSphere('saturn', {
   atmosphere: {
     enable: true,
   },
+  occludeLabels: true,
 });
 saturn.addRings(74270.580913, 140478.924731, './saturn_rings_top.png');
 

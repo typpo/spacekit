@@ -48,9 +48,9 @@ export function decimalToSexagesimalDec(
 }
 
 export function kmToAu(km) {
-  return km / 149598000;
+  return km / 149597870.7;
 }
 
 export function auToKm(au) {
-  return au * 149598000;
+  return au * 149597870.7;
 }

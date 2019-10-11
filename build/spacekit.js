@@ -50918,11 +50918,11 @@ var Spacekit = (function (exports) {
 	}
 
 	function kmToAu(km) {
-	  return km / 149598000;
+	  return km / 149597870.7;
 	}
 
 	function auToKm(au) {
-	  return au * 149598000;
+	  return au * 149597870.7;
 	}
 
 	const J2000 = 2451545.0;

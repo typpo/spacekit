@@ -125,6 +125,9 @@ export class Simulation {
     this._subscribedObjects = {};
     this._particles = null;
 
+    // Labels
+    this._labelBlockers = [];
+
     // stats.js panel
     this._stats = null;
     this._fps = 1;
@@ -388,6 +391,9 @@ export class Simulation {
   addObject(obj, noUpdate = false) {
     obj.get3jsObjects().map(x => {
       this._scene.add(x);
+      if (obj.shouldBlockLabels) {
+        this._labelBlockers.push(x);
+      }
     });
 
     if (!noUpdate) {
@@ -771,5 +777,13 @@ export class Simulation {
    */
   setCameraDrift(driftOn) {
     this._enableCameraDrift = driftOn;
+  }
+
+  /**
+   * A list of THREE.js objects that should occlude labels.
+   * @return {Array.<THREE.Object3D>} THREE.js objects
+   */
+  getLabelBlockers() {
+    return this._labelBlockers;
   }
 }

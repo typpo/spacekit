@@ -7,6 +7,18 @@ import { rescaleArray, rescaleNumber } from './Scale';
 
 /**
  * @private
+ * Raycaster used for label positioning.
+ */
+const raycaster = new THREE.Raycaster();
+
+/**
+ * @private
+ * Vector used for raycasting.
+ */
+const raycasterVector = new THREE.Vector3();
+
+/**
+ * @private
  * Minimum number of degrees per day an object must move in order for its
  * position to be updated in the visualization.
  */
@@ -221,13 +233,34 @@ export class SpaceObject {
    * coordinate system
    */
   updateLabelPosition(newpos) {
-    const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
-    const pos = toScreenXY(
-      newpos,
-      this._simulation.getViewer().get3jsCamera(),
-      simulationElt,
+    const camera = this._simulation.getViewer().get3jsCamera();
+
+    // Determine visibility of label
+    //raycasterVector.project(camera);
+    const newposVector = new THREE.Vector3(newpos[0], newpos[1], newpos[2]);
+    //const raydir = camera.position.clone().sub(newposVector).normalize();
+    const raydir = camera.position
+      .clone()
+      .sub(newposVector)
+      .normalize();
+    raycaster.set(newposVector, raydir);
+    const intersectedObjects = raycaster.intersectObjects(
+      this._simulation.getLabelBlockers(),
+      true /* recursive */,
     );
+    const show = intersectedObjects.length < 1;
+
+    const label = this._label;
+    if (show) {
+      label.style.display = '';
+      //label.style.zIndex = (-raycasterVector.z * .5 + .5) * 100000 | 0;
+    } else {
+      label.style.display = 'none';
+    }
+
+    const pos = toScreenXY(newpos, camera, simulationElt);
+
     const loc = {
       left: pos.x - 30,
       top: pos.y - 25,

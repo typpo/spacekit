@@ -1,3 +1,5 @@
+
+(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(document);
 var Spacekit = (function (exports) {
 	'use strict';
 
@@ -57128,6 +57130,12 @@ var Spacekit = (function (exports) {
 
 	/**
 	 * @private
+	 * Raycaster used for label positioning.
+	 */
+	const raycaster = new Raycaster();
+
+	/**
+	 * @private
 	 * Minimum number of degrees per day an object must move in order for its
 	 * position to be updated in the visualization.
 	 */
@@ -57338,13 +57346,32 @@ var Spacekit = (function (exports) {
 	   * coordinate system
 	   */
 	  updateLabelPosition(newpos) {
-	    const label = this._label;
 	    const simulationElt = this._simulation.getSimulationElement();
+	    const camera = this._simulation.getViewer().get3jsCamera();
+
+	    // Determine visibility of label
+	    //raycasterVector.project(camera);
+	    const newposVector = new Vector3(newpos[0], newpos[1], newpos[2]);
+	    //const raydir = camera.position.clone().sub(newposVector).normalize();
+	    const raydir = camera.position.clone().sub(newposVector).normalize();
+	    raycaster.set(newposVector, raydir);
+	    const intersectedObjects = raycaster.intersectObjects(this._simulation.getLabelBlockers(), true /* recursive */);
+	    const show = intersectedObjects.length < 1;
+
+	    const label = this._label;
+	    if (show) {
+	      label.style.display = '';
+	      //label.style.zIndex = (-raycasterVector.z * .5 + .5) * 100000 | 0;
+	    } else {
+	      label.style.display = 'none';
+	    }
+
 	    const pos = toScreenXY(
 	      newpos,
-	      this._simulation.getViewer().get3jsCamera(),
+	      camera,
 	      simulationElt,
 	    );
+
 	    const loc = {
 	      left: pos.x - 30,
 	      top: pos.y - 25,
@@ -58088,6 +58115,8 @@ var Spacekit = (function (exports) {
 	   * @param {String} options.specularMapUrl Path to specular map (optional)
 	   * @param {Number} options.color Hex color of the sphere
 	   * @param {Number} options.axialTilt Axial tilt in degrees
+	   * @param {boolean} options.occludeLabels Whether this sphere should block
+	   * labels.
 	   * @param {Number} options.radius Radius of sphere. Defaults to 1
 	   * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
 	   * y}, where `threshold` is radii distance and `segments` is the number
@@ -58106,6 +58135,9 @@ var Spacekit = (function (exports) {
 	   */
 	  constructor(id, options, contextOrSimulation) {
 	    super(id, options, contextOrSimulation, false /* autoInit */);
+
+	    // Used by simulation to decide whether to occlude labels.
+	    this.shouldBlockLabels = this._options.occludeLabels;
 
 	    this.init();
 	  }
@@ -58333,6 +58365,10 @@ var Spacekit = (function (exports) {
 	    const newpos = this.getPosition(jd);
 	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
 	    super.update(jd);
+	  }
+
+	  isBetweenPoints(p1, p2) {
+
 	  }
 	}
 
@@ -58574,6 +58610,9 @@ var Spacekit = (function (exports) {
 
 	    this._subscribedObjects = {};
 	    this._particles = null;
+
+	    // Labels
+	    this._labelBlockers = [];
 
 	    // stats.js panel
 	    this._stats = null;
@@ -58838,6 +58877,9 @@ var Spacekit = (function (exports) {
 	  addObject(obj, noUpdate = false) {
 	    obj.get3jsObjects().map(x => {
 	      this._scene.add(x);
+	      if (obj.shouldBlockLabels) {
+	        this._labelBlockers.push(x);
+	      }
 	    });
 
 	    if (!noUpdate) {
@@ -59221,6 +59263,14 @@ var Spacekit = (function (exports) {
 	   */
 	  setCameraDrift(driftOn) {
 	    this._enableCameraDrift = driftOn;
+	  }
+
+	  /**
+	   * A list of THREE.js objects that should occlude labels.
+	   * @return {Array.<THREE.Object3D>} THREE.js objects
+	   */
+	  getLabelBlockers() {
+	    return this._labelBlockers;
 	  }
 	}
 

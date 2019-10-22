@@ -23,6 +23,8 @@ export class SphereObject extends RotatingObject {
    * @param {String} options.specularMapUrl Path to specular map (optional)
    * @param {Number} options.color Hex color of the sphere
    * @param {Number} options.axialTilt Axial tilt in degrees
+   * @param {boolean} options.occludeLabels Whether this sphere should block
+   * labels.
    * @param {Number} options.radius Radius of sphere. Defaults to 1
    * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
    * y}, where `threshold` is radii distance and `segments` is the number
@@ -41,6 +43,9 @@ export class SphereObject extends RotatingObject {
    */
   constructor(id, options, contextOrSimulation) {
     super(id, options, contextOrSimulation, false /* autoInit */);
+
+    // Used by simulation to decide whether to occlude labels.
+    this.shouldBlockLabels = this._options.occludeLabels;
 
     this.init();
   }
@@ -269,4 +274,6 @@ export class SphereObject extends RotatingObject {
     this._obj.position.set(newpos[0], newpos[1], newpos[2]);
     super.update(jd);
   }
+
+  isBetweenPoints(p1, p2) {}
 }

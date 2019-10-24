@@ -56112,7 +56112,11 @@ var Spacekit = (function (exports) {
   }
 
   void main() {
-    gl_FragColor = color() * vec4(lights() * shadow(), 1.0);
+    // NOTE: The order of multiplication matters here. color() may call
+    // discard, which would cause problems on some Windows graphics drivers if
+    // it is a left operand.
+    // https://github.com/typpo/spacekit/issues/22
+    gl_FragColor = vec4(lights() * shadow(), 1.0) * color();
   }
 `;
 

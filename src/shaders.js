@@ -281,17 +281,17 @@ export const RING_SHADER_FRAGMENT = `
   }
 
   vec3 shadow() {
-    // TODO(ian): planet and sun position uniforms
-    // sun position in saturn test
-
     vec3 lightDir = normalize(vPos - lightPos);
     vec3 planetPos = vec3(0);
 
     vec3 ringPos = vPos - planetPos;
     float posDotLightDir = dot(ringPos, lightDir);
     float posDotLightDir2 = posDotLightDir * posDotLightDir;
+
+    // TODO(ian): Generalize this line.
     float radius = 0.0389259903; // radius of saturn in coordinate system
     float radius2 = radius * radius;
+
     if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {
       return vec3(0.0);
     }

@@ -1,3 +1,5 @@
+
+(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(document);
 var Spacekit = (function (exports) {
 	'use strict';
 
@@ -51013,9 +51015,11 @@ var Spacekit = (function (exports) {
 	  'a', // Semi-major axis
 	  'e', // Eccentricity
 	  'i', // Inclination
+	  'q', // Perihelion distance
 
 	  'epoch',
 	  'period', // in days
+	  'tp', // time of perihelion
 
 	  'ma', // Mean anomaly
 	  'n', // Mean motion
@@ -51132,6 +51136,34 @@ var Spacekit = (function (exports) {
 	   * is available.
 	   */
 	  fill() {
+	    // Perihelion distance and semimajor axis
+	    const e = this.get('e');
+	    if (!isDef(e)) {
+	      throw new Error('Must define eccentricity "e" in an orbit');
+	    }
+
+	    // Semimajor axis and perihelion distance
+	    let a = this.get('a');
+	    let q = this.get('q');
+	    if (isDef(a)) {
+	      if (!isDef(q)) {
+	        if (e >= 1.0) {
+	          throw new Error(
+	            'Must provide perihelion distance "q" if eccentricity "e" is greater than 1',
+	          );
+	        }
+	        q = a * (1.0 - e);
+	        this.set('q', q);
+	      }
+	    } else if (isDef(q)) {
+	      a = q / (1.0 - e);
+	      this.set('a', a);
+	    } else {
+	      throw new Error(
+	        'Must define semimajor axis "a" or perihelion distance "q" in an orbit',
+	      );
+	    }
+
 	    // Longitude/Argument of Perihelion and Long. of Ascending Node
 	    let w = this.get('w');
 	    let wBar = this.get('wBar');
@@ -51148,7 +51180,6 @@ var Spacekit = (function (exports) {
 	    }
 
 	    // Mean motion and period
-	    const a = this.get('a');
 	    const aMeters = a * METERS_IN_AU;
 	    const n = this.get('n');
 	    const GM = this.get('GM');
@@ -51563,6 +51594,18 @@ var Spacekit = (function (exports) {
 	  }
 	}
 
+	const pi = Math.PI;
+	const sin = Math.sin;
+	const cos = Math.cos;
+	const sqrt = Math.sqrt;
+
+	/**
+	 * Special cube root function that assumes input is always positive.
+	 */
+	function cbrt(x) {
+	  return Math.exp(Math.log(x) / 3.0);
+	}
+
 	/**
 	 * A class that builds a visual representation of a Kepler orbit.
 	 * @example
@@ -51668,17 +51711,130 @@ var Spacekit = (function (exports) {
 	  getPositionAtTime(jd, debug) {
 	    // Note: logic below must match the vertex shader.
 
-	    const pi = Math.PI;
-	    const sin = Math.sin;
-	    const cos = Math.cos;
+	    // This position calculation is used to create orbital ellipses.
+	    let e = this._ephem.get('e');
+	    if (e > 0.8 && e < 1.2) {
+	      return this.getPositionAtTimeNearParabolic(jd, debug);
+	    } else if (e > 1.2) {
+	      return this.getPositionAtTimeHyperbolic(jd, debug);
+	    } else {
+	      return this.getPositionAtTimeEllipsoid(jd, debug);
+	    }
+	    throw new Error('No handler for this type of orbit');
+	  }
 
+	  getPositionAtTimeParabolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
 	    const eph = this._ephem;
 
-	    // This position calculation is used to create orbital ellipses.
-	    let e = eph.get('e');
-	    if (e >= 1) {
-	      e = 0.9;
+	    // The Guassian gravitational constant
+	    const k = 0.01720209895;
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Compute time since perihelion
+	    const d = jd - eph.get('tp');
+
+	    const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
+	    const h = 1.5 * H;
+	    const g = sqrt(1.0 + h * h);
+	    const s = cbrt(g + h) - cbrt(g - h);
+
+	    // True anomaly
+	    const v = 2.0 * Math.atan(s);
+	    // Heliocentric distance
+	    const r = q * (1.0 + s * s);
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeNearParabolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+	    const eph = this._ephem;
+
+	    // The Guassian gravitational constant
+	    const k = 0.01720209895;
+
+	    // Eccentricity
+	    const e = eph.get('e');
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Compute time since perihelion
+	    const d = jd - eph.get('tp');
+
+	    const a = 0.75 * d * k * sqrt((1 + e) / (q * q * q));
+	    const b = sqrt(1 + a * a);
+	    const W = cbrt(b + a) - cbrt(b - a);
+	    const f = (1 - e) / (1 + e);
+
+	    const a1 = 2 / 3 + (2 / 5) * W * W;
+	    const a2 = 7 / 5 + (33 / 35) * W * W + (37 / 175) * W ** 4;
+	    const a3 =
+	      W * W * (432 / 175 + (956 / 1125) * W * W + (84 / 1575) * W ** 4);
+
+	    const C = (W * W) / (1 + W * W);
+	    const g = f * C * C;
+	    const w = W * (1 + f * C * (a1 + a2 * g + a3 * g * g));
+
+	    // True anomaly
+	    const v = 2 * Math.atan(w);
+	    // Heliocentric distance
+	    const r = (q * (1 + w * w)) / (1 + w * w * f);
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeHyperbolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+	    const eph = this._ephem;
+
+	    // Eccentricity
+	    const e = eph.get('e');
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Semimajor axis
+	    const a = eph.get('a');
+
+	    // Mean anomaly
+	    const ma = eph.get('ma');
+
+	    // Calculate mean anomaly at jd
+	    const n = eph.get('n', 'rad');
+	    const epoch = eph.get('epoch');
+	    const d = jd - epoch;
+
+	    const M = ma + n * d;
+
+	    let F0 = M;
+	    for (let count = 0; count < 100; count++) {
+	      const F1 =
+	        (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) /
+	        (e * Math.cosh(F0) - 1);
+	      const lastdiff = Math.abs(F1 - F0);
+	      F0 = F1;
+
+	      if (lastdiff < 0.0000001) {
+	        break;
+	      }
 	    }
+	    const F = F0;
+
+	    const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeEllipsoid(jd, debug) {
+	    const eph = this._ephem;
+
+	    // Eccentricity
+	    const e = eph.get('e');
 
 	    // Mean anomaly
 	    const ma = eph.get('ma', 'rad');
@@ -51699,10 +51855,9 @@ var Spacekit = (function (exports) {
 
 	    // Estimate eccentric and true anom using iterative approx
 	    let E0 = M;
-	    let lastdiff;
 	    for (let count = 0; count < 100; count++) {
 	      const E1 = M + e * sin(E0);
-	      lastdiff = Math.abs(E1 - E0);
+	      const lastdiff = Math.abs(E1 - E0);
 	      E0 = E1;
 
 	      if (lastdiff < 0.0000001) {
@@ -51710,11 +51865,23 @@ var Spacekit = (function (exports) {
 	      }
 	    }
 	    const E = E0;
-	    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+	    const v = 2 * Math.atan(sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
 	    // Radius vector, in AU
 	    const a = eph.get('a');
 	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  /**
+	   * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
+	   * @param {Number} v True anomaly
+	   * @param {Number} r Heliocentric distance
+	   * @return {Array.<Number>} Heliocentric coordinates
+	   */
+	  vectorToHeliocentric(v, r) {
+	    const eph = this._ephem;
 
 	    // Inclination, Longitude of ascending node, Longitude of perihelion
 	    const i = eph.get('i', 'rad');
@@ -51725,6 +51892,7 @@ var Spacekit = (function (exports) {
 	    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
 	    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
 	    const Z = r * (sin(v + p - o) * sin(i));
+
 	    return rescaleXYZ(X, Y, Z);
 	  }
 
@@ -56087,17 +56255,17 @@ var Spacekit = (function (exports) {
   }
 
   vec3 shadow() {
-    // TODO(ian): planet and sun position uniforms
-    // sun position in saturn test
-
     vec3 lightDir = normalize(vPos - lightPos);
     vec3 planetPos = vec3(0);
 
     vec3 ringPos = vPos - planetPos;
     float posDotLightDir = dot(ringPos, lightDir);
     float posDotLightDir2 = posDotLightDir * posDotLightDir;
+
+    // TODO(ian): Generalize this line.
     float radius = 0.0389259903; // radius of saturn in coordinate system
     float radius2 = radius * radius;
+
     if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {
       return vec3(0.0);
     }

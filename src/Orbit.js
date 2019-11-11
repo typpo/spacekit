@@ -2,6 +2,18 @@ import * as THREE from 'three';
 
 import { rescaleXYZ } from './Scale';
 
+const pi = Math.PI;
+const sin = Math.sin;
+const cos = Math.cos;
+const sqrt = Math.sqrt;
+
+/**
+ * Special cube root function that assumes input is always positive.
+ */
+function cbrt(x) {
+  return Math.exp(Math.log(x) / 3.0);
+}
+
 /**
  * A class that builds a visual representation of a Kepler orbit.
  * @example
@@ -107,17 +119,130 @@ export class Orbit {
   getPositionAtTime(jd, debug) {
     // Note: logic below must match the vertex shader.
 
-    const pi = Math.PI;
-    const sin = Math.sin;
-    const cos = Math.cos;
+    // This position calculation is used to create orbital ellipses.
+    let e = this._ephem.get('e');
+    if (e > 0.8 && e < 1.2) {
+      return this.getPositionAtTimeNearParabolic(jd, debug);
+    } else if (e > 1.2) {
+      return this.getPositionAtTimeHyperbolic(jd, debug);
+    } else {
+      return this.getPositionAtTimeEllipsoid(jd, debug);
+    }
+    throw new Error('No handler for this type of orbit');
+  }
 
+  getPositionAtTimeParabolic(jd, debug) {
+    // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this._ephem;
 
-    // This position calculation is used to create orbital ellipses.
-    let e = eph.get('e');
-    if (e >= 1) {
-      e = 0.9;
+    // The Guassian gravitational constant
+    const k = 0.01720209895;
+
+    // Perihelion distance
+    const q = eph.get('q');
+
+    // Compute time since perihelion
+    const d = jd - eph.get('tp');
+
+    const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
+    const h = 1.5 * H;
+    const g = sqrt(1.0 + h * h);
+    const s = cbrt(g + h) - cbrt(g - h);
+
+    // True anomaly
+    const v = 2.0 * Math.atan(s);
+    // Heliocentric distance
+    const r = q * (1.0 + s * s);
+
+    return this.vectorToHeliocentric(v, r);
+  }
+
+  getPositionAtTimeNearParabolic(jd, debug) {
+    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+    const eph = this._ephem;
+
+    // The Guassian gravitational constant
+    const k = 0.01720209895;
+
+    // Eccentricity
+    const e = eph.get('e');
+
+    // Perihelion distance
+    const q = eph.get('q');
+
+    // Compute time since perihelion
+    const d = jd - eph.get('tp');
+
+    const a = 0.75 * d * k * sqrt((1 + e) / (q * q * q));
+    const b = sqrt(1 + a * a);
+    const W = cbrt(b + a) - cbrt(b - a);
+    const f = (1 - e) / (1 + e);
+
+    const a1 = 2 / 3 + (2 / 5) * W * W;
+    const a2 = 7 / 5 + (33 / 35) * W * W + (37 / 175) * W ** 4;
+    const a3 =
+      W * W * (432 / 175 + (956 / 1125) * W * W + (84 / 1575) * W ** 4);
+
+    const C = (W * W) / (1 + W * W);
+    const g = f * C * C;
+    const w = W * (1 + f * C * (a1 + a2 * g + a3 * g * g));
+
+    // True anomaly
+    const v = 2 * Math.atan(w);
+    // Heliocentric distance
+    const r = (q * (1 + w * w)) / (1 + w * w * f);
+
+    return this.vectorToHeliocentric(v, r);
+  }
+
+  getPositionAtTimeHyperbolic(jd, debug) {
+    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+    const eph = this._ephem;
+
+    // Eccentricity
+    const e = eph.get('e');
+
+    // Perihelion distance
+    const q = eph.get('q');
+
+    // Semimajor axis
+    const a = eph.get('a');
+
+    // Mean anomaly
+    const ma = eph.get('ma');
+
+    // Calculate mean anomaly at jd
+    const n = eph.get('n', 'rad');
+    const epoch = eph.get('epoch');
+    const d = jd - epoch;
+
+    const M = ma + n * d;
+
+    let F0 = M;
+    for (let count = 0; count < 100; count++) {
+      const F1 =
+        (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) /
+        (e * Math.cosh(F0) - 1);
+      const lastdiff = Math.abs(F1 - F0);
+      F0 = F1;
+
+      if (lastdiff < 0.0000001) {
+        break;
+      }
     }
+    const F = F0;
+
+    const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+    return this.vectorToHeliocentric(v, r);
+  }
+
+  getPositionAtTimeEllipsoid(jd, debug) {
+    const eph = this._ephem;
+
+    // Eccentricity
+    const e = eph.get('e');
 
     // Mean anomaly
     const ma = eph.get('ma', 'rad');
@@ -138,10 +263,9 @@ export class Orbit {
 
     // Estimate eccentric and true anom using iterative approx
     let E0 = M;
-    let lastdiff;
     for (let count = 0; count < 100; count++) {
       const E1 = M + e * sin(E0);
-      lastdiff = Math.abs(E1 - E0);
+      const lastdiff = Math.abs(E1 - E0);
       E0 = E1;
 
       if (lastdiff < 0.0000001) {
@@ -149,11 +273,23 @@ export class Orbit {
       }
     }
     const E = E0;
-    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+    const v = 2 * Math.atan(sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
 
     // Radius vector, in AU
     const a = eph.get('a');
     const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+    return this.vectorToHeliocentric(v, r);
+  }
+
+  /**
+   * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
+   * @param {Number} v True anomaly
+   * @param {Number} r Heliocentric distance
+   * @return {Array.<Number>} Heliocentric coordinates
+   */
+  vectorToHeliocentric(v, r) {
+    const eph = this._ephem;
 
     // Inclination, Longitude of ascending node, Longitude of perihelion
     const i = eph.get('i', 'rad');
@@ -164,6 +300,7 @@ export class Orbit {
     const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
     const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
     const Z = r * (sin(v + p - o) * sin(i));
+
     return rescaleXYZ(X, Y, Z);
   }
 

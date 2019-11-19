@@ -576,7 +576,7 @@ export class Simulation {
   zoomToFit(spaceObj, offset = 3.0) {
     const checkZoomFit = () => {
       const orbit = spaceObj.getOrbit();
-      const obj = orbit ? orbit.getEllipse() : spaceObj.getBoundingObject();
+      const obj = orbit ? orbit.getOrbitShape() : spaceObj.getBoundingObject();
       if (obj) {
         this.doZoomToFit(obj, offset);
         return true;

@@ -397,7 +397,7 @@ export class SpaceObject {
       );
       if (!this._options.hideOrbit) {
         this._orbit
-          .getEllipse()
+          .getOrbitShape()
           .position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
@@ -431,7 +431,7 @@ export class SpaceObject {
       ret.push(this._object3js);
     }
     if (this._orbit) {
-      ret.push(this._orbit.getEllipse());
+      ret.push(this._orbit.getOrbitShape());
       if (this._options.ecliptic && this._options.ecliptic.displayLines) {
         ret.push(this._orbit.getLinesToEcliptic());
       }

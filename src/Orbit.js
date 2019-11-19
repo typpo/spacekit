@@ -50,64 +50,25 @@ export class Orbit {
      * Cached orbital points.
      * @type {Array.<THREE.Vector3>}
      */
-    this._points = null;
+    this._ellipsePoints = null;
 
     /**
      * Cached ellipse.
      * @type {THREE.Line}
      */
-    this._ellipse = null;
+    this._orbitShape = null;
   }
 
-  /**
-   * @private
-   * @return {Array.<THREE.Vector3>} List of points
-   */
-  getOrbitPoints() {
-    if (this._points) {
-      return this._points;
+  getOrbitType() {
+    let e = this._ephem.get('e');
+    if (e > 0.8 && e < 1.2) {
+      return 'PARABOLIC';
+    } else if (e > 1.2) {
+      return 'HYPERBOLIC';
+    } else {
+      return 'ELLIPSOID';
     }
-
-    const eph = this._ephem;
-
-    const period = eph.get('period');
-    const ecc = eph.get('e');
-    // const minSegments = ecc > 0.4 ? 100 : 50;
-    const minSegments = 360;
-    const numSegments = Math.max(period / 2, minSegments);
-    const step = period / numSegments;
-
-    const pts = [];
-    let prevPos;
-    for (let time = 0; time < period; time += step) {
-      const pos = this.getPositionAtTime(time);
-      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-        console.error(
-          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
-        );
-        console.error(eph);
-      }
-      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
-      if (
-        prevPos &&
-        Math.abs(prevPos[0] - pos[0]) +
-          Math.abs(prevPos[1] - pos[1]) +
-          Math.abs(prevPos[2] - pos[2]) >
-          120
-      ) {
-        // Don't render bogus or very large ellipses.
-        points.vertices = [];
-        return points;
-      }
-      prevPos = pos;
-      pts.push(vector);
-    }
-    pts.push(pts[0]);
-
-    this._points = new THREE.Geometry();
-    this._points.vertices = pts;
-
-    return this._points;
+    return 'UNKNOWN';
   }
 
   /**
@@ -120,13 +81,13 @@ export class Orbit {
     // Note: logic below must match the vertex shader.
 
     // This position calculation is used to create orbital ellipses.
-    let e = this._ephem.get('e');
-    if (e > 0.8 && e < 1.2) {
-      return this.getPositionAtTimeNearParabolic(jd, debug);
-    } else if (e > 1.2) {
-      return this.getPositionAtTimeHyperbolic(jd, debug);
-    } else {
-      return this.getPositionAtTimeEllipsoid(jd, debug);
+    switch (this.getOrbitType()) {
+      case 'PARABOLIC':
+        return this.getPositionAtTimeNearParabolic(jd, debug);
+      case 'HYPERBOLIC':
+        return this.getPositionAtTimeHyperbolic(jd, debug);
+      case 'ELLIPSOID':
+        return this.getPositionAtTimeEllipsoid(jd, debug);
     }
     throw new Error('No handler for this type of orbit');
   }
@@ -304,21 +265,113 @@ export class Orbit {
     return rescaleXYZ(X, Y, Z);
   }
 
+  getOrbitShape() {
+    switch (this.getOrbitType()) {
+      case 'HYPERBOLIC':
+        return this.getLine(this.getPositionAtTimeHyperbolic.bind(this));
+      case 'PARABOLIC':
+        return this.getLine(this.getPositionAtTimeParabolic.bind(this));
+      case 'ELLIPSOID':
+        return this.getEllipse();
+    }
+    throw new Error('Unknown orbit shape');
+  }
+
+  /**
+   * Compute a line between a given date range.
+   */
+  getLine(orbitFn, startJd = 2457549.5, endJd = 2460849.5, step = 5.0) {
+    if (this._orbitShape) {
+      return this._orbitShape;
+    }
+
+    const points = [];
+    for (let jd = startJd; jd <= endJd; jd += step) {
+      const pos = orbitFn(jd);
+      points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
+    }
+    console.info('Computed', points.length, 'segements for line orbit');
+
+    const pointsGeometry = new THREE.Geometry();
+    pointsGeometry.vertices = points;
+
+    const line = new THREE.Line(
+      pointsGeometry,
+      new THREE.LineBasicMaterial({
+        color: new THREE.Color(this._options.color || 0x444444),
+      }),
+      THREE.LineStrip,
+    );
+    return line;
+  }
+
   /**
    * @return {THREE.Line} The ellipse object that represents this orbit.
    */
   getEllipse() {
-    if (!this._ellipse) {
-      const pointGeometry = this.getOrbitPoints();
-      this._ellipse = new THREE.Line(
-        pointGeometry,
-        new THREE.LineBasicMaterial({
-          color: new THREE.Color(this._options.color || 0x444444),
-        }),
-        THREE.LineStrip,
-      );
+    if (this._orbitShape) {
+      return this._orbitShape;
     }
-    return this._ellipse;
+    const pointGeometry = this.getEllipsePoints();
+    this._orbitShape = new THREE.Line(
+      pointGeometry,
+      new THREE.LineBasicMaterial({
+        color: new THREE.Color(this._options.color || 0x444444),
+      }),
+      THREE.LineStrip,
+    );
+    return this._orbitShape;
+  }
+
+  /**
+   * @private
+   * @return {Array.<THREE.Vector3>} List of points
+   */
+  getEllipsePoints() {
+    if (this._ellipsePoints) {
+      return this._ellipsePoints;
+    }
+
+    const eph = this._ephem;
+
+    const period = eph.get('period');
+    const ecc = eph.get('e');
+    // const minSegments = ecc > 0.4 ? 100 : 50;
+    const minSegments = 360;
+    const numSegments = Math.max(period / 2, minSegments);
+    const step = period / numSegments;
+
+    const pts = [];
+    let prevPos;
+    for (let time = 0; time < period; time += step) {
+      const pos = this.getPositionAtTime(time);
+      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
+        console.error(
+          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
+        );
+        console.error(eph);
+      }
+      const vector = new THREE.Vector3(pos[0], pos[1], pos[2]);
+      if (
+        prevPos &&
+        Math.abs(prevPos[0] - pos[0]) +
+          Math.abs(prevPos[1] - pos[1]) +
+          Math.abs(prevPos[2] - pos[2]) >
+          120
+      ) {
+        // Don't render bogus or very large ellipses.
+        points.vertices = [];
+        return points;
+      }
+      prevPos = pos;
+      pts.push(vector);
+    }
+    pts.push(pts[0]);
+
+    this._ellipsePoints = new THREE.Geometry();
+    this._ellipsePoints.vertices = pts;
+
+    return this._ellipsePoints;
   }
 
   /**
@@ -329,7 +382,7 @@ export class Orbit {
    * @return {THREE.Geometry} A geometry with many line segments.
    */
   getLinesToEcliptic() {
-    const points = this.getOrbitPoints();
+    const points = this.getEllipsePoints();
     const geometry = new THREE.Geometry();
 
     points.vertices.forEach(vertex => {

@@ -35,25 +35,83 @@ export function getOrbitShaderVertex() {
     attribute float wBar;
     attribute float M;
 
-    vec3 getAstroPos() {
+    // Perihelion distance
+    attribute float q;
+    // Time of perihelion
+    attribute float tp;
+
+    vec3 getPos() {
+      if (e > 0.8 && e < 1.2) {
+        return getPosParabolic();
+      } else if (e > 1.2) {
+        return getPosHyperbolic();
+      } else {
+        return getPosEllipsoid();
+      }
+      return vec3(0.0, 0.0, 0.0);
+    }
+
+    vec3 getPosParabolic() {
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+
+      // The Guassian gravitational constant
+      const float k = 0.01720209895;
+
+      // Compute time since perihelion
+      const d = jd - tp;
+
+      const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
+      const h = 1.5 * H;
+      const g = sqrt(1.0 + h * h);
+      const s = cbrt(g + h) - cbrt(g - h);
+
+      // True anomaly
+      const v = 2.0 * Math.atan(s);
+      // Heliocentric distance
+      const r = q * (1.0 + s * s);
+
+      return this.vectorToHeliocentric(v, r);
+    }
+
+    vec3 getPosHyperbolic() {
+      float M = ma + n * d;
+
+      float F0 = M;
+      for (int count = 0; count < 100; count++) {
+        const F1 =
+          (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) /
+          (e * Math.cosh(F0) - 1);
+        const lastdiff = Math.abs(F1 - F0);
+        F0 = F1;
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+      const F = F0;
+
+      const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+      const r = ${getScaleFactor().toFixed(
+        1,
+      )} * (a * (1 - e * e)) / (1 + e * cos(v));
+
+      return this.vectorToHeliocentric(v, r);
+    }
+
+    vec3 getPosEllipsoid() {
       float i_rad = i;
       float o_rad = om;
       float p_rad = wBar;
 
-      float adjusted_e = e;
-      if (e >= 1.0) {
-        adjusted_e = 0.9;
-      }
-
       // Estimate eccentric and true anom using iterative approximation (this
       // is normally an intergral).
       float E0 = M;
-      float E1 = M + adjusted_e * sin(E0);
+      float E1 = M + e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
 
-      for ( int i = 0; i < 100; i ++ ) {
-        E1 = M + adjusted_e * sin(E0);
+      for (int count = 0; count < 100; count++) {
+        E1 = M + e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
         if (lastdiff < 0.0000001) {
@@ -62,12 +120,12 @@ export function getOrbitShaderVertex() {
       }
 
       float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
 
       // Compute radius vector.
       float r = ${getScaleFactor().toFixed(
         1,
-      )} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      )} * a * (1.0 - e*e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
@@ -76,37 +134,10 @@ export function getOrbitShaderVertex() {
       return vec3(X, Y, Z);
     }
 
-    /*
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
-    }
-    */
-
     void main() {
       vColor = fuzzColor;
 
-      //vec3 newpos = getAstroPosFast() + origin;
-      vec3 newpos = getAstroPos() + origin;
+      vec3 newpos = getPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;

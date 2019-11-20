@@ -56090,20 +56090,33 @@ var Spacekit = (function (exports) {
     // Time of perihelion
     attribute float tp;
 
-    vec3 getPos() {
-      if (e > 0.8 && e < 1.2) {
-        return getPosParabolic();
-      } else if (e > 1.2) {
-        return getPosHyperbolic();
-      } else {
-        return getPosEllipsoid();
-      }
-      return vec3(0.0, 0.0, 0.0);
+    // COSH Function (Hyperbolic Cosine)
+    float cosh(float val) {
+      float tmp = exp(val);
+      float cosH = (tmp + 1.0 / tmp) / 2.0;
+      return cosH;
+    }
+
+    // TANH Function (Hyperbolic Tangent)
+    float tanh(float val) {
+      float tmp = exp(val);
+      float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
+      return tanH;
+    }
+
+    // SINH Function (Hyperbolic Sine)
+    float sinh(float val) {
+      float tmp = exp(val);
+      float sinH = (tmp - 1.0 / tmp) / 2.0;
+      return sinH;
     }
 
     vec3 getPosParabolic() {
       // See https://stjarnhimlen.se/comp/ppcomp.html#17
 
+      return vec3(0.0, 0.0, 0.0);
+
+      /*
       // The Guassian gravitational constant
       const float k = 0.01720209895;
 
@@ -56121,31 +56134,35 @@ var Spacekit = (function (exports) {
       const r = q * (1.0 + s * s);
 
       return this.vectorToHeliocentric(v, r);
+      */
     }
 
     vec3 getPosHyperbolic() {
-      float M = ma + n * d;
-
       float F0 = M;
       for (int count = 0; count < 100; count++) {
-        const F1 =
-          (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) /
-          (e * Math.cosh(F0) - 1);
-        const lastdiff = Math.abs(F1 - F0);
+        float F1 = (M + e * (F0 * cosh(F0) - sinh(F0))) / (e * cosh(F0) - 1.0);
+        float lastdiff = abs(F1 - F0);
         F0 = F1;
 
         if (lastdiff < 0.0000001) {
           break;
         }
       }
-      const F = F0;
+      float F = F0;
 
-      const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
-      const r = ${getScaleFactor().toFixed(
+      float v = 2.0 * atan(sqrt((e + 1.0) / (e - 1.0))) * tanh(F / 2.0);
+      float r = ${getScaleFactor().toFixed(
         1,
-      )} * (a * (1 - e * e)) / (1 + e * cos(v));
+      )} * (a * (1.0 - e * e)) / (1.0 + e * cos(v));
 
-      return this.vectorToHeliocentric(v, r);
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
     }
 
     vec3 getPosEllipsoid() {
@@ -56182,6 +56199,15 @@ var Spacekit = (function (exports) {
       float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
       float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
       return vec3(X, Y, Z);
+    }
+
+    vec3 getPos() {
+      if (e > 0.8 && e < 1.2) {
+        return getPosParabolic();
+      } else if (e > 1.2) {
+        return getPosHyperbolic();
+      }
+      return getPosEllipsoid();
     }
 
     void main() {

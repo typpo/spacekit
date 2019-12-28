@@ -51594,6 +51594,37 @@ var Spacekit = (function (exports) {
 	  }
 	}
 
+	var julian = convert;
+	var toDate = convertToDate;
+
+	var toJulianDay_1 = toJulianDay;
+	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
+	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
+
+	var DAY = 86400000;
+	var HALF_DAY = DAY / 2;
+	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
+	var UNIX_EPOCH_JULIAN_DAY = 2440587;
+
+	function convert(date) {
+	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
+	}
+	function convertToDate(julian) {
+	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
+	}
+	function toJulianDay(date) {
+	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
+	}
+	function toMillisecondsInJulianDay(date) {
+	  return (+date + HALF_DAY) % DAY;
+	}
+	function fromJulianDayAndMilliseconds(day, ms) {
+	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
+	}julian.toDate = toDate;
+	julian.toJulianDay = toJulianDay_1;
+	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
+	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
+
 	const pi = Math.PI;
 	const sin = Math.sin;
 	const cos = Math.cos;
@@ -51858,11 +51889,21 @@ var Spacekit = (function (exports) {
 	  }
 
 	  getOrbitShape() {
+	    // For hyperbolic and parabolic orbits, decide on a time range to draw
+	    // them.
+	    // TODO(ian): Should we compute around current position, not time of perihelion?
+	    // TODO(ian): A way to configure this logic
+	    const centerDate = this._ephem.tp ? julian.toDate(this._ephem.tp) : new Date();
+
+	    // Default to +- 5 years
+	    const startJd = julian.toJulianDay(new Date(centerDate.getFullYear() - 5, centerDate.getMonth(), centerDate.getDate()));
+	    const endJd = julian.toJulianDay(new Date(centerDate.getFullYear() + 5, centerDate.getMonth() + 6, centerDate.getDate()));
+
 	    switch (this.getOrbitType()) {
 	      case 'HYPERBOLIC':
-	        return this.getLine(this.getPositionAtTimeHyperbolic.bind(this));
+	        return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), startJd, endJd);
 	      case 'PARABOLIC':
-	        return this.getLine(this.getPositionAtTimeParabolic.bind(this));
+	        return this.getLine(this.getPositionAtTimeParabolic.bind(this), startJd, endJd);
 	      case 'ELLIPSOID':
 	        return this.getEllipse();
 	    }
@@ -51872,13 +51913,14 @@ var Spacekit = (function (exports) {
 	  /**
 	   * Compute a line between a given date range.
 	   */
-	  getLine(orbitFn, startJd = 2457549.5, endJd = 2460849.5, step = 5.0) {
+	  getLine(orbitFn, startJd, endJd, step) {
 	    if (this._orbitShape) {
 	      return this._orbitShape;
 	    }
 
+	    const loopStep = step ? step : (endJd - startJd) / 1000.0;
 	    const points = [];
-	    for (let jd = startJd; jd <= endJd; jd += step) {
+	    for (let jd = startJd; jd <= endJd; jd += loopStep) {
 	      const pos = orbitFn(jd);
 	      points.push(new Vector3(pos[0], pos[1], pos[2]));
 	    }
@@ -52024,37 +52066,6 @@ var Spacekit = (function (exports) {
 	    this._ellipse.visible = val;
 	  }
 	}
-
-	var julian = convert;
-	var toDate = convertToDate;
-
-	var toJulianDay_1 = toJulianDay;
-	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
-	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
-
-	var DAY = 86400000;
-	var HALF_DAY = DAY / 2;
-	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
-	var UNIX_EPOCH_JULIAN_DAY = 2440587;
-
-	function convert(date) {
-	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
-	}
-	function convertToDate(julian) {
-	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
-	}
-	function toJulianDay(date) {
-	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
-	}
-	function toMillisecondsInJulianDay(date) {
-	  return (+date + HALF_DAY) % DAY;
-	}
-	function fromJulianDayAndMilliseconds(day, ms) {
-	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
-	}julian.toDate = toDate;
-	julian.toJulianDay = toJulianDay_1;
-	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
-	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
 
 	/**
 	 * @author mrdoob / http://mrdoob.com/

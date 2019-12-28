@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import julian from 'julian';
 
 import { rescaleXYZ } from './Scale';
 
@@ -266,11 +267,43 @@ export class Orbit {
   }
 
   getOrbitShape() {
+    // For hyperbolic and parabolic orbits, decide on a time range to draw
+    // them.
+    // TODO(ian): Should we compute around current position, not time of perihelion?
+    // TODO(ian): A way to configure this logic
+    const centerDate = this._ephem.tp
+      ? julian.toDate(this._ephem.tp)
+      : new Date();
+
+    // Default to +- 5 years
+    const startJd = julian.toJulianDay(
+      new Date(
+        centerDate.getFullYear() - 5,
+        centerDate.getMonth(),
+        centerDate.getDate(),
+      ),
+    );
+    const endJd = julian.toJulianDay(
+      new Date(
+        centerDate.getFullYear() + 5,
+        centerDate.getMonth() + 6,
+        centerDate.getDate(),
+      ),
+    );
+
     switch (this.getOrbitType()) {
       case 'HYPERBOLIC':
-        return this.getLine(this.getPositionAtTimeHyperbolic.bind(this));
+        return this.getLine(
+          this.getPositionAtTimeHyperbolic.bind(this),
+          startJd,
+          endJd,
+        );
       case 'PARABOLIC':
-        return this.getLine(this.getPositionAtTimeParabolic.bind(this));
+        return this.getLine(
+          this.getPositionAtTimeParabolic.bind(this),
+          startJd,
+          endJd,
+        );
       case 'ELLIPSOID':
         return this.getEllipse();
     }
@@ -280,13 +313,14 @@ export class Orbit {
   /**
    * Compute a line between a given date range.
    */
-  getLine(orbitFn, startJd = 2457549.5, endJd = 2460849.5, step = 5.0) {
+  getLine(orbitFn, startJd, endJd, step) {
     if (this._orbitShape) {
       return this._orbitShape;
     }
 
+    const loopStep = step ? step : (endJd - startJd) / 1000.0;
     const points = [];
-    for (let jd = startJd; jd <= endJd; jd += step) {
+    for (let jd = startJd; jd <= endJd; jd += loopStep) {
       const pos = orbitFn(jd);
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }

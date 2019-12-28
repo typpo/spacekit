@@ -51893,17 +51893,39 @@ var Spacekit = (function (exports) {
 	    // them.
 	    // TODO(ian): Should we compute around current position, not time of perihelion?
 	    // TODO(ian): A way to configure this logic
-	    const centerDate = this._ephem.tp ? julian.toDate(this._ephem.tp) : new Date();
+	    const centerDate = this._ephem.tp
+	      ? julian.toDate(this._ephem.tp)
+	      : new Date();
 
 	    // Default to +- 5 years
-	    const startJd = julian.toJulianDay(new Date(centerDate.getFullYear() - 5, centerDate.getMonth(), centerDate.getDate()));
-	    const endJd = julian.toJulianDay(new Date(centerDate.getFullYear() + 5, centerDate.getMonth() + 6, centerDate.getDate()));
+	    const startJd = julian.toJulianDay(
+	      new Date(
+	        centerDate.getFullYear() - 5,
+	        centerDate.getMonth(),
+	        centerDate.getDate(),
+	      ),
+	    );
+	    const endJd = julian.toJulianDay(
+	      new Date(
+	        centerDate.getFullYear() + 5,
+	        centerDate.getMonth() + 6,
+	        centerDate.getDate(),
+	      ),
+	    );
 
 	    switch (this.getOrbitType()) {
 	      case 'HYPERBOLIC':
-	        return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), startJd, endJd);
+	        return this.getLine(
+	          this.getPositionAtTimeHyperbolic.bind(this),
+	          startJd,
+	          endJd,
+	        );
 	      case 'PARABOLIC':
-	        return this.getLine(this.getPositionAtTimeParabolic.bind(this), startJd, endJd);
+	        return this.getLine(
+	          this.getPositionAtTimeParabolic.bind(this),
+	          startJd,
+	          endJd,
+	        );
 	      case 'ELLIPSOID':
 	        return this.getEllipse();
 	    }

@@ -270,23 +270,22 @@ export class Orbit {
     // For hyperbolic and parabolic orbits, decide on a time range to draw
     // them.
     // TODO(ian): Should we compute around current position, not time of perihelion?
-    // TODO(ian): A way to configure this logic
-    const centerDate = this._ephem.tp
-      ? julian.toDate(this._ephem.tp)
-      : new Date();
+    const tp = this._ephem.get('tp');
+    const centerDate = tp ? julian.toDate(tp) : new Date();
 
-    // Default to +- 5 years
+    // Default to +- 10 years
+    // TODO(ian): A way to configure this logic
     const startJd = julian.toJulianDay(
       new Date(
-        centerDate.getFullYear() - 5,
+        centerDate.getFullYear() - 10,
         centerDate.getMonth(),
         centerDate.getDate(),
       ),
     );
     const endJd = julian.toJulianDay(
       new Date(
-        centerDate.getFullYear() + 5,
-        centerDate.getMonth() + 6,
+        centerDate.getFullYear() + 10,
+        centerDate.getMonth(),
         centerDate.getDate(),
       ),
     );
@@ -300,7 +299,7 @@ export class Orbit {
         );
       case 'PARABOLIC':
         return this.getLine(
-          this.getPositionAtTimeParabolic.bind(this),
+          this.getPositionAtTimeNearParabolic.bind(this),
           startJd,
           endJd,
         );

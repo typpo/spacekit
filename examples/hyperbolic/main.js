@@ -62,5 +62,28 @@ viz.createObject("'Oumuamua", {
   labelText: "'Oumuamua",
 });
 
+// Parabolic orbit
+viz.createObject('Great Comet of 1680', {
+  ephem: new Spacekit.Ephem(
+    {
+      tp: 2335019.9876,
+      epoch: 2335000.5,
+      a: 444.4285714,
+      e: 0.999986,
+      q: 0.006222,
+      n: 276.6339,
+      i: 60.6784,
+      om: 276.6339,
+      w: 350.6128,
+      ma: -0.00205,
+    },
+    'deg',
+  ),
+  theme: {
+    orbitColor: 0x0000ff,
+  },
+  labelText: 'Comet of 1680',
+});
+
 // Set up viewport
 //viz.zoomToFit(asteroid);

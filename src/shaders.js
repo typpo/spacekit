@@ -31,14 +31,11 @@ export function getOrbitShaderVertex() {
     attribute float e;
     attribute float i;
     attribute float om;
-    // attribute float w;
     attribute float wBar;
     attribute float M;
 
     // Perihelion distance
     attribute float q;
-    // Time of perihelion
-    attribute float tp;
 
     // CPU-computed term for parabolic orbits
     attribute float a0;
@@ -64,19 +61,13 @@ export function getOrbitShaderVertex() {
       return sinH;
     }
 
+    // Cube root helper that assumes param is positive
     float cbrt(float x) {
       return exp(log(x) / 3.0);
     }
 
     vec3 getPosNearParabolic() {
       // See https://stjarnhimlen.se/comp/ppcomp.html#17
-      // The Guassian gravitational constant
-      //float k = 0.01720209895;
-
-      // Compute time since perihelion
-      //float d = jd - tp;
-
-      //float a0 = 0.75 * d * k * sqrt((1.0 + e) / (q * q * q));
       float b = sqrt(1.0 + a0 * a0);
       float W = cbrt(b + a0) - cbrt(b - a0);
       float f = (1.0 - e) / (1.0 + e);
@@ -160,7 +151,7 @@ export function getOrbitShaderVertex() {
       // Compute radius vector.
       float r = ${getScaleFactor().toFixed(
         1,
-      )} * a * (1.0 - e*e) / (1.0 + e * cos(v));
+      )} * a * (1.0 - e * e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));

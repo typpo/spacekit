@@ -56113,14 +56113,11 @@ var Spacekit = (function (exports) {
     attribute float e;
     attribute float i;
     attribute float om;
-    // attribute float w;
     attribute float wBar;
     attribute float M;
 
     // Perihelion distance
     attribute float q;
-    // Time of perihelion
-    attribute float tp;
 
     // CPU-computed term for parabolic orbits
     attribute float a0;
@@ -56146,19 +56143,13 @@ var Spacekit = (function (exports) {
       return sinH;
     }
 
+    // Cube root helper that assumes param is positive
     float cbrt(float x) {
       return exp(log(x) / 3.0);
     }
 
     vec3 getPosNearParabolic() {
       // See https://stjarnhimlen.se/comp/ppcomp.html#17
-      // The Guassian gravitational constant
-      //float k = 0.01720209895;
-
-      // Compute time since perihelion
-      //float d = jd - tp;
-
-      //float a0 = 0.75 * d * k * sqrt((1.0 + e) / (q * q * q));
       float b = sqrt(1.0 + a0 * a0);
       float W = cbrt(b + a0) - cbrt(b - a0);
       float f = (1.0 - e) / (1.0 + e);
@@ -56242,7 +56233,7 @@ var Spacekit = (function (exports) {
       // Compute radius vector.
       float r = ${getScaleFactor().toFixed(
         1,
-      )} * a * (1.0 - e*e) / (1.0 + e * cos(v));
+      )} * a * (1.0 - e * e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
@@ -56611,7 +56602,6 @@ var Spacekit = (function (exports) {
 	    attributes.e.set([ephem.get('e')], offset);
 	    attributes.i.set([ephem.get('i', 'rad')], offset);
 	    attributes.om.set([ephem.get('om', 'rad')], offset);
-	    attributes.w.set([ephem.get('w', 'rad')], offset);
 	    attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
 	    attributes.q.set([ephem.get('q')], offset);
 
@@ -56651,11 +56641,27 @@ var Spacekit = (function (exports) {
 	   * @param {Number} jd JD date
 	   */
 	  update(jd) {
-	    const Ms = this._elements.map(ephem => getM(ephem, jd));
+	    const Ms = [];
+	    const a0s = [];
+	    for (let i = 0; i < this._elements.length; i++) {
+	      const ephem = this._elements[i];
+
+	      let M, a0;
+	      if (ephem.get('tp')) {
+	        a0 = getA0(ephem, jd);
+	        M = 0;
+	      } else {
+	        a0 = 0;
+	        M = getM(ephem, jd);
+	      }
+
+	      Ms.push(M);
+	      a0s.push(a0);
+	    }
+
 	    this._attributes.M.set(Ms);
 	    this._attributes.M.needsUpdate = true;
 
-	    const a0s = this._elements.map(ephem => getA0(ephem, jd));
 	    this._attributes.a0.set(a0s);
 	    this._attributes.a0.needsUpdate = true;
 	  }

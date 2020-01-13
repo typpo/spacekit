@@ -171,7 +171,6 @@ export class KeplerParticles {
     attributes.e.set([ephem.get('e')], offset);
     attributes.i.set([ephem.get('i', 'rad')], offset);
     attributes.om.set([ephem.get('om', 'rad')], offset);
-    attributes.w.set([ephem.get('w', 'rad')], offset);
     attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
     attributes.q.set([ephem.get('q')], offset);
 
@@ -211,11 +210,27 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd) {
-    const Ms = this._elements.map(ephem => getM(ephem, jd));
+    const Ms = [];
+    const a0s = [];
+    for (let i = 0; i < this._elements.length; i++) {
+      const ephem = this._elements[i];
+
+      let M, a0;
+      if (ephem.get('tp')) {
+        a0 = getA0(ephem, jd);
+        M = 0;
+      } else {
+        a0 = 0;
+        M = getM(ephem, jd);
+      }
+
+      Ms.push(M);
+      a0s.push(a0);
+    }
+
     this._attributes.M.set(Ms);
     this._attributes.M.needsUpdate = true;
 
-    const a0s = this._elements.map(ephem => getA0(ephem, jd));
     this._attributes.a0.set(a0s);
     this._attributes.a0.needsUpdate = true;
   }

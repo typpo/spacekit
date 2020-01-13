@@ -56560,7 +56560,6 @@ var Spacekit = (function (exports) {
 
 	      M: new BufferAttribute(new Float32Array(particleCount), 1),
 	      a0: new BufferAttribute(new Float32Array(particleCount), 1),
-
 	    };
 
 	    const geometry = new BufferGeometry();

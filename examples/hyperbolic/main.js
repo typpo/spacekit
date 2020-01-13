@@ -68,7 +68,7 @@ viz.createObject('Great Comet of 1680', {
     {
       tp: 2335019.9876,
       epoch: 2335000.5,
-      //a: 444.4285714,
+      a: 444.4285714,
       e: 0.999986,
       q: 0.006222,
       n: 276.6339,
@@ -84,19 +84,17 @@ viz.createObject('Great Comet of 1680', {
   },
   labelText: 'Comet of 1680',
 });
+
 viz.createObject('C/2007 Q1 (Garradd)', {
   ephem: new Spacekit.Ephem(
     {
       tp: 2454080.665214673185,
       epoch: 2454341.5,
-      //a: 444.4285714,
       e: 1.0,
       q: 2.988209640532016,
-      //n: 276.6339,
       i: 81.98342608877171,
       om: 5.901026865423434,
       w: 282.1065839959668,
-      //ma: -0.00205,
     },
     'deg',
   ),
@@ -105,6 +103,3 @@ viz.createObject('C/2007 Q1 (Garradd)', {
   },
   labelText: 'C/2007 Q1 (Garradd)',
 });
-
-// Set up viewport
-//viz.zoomToFit(asteroid);

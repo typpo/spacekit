@@ -31,29 +31,113 @@ export function getOrbitShaderVertex() {
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float w;
     attribute float wBar;
     attribute float M;
 
-    vec3 getAstroPos() {
+    // Perihelion distance
+    attribute float q;
+
+    // CPU-computed term for parabolic orbits
+    attribute float a0;
+
+    // COSH Function (Hyperbolic Cosine)
+    float cosh(float val) {
+      float tmp = exp(val);
+      float cosH = (tmp + 1.0 / tmp) / 2.0;
+      return cosH;
+    }
+
+    // TANH Function (Hyperbolic Tangent)
+    float tanh(float val) {
+      float tmp = exp(val);
+      float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
+      return tanH;
+    }
+
+    // SINH Function (Hyperbolic Sine)
+    float sinh(float val) {
+      float tmp = exp(val);
+      float sinH = (tmp - 1.0 / tmp) / 2.0;
+      return sinH;
+    }
+
+    // Cube root helper that assumes param is positive
+    float cbrt(float x) {
+      return exp(log(x) / 3.0);
+    }
+
+    vec3 getPosNearParabolic() {
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+      float b = sqrt(1.0 + a0 * a0);
+      float W = cbrt(b + a0) - cbrt(b - a0);
+      float f = (1.0 - e) / (1.0 + e);
+
+      float a1 = 2.0 / 3.0 + (2.0 / 5.0) * W * W;
+      float a2 = 7.0 / 5.0 + (33.0 / 35.0) * W * W + (37.0 / 175.0) * pow(W, 4.0);
+      float a3 =
+        W * W * (432.0 / 175.0 + (956.0 / 1125.0) * W * W + (84.0 / 1575.0) * pow(W, 4.0));
+
+      float C = (W * W) / (1.0 + W * W);
+      float g = f * C * C;
+      float w = W * (1.0 + f * C * (a1 + a2 * g + a3 * g * g));
+
+      // True anomaly
+      float v = 2.0 * atan(w);
+      // Heliocentric distance
+      float r = (q * (1.0 + w * w)) / (1.0 + w * w * f);
+
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getPosHyperbolic() {
+      float F0 = M;
+      for (int count = 0; count < 100; count++) {
+        float F1 = (M + e * (F0 * cosh(F0) - sinh(F0))) / (e * cosh(F0) - 1.0);
+        float lastdiff = abs(F1 - F0);
+        F0 = F1;
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+      float F = F0;
+
+      float v = 2.0 * atan(sqrt((e + 1.0) / (e - 1.0))) * tanh(F / 2.0);
+      float r = ${getScaleFactor().toFixed(
+        1,
+      )} * (a * (1.0 - e * e)) / (1.0 + e * cos(v));
+
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getPosEllipsoid() {
       float i_rad = i;
       float o_rad = om;
       float p_rad = wBar;
 
-      float adjusted_e = e;
-      if (e >= 1.0) {
-        adjusted_e = 0.9;
-      }
-
       // Estimate eccentric and true anom using iterative approximation (this
       // is normally an intergral).
       float E0 = M;
-      float E1 = M + adjusted_e * sin(E0);
+      float E1 = M + e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
 
-      for ( int i = 0; i < 100; i ++ ) {
-        E1 = M + adjusted_e * sin(E0);
+      for (int count = 0; count < 100; count++) {
+        E1 = M + e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
         if (lastdiff < 0.0000001) {
@@ -62,12 +146,12 @@ export function getOrbitShaderVertex() {
       }
 
       float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
 
       // Compute radius vector.
       float r = ${getScaleFactor().toFixed(
         1,
-      )} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      )} * a * (1.0 - e * e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
@@ -76,37 +160,19 @@ export function getOrbitShaderVertex() {
       return vec3(X, Y, Z);
     }
 
-    /*
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
+    vec3 getPos() {
+      if (e > 0.8 && e < 1.2) {
+        return getPosNearParabolic();
+      } else if (e > 1.2) {
+        return getPosHyperbolic();
+      }
+      return getPosEllipsoid();
     }
-    */
 
     void main() {
       vColor = fuzzColor;
 
-      //vec3 newpos = getAstroPosFast() + origin;
-      vec3 newpos = getAstroPos() + origin;
+      vec3 newpos = getPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;

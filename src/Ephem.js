@@ -7,9 +7,11 @@ const EPHEM_VALID_ATTRS = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity
   'i', // Inclination
+  'q', // Perihelion distance
 
   'epoch',
   'period', // in days
+  'tp', // time of perihelion
 
   'ma', // Mean anomaly
   'n', // Mean motion
@@ -126,6 +128,34 @@ export class Ephem {
    * is available.
    */
   fill() {
+    // Perihelion distance and semimajor axis
+    const e = this.get('e');
+    if (!isDef(e)) {
+      throw new Error('Must define eccentricity "e" in an orbit');
+    }
+
+    // Semimajor axis and perihelion distance
+    let a = this.get('a');
+    let q = this.get('q');
+    if (isDef(a)) {
+      if (!isDef(q)) {
+        if (e >= 1.0) {
+          throw new Error(
+            'Must provide perihelion distance "q" if eccentricity "e" is greater than 1',
+          );
+        }
+        q = a * (1.0 - e);
+        this.set('q', q);
+      }
+    } else if (isDef(q)) {
+      a = q / (1.0 - e);
+      this.set('a', a);
+    } else {
+      throw new Error(
+        'Must define semimajor axis "a" or perihelion distance "q" in an orbit',
+      );
+    }
+
     // Longitude/Argument of Perihelion and Long. of Ascending Node
     let w = this.get('w');
     let wBar = this.get('wBar');
@@ -142,7 +172,6 @@ export class Ephem {
     }
 
     // Mean motion and period
-    const a = this.get('a');
     const aMeters = a * METERS_IN_AU;
     const n = this.get('n');
     const GM = this.get('GM');

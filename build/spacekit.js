@@ -1,3 +1,5 @@
+
+(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(document);
 var Spacekit = (function (exports) {
 	'use strict';
 
@@ -51013,9 +51015,11 @@ var Spacekit = (function (exports) {
 	  'a', // Semi-major axis
 	  'e', // Eccentricity
 	  'i', // Inclination
+	  'q', // Perihelion distance
 
 	  'epoch',
 	  'period', // in days
+	  'tp', // time of perihelion
 
 	  'ma', // Mean anomaly
 	  'n', // Mean motion
@@ -51132,6 +51136,34 @@ var Spacekit = (function (exports) {
 	   * is available.
 	   */
 	  fill() {
+	    // Perihelion distance and semimajor axis
+	    const e = this.get('e');
+	    if (!isDef(e)) {
+	      throw new Error('Must define eccentricity "e" in an orbit');
+	    }
+
+	    // Semimajor axis and perihelion distance
+	    let a = this.get('a');
+	    let q = this.get('q');
+	    if (isDef(a)) {
+	      if (!isDef(q)) {
+	        if (e >= 1.0) {
+	          throw new Error(
+	            'Must provide perihelion distance "q" if eccentricity "e" is greater than 1',
+	          );
+	        }
+	        q = a * (1.0 - e);
+	        this.set('q', q);
+	      }
+	    } else if (isDef(q)) {
+	      a = q / (1.0 - e);
+	      this.set('a', a);
+	    } else {
+	      throw new Error(
+	        'Must define semimajor axis "a" or perihelion distance "q" in an orbit',
+	      );
+	    }
+
 	    // Longitude/Argument of Perihelion and Long. of Ascending Node
 	    let w = this.get('w');
 	    let wBar = this.get('wBar');
@@ -51148,7 +51180,6 @@ var Spacekit = (function (exports) {
 	    }
 
 	    // Mean motion and period
-	    const a = this.get('a');
 	    const aMeters = a * METERS_IN_AU;
 	    const n = this.get('n');
 	    const GM = this.get('GM');
@@ -51563,6 +51594,49 @@ var Spacekit = (function (exports) {
 	  }
 	}
 
+	var julian = convert;
+	var toDate = convertToDate;
+
+	var toJulianDay_1 = toJulianDay;
+	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
+	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
+
+	var DAY = 86400000;
+	var HALF_DAY = DAY / 2;
+	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
+	var UNIX_EPOCH_JULIAN_DAY = 2440587;
+
+	function convert(date) {
+	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
+	}
+	function convertToDate(julian) {
+	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
+	}
+	function toJulianDay(date) {
+	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
+	}
+	function toMillisecondsInJulianDay(date) {
+	  return (+date + HALF_DAY) % DAY;
+	}
+	function fromJulianDayAndMilliseconds(day, ms) {
+	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
+	}julian.toDate = toDate;
+	julian.toJulianDay = toJulianDay_1;
+	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
+	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
+
+	const pi = Math.PI;
+	const sin = Math.sin;
+	const cos = Math.cos;
+	const sqrt = Math.sqrt;
+
+	/**
+	 * Special cube root function that assumes input is always positive.
+	 */
+	function cbrt(x) {
+	  return Math.exp(Math.log(x) / 3.0);
+	}
+
 	/**
 	 * A class that builds a visual representation of a Kepler orbit.
 	 * @example
@@ -51599,22 +51673,318 @@ var Spacekit = (function (exports) {
 	     * Cached orbital points.
 	     * @type {Array.<THREE.Vector3>}
 	     */
-	    this._points = null;
+	    this._ellipsePoints = null;
 
 	    /**
 	     * Cached ellipse.
 	     * @type {THREE.Line}
 	     */
-	    this._ellipse = null;
+	    this._orbitShape = null;
+	  }
+
+	  getOrbitType() {
+	    let e = this._ephem.get('e');
+	    if (e > 0.8 && e < 1.2) {
+	      return 'PARABOLIC';
+	    } else if (e > 1.2) {
+	      return 'HYPERBOLIC';
+	    } else {
+	      return 'ELLIPSOID';
+	    }
+	    return 'UNKNOWN';
+	  }
+
+	  /**
+	   * Get heliocentric position of object at a given JD.
+	   * @param {Number} jd Date value in JD.
+	   * @param {boolean} debug Set true for debug output.
+	   * @return {Array.<Number>} [X, Y, Z] coordinates
+	   */
+	  getPositionAtTime(jd, debug) {
+	    // Note: logic below must match the vertex shader.
+
+	    // This position calculation is used to create orbital ellipses.
+	    switch (this.getOrbitType()) {
+	      case 'PARABOLIC':
+	        return this.getPositionAtTimeNearParabolic(jd, debug);
+	      case 'HYPERBOLIC':
+	        return this.getPositionAtTimeHyperbolic(jd, debug);
+	      case 'ELLIPSOID':
+	        return this.getPositionAtTimeEllipsoid(jd, debug);
+	    }
+	    throw new Error('No handler for this type of orbit');
+	  }
+
+	  getPositionAtTimeParabolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+	    const eph = this._ephem;
+
+	    // The Guassian gravitational constant
+	    const k = 0.01720209895;
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Compute time since perihelion
+	    const d = jd - eph.get('tp');
+
+	    const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
+	    const h = 1.5 * H;
+	    const g = sqrt(1.0 + h * h);
+	    const s = cbrt(g + h) - cbrt(g - h);
+
+	    // True anomaly
+	    const v = 2.0 * Math.atan(s);
+	    // Heliocentric distance
+	    const r = q * (1.0 + s * s);
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeNearParabolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+	    const eph = this._ephem;
+
+	    // The Guassian gravitational constant
+	    const k = 0.01720209895;
+
+	    // Eccentricity
+	    const e = eph.get('e');
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Compute time since perihelion
+	    const d = jd - eph.get('tp');
+
+	    const a = 0.75 * d * k * sqrt((1 + e) / (q * q * q));
+	    const b = sqrt(1 + a * a);
+	    const W = cbrt(b + a) - cbrt(b - a);
+	    const f = (1 - e) / (1 + e);
+
+	    const a1 = 2 / 3 + (2 / 5) * W * W;
+	    const a2 = 7 / 5 + (33 / 35) * W * W + (37 / 175) * W ** 4;
+	    const a3 =
+	      W * W * (432 / 175 + (956 / 1125) * W * W + (84 / 1575) * W ** 4);
+
+	    const C = (W * W) / (1 + W * W);
+	    const g = f * C * C;
+	    const w = W * (1 + f * C * (a1 + a2 * g + a3 * g * g));
+
+	    // True anomaly
+	    const v = 2 * Math.atan(w);
+	    // Heliocentric distance
+	    const r = (q * (1 + w * w)) / (1 + w * w * f);
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeHyperbolic(jd, debug) {
+	    // See https://stjarnhimlen.se/comp/ppcomp.html#17
+	    const eph = this._ephem;
+
+	    // Eccentricity
+	    const e = eph.get('e');
+
+	    // Perihelion distance
+	    const q = eph.get('q');
+
+	    // Semimajor axis
+	    const a = eph.get('a');
+
+	    // Mean anomaly
+	    const ma = eph.get('ma');
+
+	    // Calculate mean anomaly at jd
+	    const n = eph.get('n', 'rad');
+	    const epoch = eph.get('epoch');
+	    const d = jd - epoch;
+
+	    const M = ma + n * d;
+
+	    let F0 = M;
+	    for (let count = 0; count < 100; count++) {
+	      const F1 =
+	        (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) /
+	        (e * Math.cosh(F0) - 1);
+	      const lastdiff = Math.abs(F1 - F0);
+	      F0 = F1;
+
+	      if (lastdiff < 0.0000001) {
+	        break;
+	      }
+	    }
+	    const F = F0;
+
+	    const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  getPositionAtTimeEllipsoid(jd, debug) {
+	    const eph = this._ephem;
+
+	    // Eccentricity
+	    const e = eph.get('e');
+
+	    // Mean anomaly
+	    const ma = eph.get('ma', 'rad');
+
+	    // Calculate mean anomaly at jd
+	    const n = eph.get('n', 'rad');
+	    const epoch = eph.get('epoch');
+	    const d = jd - epoch;
+
+	    const M = ma + n * d;
+	    if (debug) {
+	      console.info('period=', eph.get('period'));
+	      console.info('n=', n);
+	      console.info('ma=', ma);
+	      console.info('d=', d);
+	      console.info('M=', M);
+	    }
+
+	    // Estimate eccentric and true anom using iterative approx
+	    let E0 = M;
+	    for (let count = 0; count < 100; count++) {
+	      const E1 = M + e * sin(E0);
+	      const lastdiff = Math.abs(E1 - E0);
+	      E0 = E1;
+
+	      if (lastdiff < 0.0000001) {
+	        break;
+	      }
+	    }
+	    const E = E0;
+	    const v = 2 * Math.atan(sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+
+	    // Radius vector, in AU
+	    const a = eph.get('a');
+	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
+
+	    return this.vectorToHeliocentric(v, r);
+	  }
+
+	  /**
+	   * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
+	   * @param {Number} v True anomaly
+	   * @param {Number} r Heliocentric distance
+	   * @return {Array.<Number>} Heliocentric coordinates
+	   */
+	  vectorToHeliocentric(v, r) {
+	    const eph = this._ephem;
+
+	    // Inclination, Longitude of ascending node, Longitude of perihelion
+	    const i = eph.get('i', 'rad');
+	    const o = eph.get('om', 'rad');
+	    const p = eph.get('wBar', 'rad');
+
+	    // Heliocentric coords
+	    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
+	    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
+	    const Z = r * (sin(v + p - o) * sin(i));
+
+	    return rescaleXYZ(X, Y, Z);
+	  }
+
+	  getOrbitShape() {
+	    // For hyperbolic and parabolic orbits, decide on a time range to draw
+	    // them.
+	    // TODO(ian): Should we compute around current position, not time of perihelion?
+	    const tp = this._ephem.get('tp');
+	    const centerDate = tp ? julian.toDate(tp) : new Date();
+
+	    // Default to +- 10 years
+	    // TODO(ian): A way to configure this logic
+	    const startJd = julian.toJulianDay(
+	      new Date(
+	        centerDate.getFullYear() - 10,
+	        centerDate.getMonth(),
+	        centerDate.getDate(),
+	      ),
+	    );
+	    const endJd = julian.toJulianDay(
+	      new Date(
+	        centerDate.getFullYear() + 10,
+	        centerDate.getMonth(),
+	        centerDate.getDate(),
+	      ),
+	    );
+
+	    switch (this.getOrbitType()) {
+	      case 'HYPERBOLIC':
+	        return this.getLine(
+	          this.getPositionAtTimeHyperbolic.bind(this),
+	          startJd,
+	          endJd,
+	        );
+	      case 'PARABOLIC':
+	        return this.getLine(
+	          this.getPositionAtTimeNearParabolic.bind(this),
+	          startJd,
+	          endJd,
+	        );
+	      case 'ELLIPSOID':
+	        return this.getEllipse();
+	    }
+	    throw new Error('Unknown orbit shape');
+	  }
+
+	  /**
+	   * Compute a line between a given date range.
+	   */
+	  getLine(orbitFn, startJd, endJd, step) {
+	    if (this._orbitShape) {
+	      return this._orbitShape;
+	    }
+
+	    const loopStep = step ? step : (endJd - startJd) / 1000.0;
+	    const points = [];
+	    for (let jd = startJd; jd <= endJd; jd += loopStep) {
+	      const pos = orbitFn(jd);
+	      points.push(new Vector3(pos[0], pos[1], pos[2]));
+	    }
+	    console.info('Computed', points.length, 'segements for line orbit');
+
+	    const pointsGeometry = new Geometry();
+	    pointsGeometry.vertices = points;
+
+	    const line = new Line(
+	      pointsGeometry,
+	      new LineBasicMaterial({
+	        color: new Color(this._options.color || 0x444444),
+	      }),
+	      LineStrip,
+	    );
+	    return line;
+	  }
+
+	  /**
+	   * @return {THREE.Line} The ellipse object that represents this orbit.
+	   */
+	  getEllipse() {
+	    if (this._orbitShape) {
+	      return this._orbitShape;
+	    }
+	    const pointGeometry = this.getEllipsePoints();
+	    this._orbitShape = new Line(
+	      pointGeometry,
+	      new LineBasicMaterial({
+	        color: new Color(this._options.color || 0x444444),
+	      }),
+	      LineStrip,
+	    );
+	    return this._orbitShape;
 	  }
 
 	  /**
 	   * @private
 	   * @return {Array.<THREE.Vector3>} List of points
 	   */
-	  getOrbitPoints() {
-	    if (this._points) {
-	      return this._points;
+	  getEllipsePoints() {
+	    if (this._ellipsePoints) {
+	      return this._ellipsePoints;
 	    }
 
 	    const eph = this._ephem;
@@ -51653,96 +52023,10 @@ var Spacekit = (function (exports) {
 	    }
 	    pts.push(pts[0]);
 
-	    this._points = new Geometry();
-	    this._points.vertices = pts;
+	    this._ellipsePoints = new Geometry();
+	    this._ellipsePoints.vertices = pts;
 
-	    return this._points;
-	  }
-
-	  /**
-	   * Get heliocentric position of object at a given JD.
-	   * @param {Number} jd Date value in JD.
-	   * @param {boolean} debug Set true for debug output.
-	   * @return {Array.<Number>} [X, Y, Z] coordinates
-	   */
-	  getPositionAtTime(jd, debug) {
-	    // Note: logic below must match the vertex shader.
-
-	    const pi = Math.PI;
-	    const sin = Math.sin;
-	    const cos = Math.cos;
-
-	    const eph = this._ephem;
-
-	    // This position calculation is used to create orbital ellipses.
-	    let e = eph.get('e');
-	    if (e >= 1) {
-	      e = 0.9;
-	    }
-
-	    // Mean anomaly
-	    const ma = eph.get('ma', 'rad');
-
-	    // Calculate mean anomaly at jd
-	    const n = eph.get('n', 'rad');
-	    const epoch = eph.get('epoch');
-	    const d = jd - epoch;
-
-	    const M = ma + n * d;
-	    if (debug) {
-	      console.info('period=', eph.get('period'));
-	      console.info('n=', n);
-	      console.info('ma=', ma);
-	      console.info('d=', d);
-	      console.info('M=', M);
-	    }
-
-	    // Estimate eccentric and true anom using iterative approx
-	    let E0 = M;
-	    let lastdiff;
-	    for (let count = 0; count < 100; count++) {
-	      const E1 = M + e * sin(E0);
-	      lastdiff = Math.abs(E1 - E0);
-	      E0 = E1;
-
-	      if (lastdiff < 0.0000001) {
-	        break;
-	      }
-	    }
-	    const E = E0;
-	    const v = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
-
-	    // Radius vector, in AU
-	    const a = eph.get('a');
-	    const r = (a * (1 - e * e)) / (1 + e * cos(v));
-
-	    // Inclination, Longitude of ascending node, Longitude of perihelion
-	    const i = eph.get('i', 'rad');
-	    const o = eph.get('om', 'rad');
-	    const p = eph.get('wBar', 'rad');
-
-	    // Heliocentric coords
-	    const X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
-	    const Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
-	    const Z = r * (sin(v + p - o) * sin(i));
-	    return rescaleXYZ(X, Y, Z);
-	  }
-
-	  /**
-	   * @return {THREE.Line} The ellipse object that represents this orbit.
-	   */
-	  getEllipse() {
-	    if (!this._ellipse) {
-	      const pointGeometry = this.getOrbitPoints();
-	      this._ellipse = new Line(
-	        pointGeometry,
-	        new LineBasicMaterial({
-	          color: new Color(this._options.color || 0x444444),
-	        }),
-	        LineStrip,
-	      );
-	    }
-	    return this._ellipse;
+	    return this._ellipsePoints;
 	  }
 
 	  /**
@@ -51753,7 +52037,7 @@ var Spacekit = (function (exports) {
 	   * @return {THREE.Geometry} A geometry with many line segments.
 	   */
 	  getLinesToEcliptic() {
-	    const points = this.getOrbitPoints();
+	    const points = this.getEllipsePoints();
 	    const geometry = new Geometry();
 
 	    points.vertices.forEach(vertex => {
@@ -51803,37 +52087,6 @@ var Spacekit = (function (exports) {
 	    this._ellipse.visible = val;
 	  }
 	}
-
-	var julian = convert;
-	var toDate = convertToDate;
-
-	var toJulianDay_1 = toJulianDay;
-	var toMillisecondsInJulianDay_1 = toMillisecondsInJulianDay;
-	var fromJulianDayAndMilliseconds_1 = fromJulianDayAndMilliseconds;
-
-	var DAY = 86400000;
-	var HALF_DAY = DAY / 2;
-	var UNIX_EPOCH_JULIAN_DATE = 2440587.5;
-	var UNIX_EPOCH_JULIAN_DAY = 2440587;
-
-	function convert(date) {
-	  return (toJulianDay(date) + (toMillisecondsInJulianDay(date) / DAY)).toFixed(6);
-	}
-	function convertToDate(julian) {
-	  return new Date((Number(julian) - UNIX_EPOCH_JULIAN_DATE) * DAY);
-	}
-	function toJulianDay(date) {
-	  return ~~((+date + HALF_DAY) / DAY) + UNIX_EPOCH_JULIAN_DAY;
-	}
-	function toMillisecondsInJulianDay(date) {
-	  return (+date + HALF_DAY) % DAY;
-	}
-	function fromJulianDayAndMilliseconds(day, ms) {
-	  return (day - UNIX_EPOCH_JULIAN_DATE) * DAY + ms;
-	}julian.toDate = toDate;
-	julian.toJulianDay = toJulianDay_1;
-	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
-	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
 
 	/**
 	 * @author mrdoob / http://mrdoob.com/
@@ -55860,29 +56113,113 @@ var Spacekit = (function (exports) {
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float w;
     attribute float wBar;
     attribute float M;
 
-    vec3 getAstroPos() {
+    // Perihelion distance
+    attribute float q;
+
+    // CPU-computed term for parabolic orbits
+    attribute float a0;
+
+    // COSH Function (Hyperbolic Cosine)
+    float cosh(float val) {
+      float tmp = exp(val);
+      float cosH = (tmp + 1.0 / tmp) / 2.0;
+      return cosH;
+    }
+
+    // TANH Function (Hyperbolic Tangent)
+    float tanh(float val) {
+      float tmp = exp(val);
+      float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
+      return tanH;
+    }
+
+    // SINH Function (Hyperbolic Sine)
+    float sinh(float val) {
+      float tmp = exp(val);
+      float sinH = (tmp - 1.0 / tmp) / 2.0;
+      return sinH;
+    }
+
+    // Cube root helper that assumes param is positive
+    float cbrt(float x) {
+      return exp(log(x) / 3.0);
+    }
+
+    vec3 getPosNearParabolic() {
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+      float b = sqrt(1.0 + a0 * a0);
+      float W = cbrt(b + a0) - cbrt(b - a0);
+      float f = (1.0 - e) / (1.0 + e);
+
+      float a1 = 2.0 / 3.0 + (2.0 / 5.0) * W * W;
+      float a2 = 7.0 / 5.0 + (33.0 / 35.0) * W * W + (37.0 / 175.0) * pow(W, 4.0);
+      float a3 =
+        W * W * (432.0 / 175.0 + (956.0 / 1125.0) * W * W + (84.0 / 1575.0) * pow(W, 4.0));
+
+      float C = (W * W) / (1.0 + W * W);
+      float g = f * C * C;
+      float w = W * (1.0 + f * C * (a1 + a2 * g + a3 * g * g));
+
+      // True anomaly
+      float v = 2.0 * atan(w);
+      // Heliocentric distance
+      float r = (q * (1.0 + w * w)) / (1.0 + w * w * f);
+
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getPosHyperbolic() {
+      float F0 = M;
+      for (int count = 0; count < 100; count++) {
+        float F1 = (M + e * (F0 * cosh(F0) - sinh(F0))) / (e * cosh(F0) - 1.0);
+        float lastdiff = abs(F1 - F0);
+        F0 = F1;
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+      float F = F0;
+
+      float v = 2.0 * atan(sqrt((e + 1.0) / (e - 1.0))) * tanh(F / 2.0);
+      float r = ${getScaleFactor().toFixed(
+        1,
+      )} * (a * (1.0 - e * e)) / (1.0 + e * cos(v));
+
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
+    }
+
+    vec3 getPosEllipsoid() {
       float i_rad = i;
       float o_rad = om;
       float p_rad = wBar;
 
-      float adjusted_e = e;
-      if (e >= 1.0) {
-        adjusted_e = 0.9;
-      }
-
       // Estimate eccentric and true anom using iterative approximation (this
       // is normally an intergral).
       float E0 = M;
-      float E1 = M + adjusted_e * sin(E0);
+      float E1 = M + e * sin(E0);
       float lastdiff = abs(E1-E0);
       E0 = E1;
 
-      for ( int i = 0; i < 100; i ++ ) {
-        E1 = M + adjusted_e * sin(E0);
+      for (int count = 0; count < 100; count++) {
+        E1 = M + e * sin(E0);
         lastdiff = abs(E1-E0);
         E0 = E1;
         if (lastdiff < 0.0000001) {
@@ -55891,12 +56228,12 @@ var Spacekit = (function (exports) {
       }
 
       float E = E0;
-      float v = 2.0 * atan(sqrt((1.0+adjusted_e)/(1.0-adjusted_e)) * tan(E/2.0));
+      float v = 2.0 * atan(sqrt((1.0+e)/(1.0-e)) * tan(E/2.0));
 
       // Compute radius vector.
       float r = ${getScaleFactor().toFixed(
         1,
-      )} * a * (1.0 - adjusted_e*adjusted_e) / (1.0 + adjusted_e * cos(v));
+      )} * a * (1.0 - e * e) / (1.0 + e * cos(v));
 
       // Compute heliocentric coords.
       float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
@@ -55905,37 +56242,19 @@ var Spacekit = (function (exports) {
       return vec3(X, Y, Z);
     }
 
-    /*
-    vec3 getAstroPosFast() {
-      float M1 = ma + (jd - epoch) * n;
-      float theta = M1 + 2. * e * sin(M1);
-
-      float cosT = cos(theta);
-
-      float r = a * (1. - e * e) / (1. + e * cosT);
-      float v0 = r * cosT;
-      float v1 = r * sin(theta);
-
-      float sinOm = sin(om);
-      float cosOm = cos(om);
-      float sinW = sin(w);
-      float cosW = cos(w);
-      float sinI = sin(i);
-      float cosI = cos(i);
-
-      float X = v0 * (cosOm * cosW - sinOm * sinW * cosI) + v1 * (-1. * cosOm * sinW - sinOm * cosW * cosI);
-      float Y = v0 * (sinOm * cosW + cosOm * sinW * cosI) + v1 * (-1. * sinOm * sinW + cosOm * cosW * cosI);
-      float Z = v0 * (sinW * sinI) + v1 * (cosW * sinI);
-
-      return vec3(X, Y, Z);
+    vec3 getPos() {
+      if (e > 0.8 && e < 1.2) {
+        return getPosNearParabolic();
+      } else if (e > 1.2) {
+        return getPosHyperbolic();
+      }
+      return getPosEllipsoid();
     }
-    */
 
     void main() {
       vColor = fuzzColor;
 
-      //vec3 newpos = getAstroPosFast() + origin;
-      vec3 newpos = getAstroPos() + origin;
+      vec3 newpos = getPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       gl_PointSize = size;
@@ -56087,17 +56406,17 @@ var Spacekit = (function (exports) {
   }
 
   vec3 shadow() {
-    // TODO(ian): planet and sun position uniforms
-    // sun position in saturn test
-
     vec3 lightDir = normalize(vPos - lightPos);
     vec3 planetPos = vec3(0);
 
     vec3 ringPos = vPos - planetPos;
     float posDotLightDir = dot(ringPos, lightDir);
     float posDotLightDir2 = posDotLightDir * posDotLightDir;
+
+    // TODO(ian): Generalize this line.
     float radius = 0.0389259903; // radius of saturn in coordinate system
     float radius2 = radius * radius;
+
     if (posDotLightDir > 0.0 && dot(ringPos, ringPos) - posDotLightDir2 < radius2) {
       return vec3(0.0);
     }
@@ -56123,11 +56442,20 @@ var Spacekit = (function (exports) {
 	const DEFAULT_PARTICLE_COUNT = 4096;
 
 	/**
-	 * Compute mean anomaly at date.
+	 * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
 	 */
 	function getM(ephem, jd) {
 	  const d = jd - ephem.get('epoch');
 	  return ephem.get('ma') + ephem.get('n') * d;
+	}
+
+	const PARABOLIC_K = 0.01720209895;
+	function getA0(ephem, jd) {
+	  const tp = ephem.get('tp');
+	  const e = ephem.get('e');
+	  const q = ephem.get('q');
+	  const d = jd - tp;
+	  return 0.75 * d * PARABOLIC_K * Math.sqrt((1 + e) / (q * q * q));
 	}
 
 	/**
@@ -56219,7 +56547,10 @@ var Spacekit = (function (exports) {
 	      n: new BufferAttribute(new Float32Array(particleCount), 1),
 	      w: new BufferAttribute(new Float32Array(particleCount), 1),
 	      wBar: new BufferAttribute(new Float32Array(particleCount), 1),
+	      q: new BufferAttribute(new Float32Array(particleCount), 1),
+
 	      M: new BufferAttribute(new Float32Array(particleCount), 1),
+	      a0: new BufferAttribute(new Float32Array(particleCount), 1),
 	    };
 
 	    const geometry = new BufferGeometry();
@@ -56271,9 +56602,11 @@ var Spacekit = (function (exports) {
 	    attributes.e.set([ephem.get('e')], offset);
 	    attributes.i.set([ephem.get('i', 'rad')], offset);
 	    attributes.om.set([ephem.get('om', 'rad')], offset);
-	    attributes.w.set([ephem.get('w', 'rad')], offset);
 	    attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
+	    attributes.q.set([ephem.get('q')], offset);
+
 	    attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
+	    attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
 
 	    // TODO(ian): Set the update range
 	    for (const attributeKey in attributes) {
@@ -56308,9 +56641,29 @@ var Spacekit = (function (exports) {
 	   * @param {Number} jd JD date
 	   */
 	  update(jd) {
-	    const Ms = this._elements.map(ephem => getM(ephem, jd));
+	    const Ms = [];
+	    const a0s = [];
+	    for (let i = 0; i < this._elements.length; i++) {
+	      const ephem = this._elements[i];
+
+	      let M, a0;
+	      if (ephem.get('tp')) {
+	        a0 = getA0(ephem, jd);
+	        M = 0;
+	      } else {
+	        a0 = 0;
+	        M = getM(ephem, jd);
+	      }
+
+	      Ms.push(M);
+	      a0s.push(a0);
+	    }
+
 	    this._attributes.M.set(Ms);
 	    this._attributes.M.needsUpdate = true;
+
+	    this._attributes.a0.set(a0s);
+	    this._attributes.a0.needsUpdate = true;
 	  }
 
 	  /**
@@ -57518,7 +57871,7 @@ var Spacekit = (function (exports) {
 	      );
 	      if (!this._options.hideOrbit) {
 	        this._orbit
-	          .getEllipse()
+	          .getOrbitShape()
 	          .position.set(parentPos[0], parentPos[1], parentPos[2]);
 	      }
 	      if (!newpos) {
@@ -57552,7 +57905,7 @@ var Spacekit = (function (exports) {
 	      ret.push(this._object3js);
 	    }
 	    if (this._orbit) {
-	      ret.push(this._orbit.getEllipse());
+	      ret.push(this._orbit.getOrbitShape());
 	      if (this._options.ecliptic && this._options.ecliptic.displayLines) {
 	        ret.push(this._orbit.getLinesToEcliptic());
 	      }
@@ -59030,7 +59383,7 @@ var Spacekit = (function (exports) {
 	  zoomToFit(spaceObj, offset = 3.0) {
 	    const checkZoomFit = () => {
 	      const orbit = spaceObj.getOrbit();
-	      const obj = orbit ? orbit.getEllipse() : spaceObj.getBoundingObject();
+	      const obj = orbit ? orbit.getOrbitShape() : spaceObj.getBoundingObject();
 	      if (obj) {
 	        this.doZoomToFit(obj, offset);
 	        return true;

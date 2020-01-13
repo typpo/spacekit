@@ -7,11 +7,20 @@ import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
 const DEFAULT_PARTICLE_COUNT = 4096;
 
 /**
- * Compute mean anomaly at date.
+ * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
  */
 function getM(ephem, jd) {
   const d = jd - ephem.get('epoch');
   return ephem.get('ma') + ephem.get('n') * d;
+}
+
+const PARABOLIC_K = 0.01720209895;
+function getA0(ephem, jd) {
+  const tp = ephem.get('tp');
+  const e = ephem.get('e');
+  const q = ephem.get('q');
+  const d = jd - tp;
+  return 0.75 * d * PARABOLIC_K * Math.sqrt((1 + e) / (q * q * q));
 }
 
 /**
@@ -107,7 +116,10 @@ export class KeplerParticles {
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      q: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+
       M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      a0: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
     const geometry = new THREE.BufferGeometry();
@@ -161,7 +173,10 @@ export class KeplerParticles {
     attributes.om.set([ephem.get('om', 'rad')], offset);
     attributes.w.set([ephem.get('w', 'rad')], offset);
     attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
+    attributes.q.set([ephem.get('q')], offset);
+
     attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
+    attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
 
     // TODO(ian): Set the update range
     for (const attributeKey in attributes) {
@@ -199,6 +214,10 @@ export class KeplerParticles {
     const Ms = this._elements.map(ephem => getM(ephem, jd));
     this._attributes.M.set(Ms);
     this._attributes.M.needsUpdate = true;
+
+    const a0s = this._elements.map(ephem => getA0(ephem, jd));
+    this._attributes.a0.set(a0s);
+    this._attributes.a0.needsUpdate = true;
   }
 
   /**

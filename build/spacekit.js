@@ -56113,7 +56113,7 @@ var Spacekit = (function (exports) {
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float w;
+    // attribute float w;
     attribute float wBar;
     attribute float M;
 
@@ -56121,6 +56121,9 @@ var Spacekit = (function (exports) {
     attribute float q;
     // Time of perihelion
     attribute float tp;
+
+    // CPU-computed term for parabolic orbits
+    attribute float a0;
 
     // COSH Function (Hyperbolic Cosine)
     float cosh(float val) {
@@ -56143,30 +56146,45 @@ var Spacekit = (function (exports) {
       return sinH;
     }
 
-    vec3 getPosParabolic() {
+    float cbrt(float x) {
+      return exp(log(x) / 3.0);
+    }
+
+    vec3 getPosNearParabolic() {
       // See https://stjarnhimlen.se/comp/ppcomp.html#17
-
-      return vec3(0.0, 0.0, 0.0);
-
-      /*
       // The Guassian gravitational constant
-      const float k = 0.01720209895;
+      //float k = 0.01720209895;
 
       // Compute time since perihelion
-      const d = jd - tp;
+      //float d = jd - tp;
 
-      const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
-      const h = 1.5 * H;
-      const g = sqrt(1.0 + h * h);
-      const s = cbrt(g + h) - cbrt(g - h);
+      //float a0 = 0.75 * d * k * sqrt((1.0 + e) / (q * q * q));
+      float b = sqrt(1.0 + a0 * a0);
+      float W = cbrt(b + a0) - cbrt(b - a0);
+      float f = (1.0 - e) / (1.0 + e);
+
+      float a1 = 2.0 / 3.0 + (2.0 / 5.0) * W * W;
+      float a2 = 7.0 / 5.0 + (33.0 / 35.0) * W * W + (37.0 / 175.0) * pow(W, 4.0);
+      float a3 =
+        W * W * (432.0 / 175.0 + (956.0 / 1125.0) * W * W + (84.0 / 1575.0) * pow(W, 4.0));
+
+      float C = (W * W) / (1.0 + W * W);
+      float g = f * C * C;
+      float w = W * (1.0 + f * C * (a1 + a2 * g + a3 * g * g));
 
       // True anomaly
-      const v = 2.0 * Math.atan(s);
+      float v = 2.0 * atan(w);
       // Heliocentric distance
-      const r = q * (1.0 + s * s);
+      float r = (q * (1.0 + w * w)) / (1.0 + w * w * f);
 
-      return this.vectorToHeliocentric(v, r);
-      */
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
     }
 
     vec3 getPosHyperbolic() {
@@ -56235,7 +56253,7 @@ var Spacekit = (function (exports) {
 
     vec3 getPos() {
       if (e > 0.8 && e < 1.2) {
-        return getPosParabolic();
+        return getPosNearParabolic();
       } else if (e > 1.2) {
         return getPosHyperbolic();
       }
@@ -56433,11 +56451,20 @@ var Spacekit = (function (exports) {
 	const DEFAULT_PARTICLE_COUNT = 4096;
 
 	/**
-	 * Compute mean anomaly at date.
+	 * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
 	 */
 	function getM(ephem, jd) {
 	  const d = jd - ephem.get('epoch');
 	  return ephem.get('ma') + ephem.get('n') * d;
+	}
+
+	const PARABOLIC_K = 0.01720209895;
+	function getA0(ephem, jd) {
+	  const tp = ephem.get('tp');
+	  const e = ephem.get('e');
+	  const q = ephem.get('q');
+	  const d = jd - tp;
+	  return 0.75 * d * PARABOLIC_K * Math.sqrt((1 + e) / (q * q * q));
 	}
 
 	/**
@@ -56529,7 +56556,11 @@ var Spacekit = (function (exports) {
 	      n: new BufferAttribute(new Float32Array(particleCount), 1),
 	      w: new BufferAttribute(new Float32Array(particleCount), 1),
 	      wBar: new BufferAttribute(new Float32Array(particleCount), 1),
+	      q: new BufferAttribute(new Float32Array(particleCount), 1),
+
 	      M: new BufferAttribute(new Float32Array(particleCount), 1),
+	      a0: new BufferAttribute(new Float32Array(particleCount), 1),
+
 	    };
 
 	    const geometry = new BufferGeometry();
@@ -56583,7 +56614,10 @@ var Spacekit = (function (exports) {
 	    attributes.om.set([ephem.get('om', 'rad')], offset);
 	    attributes.w.set([ephem.get('w', 'rad')], offset);
 	    attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
+	    attributes.q.set([ephem.get('q')], offset);
+
 	    attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
+	    attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
 
 	    // TODO(ian): Set the update range
 	    for (const attributeKey in attributes) {
@@ -56621,6 +56655,10 @@ var Spacekit = (function (exports) {
 	    const Ms = this._elements.map(ephem => getM(ephem, jd));
 	    this._attributes.M.set(Ms);
 	    this._attributes.M.needsUpdate = true;
+
+	    const a0s = this._elements.map(ephem => getA0(ephem, jd));
+	    this._attributes.a0.set(a0s);
+	    this._attributes.a0.needsUpdate = true;
 	  }
 
 	  /**

@@ -31,7 +31,7 @@ export function getOrbitShaderVertex() {
     attribute float e;
     attribute float i;
     attribute float om;
-    attribute float w;
+    // attribute float w;
     attribute float wBar;
     attribute float M;
 
@@ -39,6 +39,9 @@ export function getOrbitShaderVertex() {
     attribute float q;
     // Time of perihelion
     attribute float tp;
+
+    // CPU-computed term for parabolic orbits
+    attribute float a0;
 
     // COSH Function (Hyperbolic Cosine)
     float cosh(float val) {
@@ -61,30 +64,45 @@ export function getOrbitShaderVertex() {
       return sinH;
     }
 
-    vec3 getPosParabolic() {
+    float cbrt(float x) {
+      return exp(log(x) / 3.0);
+    }
+
+    vec3 getPosNearParabolic() {
       // See https://stjarnhimlen.se/comp/ppcomp.html#17
-
-      return vec3(0.0, 0.0, 0.0);
-
-      /*
       // The Guassian gravitational constant
-      const float k = 0.01720209895;
+      //float k = 0.01720209895;
 
       // Compute time since perihelion
-      const d = jd - tp;
+      //float d = jd - tp;
 
-      const H = (d * (k / sqrt(2))) / sqrt(q * q * q);
-      const h = 1.5 * H;
-      const g = sqrt(1.0 + h * h);
-      const s = cbrt(g + h) - cbrt(g - h);
+      //float a0 = 0.75 * d * k * sqrt((1.0 + e) / (q * q * q));
+      float b = sqrt(1.0 + a0 * a0);
+      float W = cbrt(b + a0) - cbrt(b - a0);
+      float f = (1.0 - e) / (1.0 + e);
+
+      float a1 = 2.0 / 3.0 + (2.0 / 5.0) * W * W;
+      float a2 = 7.0 / 5.0 + (33.0 / 35.0) * W * W + (37.0 / 175.0) * pow(W, 4.0);
+      float a3 =
+        W * W * (432.0 / 175.0 + (956.0 / 1125.0) * W * W + (84.0 / 1575.0) * pow(W, 4.0));
+
+      float C = (W * W) / (1.0 + W * W);
+      float g = f * C * C;
+      float w = W * (1.0 + f * C * (a1 + a2 * g + a3 * g * g));
 
       // True anomaly
-      const v = 2.0 * Math.atan(s);
+      float v = 2.0 * atan(w);
       // Heliocentric distance
-      const r = q * (1.0 + s * s);
+      float r = (q * (1.0 + w * w)) / (1.0 + w * w * f);
 
-      return this.vectorToHeliocentric(v, r);
-      */
+      // Compute heliocentric coords.
+      float i_rad = i;
+      float o_rad = om;
+      float p_rad = wBar;
+      float X = r * (cos(o_rad) * cos(v + p_rad - o_rad) - sin(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Y = r * (sin(o_rad) * cos(v + p_rad - o_rad) + cos(o_rad) * sin(v + p_rad - o_rad) * cos(i_rad));
+      float Z = r * (sin(v + p_rad - o_rad) * sin(i_rad));
+      return vec3(X, Y, Z);
     }
 
     vec3 getPosHyperbolic() {
@@ -153,7 +171,7 @@ export function getOrbitShaderVertex() {
 
     vec3 getPos() {
       if (e > 0.8 && e < 1.2) {
-        return getPosParabolic();
+        return getPosNearParabolic();
       } else if (e > 1.2) {
         return getPosHyperbolic();
       }

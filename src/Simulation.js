@@ -553,7 +553,7 @@ export class Simulation {
       } else if (!previouslyInView && inView) {
         // Came into view
         this._renderEnabled = true;
-        window.requestAnimationFrame(this._boundAnimate);
+        window.requestAnimationFrame(this.animate);
         previouslyInView = true;
       }
     });

@@ -51636,6 +51636,33 @@ var Spacekit = (function (exports) {
 	}
 
 	/**
+	 * Enum of orbital types.
+	 */
+	const OrbitType = Object.freeze({
+	  PARABOLIC: 1,
+	  HYPERBOLIC: 2,
+	  ELLIPTICAL: 3,
+	  UNKNOWN: 4,
+	});
+
+	/**
+	 * Get the type of orbit. Returns one of OrbitType.PARABOLIC, HYPERBOLIC,
+	 * ELLIPTICAL, or UNKNOWN.
+	 * @return {OrbitType} Name of orbit type
+	 */
+	function getOrbitType(ephem) {
+	  let e = ephem.get('e');
+	  if (e > 0.8 && e < 1.2) {
+	    return OrbitType.PARABOLIC;
+	  } else if (e > 1.2) {
+	    return OrbitType.HYPERBOLIC;
+	  } else {
+	    return OrbitType.ELLIPTICAL;
+	  }
+	  return OrbitType.UNKNOWN;
+	}
+
+	/**
 	 * A class that builds a visual representation of a Kepler orbit.
 	 * @example
 	 * const orbit = new Spacekit.Orbit({
@@ -51680,18 +51707,6 @@ var Spacekit = (function (exports) {
 	    this._orbitShape = null;
 	  }
 
-	  getOrbitType() {
-	    let e = this._ephem.get('e');
-	    if (e > 0.8 && e < 1.2) {
-	      return 'PARABOLIC';
-	    } else if (e > 1.2) {
-	      return 'HYPERBOLIC';
-	    } else {
-	      return 'ELLIPSOID';
-	    }
-	    return 'UNKNOWN';
-	  }
-
 	  /**
 	   * Get heliocentric position of object at a given JD.
 	   * @param {Number} jd Date value in JD.
@@ -51702,13 +51717,13 @@ var Spacekit = (function (exports) {
 	    // Note: logic below must match the vertex shader.
 
 	    // This position calculation is used to create orbital ellipses.
-	    switch (this.getOrbitType()) {
-	      case 'PARABOLIC':
+	    switch (getOrbitType(this._ephem)) {
+	      case OrbitType.PARABOLIC:
 	        return this.getPositionAtTimeNearParabolic(jd, debug);
-	      case 'HYPERBOLIC':
+	      case OrbitType.HYPERBOLIC:
 	        return this.getPositionAtTimeHyperbolic(jd, debug);
-	      case 'ELLIPSOID':
-	        return this.getPositionAtTimeEllipsoid(jd, debug);
+	      case OrbitType.ELLIPTICAL:
+	        return this.getPositionAtTimeELLIPTICAL(jd, debug);
 	    }
 	    throw new Error('No handler for this type of orbit');
 	  }
@@ -51820,7 +51835,7 @@ var Spacekit = (function (exports) {
 	    return this.vectorToHeliocentric(v, r);
 	  }
 
-	  getPositionAtTimeEllipsoid(jd, debug) {
+	  getPositionAtTimeELLIPTICAL(jd, debug) {
 	    const eph = this._ephem;
 
 	    // Eccentricity
@@ -51910,20 +51925,20 @@ var Spacekit = (function (exports) {
 	      ),
 	    );
 
-	    switch (this.getOrbitType()) {
-	      case 'HYPERBOLIC':
+	    switch (getOrbitType(this._ephem)) {
+	      case OrbitType.HYPERBOLIC:
 	        return this.getLine(
 	          this.getPositionAtTimeHyperbolic.bind(this),
 	          startJd,
 	          endJd,
 	        );
-	      case 'PARABOLIC':
+	      case OrbitType.PARABOLIC:
 	        return this.getLine(
 	          this.getPositionAtTimeNearParabolic.bind(this),
 	          startJd,
 	          endJd,
 	        );
-	      case 'ELLIPSOID':
+	      case OrbitType.ELLIPTICAL:
 	        return this.getEllipse();
 	    }
 	    throw new Error('Unknown orbit shape');
@@ -51991,7 +52006,7 @@ var Spacekit = (function (exports) {
 	    const ecc = eph.get('e');
 	    // const minSegments = ecc > 0.4 ? 100 : 50;
 	    const minSegments = 360;
-	    const numSegments = Math.max(period / 2, minSegments);
+	    const numSegments = Math.max(period / 8, minSegments);
 	    const step = period / numSegments;
 
 	    const pts = [];
@@ -56645,7 +56660,7 @@ var Spacekit = (function (exports) {
 	      const ephem = this._elements[i];
 
 	      let M, a0;
-	      if (ephem.get('tp')) {
+	      if (getOrbitType(ephem) !== OrbitType.ELLIPTICAL) {
 	        a0 = getA0(ephem, jd);
 	        M = 0;
 	      } else {
@@ -59592,6 +59607,8 @@ var Spacekit = (function (exports) {
 	exports.GM = GM;
 	exports.EphemPresets = EphemPresets;
 	exports.NaturalSatellites = NaturalSatellites;
+	exports.OrbitType = OrbitType;
+	exports.getOrbitType = getOrbitType;
 	exports.Orbit = Orbit;
 	exports.Simulation = Simulation;
 	exports.Skybox = Skybox;

@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { getThreeJsTexture } from './util';
 
 import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
+import { getOrbitType, OrbitType } from './Orbit';
 
 const DEFAULT_PARTICLE_COUNT = 4096;
 
@@ -216,7 +217,7 @@ export class KeplerParticles {
       const ephem = this._elements[i];
 
       let M, a0;
-      if (ephem.get('tp')) {
+      if (getOrbitType(ephem) !== OrbitType.ELLIPTICAL) {
         a0 = getA0(ephem, jd);
         M = 0;
       } else {

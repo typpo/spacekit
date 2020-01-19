@@ -217,7 +217,7 @@ export class KeplerParticles {
       const ephem = this._elements[i];
 
       let M, a0;
-      if (getOrbitType(ephem) !== OrbitType.ELLIPTICAL) {
+      if (getOrbitType(ephem) === OrbitType.PARABOLIC) {
         a0 = getA0(ephem, jd);
         M = 0;
       } else {

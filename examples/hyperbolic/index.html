@@ -3,17 +3,43 @@
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
+    html, body {
       margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
     }
-
     #main-container {
       width: 100%;
       height: 100%;
     }
+    .links {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding: 0.5em;
+      background-color: #000;
+      border-left: 1px solid #bbb;
+      border-top: 1px solid #bbb;
+      color: #fff;
+      font-size: 0.8em;
+    }
+    .links a {
+      color: #fff;
+    }
+
+    @media (max-width: 960px) {
+      .links {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
+<div class="links">
+  <a href="https://github.com/typpo/spacekit/blob/master/examples/hyperbolic/main.js">Source</a>
+  &middot;
+  <a href="https://typpo.github.io/spacekit/">Spacekit.js homepage</a>
+</div>
 <div id="main-container">
 </div>
 

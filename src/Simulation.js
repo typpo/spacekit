@@ -100,7 +100,7 @@ export class Simulation {
 
     this._jd =
       typeof this._options.jd === 'undefined'
-        ? julian.toJulianDay(this._options.startDate) || 0
+        ? Number(julian(this._options.startDate)) || 0
         : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -677,7 +677,7 @@ export class Simulation {
    * @param {Date} date Date of simulation
    */
   setDate(date) {
-    this.setJd(julian(date));
+    this.setJd(Number(julian(date)));
   }
 
   /**

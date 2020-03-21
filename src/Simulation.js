@@ -677,7 +677,7 @@ export class Simulation {
    * @param {Date} date Date of simulation
    */
   setDate(date) {
-    this.setJd(julian.toJulianDay(date));
+    this.setJd(julian(date));
   }
 
   /**

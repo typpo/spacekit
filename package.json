@@ -8,16 +8,21 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "docs": "esdoc",
-    "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.js'"
+    "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.js'",
+    "test": "jest"
   },
   "devDependencies": {
     "@arkweid/lefthook": "^0.6.3",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
+    "babel-jest": "^25.5.1",
     "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^5.9.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
+    "jest": "^25.4.0",
     "prettier": "^1.18.2",
     "rollup": "^0.67.4",
     "rollup-plugin-commonjs": "^9.2.0",

@@ -1,4 +1,4 @@
-import * as Units from "../src/Units"
+import * as Units from '../src/Units';
 
 describe('Angular Conversions', () => {
   test.each([
@@ -23,5 +23,5 @@ describe('Length conversions', () => {
 
   test('Convert au to km', () => {
     expect(Units.auToKm(1)).toBeCloseTo(149597870.7, 11);
-  })
+  });
 });

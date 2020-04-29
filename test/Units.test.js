@@ -3,16 +3,16 @@ import * as Units from '../src/Units';
 describe('Angular Conversions', () => {
   test.each([
     [0.0, 0.0],
-    [180.0, Math.PI]
+    [180.0, Math.PI],
   ])('Converts %f deg to %f radians', (deg, rad) => {
-    expect(Units.rad(deg),).toBeCloseTo(rad, 12);
+    expect(Units.rad(deg)).toBeCloseTo(rad, 12);
   });
 
   test.each([
     [0.0, 0.0],
-    [Math.PI, 180.0]
+    [Math.PI, 180.0],
   ])('Converts %f rad to %f deg', (rad, deg) => {
-    expect(Units.deg(rad),).toBeCloseTo(deg, 12);
+    expect(Units.deg(rad)).toBeCloseTo(deg, 12);
   });
 });
 

@@ -58706,6 +58706,99 @@ var Spacekit = (function (exports) {
 	  }
 	}
 
+	const DEFAULT_PARTICLE_SIZE = 4;
+	const DEFAULT_COLOR = 0xffffff;
+
+	/**
+	 * Simulates a static particle field in whichever base reference the simulation is in.
+	 */
+	class StaticParticles {
+	  /**
+	   *
+	   * @param {String} id Unique ID for this object
+	   * @param {Array.Array.<Number>} points an array of X,Y,Z cartesian points, one for each particle
+	   * @param {Object} options container
+	   * @param {Color} options.defaultColor color to use for all particles can be a THREE string color name or hex value
+	   * @param {Number} options.size the size of each particle
+	   * @param {Object} contextOrSimulation Simulation context or simulation object
+	   */
+	  constructor(id, points, options, contextOrSimulation) {
+	    this._options = options;
+
+	    this._id = id;
+
+	    // TODO(ian): Add to ctx
+	    {
+	      // User passed in Simulation
+	      this._simulation = contextOrSimulation;
+	      this._context = contextOrSimulation.getContext();
+	    }
+
+	    // Number of particles in the scene.
+	    this._particleCount = points.length;
+
+	    this._points = points;
+	    this._geometry = undefined;
+
+	    this.init();
+	    this._simulation.addObject(this, true);
+	  }
+
+	  init() {
+	    const positions = new Float32Array(this._points.length * 3);
+	    const colors = new Float32Array(this._points.length * 3);
+	    const sizes = new Float32Array(this._points.length);
+	    let color = new Color(DEFAULT_COLOR);
+
+	    if (this._options.defaultColor) {
+	      color = new Color(this._options.defaultColor);
+	    }
+
+	    let size = DEFAULT_PARTICLE_SIZE;
+
+	    if (this._options.size) {
+	      size = this._options.size;
+	    }
+
+	    for (let i = 0, l = this._points.length; i < l; i++) {
+	      const vertex = this._points[i];
+	      positions.set(vertex, i * 3);
+	      color.toArray(colors, i * 3);
+	      sizes[i] = size;
+	    }
+
+	    const geometry = new BufferGeometry();
+	    geometry.addAttribute('position', new BufferAttribute(positions, 3));
+	    geometry.addAttribute('color', new BufferAttribute(colors, 3));
+	    geometry.addAttribute('size', new BufferAttribute(sizes, 1));
+
+	    const material = new ShaderMaterial({
+	      vertexColors: VertexColors,
+	      vertexShader: STAR_SHADER_VERTEX,
+	      fragmentShader: STAR_SHADER_FRAGMENT,
+	      transparent: true,
+	    });
+
+	    this._geometry = new Points(geometry, material);
+	  }
+
+	  /**
+	   * A list of THREE.js objects that are used to compose the skybox.
+	   * @return {THREE.Object} Skybox mesh
+	   */
+	  get3jsObjects() {
+	    return [this._geometry];
+	  }
+
+	  /**
+	   * Get the unique ID of this object.
+	   * @return {String} id
+	   */
+	  getId() {
+	    return this._id;
+	  }
+	}
+
 	/**
 	 * Maps spectral class to star color
 	 * @param temp {Number} Star temperature in Kelvin
@@ -58920,7 +59013,7 @@ var Spacekit = (function (exports) {
 
 	    this._jd =
 	      typeof this._options.jd === 'undefined'
-	        ? julian.toJulianDay(this._options.startDate) || 0
+	        ? Number(julian(this._options.startDate)) || 0
 	        : this._options.jd;
 	    this._jdDelta = this._options.jdDelta;
 	    this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -59257,6 +59350,15 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
+	   * Shortcut for creating a new StaticParticles object belonging to this visualization.
+	   * Takes any StaticParticles arguments.
+	   * @see SphereObject
+	   */
+	  createStaticParticles(...args) {
+	    return new StaticParticles(...args, this);
+	  }
+
+	  /**
 	   * Shortcut for creating a new Skybox belonging to this visualization. Takes
 	   * any Skybox arguments.
 	   * @see Skybox
@@ -59497,7 +59599,7 @@ var Spacekit = (function (exports) {
 	   * @param {Date} date Date of simulation
 	   */
 	  setDate(date) {
-	    this.setJd(julian.toJulianDay(date));
+	    this.setJd(Number(julian(date)));
 	  }
 
 	  /**
@@ -59618,6 +59720,7 @@ var Spacekit = (function (exports) {
 	exports.RotatingObject = RotatingObject;
 	exports.ShapeObject = ShapeObject;
 	exports.SphereObject = SphereObject;
+	exports.StaticParticles = StaticParticles;
 	exports.KeplerParticles = KeplerParticles;
 	exports.Stars = Stars;
 	exports.rad = rad;

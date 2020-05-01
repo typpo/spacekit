@@ -9,6 +9,7 @@ export * from './SpaceObject';
 export * from './RotatingObject';
 export * from './ShapeObject';
 export * from './SphereObject';
+export * from './StaticParticles';
 export * from './KeplerParticles';
 export * from './Stars';
 export * from './Units';

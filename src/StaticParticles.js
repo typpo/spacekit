@@ -1,19 +1,30 @@
 import * as THREE from 'three';
 
 import {
-  GENERIC_PARTICLE_SHADER_VERTEX,
-  GENERIC_PARTICLE_SHADER_FRAGMENT,
+  STAR_SHADER_VERTEX,
+  STAR_SHADER_FRAGMENT,
 } from './shaders';
 
-const DEFAULT_PARTICLE_COUNT = 1024;
+const DEFAULT_PARTICLE_SIZE = 4;
+const DEFAULT_COLOR = 0xffffff;
 
-const PARTICLE_SIZE = 5.0;
-
+/**
+ * Simulates a static particle field in whichever base reference the simulation is in.
+ */
 export class StaticParticles {
-  constructor(options, contextOrSimulation) {
+  /**
+   *
+   * @param {String} id Unique ID for this object
+   * @param {Array.Array.<Number>} points an array of X,Y,Z cartesian points, one for each particle
+   * @param {Object} options container
+   * @param {Color} options.defaultColor color to use for all particles can be a THREE string color name or hex value
+   * @param {Number} options.size the size of each particle
+   * @param {Object} contextOrSimulation Simulation context or simulation object
+   */
+  constructor(id, points, options, contextOrSimulation) {
     this._options = options;
 
-    this._id = `StaticParticles__${StaticParticles.instanceCount}`;
+    this._id = id;
 
     // TODO(ian): Add to ctx
     if (true) {
@@ -27,43 +38,66 @@ export class StaticParticles {
     }
 
     // Number of particles in the scene.
-    this._particleCount = 0;
+    this._particleCount = points.length;
 
-    this._points = undefined;
+    this._points = points;
+    this._geometry = undefined;
 
     this.init();
+    this._simulation.addObject(this, true);
   }
 
   init() {
-    const positions = new Float32Array(vertices.length * 3);
-    const colors = new Float32Array(vertices.length * 3);
-    const sizes = new Float32Array(vertices.length);
+    const positions = new Float32Array(this._points.length * 3);
+    const colors = new Float32Array(this._points.length * 3);
+    const sizes = new Float32Array(this._points.length);
+    let color = new THREE.Color(DEFAULT_COLOR);
 
-    for (let i = 0, l = vertices.length; i < l; i++) {
-      const vertex = vertices[i];
-      vertex.toArray(positions, i * 3);
-      color.setHSL(0.01 + 0.1 * (i / l), 1.0, 0.5);
+    if (this._options.defaultColor) {
+      color = new THREE.Color(this._options.defaultColor);
+    }
+
+    let size = DEFAULT_PARTICLE_SIZE;
+
+    if (this._options.size) {
+      size = this._options.size;
+    }
+
+    for (let i = 0, l = this._points.length; i < l; i++) {
+      const vertex = this._points[i];
+      positions.set(vertex, i * 3);
       color.toArray(colors, i * 3);
-      sizes[i] = PARTICLE_SIZE * 0.5;
+      sizes[i] = size;
     }
 
     const geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.addAttribute('customColor', new THREE.BufferAttribute(colors, 3));
+    geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
-      uniforms: {
-        color: { value: new THREE.Color(0xffffff) },
-        // texture: { value: new THREE.TextureLoader().load( "textures/sprites/disc.png" ) }
-      },
-      vertexShader: GENERIC_PARTICLE_SHADER_VERTEX,
-      fragmentShader: GENERIC_PARTICLE_SHADER_FRAGMENT,
-      alphaTest: 0.9,
+      vertexColors: THREE.VertexColors,
+      vertexShader: STAR_SHADER_VERTEX,
+      fragmentShader: STAR_SHADER_FRAGMENT,
+      transparent: true,
     });
 
-    this._points = new THREE.Points(geometry, material);
+    this._geometry = new THREE.Points(geometry, material);
+  }
+
+  /**
+   * A list of THREE.js objects that are used to compose the skybox.
+   * @return {THREE.Object} Skybox mesh
+   */
+  get3jsObjects() {
+    return [this._geometry];
+  }
+
+  /**
+   * Get the unique ID of this object.
+   * @return {String} id
+   */
+  getId() {
+    return this._id;
   }
 }
-
-StaticParticles.instanceCount = 0;

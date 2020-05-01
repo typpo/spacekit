@@ -19,7 +19,7 @@ import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
-import { StaticParticles} from "./StaticParticles";
+import { StaticParticles} from './StaticParticles';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
 import { setScaleFactor, rescaleArray, rescaleNumber } from './Scale';

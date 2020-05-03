@@ -19,7 +19,7 @@ import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
-import { StaticParticles} from './StaticParticles';
+import { StaticParticles } from './StaticParticles';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
 import { setScaleFactor, rescaleArray, rescaleNumber } from './Scale';
@@ -355,10 +355,10 @@ export class Simulation {
       const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
       this._lastUpdatedTime = Date.now();
       this._fps = 1 / timeDelta || 1;
-    }
 
-    // Update objects in this simulation
-    this.update();
+      // Update objects in this simulation
+      this.update();
+    }
 
     // Update camera drifting, if applicable
     if (this._enableCameraDrift) {

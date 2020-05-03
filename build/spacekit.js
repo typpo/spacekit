@@ -1,5 +1,3 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(document);
 var Spacekit = (function (exports) {
 	'use strict';
 
@@ -57642,9 +57640,9 @@ var Spacekit = (function (exports) {
 	   */
 	  renderObject() {
 	    if (this.isStaticObject()) {
-	      if (this._renderMethod !== 'SPHERE') {
+	      if (!this._renderMethod) {
 	        // TODO(ian): It kinda sucks to have SpaceObject care about
-	        // SphereObject like this.
+	        // renderMethod, which is set by children.
 
 	        // Create a stationary sprite.
 	        this._object3js = this.createSprite();
@@ -57667,15 +57665,17 @@ var Spacekit = (function (exports) {
 	        this._simulation.addObject(this, false /* noUpdate */);
 	      }
 
-	      // Create a particle representing this object on the GPU.
-	      this._particleIndex = this._context.objects.particles.addParticle(
-	        this._options.ephem,
-	        {
-	          particleSize: this._options.particleSize,
-	          color: this.getColor(),
-	        },
-	      );
-	      this._renderMethod = 'PARTICLESYSTEM';
+	      if (!this._renderMethod) {
+	        // Create a particle representing this object on the GPU.
+	        this._particleIndex = this._context.objects.particles.addParticle(
+	          this._options.ephem,
+	          {
+	            particleSize: this._options.particleSize,
+	            color: this.getColor(),
+	          },
+	        );
+	        this._renderMethod = 'PARTICLESYSTEM';
+	      }
 	    }
 	  }
 
@@ -58145,6 +58145,7 @@ var Spacekit = (function (exports) {
 
 	    // The THREE.js object
 	    this._obj = new Object3D();
+	    this._renderMethod = 'ROTATING_OBJECT';
 	    super.setPositionedObject(this._obj);
 
 	    this._objectIsRotatable = false;
@@ -58337,7 +58338,8 @@ var Spacekit = (function (exports) {
 	      this._obj.add(object);
 
 	      // Move the object to its position.
-	      const pos = this._options.position || this.getPosition(this._simulation.getJd());
+	      const pos =
+	        this._options.position || this.getPosition(this._simulation.getJd());
 	      if (pos) {
 	        this._obj.position.set(pos[0], pos[1], pos[2]);
 	      }

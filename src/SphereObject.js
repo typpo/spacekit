@@ -262,16 +262,4 @@ export class SphereObject extends RotatingObject {
 
     this._obj.add(mesh);
   }
-
-  /**
-   * Update the location of this object at a given time. Note that this is
-   * computed on CPU.
-   */
-  /*
-  update(jd) {
-    const newpos = this.getPosition(jd);
-    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
-    super.update(jd);
-  }
-  */
 }

@@ -66,6 +66,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "spacekit/src/orbit.js~orbittype",
+    "variable/index.html#static-variable-OrbitType",
+    "<span>OrbitType</span> <span class=\"search-result-import-path\">spacekit/src/Orbit.js</span>",
+    "variable"
+  ],
+  [
     "spacekit/src/shaders.js~ring_shader_fragment",
     "variable/index.html#static-variable-RING_SHADER_FRAGMENT",
     "<span>RING_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
@@ -231,6 +237,12 @@ window.esdocSearchIndex = [
     "spacekit/src/coordinates.js~getobliquity",
     "function/index.html#static-function-getObliquity",
     "<span>getObliquity</span> <span class=\"search-result-import-path\">spacekit/src/Coordinates.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/orbit.js~getorbittype",
+    "function/index.html#static-function-getOrbitType",
+    "<span>getOrbitType</span> <span class=\"search-result-import-path\">spacekit/src/Orbit.js</span>",
     "function"
   ],
   [
@@ -798,15 +810,51 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/orbit.js~orbit#getline",
+    "class/src/Orbit.js~Orbit.html#instance-method-getLine",
+    "src/Orbit.js~Orbit#getLine",
+    "method"
+  ],
+  [
     "src/orbit.js~orbit#getlinestoecliptic",
     "class/src/Orbit.js~Orbit.html#instance-method-getLinesToEcliptic",
     "src/Orbit.js~Orbit#getLinesToEcliptic",
     "method"
   ],
   [
+    "src/orbit.js~orbit#getorbitshape",
+    "class/src/Orbit.js~Orbit.html#instance-method-getOrbitShape",
+    "src/Orbit.js~Orbit#getOrbitShape",
+    "method"
+  ],
+  [
     "src/orbit.js~orbit#getpositionattime",
     "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTime",
     "src/Orbit.js~Orbit#getPositionAtTime",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#getpositionattimeelliptical",
+    "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTimeElliptical",
+    "src/Orbit.js~Orbit#getPositionAtTimeElliptical",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#getpositionattimehyperbolic",
+    "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTimeHyperbolic",
+    "src/Orbit.js~Orbit#getPositionAtTimeHyperbolic",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#getpositionattimenearparabolic",
+    "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTimeNearParabolic",
+    "src/Orbit.js~Orbit#getPositionAtTimeNearParabolic",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#getpositionattimeparabolic",
+    "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTimeParabolic",
+    "src/Orbit.js~Orbit#getPositionAtTimeParabolic",
     "method"
   ],
   [
@@ -825,6 +873,12 @@ window.esdocSearchIndex = [
     "src/orbit.js~orbit#setvisibility",
     "class/src/Orbit.js~Orbit.html#instance-method-setVisibility",
     "src/Orbit.js~Orbit#setVisibility",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#vectortoheliocentric",
+    "class/src/Orbit.js~Orbit.html#instance-method-vectorToHeliocentric",
+    "src/Orbit.js~Orbit#vectorToHeliocentric",
     "method"
   ],
   [
@@ -957,6 +1011,12 @@ window.esdocSearchIndex = [
     "src/simulation.js~simulation#createstars",
     "class/src/Simulation.js~Simulation.html#instance-method-createStars",
     "src/Simulation.js~Simulation#createStars",
+    "method"
+  ],
+  [
+    "src/simulation.js~simulation#createstaticparticles",
+    "class/src/Simulation.js~Simulation.html#instance-method-createStaticParticles",
+    "src/Simulation.js~Simulation#createStaticParticles",
     "method"
   ],
   [
@@ -1206,6 +1266,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/spaceobject.js~spaceobject#setpositionedobject",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-setPositionedObject",
+    "src/SpaceObject.js~SpaceObject#setPositionedObject",
+    "method"
+  ],
+  [
     "src/spaceobject.js~spaceobject#update",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-update",
     "src/SpaceObject.js~SpaceObject#update",
@@ -1233,12 +1299,6 @@ window.esdocSearchIndex = [
     "src/sphereobject.js~sphereobject#init",
     "class/src/SphereObject.js~SphereObject.html#instance-method-init",
     "src/SphereObject.js~SphereObject#init",
-    "method"
-  ],
-  [
-    "src/sphereobject.js~sphereobject#update",
-    "class/src/SphereObject.js~SphereObject.html#instance-method-update",
-    "src/SphereObject.js~SphereObject#update",
     "method"
   ],
   [
@@ -1281,6 +1341,18 @@ window.esdocSearchIndex = [
     "src/staticparticles.js~staticparticles#constructor",
     "class/src/StaticParticles.js~StaticParticles.html#instance-constructor-constructor",
     "src/StaticParticles.js~StaticParticles#constructor",
+    "method"
+  ],
+  [
+    "src/staticparticles.js~staticparticles#get3jsobjects",
+    "class/src/StaticParticles.js~StaticParticles.html#instance-method-get3jsObjects",
+    "src/StaticParticles.js~StaticParticles#get3jsObjects",
+    "method"
+  ],
+  [
+    "src/staticparticles.js~staticparticles#getid",
+    "class/src/StaticParticles.js~StaticParticles.html#instance-method-getId",
+    "src/StaticParticles.js~StaticParticles#getId",
     "method"
   ],
   [

@@ -47,6 +47,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
@@ -70,6 +71,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-OrbitType">OrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT">ATMOSPHERE_SHADER_FRAGMENT</a></span></span></li>
@@ -254,6 +256,35 @@
         
         
         <div data-ice="description"><p>Standard gravitational parameter for objects orbiting these bodies.</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="variable/index.html#static-variable-OrbitType">OrbitType</a></span></span><span class="code" data-ice="signature">: <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Enum of orbital types.</p>
 </div>
       </div>
     </td>
@@ -534,11 +565,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber189">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber255">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ATMOSPHERE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber189">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ATMOSPHERE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber255">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -577,11 +608,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber161">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber227">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ATMOSPHERE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber161">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {ATMOSPHERE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber227">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -673,11 +704,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber150">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber216">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GENERIC_PARTICLE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber150">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GENERIC_PARTICLE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber216">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -716,11 +747,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber138">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber204">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GENERIC_PARTICLE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber138">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GENERIC_PARTICLE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber204">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -759,15 +790,59 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Ephem.js.html#lineNumber211">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Ephem.js.html#lineNumber240">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GM} from &apos;<span><a href="file/src/Ephem.js.html#lineNumber211">spacekit/src/Ephem.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {GM} from &apos;<span><a href="file/src/Ephem.js.html#lineNumber240">spacekit/src/Ephem.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Standard gravitational parameter for objects orbiting these bodies.
 Units in m^3/s^2</p>
+</div>
+
+  
+
+  <div data-ice="properties">
+</div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="static-variable-OrbitType">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    
+    <span class="code" data-ice="name">OrbitType</span><span class="code" data-ice="signature">: <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/src/Orbit.js.html#lineNumber21">source</a></span></span>
+    </span>
+  </h3>
+
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {OrbitType} from &apos;<span><a href="file/src/Orbit.js.html#lineNumber21">spacekit/src/Orbit.js</a></span>&apos;</code></pre></div>
+  
+  
+  <div data-ice="description"><p>Enum of orbital types.</p>
 </div>
 
   
@@ -804,11 +879,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber262">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber328">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {RING_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber262">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {RING_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber328">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -847,11 +922,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber247">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber313">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {RING_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber247">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {RING_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber313">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -890,11 +965,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber231">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber297">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SPHERE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber231">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SPHERE_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber297">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -933,11 +1008,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber212">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber278">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SPHERE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber212">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SPHERE_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber278">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -976,11 +1051,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber117">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber183">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {STAR_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber117">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {STAR_SHADER_FRAGMENT} from &apos;<span><a href="file/src/shaders.js.html#lineNumber183">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1019,11 +1094,11 @@ Units in m^3/s^2</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber126">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/shaders.js.html#lineNumber192">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {STAR_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber126">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {STAR_SHADER_VERTEX} from &apos;<span><a href="file/src/shaders.js.html#lineNumber192">spacekit/src/shaders.js</a></span>&apos;</code></pre></div>
   
   
   
@@ -1114,11 +1189,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber526">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SpaceObject.js.html#lineNumber545">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SpaceObjectPresets} from &apos;<span><a href="file/src/SpaceObject.js.html#lineNumber526">spacekit/src/SpaceObject.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {SpaceObjectPresets} from &apos;<span><a href="file/src/SpaceObject.js.html#lineNumber545">spacekit/src/SpaceObject.js</a></span>&apos;</code></pre></div>
   
   
   <div data-ice="description"><p>Useful presets for creating SpaceObjects.</p>
@@ -1165,11 +1240,11 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/spacekit.js.html#lineNumber17">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/spacekit.js.html#lineNumber18">source</a></span></span>
     </span>
   </h3>
 
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {THREE} from &apos;<span><a href="file/src/spacekit.js.html#lineNumber17">spacekit/src/spacekit.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {THREE} from &apos;<span><a href="file/src/spacekit.js.html#lineNumber18">spacekit/src/spacekit.js</a></span>&apos;</code></pre></div>
   
   
   

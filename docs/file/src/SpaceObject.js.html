@@ -47,6 +47,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
@@ -70,6 +71,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-OrbitType">OrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT">ATMOSPHERE_SHADER_FRAGMENT</a></span></span></li>
@@ -100,7 +102,7 @@ import { rescaleArray, rescaleNumber } from &apos;./Scale&apos;;
  * Minimum number of degrees per day an object must move in order for its
  * position to be updated in the visualization.
  */
-const MIN_DEG_MOVE_PER_DAY = 0.5;
+const MIN_DEG_MOVE_PER_DAY = 0.05;
 
 /**
  * @private
@@ -175,6 +177,7 @@ export class SpaceObject {
   constructor(id, options, contextOrSimulation, autoInit = true) {
     this._id = id;
     this._options = options || {};
+    this._object3js = undefined;
 
     // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
@@ -192,6 +195,7 @@ export class SpaceObject {
     this._label = null;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
+    this._lastPositionUpdate = 0;
 
     this._position = rescaleArray(this._options.position || [0, 0, 0]);
     this._orbitAround = undefined;
@@ -207,7 +211,7 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem
       ? this._options.ephem.get(&apos;n&apos;, &apos;deg&apos;)
-      : Number.MAX_VALUE;
+      : undefined;
 
     this._initialized = false;
     if (autoInit &amp;&amp; !this.init()) {
@@ -234,14 +238,23 @@ export class SpaceObject {
   }
 
   /**
+   * @protected
+   * Used by child classes to set the object that gets its position updated.
+   * @param {THREE.Object3D} obj Any THREE.js object
+   */
+  setPositionedObject(obj) {
+    this._object3js = obj;
+  }
+
+  /**
    * @private
    * Build the THREE.js object for this SpaceObject.
    */
   renderObject() {
     if (this.isStaticObject()) {
-      if (this._renderMethod !== &apos;SPHERE&apos;) {
+      if (!this._renderMethod) {
         // TODO(ian): It kinda sucks to have SpaceObject care about
-        // SphereObject like this.
+        // renderMethod, which is set by children.
 
         // Create a stationary sprite.
         this._object3js = this.createSprite();
@@ -252,26 +265,29 @@ export class SpaceObject {
         this._renderMethod = &apos;SPRITE&apos;;
       }
     } else {
-      if (!this._options.hideOrbit) {
-        // Orbit is initialized before sprite because sprite may be positioned
-        // according to orbit.
-        this._orbit = this.createOrbit();
+      // Create the orbit no matter what - it&apos;s used to get current position
+      // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
+      // ShapeObjects).
+      // TODO(ian): Only do this if we need to compute orbit position on the
+      // CPU or display an orbit path.
+      this._orbit = this.createOrbit();
 
-        if (this._simulation) {
-          // Add it all to visualization.
-          this._simulation.addObject(this, false /* noUpdate */);
-        }
+      if (!this._options.hideOrbit &amp;&amp; this._simulation) {
+        // Add it all to visualization.
+        this._simulation.addObject(this, false /* noUpdate */);
       }
 
-      // Don&apos;t create a sprite - do it on the GPU instead.
-      this._particleIndex = this._context.objects.particles.addParticle(
-        this._options.ephem,
-        {
-          particleSize: this._options.particleSize,
-          color: this.getColor(),
-        },
-      );
-      this._renderMethod = &apos;PARTICLESYSTEM&apos;;
+      if (!this._renderMethod) {
+        // Create a particle representing this object on the GPU.
+        this._particleIndex = this._context.objects.particles.addParticle(
+          this._options.ephem,
+          {
+            particleSize: this._options.particleSize,
+            color: this.getColor(),
+          },
+        );
+        this._renderMethod = &apos;PARTICLESYSTEM&apos;;
+      }
     }
   }
 
@@ -391,17 +407,23 @@ export class SpaceObject {
    * @private
    * Determines whether to update the position of an update. Don&apos;t update if JD
    * threshold is less than a certain amount.
-   * TODO(ian): This should also be a function of zoom level, because as you get
-   * closer the chopiness gets more noticeable.
    * @param {Number} afterJd Next JD
    * @return {boolean} Whether to update
    */
   shouldUpdateObjectPosition(afterJd) {
-    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
+    // TODO(ian): Reenable this as a function of zoom level, because as you get
+    // closer the chopiness gets more noticeable.
+    return true;
+    /*
+    if (!this._degreesPerDay || !this._lastPositionUpdate) {
+      return true;
+    }
+    const degMove = this._degreesPerDay * (afterJd - this._lastPositionUpdate);
     if (degMove &lt; MIN_DEG_MOVE_PER_DAY) {
       return false;
     }
     return true;
+    */
   }
 
   /**
@@ -477,6 +499,7 @@ export class SpaceObject {
     if (this._object3js &amp;&amp; shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+      this._lastPositionUpdate = jd;
     }
 
     if (this._orbitAround) {
@@ -487,7 +510,7 @@ export class SpaceObject {
       );
       if (!this._options.hideOrbit) {
         this._orbit
-          .getEllipse()
+          .getOrbitShape()
           .position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
@@ -505,8 +528,6 @@ export class SpaceObject {
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
     }
-
-    this._lastJdUpdated = jd;
   }
 
   /**
@@ -521,7 +542,7 @@ export class SpaceObject {
       ret.push(this._object3js);
     }
     if (this._orbit) {
-      ret.push(this._orbit.getEllipse());
+      ret.push(this._orbit.getOrbitShape());
       if (this._options.ecliptic &amp;&amp; this._options.ecliptic.displayLines) {
         ret.push(this._orbit.getLinesToEcliptic());
       }

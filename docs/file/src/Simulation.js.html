@@ -47,6 +47,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
@@ -70,6 +71,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-OrbitType">OrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT">ATMOSPHERE_SHADER_FRAGMENT</a></span></span></li>
@@ -109,6 +111,7 @@ import { ShapeObject } from &apos;./ShapeObject&apos;;
 import { Skybox } from &apos;./Skybox&apos;;
 import { SpaceObject } from &apos;./SpaceObject&apos;;
 import { SphereObject } from &apos;./SphereObject&apos;;
+import { StaticParticles } from &apos;./StaticParticles&apos;;
 import { Stars } from &apos;./Stars&apos;;
 import { getDefaultBasePath } from &apos;./util&apos;;
 import { setScaleFactor, rescaleArray, rescaleNumber } from &apos;./Scale&apos;;
@@ -190,7 +193,7 @@ export class Simulation {
 
     this._jd =
       typeof this._options.jd === &apos;undefined&apos;
-        ? julian.toJulianDay(this._options.startDate) || 0
+        ? Number(julian(this._options.startDate)) || 0
         : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -444,10 +447,10 @@ export class Simulation {
       const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
       this._lastUpdatedTime = Date.now();
       this._fps = 1 / timeDelta || 1;
-    }
 
-    // Update objects in this simulation
-    this.update();
+      // Update objects in this simulation
+      this.update();
+    }
 
     // Update camera drifting, if applicable
     if (this._enableCameraDrift) {
@@ -524,6 +527,15 @@ export class Simulation {
    */
   createSphere(...args) {
     return new SphereObject(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new StaticParticles object belonging to this visualization.
+   * Takes any StaticParticles arguments.
+   * @see SphereObject
+   */
+  createStaticParticles(...args) {
+    return new StaticParticles(...args, this);
   }
 
   /**
@@ -643,7 +655,7 @@ export class Simulation {
       } else if (!previouslyInView &amp;&amp; inView) {
         // Came into view
         this._renderEnabled = true;
-        window.requestAnimationFrame(this._boundAnimate);
+        window.requestAnimationFrame(this.animate);
         previouslyInView = true;
       }
     });
@@ -666,7 +678,7 @@ export class Simulation {
   zoomToFit(spaceObj, offset = 3.0) {
     const checkZoomFit = () =&gt; {
       const orbit = spaceObj.getOrbit();
-      const obj = orbit ? orbit.getEllipse() : spaceObj.getBoundingObject();
+      const obj = orbit ? orbit.getOrbitShape() : spaceObj.getBoundingObject();
       if (obj) {
         this.doZoomToFit(obj, offset);
         return true;
@@ -767,7 +779,7 @@ export class Simulation {
    * @param {Date} date Date of simulation
    */
   setDate(date) {
-    this.setJd(julian.toJulianDay(date));
+    this.setJd(Number(julian(date)));
   }
 
   /**

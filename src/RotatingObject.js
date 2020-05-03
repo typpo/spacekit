@@ -47,6 +47,7 @@ export class RotatingObject extends SpaceObject {
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
+    this._renderMethod = 'ROTATING_OBJECT';
     super.setPositionedObject(this._obj);
 
     this._objectIsRotatable = false;

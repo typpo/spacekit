@@ -43,10 +43,11 @@ export class RotatingObject extends SpaceObject {
    * @see SpaceObject
    */
   constructor(id, options, contextOrSimulation, autoInit = true) {
-    super(id, options, contextOrSimulation, autoInit);
+    super(id, options, contextOrSimulation, false /* autoInit */);
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
+    super.setPositionedObject(this._obj);
 
     this._objectIsRotatable = false;
     if (this._options.rotation) {
@@ -152,8 +153,8 @@ export class RotatingObject extends SpaceObject {
     }
     // this._obj.rotateZ(0.015)
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
-    // TODO(ian): Update position if there is an associated orbit
 
+    // Update position
     super.update(jd);
   }
 

@@ -10,7 +10,7 @@ import { rescaleArray, rescaleNumber } from './Scale';
  * Minimum number of degrees per day an object must move in order for its
  * position to be updated in the visualization.
  */
-const MIN_DEG_MOVE_PER_DAY = 0.5;
+const MIN_DEG_MOVE_PER_DAY = 0.05;
 
 /**
  * @private
@@ -85,6 +85,7 @@ export class SpaceObject {
   constructor(id, options, contextOrSimulation, autoInit = true) {
     this._id = id;
     this._options = options || {};
+    this._object3js = undefined;
 
     // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
@@ -102,6 +103,7 @@ export class SpaceObject {
     this._label = null;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
+    this._lastPositionUpdate = 0;
 
     this._position = rescaleArray(this._options.position || [0, 0, 0]);
     this._orbitAround = undefined;
@@ -117,7 +119,7 @@ export class SpaceObject {
     // updates for very slow moving objects.
     this._degreesPerDay = this._options.ephem
       ? this._options.ephem.get('n', 'deg')
-      : Number.MAX_VALUE;
+      : undefined;
 
     this._initialized = false;
     if (autoInit && !this.init()) {
@@ -144,6 +146,15 @@ export class SpaceObject {
   }
 
   /**
+   * @protected
+   * Used by child classes to set the object that gets its position updated.
+   * @param {THREE.Object3D} obj Any THREE.js object
+   */
+  setPositionedObject(obj) {
+    this._object3js = obj;
+  }
+
+  /**
    * @private
    * Build the THREE.js object for this SpaceObject.
    */
@@ -162,18 +173,19 @@ export class SpaceObject {
         this._renderMethod = 'SPRITE';
       }
     } else {
-      if (!this._options.hideOrbit) {
-        // Orbit is initialized before sprite because sprite may be positioned
-        // according to orbit.
-        this._orbit = this.createOrbit();
+      // Create the orbit no matter what - it's used to get current position
+      // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
+      // ShapeObjects).
+      // TODO(ian): Only do this if we need to compute orbit position on the
+      // CPU or display an orbit path.
+      this._orbit = this.createOrbit();
 
-        if (this._simulation) {
-          // Add it all to visualization.
-          this._simulation.addObject(this, false /* noUpdate */);
-        }
+      if (!this._options.hideOrbit && this._simulation) {
+        // Add it all to visualization.
+        this._simulation.addObject(this, false /* noUpdate */);
       }
 
-      // Don't create a sprite - do it on the GPU instead.
+      // Create a particle representing this object on the GPU.
       this._particleIndex = this._context.objects.particles.addParticle(
         this._options.ephem,
         {
@@ -301,17 +313,23 @@ export class SpaceObject {
    * @private
    * Determines whether to update the position of an update. Don't update if JD
    * threshold is less than a certain amount.
-   * TODO(ian): This should also be a function of zoom level, because as you get
-   * closer the chopiness gets more noticeable.
    * @param {Number} afterJd Next JD
    * @return {boolean} Whether to update
    */
   shouldUpdateObjectPosition(afterJd) {
-    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
+    // TODO(ian): Reenable this as a function of zoom level, because as you get
+    // closer the chopiness gets more noticeable.
+    return true;
+    /*
+    if (!this._degreesPerDay || !this._lastPositionUpdate) {
+      return true;
+    }
+    const degMove = this._degreesPerDay * (afterJd - this._lastPositionUpdate);
     if (degMove < MIN_DEG_MOVE_PER_DAY) {
       return false;
     }
     return true;
+    */
   }
 
   /**
@@ -387,6 +405,7 @@ export class SpaceObject {
     if (this._object3js && shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+      this._lastPositionUpdate = jd;
     }
 
     if (this._orbitAround) {
@@ -415,8 +434,6 @@ export class SpaceObject {
       this.updateLabelPosition(newpos);
       this._lastLabelUpdate = +new Date();
     }
-
-    this._lastJdUpdated = jd;
   }
 
   /**

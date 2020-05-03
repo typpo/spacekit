@@ -1,3 +1,5 @@
+
+(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(document);
 var Spacekit = (function (exports) {
 	'use strict';
 
@@ -51723,7 +51725,7 @@ var Spacekit = (function (exports) {
 	      case OrbitType.HYPERBOLIC:
 	        return this.getPositionAtTimeHyperbolic(jd, debug);
 	      case OrbitType.ELLIPTICAL:
-	        return this.getPositionAtTimeELLIPTICAL(jd, debug);
+	        return this.getPositionAtTimeElliptical(jd, debug);
 	    }
 	    throw new Error('No handler for this type of orbit');
 	  }
@@ -51835,7 +51837,7 @@ var Spacekit = (function (exports) {
 	    return this.vectorToHeliocentric(v, r);
 	  }
 
-	  getPositionAtTimeELLIPTICAL(jd, debug) {
+	  getPositionAtTimeElliptical(jd, debug) {
 	    const eph = this._ephem;
 
 	    // Eccentricity
@@ -57498,13 +57500,6 @@ var Spacekit = (function (exports) {
 
 	/**
 	 * @private
-	 * Minimum number of degrees per day an object must move in order for its
-	 * position to be updated in the visualization.
-	 */
-	const MIN_DEG_MOVE_PER_DAY = 0.5;
-
-	/**
-	 * @private
 	 * Number of milliseconds between label position updates.
 	 */
 	const LABEL_UPDATE_MS = 30;
@@ -57576,6 +57571,7 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation, autoInit = true) {
 	    this._id = id;
 	    this._options = options || {};
+	    this._object3js = undefined;
 
 	    // if (contextOrSimulation instanceOf Simulation) {
 	    {
@@ -57589,6 +57585,7 @@ var Spacekit = (function (exports) {
 	    this._label = null;
 	    this._showLabel = false;
 	    this._lastLabelUpdate = 0;
+	    this._lastPositionUpdate = 0;
 
 	    this._position = rescaleArray(this._options.position || [0, 0, 0]);
 	    this._orbitAround = undefined;
@@ -57604,7 +57601,7 @@ var Spacekit = (function (exports) {
 	    // updates for very slow moving objects.
 	    this._degreesPerDay = this._options.ephem
 	      ? this._options.ephem.get('n', 'deg')
-	      : Number.MAX_VALUE;
+	      : undefined;
 
 	    this._initialized = false;
 	    if (autoInit && !this.init()) {
@@ -57631,6 +57628,15 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
+	   * @protected
+	   * Used by child classes to set the object that gets its position updated.
+	   * @param {THREE.Object3D} obj Any THREE.js object
+	   */
+	  setPositionedObject(obj) {
+	    this._object3js = obj;
+	  }
+
+	  /**
 	   * @private
 	   * Build the THREE.js object for this SpaceObject.
 	   */
@@ -57649,18 +57655,19 @@ var Spacekit = (function (exports) {
 	        this._renderMethod = 'SPRITE';
 	      }
 	    } else {
-	      if (!this._options.hideOrbit) {
-	        // Orbit is initialized before sprite because sprite may be positioned
-	        // according to orbit.
-	        this._orbit = this.createOrbit();
+	      // Create the orbit no matter what - it's used to get current position
+	      // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
+	      // ShapeObjects).
+	      // TODO(ian): Only do this if we need to compute orbit position on the
+	      // CPU or display an orbit path.
+	      this._orbit = this.createOrbit();
 
-	        if (this._simulation) {
-	          // Add it all to visualization.
-	          this._simulation.addObject(this, false /* noUpdate */);
-	        }
+	      if (!this._options.hideOrbit && this._simulation) {
+	        // Add it all to visualization.
+	        this._simulation.addObject(this, false /* noUpdate */);
 	      }
 
-	      // Don't create a sprite - do it on the GPU instead.
+	      // Create a particle representing this object on the GPU.
 	      this._particleIndex = this._context.objects.particles.addParticle(
 	        this._options.ephem,
 	        {
@@ -57788,17 +57795,23 @@ var Spacekit = (function (exports) {
 	   * @private
 	   * Determines whether to update the position of an update. Don't update if JD
 	   * threshold is less than a certain amount.
-	   * TODO(ian): This should also be a function of zoom level, because as you get
-	   * closer the chopiness gets more noticeable.
 	   * @param {Number} afterJd Next JD
 	   * @return {boolean} Whether to update
 	   */
 	  shouldUpdateObjectPosition(afterJd) {
-	    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
+	    // TODO(ian): Reenable this as a function of zoom level, because as you get
+	    // closer the chopiness gets more noticeable.
+	    return true;
+	    /*
+	    if (!this._degreesPerDay || !this._lastPositionUpdate) {
+	      return true;
+	    }
+	    const degMove = this._degreesPerDay * (afterJd - this._lastPositionUpdate);
 	    if (degMove < MIN_DEG_MOVE_PER_DAY) {
 	      return false;
 	    }
 	    return true;
+	    */
 	  }
 
 	  /**
@@ -57874,6 +57887,7 @@ var Spacekit = (function (exports) {
 	    if (this._object3js && shouldUpdateObjectPosition) {
 	      newpos = this.getPosition(jd);
 	      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+	      this._lastPositionUpdate = jd;
 	    }
 
 	    if (this._orbitAround) {
@@ -57902,8 +57916,6 @@ var Spacekit = (function (exports) {
 	      this.updateLabelPosition(newpos);
 	      this._lastLabelUpdate = +new Date();
 	    }
-
-	    this._lastJdUpdated = jd;
 	  }
 
 	  /**
@@ -58129,10 +58141,11 @@ var Spacekit = (function (exports) {
 	   * @see SpaceObject
 	   */
 	  constructor(id, options, contextOrSimulation, autoInit = true) {
-	    super(id, options, contextOrSimulation, autoInit);
+	    super(id, options, contextOrSimulation, false /* autoInit */);
 
 	    // The THREE.js object
 	    this._obj = new Object3D();
+	    super.setPositionedObject(this._obj);
 
 	    this._objectIsRotatable = false;
 	    if (this._options.rotation) {
@@ -58236,8 +58249,8 @@ var Spacekit = (function (exports) {
 	    if (this._axisOfRotation) ;
 	    // this._obj.rotateZ(0.015)
 	    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
-	    // TODO(ian): Update position if there is an associated orbit
 
+	    // Update position
 	    super.update(jd);
 	  }
 
@@ -58290,13 +58303,13 @@ var Spacekit = (function (exports) {
 
 	    this._shapeObj = undefined;
 
-	    this.initShape();
+	    this.init();
 	  }
 
 	  /**
 	   * @private
 	   */
-	  initShape() {
+	  init() {
 	    const manager = new LoadingManager();
 	    manager.onProgress = (item, loaded, total) => {
 	      console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -58324,7 +58337,7 @@ var Spacekit = (function (exports) {
 	      this._obj.add(object);
 
 	      // Move the object to its position.
-	      const pos = this._options.position;
+	      const pos = this._options.position || this.getPosition(this._simulation.getJd());
 	      if (pos) {
 	        this._obj.position.set(pos[0], pos[1], pos[2]);
 	      }
@@ -58338,6 +58351,7 @@ var Spacekit = (function (exports) {
 	    });
 
 	    // TODO(ian): Create an orbit if applicable
+	    super.init();
 	  }
 
 	  /**
@@ -58538,7 +58552,10 @@ var Spacekit = (function (exports) {
 	    this._obj.add(detailedObj);
 
 	    if (this._options.atmosphere && this._options.atmosphere.enable) {
-	      this._obj.add(this.renderFullAtmosphere());
+	      const atmosphere = this.renderFullAtmosphere();
+	      if (atmosphere) {
+	        this._obj.add(atmosphere);
+	      }
 	    }
 
 	    if (this._options.axialTilt) {
@@ -58570,7 +58587,7 @@ var Spacekit = (function (exports) {
 	  renderFullAtmosphere() {
 	    if (!this._simulation.isUsingLightSources()) {
 	      console.warn('Cannot render atmosphere without a light source');
-	      return;
+	      return null;
 	    }
 
 	    const radius = this.getScaledRadius();
@@ -58699,11 +58716,13 @@ var Spacekit = (function (exports) {
 	   * Update the location of this object at a given time. Note that this is
 	   * computed on CPU.
 	   */
+	  /*
 	  update(jd) {
 	    const newpos = this.getPosition(jd);
 	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
 	    super.update(jd);
 	  }
+	  */
 	}
 
 	const DEFAULT_PARTICLE_SIZE = 4;
@@ -59267,10 +59286,10 @@ var Spacekit = (function (exports) {
 	      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
 	      this._lastUpdatedTime = Date.now();
 	      this._fps = 1 / timeDelta || 1;
-	    }
 
-	    // Update objects in this simulation
-	    this.update();
+	      // Update objects in this simulation
+	      this.update();
+	    }
 
 	    // Update camera drifting, if applicable
 	    if (this._enableCameraDrift) {

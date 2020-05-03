@@ -57621,6 +57621,9 @@ var Spacekit = (function (exports) {
 	      this._label = labelElt;
 	      this._showLabel = true;
 	    }
+
+	    this.update(this._simulation.getJd(), true /* force */);
+
 	    this._initialized = true;
 	    return true;
 	  }
@@ -57873,16 +57876,18 @@ var Spacekit = (function (exports) {
 	  /**
 	   * Updates the object and its label positions for a given time.
 	   * @param {Number} jd JD date
+	   * @param {boolean} force Whether to force an update regardless of checks for
+	   * movement.
 	   */
-	  update(jd) {
-	    if (this.isStaticObject()) {
+	  update(jd, force=false) {
+	    if (this.isStaticObject() && !force) {
 	      return;
 	    }
 
 	    let newpos;
 	    let shouldUpdateObjectPosition = false;
 	    if (this._object3js || this._label) {
-	      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
+	      shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
 	    }
 	    if (this._object3js && shouldUpdateObjectPosition) {
 	      newpos = this.getPosition(jd);
@@ -57907,8 +57912,8 @@ var Spacekit = (function (exports) {
 	    }
 
 	    // TODO(ian): Determine this based on orbit and camera position change.
-	    const shouldUpdateLabelPos =
-	      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+	    const shouldUpdateLabelPos = force || (
+	      this._showLabel && +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
 	    if (this._label && shouldUpdateLabelPos) {
 	      if (!newpos) {
 	        newpos = this.getPosition(jd);
@@ -58235,7 +58240,7 @@ var Spacekit = (function (exports) {
 	   * Updates the object and its label positions for a given time.
 	   * @param {Number} jd JD date
 	   */
-	  update(jd) {
+	  update(jd, force=false) {
 	    if (
 	      this._obj &&
 	      this._objectIsRotatable &&
@@ -58252,7 +58257,7 @@ var Spacekit = (function (exports) {
 	    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
 
 	    // Update position
-	    super.update(jd);
+	    super.update(jd, force);
 	  }
 
 	  /**
@@ -58336,13 +58341,6 @@ var Spacekit = (function (exports) {
 
 	      this._shapeObj = object;
 	      this._obj.add(object);
-
-	      // Move the object to its position.
-	      const pos =
-	        this._options.position || this.getPosition(this._simulation.getJd());
-	      if (pos) {
-	        this._obj.position.set(pos[0], pos[1], pos[2]);
-	      }
 
 	      if (this._simulation) {
 	        // Add it all to visualization.
@@ -58713,18 +58711,6 @@ var Spacekit = (function (exports) {
 
 	    this._obj.add(mesh);
 	  }
-
-	  /**
-	   * Update the location of this object at a given time. Note that this is
-	   * computed on CPU.
-	   */
-	  /*
-	  update(jd) {
-	    const newpos = this.getPosition(jd);
-	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
-	    super.update(jd);
-	  }
-	  */
 	}
 
 	const DEFAULT_PARTICLE_SIZE = 4;

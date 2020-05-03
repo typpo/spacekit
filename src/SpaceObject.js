@@ -141,6 +141,9 @@ export class SpaceObject {
       this._label = labelElt;
       this._showLabel = true;
     }
+
+    this.update(this._simulation.getJd(), true /* force */);
+
     this._initialized = true;
     return true;
   }
@@ -393,16 +396,18 @@ export class SpaceObject {
   /**
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
+   * @param {boolean} force Whether to force an update regardless of checks for
+   * movement.
    */
-  update(jd) {
-    if (this.isStaticObject()) {
+  update(jd, force = false) {
+    if (this.isStaticObject() && !force) {
       return;
     }
 
     let newpos;
     let shouldUpdateObjectPosition = false;
     if (this._object3js || this._label) {
-      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
+      shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
     }
     if (this._object3js && shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
@@ -428,7 +433,9 @@ export class SpaceObject {
 
     // TODO(ian): Determine this based on orbit and camera position change.
     const shouldUpdateLabelPos =
-      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+      force ||
+      (this._showLabel &&
+        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
     if (this._label && shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);

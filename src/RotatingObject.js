@@ -137,7 +137,7 @@ export class RotatingObject extends SpaceObject {
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
    */
-  update(jd) {
+  update(jd, force = false) {
     if (
       this._obj &&
       this._objectIsRotatable &&
@@ -156,7 +156,7 @@ export class RotatingObject extends SpaceObject {
     // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
 
     // Update position
-    super.update(jd);
+    super.update(jd, force);
   }
 
   /**

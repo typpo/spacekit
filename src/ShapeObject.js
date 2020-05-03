@@ -59,13 +59,6 @@ export class ShapeObject extends RotatingObject {
       this._shapeObj = object;
       this._obj.add(object);
 
-      // Move the object to its position.
-      const pos =
-        this._options.position || this.getPosition(this._simulation.getJd());
-      if (pos) {
-        this._obj.position.set(pos[0], pos[1], pos[2]);
-      }
-
       if (this._simulation) {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);

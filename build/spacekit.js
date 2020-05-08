@@ -57879,7 +57879,7 @@ var Spacekit = (function (exports) {
 	   * @param {boolean} force Whether to force an update regardless of checks for
 	   * movement.
 	   */
-	  update(jd, force=false) {
+	  update(jd, force = false) {
 	    if (this.isStaticObject() && !force) {
 	      return;
 	    }
@@ -57912,8 +57912,10 @@ var Spacekit = (function (exports) {
 	    }
 
 	    // TODO(ian): Determine this based on orbit and camera position change.
-	    const shouldUpdateLabelPos = force || (
-	      this._showLabel && +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
+	    const shouldUpdateLabelPos =
+	      force ||
+	      (this._showLabel &&
+	        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
 	    if (this._label && shouldUpdateLabelPos) {
 	      if (!newpos) {
 	        newpos = this.getPosition(jd);
@@ -58240,7 +58242,7 @@ var Spacekit = (function (exports) {
 	   * Updates the object and its label positions for a given time.
 	   * @param {Number} jd JD date
 	   */
-	  update(jd, force=false) {
+	  update(jd, force = false) {
 	    if (
 	      this._obj &&
 	      this._objectIsRotatable &&
@@ -59020,7 +59022,7 @@ var Spacekit = (function (exports) {
 
 	    this._jd =
 	      typeof this._options.jd === 'undefined'
-	        ? Number(julian(this._options.startDate)) || 0
+	        ? Number(julian(this._options.startDate || new Date()))
 	        : this._options.jd;
 	    this._jdDelta = this._options.jdDelta;
 	    this._jdPerSecond = this._options.jdPerSecond || 100;

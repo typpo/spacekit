@@ -101,7 +101,7 @@ export class Simulation {
 
     this._jd =
       typeof this._options.jd === 'undefined'
-        ? Number(julian(this._options.startDate)) || 0
+        ? Number(julian(this._options.startDate || new Date()))
         : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;

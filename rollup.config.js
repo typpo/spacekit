@@ -7,7 +7,7 @@ const plugins = [resolve(), commonjs()];
 
 if (process.env.ENABLE_DEV_SERVER) {
   // envar set via `yarn build:watch`
-  plugins.push(livereload());
+  plugins.push(livereload({ watch: 'build' }));
   plugins.push(serve({ port: 8001, contentBase: ['.'] }));
 }
 

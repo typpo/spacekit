@@ -540,6 +540,17 @@ export class SpaceObject {
   isReady() {
     return this._initialized;
   }
+
+  removalCleanup() {
+    if (this._label) {
+      this._simulation.getSimulationElement().removeChild(this._label);
+      this._label = null;
+    }
+
+    if (this._particleIndex !== undefined) {
+      this._context.objects.particles.hideParticle(this._particleIndex);
+    }
+  }
 }
 
 const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';

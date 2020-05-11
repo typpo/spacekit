@@ -196,6 +196,21 @@ export class KeplerParticles {
     return offset;
   }
 
+  hideParticle(offset) {
+    const attributes = this._attributes;
+    attributes.size.set(
+      [0],
+      offset,
+    );
+
+    for (const attributeKey in attributes) {
+      if (attributes.hasOwnProperty(attributeKey)) {
+        attributes[attributeKey].needsUpdate = true;
+      }
+    }
+
+  }
+
   /**
    * Change the `origin` attribute of a particle.
    * @param {Number} offset The location of this particle in the attributes * array.

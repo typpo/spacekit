@@ -51723,7 +51723,7 @@ var Spacekit = (function (exports) {
 	      case OrbitType.HYPERBOLIC:
 	        return this.getPositionAtTimeHyperbolic(jd, debug);
 	      case OrbitType.ELLIPTICAL:
-	        return this.getPositionAtTimeELLIPTICAL(jd, debug);
+	        return this.getPositionAtTimeElliptical(jd, debug);
 	    }
 	    throw new Error('No handler for this type of orbit');
 	  }
@@ -51835,7 +51835,7 @@ var Spacekit = (function (exports) {
 	    return this.vectorToHeliocentric(v, r);
 	  }
 
-	  getPositionAtTimeELLIPTICAL(jd, debug) {
+	  getPositionAtTimeElliptical(jd, debug) {
 	    const eph = this._ephem;
 
 	    // Eccentricity
@@ -57498,13 +57498,6 @@ var Spacekit = (function (exports) {
 
 	/**
 	 * @private
-	 * Minimum number of degrees per day an object must move in order for its
-	 * position to be updated in the visualization.
-	 */
-	const MIN_DEG_MOVE_PER_DAY = 0.5;
-
-	/**
-	 * @private
 	 * Number of milliseconds between label position updates.
 	 */
 	const LABEL_UPDATE_MS = 30;
@@ -57576,6 +57569,7 @@ var Spacekit = (function (exports) {
 	  constructor(id, options, contextOrSimulation, autoInit = true) {
 	    this._id = id;
 	    this._options = options || {};
+	    this._object3js = undefined;
 
 	    // if (contextOrSimulation instanceOf Simulation) {
 	    {
@@ -57589,6 +57583,7 @@ var Spacekit = (function (exports) {
 	    this._label = null;
 	    this._showLabel = false;
 	    this._lastLabelUpdate = 0;
+	    this._lastPositionUpdate = 0;
 
 	    this._position = rescaleArray(this._options.position || [0, 0, 0]);
 	    this._orbitAround = undefined;
@@ -57604,7 +57599,7 @@ var Spacekit = (function (exports) {
 	    // updates for very slow moving objects.
 	    this._degreesPerDay = this._options.ephem
 	      ? this._options.ephem.get('n', 'deg')
-	      : Number.MAX_VALUE;
+	      : undefined;
 
 	    this._initialized = false;
 	    if (autoInit && !this.init()) {
@@ -57626,8 +57621,20 @@ var Spacekit = (function (exports) {
 	      this._label = labelElt;
 	      this._showLabel = true;
 	    }
+
+	    this.update(this._simulation.getJd(), true /* force */);
+
 	    this._initialized = true;
 	    return true;
+	  }
+
+	  /**
+	   * @protected
+	   * Used by child classes to set the object that gets its position updated.
+	   * @param {THREE.Object3D} obj Any THREE.js object
+	   */
+	  setPositionedObject(obj) {
+	    this._object3js = obj;
 	  }
 
 	  /**
@@ -57636,9 +57643,9 @@ var Spacekit = (function (exports) {
 	   */
 	  renderObject() {
 	    if (this.isStaticObject()) {
-	      if (this._renderMethod !== 'SPHERE') {
+	      if (!this._renderMethod) {
 	        // TODO(ian): It kinda sucks to have SpaceObject care about
-	        // SphereObject like this.
+	        // renderMethod, which is set by children.
 
 	        // Create a stationary sprite.
 	        this._object3js = this.createSprite();
@@ -57649,26 +57656,29 @@ var Spacekit = (function (exports) {
 	        this._renderMethod = 'SPRITE';
 	      }
 	    } else {
-	      if (!this._options.hideOrbit) {
-	        // Orbit is initialized before sprite because sprite may be positioned
-	        // according to orbit.
-	        this._orbit = this.createOrbit();
+	      // Create the orbit no matter what - it's used to get current position
+	      // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
+	      // ShapeObjects).
+	      // TODO(ian): Only do this if we need to compute orbit position on the
+	      // CPU or display an orbit path.
+	      this._orbit = this.createOrbit();
 
-	        if (this._simulation) {
-	          // Add it all to visualization.
-	          this._simulation.addObject(this, false /* noUpdate */);
-	        }
+	      if (!this._options.hideOrbit && this._simulation) {
+	        // Add it all to visualization.
+	        this._simulation.addObject(this, false /* noUpdate */);
 	      }
 
-	      // Don't create a sprite - do it on the GPU instead.
-	      this._particleIndex = this._context.objects.particles.addParticle(
-	        this._options.ephem,
-	        {
-	          particleSize: this._options.particleSize,
-	          color: this.getColor(),
-	        },
-	      );
-	      this._renderMethod = 'PARTICLESYSTEM';
+	      if (!this._renderMethod) {
+	        // Create a particle representing this object on the GPU.
+	        this._particleIndex = this._context.objects.particles.addParticle(
+	          this._options.ephem,
+	          {
+	            particleSize: this._options.particleSize,
+	            color: this.getColor(),
+	          },
+	        );
+	        this._renderMethod = 'PARTICLESYSTEM';
+	      }
 	    }
 	  }
 
@@ -57788,17 +57798,23 @@ var Spacekit = (function (exports) {
 	   * @private
 	   * Determines whether to update the position of an update. Don't update if JD
 	   * threshold is less than a certain amount.
-	   * TODO(ian): This should also be a function of zoom level, because as you get
-	   * closer the chopiness gets more noticeable.
 	   * @param {Number} afterJd Next JD
 	   * @return {boolean} Whether to update
 	   */
 	  shouldUpdateObjectPosition(afterJd) {
-	    const degMove = this._degreesPerDay * (afterJd - this._lastJdUpdated);
+	    // TODO(ian): Reenable this as a function of zoom level, because as you get
+	    // closer the chopiness gets more noticeable.
+	    return true;
+	    /*
+	    if (!this._degreesPerDay || !this._lastPositionUpdate) {
+	      return true;
+	    }
+	    const degMove = this._degreesPerDay * (afterJd - this._lastPositionUpdate);
 	    if (degMove < MIN_DEG_MOVE_PER_DAY) {
 	      return false;
 	    }
 	    return true;
+	    */
 	  }
 
 	  /**
@@ -57860,20 +57876,23 @@ var Spacekit = (function (exports) {
 	  /**
 	   * Updates the object and its label positions for a given time.
 	   * @param {Number} jd JD date
+	   * @param {boolean} force Whether to force an update regardless of checks for
+	   * movement.
 	   */
-	  update(jd) {
-	    if (this.isStaticObject()) {
+	  update(jd, force = false) {
+	    if (this.isStaticObject() && !force) {
 	      return;
 	    }
 
 	    let newpos;
 	    let shouldUpdateObjectPosition = false;
 	    if (this._object3js || this._label) {
-	      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
+	      shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
 	    }
 	    if (this._object3js && shouldUpdateObjectPosition) {
 	      newpos = this.getPosition(jd);
 	      this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
+	      this._lastPositionUpdate = jd;
 	    }
 
 	    if (this._orbitAround) {
@@ -57894,7 +57913,9 @@ var Spacekit = (function (exports) {
 
 	    // TODO(ian): Determine this based on orbit and camera position change.
 	    const shouldUpdateLabelPos =
-	      +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS && this._showLabel;
+	      force ||
+	      (this._showLabel &&
+	        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
 	    if (this._label && shouldUpdateLabelPos) {
 	      if (!newpos) {
 	        newpos = this.getPosition(jd);
@@ -57902,8 +57923,6 @@ var Spacekit = (function (exports) {
 	      this.updateLabelPosition(newpos);
 	      this._lastLabelUpdate = +new Date();
 	    }
-
-	    this._lastJdUpdated = jd;
 	  }
 
 	  /**
@@ -58129,10 +58148,12 @@ var Spacekit = (function (exports) {
 	   * @see SpaceObject
 	   */
 	  constructor(id, options, contextOrSimulation, autoInit = true) {
-	    super(id, options, contextOrSimulation, autoInit);
+	    super(id, options, contextOrSimulation, false /* autoInit */);
 
 	    // The THREE.js object
 	    this._obj = new Object3D();
+	    this._renderMethod = 'ROTATING_OBJECT';
+	    super.setPositionedObject(this._obj);
 
 	    this._objectIsRotatable = false;
 	    if (this._options.rotation) {
@@ -58221,7 +58242,7 @@ var Spacekit = (function (exports) {
 	   * Updates the object and its label positions for a given time.
 	   * @param {Number} jd JD date
 	   */
-	  update(jd) {
+	  update(jd, force = false) {
 	    if (
 	      this._obj &&
 	      this._objectIsRotatable &&
@@ -58236,9 +58257,9 @@ var Spacekit = (function (exports) {
 	    if (this._axisOfRotation) ;
 	    // this._obj.rotateZ(0.015)
 	    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
-	    // TODO(ian): Update position if there is an associated orbit
 
-	    super.update(jd);
+	    // Update position
+	    super.update(jd, force);
 	  }
 
 	  /**
@@ -58290,13 +58311,13 @@ var Spacekit = (function (exports) {
 
 	    this._shapeObj = undefined;
 
-	    this.initShape();
+	    this.init();
 	  }
 
 	  /**
 	   * @private
 	   */
-	  initShape() {
+	  init() {
 	    const manager = new LoadingManager();
 	    manager.onProgress = (item, loaded, total) => {
 	      console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -58323,12 +58344,6 @@ var Spacekit = (function (exports) {
 	      this._shapeObj = object;
 	      this._obj.add(object);
 
-	      // Move the object to its position.
-	      const pos = this._options.position;
-	      if (pos) {
-	        this._obj.position.set(pos[0], pos[1], pos[2]);
-	      }
-
 	      if (this._simulation) {
 	        // Add it all to visualization.
 	        this._simulation.addObject(this, false /* noUpdate */);
@@ -58338,6 +58353,7 @@ var Spacekit = (function (exports) {
 	    });
 
 	    // TODO(ian): Create an orbit if applicable
+	    super.init();
 	  }
 
 	  /**
@@ -58538,7 +58554,10 @@ var Spacekit = (function (exports) {
 	    this._obj.add(detailedObj);
 
 	    if (this._options.atmosphere && this._options.atmosphere.enable) {
-	      this._obj.add(this.renderFullAtmosphere());
+	      const atmosphere = this.renderFullAtmosphere();
+	      if (atmosphere) {
+	        this._obj.add(atmosphere);
+	      }
 	    }
 
 	    if (this._options.axialTilt) {
@@ -58570,7 +58589,7 @@ var Spacekit = (function (exports) {
 	  renderFullAtmosphere() {
 	    if (!this._simulation.isUsingLightSources()) {
 	      console.warn('Cannot render atmosphere without a light source');
-	      return;
+	      return null;
 	    }
 
 	    const radius = this.getScaledRadius();
@@ -58694,15 +58713,98 @@ var Spacekit = (function (exports) {
 
 	    this._obj.add(mesh);
 	  }
+	}
+
+	const DEFAULT_PARTICLE_SIZE = 4;
+	const DEFAULT_COLOR = 0xffffff;
+
+	/**
+	 * Simulates a static particle field in whichever base reference the simulation is in.
+	 */
+	class StaticParticles {
+	  /**
+	   *
+	   * @param {String} id Unique ID for this object
+	   * @param {Array.Array.<Number>} points an array of X,Y,Z cartesian points, one for each particle
+	   * @param {Object} options container
+	   * @param {Color} options.defaultColor color to use for all particles can be a THREE string color name or hex value
+	   * @param {Number} options.size the size of each particle
+	   * @param {Object} contextOrSimulation Simulation context or simulation object
+	   */
+	  constructor(id, points, options, contextOrSimulation) {
+	    this._options = options;
+
+	    this._id = id;
+
+	    // TODO(ian): Add to ctx
+	    {
+	      // User passed in Simulation
+	      this._simulation = contextOrSimulation;
+	      this._context = contextOrSimulation.getContext();
+	    }
+
+	    // Number of particles in the scene.
+	    this._particleCount = points.length;
+
+	    this._points = points;
+	    this._geometry = undefined;
+
+	    this.init();
+	    this._simulation.addObject(this, true);
+	  }
+
+	  init() {
+	    const positions = new Float32Array(this._points.length * 3);
+	    const colors = new Float32Array(this._points.length * 3);
+	    const sizes = new Float32Array(this._points.length);
+	    let color = new Color(DEFAULT_COLOR);
+
+	    if (this._options.defaultColor) {
+	      color = new Color(this._options.defaultColor);
+	    }
+
+	    let size = DEFAULT_PARTICLE_SIZE;
+
+	    if (this._options.size) {
+	      size = this._options.size;
+	    }
+
+	    for (let i = 0, l = this._points.length; i < l; i++) {
+	      const vertex = this._points[i];
+	      positions.set(vertex, i * 3);
+	      color.toArray(colors, i * 3);
+	      sizes[i] = size;
+	    }
+
+	    const geometry = new BufferGeometry();
+	    geometry.addAttribute('position', new BufferAttribute(positions, 3));
+	    geometry.addAttribute('color', new BufferAttribute(colors, 3));
+	    geometry.addAttribute('size', new BufferAttribute(sizes, 1));
+
+	    const material = new ShaderMaterial({
+	      vertexColors: VertexColors,
+	      vertexShader: STAR_SHADER_VERTEX,
+	      fragmentShader: STAR_SHADER_FRAGMENT,
+	      transparent: true,
+	    });
+
+	    this._geometry = new Points(geometry, material);
+	  }
 
 	  /**
-	   * Update the location of this object at a given time. Note that this is
-	   * computed on CPU.
+	   * A list of THREE.js objects that are used to compose the skybox.
+	   * @return {THREE.Object} Skybox mesh
 	   */
-	  update(jd) {
-	    const newpos = this.getPosition(jd);
-	    this._obj.position.set(newpos[0], newpos[1], newpos[2]);
-	    super.update(jd);
+	  get3jsObjects() {
+	    return [this._geometry];
+	  }
+
+	  /**
+	   * Get the unique ID of this object.
+	   * @return {String} id
+	   */
+	  getId() {
+	    return this._id;
 	  }
 	}
 
@@ -58920,7 +59022,7 @@ var Spacekit = (function (exports) {
 
 	    this._jd =
 	      typeof this._options.jd === 'undefined'
-	        ? julian.toJulianDay(this._options.startDate) || 0
+	        ? Number(julian(this._options.startDate || new Date()))
 	        : this._options.jd;
 	    this._jdDelta = this._options.jdDelta;
 	    this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -59174,10 +59276,10 @@ var Spacekit = (function (exports) {
 	      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
 	      this._lastUpdatedTime = Date.now();
 	      this._fps = 1 / timeDelta || 1;
-	    }
 
-	    // Update objects in this simulation
-	    this.update();
+	      // Update objects in this simulation
+	      this.update();
+	    }
 
 	    // Update camera drifting, if applicable
 	    if (this._enableCameraDrift) {
@@ -59254,6 +59356,15 @@ var Spacekit = (function (exports) {
 	   */
 	  createSphere(...args) {
 	    return new SphereObject(...args, this);
+	  }
+
+	  /**
+	   * Shortcut for creating a new StaticParticles object belonging to this visualization.
+	   * Takes any StaticParticles arguments.
+	   * @see SphereObject
+	   */
+	  createStaticParticles(...args) {
+	    return new StaticParticles(...args, this);
 	  }
 
 	  /**
@@ -59497,7 +59608,7 @@ var Spacekit = (function (exports) {
 	   * @param {Date} date Date of simulation
 	   */
 	  setDate(date) {
-	    this.setJd(julian.toJulianDay(date));
+	    this.setJd(Number(julian(date)));
 	  }
 
 	  /**
@@ -59618,6 +59729,7 @@ var Spacekit = (function (exports) {
 	exports.RotatingObject = RotatingObject;
 	exports.ShapeObject = ShapeObject;
 	exports.SphereObject = SphereObject;
+	exports.StaticParticles = StaticParticles;
 	exports.KeplerParticles = KeplerParticles;
 	exports.Stars = Stars;
 	exports.rad = rad;

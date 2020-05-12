@@ -103,7 +103,7 @@ export class Orbit {
       case OrbitType.HYPERBOLIC:
         return this.getPositionAtTimeHyperbolic(jd, debug);
       case OrbitType.ELLIPTICAL:
-        return this.getPositionAtTimeELLIPTICAL(jd, debug);
+        return this.getPositionAtTimeElliptical(jd, debug);
     }
     throw new Error('No handler for this type of orbit');
   }
@@ -215,7 +215,7 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeELLIPTICAL(jd, debug) {
+  getPositionAtTimeElliptical(jd, debug) {
     const eph = this._ephem;
 
     // Eccentricity

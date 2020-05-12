@@ -19,6 +19,7 @@ import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
 import { SpaceObject } from './SpaceObject';
 import { SphereObject } from './SphereObject';
+import { StaticParticles } from './StaticParticles';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
 import { setScaleFactor, rescaleArray, rescaleNumber } from './Scale';
@@ -100,7 +101,7 @@ export class Simulation {
 
     this._jd =
       typeof this._options.jd === 'undefined'
-        ? Number(julian(this._options.startDate)) || 0
+        ? Number(julian(this._options.startDate || new Date()))
         : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -354,10 +355,10 @@ export class Simulation {
       const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
       this._lastUpdatedTime = Date.now();
       this._fps = 1 / timeDelta || 1;
-    }
 
-    // Update objects in this simulation
-    this.update();
+      // Update objects in this simulation
+      this.update();
+    }
 
     // Update camera drifting, if applicable
     if (this._enableCameraDrift) {
@@ -434,6 +435,15 @@ export class Simulation {
    */
   createSphere(...args) {
     return new SphereObject(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new StaticParticles object belonging to this visualization.
+   * Takes any StaticParticles arguments.
+   * @see SphereObject
+   */
+  createStaticParticles(...args) {
+    return new StaticParticles(...args, this);
   }
 
   /**

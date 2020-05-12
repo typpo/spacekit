@@ -26,13 +26,13 @@ export class ShapeObject extends RotatingObject {
 
     this._shapeObj = undefined;
 
-    this.initShape();
+    this.init();
   }
 
   /**
    * @private
    */
-  initShape() {
+  init() {
     const manager = new THREE.LoadingManager();
     manager.onProgress = (item, loaded, total) => {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -59,12 +59,6 @@ export class ShapeObject extends RotatingObject {
       this._shapeObj = object;
       this._obj.add(object);
 
-      // Move the object to its position.
-      const pos = this._options.position;
-      if (pos) {
-        this._obj.position.set(pos[0], pos[1], pos[2]);
-      }
-
       if (this._simulation) {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);
@@ -74,6 +68,7 @@ export class ShapeObject extends RotatingObject {
     });
 
     // TODO(ian): Create an orbit if applicable
+    super.init();
   }
 
   /**

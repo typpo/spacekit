@@ -37,7 +37,7 @@ const spaceship = viz.createObject('my spaceship', {
     {
       // These parameters define orbit shape.
       a: 0.3,
-      e: 1,
+      e: 0.5,
       i: 52,
 
       // These parameters define the orientation of the orbit.

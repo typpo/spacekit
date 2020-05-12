@@ -47,6 +47,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescaleArray">rescaleArray</a></span></span></li>
@@ -70,6 +71,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getThreeJsTexture">getThreeJsTexture</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GM">GM</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-EphemPresets">EphemPresets</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-OrbitType">OrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SkyboxPresets">SkyboxPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-SpaceObjectPresets">SpaceObjectPresets</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-ATMOSPHERE_SHADER_FRAGMENT">ATMOSPHERE_SHADER_FRAGMENT</a></span></span></li>
@@ -93,15 +95,25 @@
 import { getThreeJsTexture } from &apos;./util&apos;;
 
 import { getOrbitShaderVertex, getOrbitShaderFragment } from &apos;./shaders&apos;;
+import { getOrbitType, OrbitType } from &apos;./Orbit&apos;;
 
 const DEFAULT_PARTICLE_COUNT = 4096;
 
 /**
- * Compute mean anomaly at date.
+ * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
  */
 function getM(ephem, jd) {
   const d = jd - ephem.get(&apos;epoch&apos;);
   return ephem.get(&apos;ma&apos;) + ephem.get(&apos;n&apos;) * d;
+}
+
+const PARABOLIC_K = 0.01720209895;
+function getA0(ephem, jd) {
+  const tp = ephem.get(&apos;tp&apos;);
+  const e = ephem.get(&apos;e&apos;);
+  const q = ephem.get(&apos;q&apos;);
+  const d = jd - tp;
+  return 0.75 * d * PARABOLIC_K * Math.sqrt((1 + e) / (q * q * q));
 }
 
 /**
@@ -197,7 +209,10 @@ export class KeplerParticles {
       n: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       w: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      q: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+
       M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
+      a0: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
 
     const geometry = new THREE.BufferGeometry();
@@ -249,9 +264,11 @@ export class KeplerParticles {
     attributes.e.set([ephem.get(&apos;e&apos;)], offset);
     attributes.i.set([ephem.get(&apos;i&apos;, &apos;rad&apos;)], offset);
     attributes.om.set([ephem.get(&apos;om&apos;, &apos;rad&apos;)], offset);
-    attributes.w.set([ephem.get(&apos;w&apos;, &apos;rad&apos;)], offset);
     attributes.wBar.set([ephem.get(&apos;wBar&apos;, &apos;rad&apos;)], offset);
+    attributes.q.set([ephem.get(&apos;q&apos;)], offset);
+
     attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
+    attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
 
     // TODO(ian): Set the update range
     for (const attributeKey in attributes) {
@@ -286,9 +303,29 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd) {
-    const Ms = this._elements.map(ephem =&gt; getM(ephem, jd));
+    const Ms = [];
+    const a0s = [];
+    for (let i = 0; i &lt; this._elements.length; i++) {
+      const ephem = this._elements[i];
+
+      let M, a0;
+      if (getOrbitType(ephem) === OrbitType.PARABOLIC) {
+        a0 = getA0(ephem, jd);
+        M = 0;
+      } else {
+        a0 = 0;
+        M = getM(ephem, jd);
+      }
+
+      Ms.push(M);
+      a0s.push(a0);
+    }
+
     this._attributes.M.set(Ms);
     this._attributes.M.needsUpdate = true;
+
+    this._attributes.a0.set(a0s);
+    this._attributes.a0.needsUpdate = true;
   }
 
   /**

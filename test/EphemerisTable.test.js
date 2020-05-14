@@ -1,6 +1,6 @@
-import {expect} from "@jest/globals";
-import {EphemerisTable} from "../src/EphemerisTable";
-import {kmToAu} from "../src/Units";
+import {expect} from '@jest/globals';
+import {EphemerisTable} from '../src/EphemerisTable';
+import {kmToAu} from '../src/Units';
 
 describe('Ephemeris Table Construction', ()=>{
   const ephemeris = [
@@ -162,9 +162,9 @@ describe('Ephemeris Table Unit Conversions', ()=> {
   ];
 
   test.each([
-    ["au", "day", 1.0, 2.0, 3.0, 0.1, 0.2, 0.3],
-    ["km", "day", kmToAu(1.0), kmToAu(2.0), kmToAu(3.0), kmToAu(0.1), kmToAu(0.2), kmToAu(0.3)],
-    ["km", "sec", kmToAu(1.0), kmToAu(2.0), kmToAu(3.0),
+    ['au', 'day', 1.0, 2.0, 3.0, 0.1, 0.2, 0.3],
+    ['km', 'day', kmToAu(1.0), kmToAu(2.0), kmToAu(3.0), kmToAu(0.1), kmToAu(0.2), kmToAu(0.3)],
+    ['km', 'sec', kmToAu(1.0), kmToAu(2.0), kmToAu(3.0),
       kmToAu(0.1)/86400.0, kmToAu(0.2)/86400.0, kmToAu(0.3)/86400.0],
   ])('%s distance, %s time, to internal units', (distanceUnitName, timeUnitName, x, y, z, vx, vy, vz) => {
     const ephemTable = new EphemerisTable({

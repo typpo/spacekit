@@ -55,8 +55,8 @@ export function getDefaultBasePath() {
  *   * Searching for a value of 12 would return a value of -2 (taking the two's complement back '~' give you 1)
  * @param {Array} data an array of values of the type consistent with the comparer method
  * @param value the value to be searched for in the data array
- * @param {Function} [comparer] a function which takes two elements and compares them. Default method is
- * a numerical comparison
+ * @param {Function} [comparer] a function which takes two arguments: first of same type as data row and second as same
+ * time as value to compare. Default method is a numerical comparison
  * @returns {number}
  */
 export function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
@@ -81,9 +81,13 @@ export function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
 
   while (left <= right) {
     let middle = Math.floor((left + right) / 2);
-    if (data[middle] < value) {
+    if (middle === data.length) {
+      return middle;
+    }
+    let comparisonCalc = comparer(data[middle], value)
+    if (comparisonCalc < 0) {
       left = middle + 1;
-    } else if (data[middle] > value) {
+    } else if (comparisonCalc > 0) {
       right = middle - 1;
     } else {
       return middle;

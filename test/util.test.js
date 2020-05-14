@@ -44,7 +44,7 @@ describe('Binary Search', () =>{
   });
 
   test('Get insert point before for high out of range value', () => {
-    const data = [1, 3, 5, 6, 7, 8, 9];
+    const data = [1, 3, 5, 6, 7, 8, 9, 10];
     const value = 20;
     const expectedInsertIndex = data.length;
     const actualIndex = Util.binarySearch(data, value, (a, b) => {return a-b;});
@@ -55,7 +55,7 @@ describe('Binary Search', () =>{
     const data = ['a', 'b', 'f', 'm'];
     const value = 'b';
     const expectedIndex = 1;
-    const comparer = (a,b) => {return a.localCompare(b)};
+    const comparer = (a,b) => {return a.localeCompare(b)};
     const actualIndex = Util.binarySearch(data, value, comparer);
     expect(actualIndex).toBe(expectedIndex);
   });
@@ -64,10 +64,48 @@ describe('Binary Search', () =>{
     const data = ['a', 'b', 'f', 'm'];
     const value = 'c';
     const expectedInsertIndex = 2;
-    const comparer = (a,b) => {return a.localCompare(b)};
+    const comparer = (a,b) => {return a.localeCompare(b)};
     const actualIndex = Util.binarySearch(data, value, comparer);
     const actualInsertionIndex = ~actualIndex;
     expect(actualInsertionIndex).toBe(expectedInsertIndex);
+  });
+
+  test('Test exact custom comparison for composite data', ()=>{
+    const data = [{x:1,y:'a'}, {x:2,y:'b'}, {x:3,y:'c'}, {x:4,y:'d'}];
+    const value = 2;
+    const expectedIndex = 1;
+    const comparer = (a,b) => {return a.x - b};
+    const actualIndex = Util.binarySearch(data, value, comparer);
+    expect(actualIndex).toBe(expectedIndex);
+  });
+
+  test('Test close custom comparison for composite data', ()=>{
+    const data = [{x:1,y:'a'}, {x:2,y:'b'}, {x:3,y:'c'}, {x:4,y:'d'}];
+    const value = 3.5;
+    const expectedInsertIndex = 3;
+    const comparer = (a,b) => {return a.x - b};
+    const actualIndex = Util.binarySearch(data, value, comparer);
+    const actualInsertionIndex = ~actualIndex;
+    expect(actualInsertionIndex).toBe(expectedInsertIndex);
+  });
+
+  test('Test off negative bounds custom', ()=>{
+    const data = [{x:1,y:'a'}, {x:2,y:'b'}, {x:3,y:'c'}, {x:4,y:'d'}];
+    const value = -1;
+    const expectedInsertIndex = 0;
+    const comparer = (a,b) => {return a.x - b};
+    const actualIndex = Util.binarySearch(data, value, comparer);
+    const actualInsertionIndex = ~actualIndex;
+    expect(actualInsertionIndex).toBe(expectedInsertIndex);
+  });
+
+  test('Test off positive bounds custom', ()=>{
+    const data = [{x:1,y:'a'}, {x:2,y:'b'}, {x:3,y:'c'}, {x:4,y:'d'}];
+    const value = 5;
+    const expectedIndex = data.length;
+    const comparer = (a,b) => {return a.x - b};
+    const actualIndex = Util.binarySearch(data, value, comparer);
+    expect(actualIndex).toBe(expectedIndex);
   });
 
 });

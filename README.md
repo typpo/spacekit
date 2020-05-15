@@ -1,4 +1,5 @@
 # spacekit
+[![Build Status](https://travis-ci.com/typpo/spacekit.svg?branch=master)](https://travis-ci.com/typpo/spacekit)
 
 Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.
 

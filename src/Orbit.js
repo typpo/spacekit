@@ -81,6 +81,13 @@ export class Orbit {
     this._ellipsePoints = null;
 
     /**
+     * Cached ecliptic drop lines.
+     * @type {Array.<THREE.Vector3>}
+     */
+    this._eclipticDropLines = null;
+
+
+    /**
      * Cached ellipse.
      * @type {THREE.Line}
      */
@@ -430,6 +437,10 @@ export class Orbit {
    * @return {THREE.Geometry} A geometry with many line segments.
    */
   getLinesToEcliptic() {
+    if (this._eclipticDropLines) {
+      return this._eclipticDropLines;
+    }
+
     const points = this.getEllipsePoints();
     const geometry = new THREE.Geometry();
 
@@ -438,13 +449,15 @@ export class Orbit {
       geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });
 
-    return new THREE.LineSegments(
+    this._eclipticDropLines = new THREE.LineSegments(
       geometry,
       new THREE.LineBasicMaterial({
         color: this._options.eclipticLineColor || 0x333333,
       }),
       THREE.LineStrip,
     );
+
+    return this._eclipticDropLines;
   }
 
   /**

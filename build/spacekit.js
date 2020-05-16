@@ -51701,6 +51701,13 @@ var Spacekit = (function (exports) {
 	    this._ellipsePoints = null;
 
 	    /**
+	     * Cached ecliptic drop lines.
+	     * @type {Array.<THREE.Vector3>}
+	     */
+	    this._eclipticDropLines = null;
+
+
+	    /**
 	     * Cached ellipse.
 	     * @type {THREE.Line}
 	     */
@@ -52050,6 +52057,10 @@ var Spacekit = (function (exports) {
 	   * @return {THREE.Geometry} A geometry with many line segments.
 	   */
 	  getLinesToEcliptic() {
+	    if (this._eclipticDropLines) {
+	      return this._eclipticDropLines;
+	    }
+
 	    const points = this.getEllipsePoints();
 	    const geometry = new Geometry();
 
@@ -52058,13 +52069,15 @@ var Spacekit = (function (exports) {
 	      geometry.vertices.push(new Vector3(vertex.x, vertex.y, 0));
 	    });
 
-	    return new LineSegments(
+	    this._eclipticDropLines = new LineSegments(
 	      geometry,
 	      new LineBasicMaterial({
 	        color: this._options.eclipticLineColor || 0x333333,
 	      }),
 	      LineStrip,
 	    );
+
+	    return this._eclipticDropLines;
 	  }
 
 	  /**
@@ -57061,6 +57074,22 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
+	   * Hides the particle at the given offset so it is no longer drawn. The particle still takes up space in the array
+	   * though.
+	   * @param offset
+	   */
+	  hideParticle(offset) {
+	    const attributes = this._attributes;
+	    attributes.size.set([0], offset);
+
+	    for (const attributeKey in attributes) {
+	      if (attributes.hasOwnProperty(attributeKey)) {
+	        attributes[attributeKey].needsUpdate = true;
+	      }
+	    }
+	  }
+
+	  /**
 	   * Change the `origin` attribute of a particle.
 	   * @param {Number} offset The location of this particle in the attributes * array.
 	   * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.
@@ -58441,6 +58470,17 @@ var Spacekit = (function (exports) {
 	  isReady() {
 	    return this._initialized;
 	  }
+
+	  removalCleanup() {
+	    if (this._label) {
+	      this._simulation.getSimulationElement().removeChild(this._label);
+	      this._label = null;
+	    }
+
+	    if (this._particleIndex !== undefined) {
+	      this._context.objects.particles.hideParticle(this._particleIndex);
+	    }
+	  }
 	}
 
 	const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
@@ -59505,6 +59545,7 @@ var Spacekit = (function (exports) {
 
 	    // Scene
 	    this._scene = new Scene();
+
 	    // Camera
 	    const camera = new Camera$1(this.getContext());
 	    camera
@@ -59801,6 +59842,9 @@ var Spacekit = (function (exports) {
 	      this._scene.remove(x);
 	    });
 
+	    if (typeof obj.removalCleanup === 'function') {
+	      obj.removalCleanup();
+	    }
 	    delete this._subscribedObjects[obj.getId()];
 	  }
 

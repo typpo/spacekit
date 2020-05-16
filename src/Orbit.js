@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import julian from 'julian';
 
 import { rescaleXYZ } from './Scale';
-import {EphemerisTable} from './EphemerisTable';
+import { EphemerisTable } from './EphemerisTable';
 
 const sin = Math.sin;
 const cos = Math.cos;
@@ -52,7 +52,6 @@ export function getOrbitType(ephem) {
   } else {
     return OrbitType.ELLIPTICAL;
   }
-
 }
 
 /**
@@ -116,6 +115,12 @@ export class Orbit {
      * @type {Array.<THREE.Vector3>}
      */
     this._orbitPoints = null;
+
+    /**
+     * Cached ecliptic drop lines.
+     * @type {Array.<THREE.Vector3>}
+     */
+    this._eclipticDropLines = null;
 
     /**
      * Cached orbit shape.
@@ -353,9 +358,12 @@ export class Orbit {
     const orbitType = getOrbitType(this._ephem);
     const tp = orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
     const centerDate = tp ? tp : julian.toJulianDay(new Date());
-    const startJd = centerDate - this._options.orbitPathSettings.trailDurationYears * 365.0;
-    const endJd = centerDate + this._options.orbitPathSettings.leadDurationYears * 365.0;
-    const step =  (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
+    const startJd =
+      centerDate - this._options.orbitPathSettings.trailDurationYears * 365.0;
+    const endJd =
+      centerDate + this._options.orbitPathSettings.leadDurationYears * 365.0;
+    const step =
+      (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
 
     this._orbitStart = startJd;
     this._orbitStop = endJd;
@@ -374,14 +382,14 @@ export class Orbit {
           this.getPositionAtTimeHyperbolic.bind(this),
           startJd,
           endJd,
-          step
+          step,
         );
       case OrbitType.PARABOLIC:
         return this.getLine(
           this.getPositionAtTimeNearParabolic.bind(this),
           startJd,
           endJd,
-          step
+          step,
         );
       case OrbitType.ELLIPTICAL:
         return this.getEllipse();
@@ -396,7 +404,6 @@ export class Orbit {
    * @private
    */
   getLine(orbitFn, startJd, endJd, step) {
-
     const points = [];
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
@@ -420,12 +427,14 @@ export class Orbit {
    */
   getTableOrbit(startJd, stopJd, step) {
     const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
-    const points = rawPoints.map(values => new THREE.Vector3(values[0], values[1], values[2]))
+    const points = rawPoints.map(
+      values => new THREE.Vector3(values[0], values[1], values[2]),
+    );
     const pointGeometry = new THREE.Geometry();
     pointGeometry.vertices = points;
     console.info('Computed', points.length, 'segements for look up orbit');
 
-    return this.generateAndCacheOrbitShape(pointGeometry)
+    return this.generateAndCacheOrbitShape(pointGeometry);
   }
 
   /**
@@ -505,6 +514,10 @@ export class Orbit {
    * @return {THREE.Geometry} A geometry with many line segments.
    */
   getLinesToEcliptic() {
+    if (this._eclipticDropLines) {
+      return this._eclipticDropLines;
+    }
+
     if (!this._orbitPoints) {
       this.getOrbitShape();
     }
@@ -516,13 +529,15 @@ export class Orbit {
       geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });
 
-    return new THREE.LineSegments(
+    this._eclipticDropLines = new THREE.LineSegments(
       geometry,
       new THREE.LineBasicMaterial({
         color: this._options.eclipticLineColor || 0x333333,
       }),
       THREE.LineStrip,
     );
+
+    return this._eclipticDropLines;
   }
 
   /**
@@ -557,5 +572,4 @@ export class Orbit {
   setVisibility(val) {
     this._orbitShape.visible = val;
   }
-
 }

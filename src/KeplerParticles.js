@@ -197,6 +197,22 @@ export class KeplerParticles {
   }
 
   /**
+   * Hides the particle at the given offset so it is no longer drawn. The particle still takes up space in the array
+   * though.
+   * @param offset
+   */
+  hideParticle(offset) {
+    const attributes = this._attributes;
+    attributes.size.set([0], offset);
+
+    for (const attributeKey in attributes) {
+      if (attributes.hasOwnProperty(attributeKey)) {
+        attributes[attributeKey].needsUpdate = true;
+      }
+    }
+  }
+
+  /**
    * Change the `origin` attribute of a particle.
    * @param {Number} offset The location of this particle in the attributes * array.
    * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.

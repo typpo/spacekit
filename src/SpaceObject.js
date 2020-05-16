@@ -328,7 +328,9 @@ export class SpaceObject {
       return this._orbit;
     }
 
-    const ephem = this._useEphemTable ? this._options.ephemTable : this._options.ephem;
+    const ephem = this._useEphemTable
+      ? this._options.ephemTable
+      : this._options.ephem;
     return new Orbit(ephem, {
       orbitPathSettings: this._options.orbitPathSettings,
       color: this._options.theme ? this._options.theme.orbitColor : undefined,
@@ -439,7 +441,8 @@ export class SpaceObject {
       this._lastPositionUpdate = jd;
     }
 
-    const orbitNeedsRefreshing = !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+    const orbitNeedsRefreshing =
+      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
     if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
       //Had material but don't think need it if doing this right...
       this._simulation.getScene().remove(this._orbitPath);
@@ -447,8 +450,14 @@ export class SpaceObject {
       this._simulation.getScene().add(this._orbitPath);
     }
 
-    const eclipticNeedsRefreshing = !this._eclipticLines || orbitNeedsRefreshing;
-    if (this._orbit && this._options.ecliptic && this._options.ecliptic.displayLines && eclipticNeedsRefreshing) {
+    const eclipticNeedsRefreshing =
+      !this._eclipticLines || orbitNeedsRefreshing;
+    if (
+      this._orbit &&
+      this._options.ecliptic &&
+      this._options.ecliptic.displayLines &&
+      eclipticNeedsRefreshing
+    ) {
       this._simulation.getScene().remove(this._eclipticLines);
       this._eclipticLines = this._orbit.getLinesToEcliptic();
       this._simulation.getScene().add(this._eclipticLines);
@@ -581,6 +590,17 @@ export class SpaceObject {
    */
   isReady() {
     return this._initialized;
+  }
+
+  removalCleanup() {
+    if (this._label) {
+      this._simulation.getSimulationElement().removeChild(this._label);
+      this._label = null;
+    }
+
+    if (this._particleIndex !== undefined) {
+      this._context.objects.particles.hideParticle(this._particleIndex);
+    }
   }
 }
 

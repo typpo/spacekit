@@ -45,11 +45,10 @@ export function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yI
   throw `yIndex has to be between 0 and ${maxColumn}: ${yIndex}`;
  }
 
- const count = sampleRowMax - sampleRowMin + 1;
  let sum = 0;
- for (let j = 0; j < count; j++) {
+ for (let j = sampleRowMin; j <= sampleRowMax; j++) {
   let prod = 1;
-  for (let k = 0; k < count; k++) {
+  for (let k = sampleRowMin; k <= sampleRowMax; k++) {
    if (k === j) {
     continue;
    }

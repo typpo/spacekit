@@ -57080,17 +57080,13 @@ var Spacekit = (function (exports) {
 	   */
 	  hideParticle(offset) {
 	    const attributes = this._attributes;
-	    attributes.size.set(
-	      [0],
-	      offset,
-	    );
+	    attributes.size.set([0], offset);
 
 	    for (const attributeKey in attributes) {
 	      if (attributes.hasOwnProperty(attributeKey)) {
 	        attributes[attributeKey].needsUpdate = true;
 	      }
 	    }
-
 	  }
 
 	  /**
@@ -59549,6 +59545,7 @@ var Spacekit = (function (exports) {
 
 	    // Scene
 	    this._scene = new Scene();
+
 	    // Camera
 	    const camera = new Camera$1(this.getContext());
 	    camera

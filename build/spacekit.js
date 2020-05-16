@@ -51258,6 +51258,70 @@ var Spacekit = (function (exports) {
 	};
 
 	/**
+	 * Interpolates the given 2D array of data using a Lagrange Polynomial interpolation. User specifies first/last row
+	 * versus giving a number of sample points and a starting index. For best performance number of points generally would
+	 * be between 1 (linear) and 7
+	 *
+	 * @param {Array} data array
+	 * @param {Number} xValue value of x to evaluate for function y = f(x) represented by the data
+	 * @param {Number} sampleRowMin first row of data to use for the interpolation
+	 * @param {Number} sampleRowMax last row of data to use for the interpolation
+	 * @param {Number} xIndex the column of data which represents the 'x' variable of y = f(x)
+	 * @param {Number} yIndex the column of data which represents the 'y' curve data of y = f(x)
+	 * @returns {Number} the interpolated value of the function f(x) from the data
+	 */
+	function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yIndex) {
+	 if (data === undefined) {
+	  throw 'data object is undefined';
+	 }
+
+	 if (!Array.isArray(data)) {
+	  throw 'data object must be an array';
+	 }
+
+	 if (sampleRowMin >= sampleRowMax) {
+	  throw 'first row must be greater than last row';
+	 }
+
+	 if (sampleRowMin < 0 ) {
+	  throw 'first row must be greater than zero';
+	 }
+
+	 if (sampleRowMax > data.length - 1) {
+	  throw 'last row must be '
+	 }
+
+	 if (!Array.isArray(data[sampleRowMin])) {
+	  throw 'data in rows must be array data';
+	 }
+
+	 const maxColumn = data[0].length - 1 ;
+	 if (xIndex < 0 || xIndex > maxColumn) {
+	  throw `xIndex has to be between 0 and ${maxColumn}: ${xIndex}`;
+	 }
+
+	 if (yIndex < 0 || yIndex > maxColumn) {
+	  throw `yIndex has to be between 0 and ${maxColumn}: ${yIndex}`;
+	 }
+
+	 let sum = 0;
+	 for (let j = sampleRowMin; j <= sampleRowMax; j++) {
+	  let prod = 1;
+	  for (let k = sampleRowMin; k <= sampleRowMax; k++) {
+	   if (k === j) {
+	    continue;
+	   }
+	   prod *= (xValue - data[k][xIndex])/(data[j][xIndex] - data[k][xIndex]);
+	  }
+
+	  sum += prod * data[j][yIndex];
+	 }
+
+	 return sum;
+	}
+
+	const DEFAULT_COMPARER_METHOD = (a, b) => {return a-b;};
+	/**
 	 * @ignore
 	 */
 	const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
@@ -51302,6 +51366,273 @@ var Spacekit = (function (exports) {
 	  return window.location.href.indexOf('localhost') > -1
 	    ? '/src/'
 	    : 'https://typpo.github.io/spacekit/src';
+	}
+
+	/**
+	 * Performs a standard binary search on an array of values returning the index of the found item or the twos complement
+	 * negative of the closest value if the exact value isn't found. For example for array: [10, 20, 30]
+	 *   * Searching for a value of 20 would return an index of 1
+	 *   * Searching for a value of 12 would return a value of -2 (taking the two's complement back '~' give you 1)
+	 * @param {Array} data an array of values of the type consistent with the comparer method
+	 * @param value the value to be searched for in the data array
+	 * @param {Function} [comparer] a function which takes two arguments: first of same type as data row and second as same
+	 * time as value to compare. Default method is a numerical comparison
+	 * @returns {number}
+	 */
+	function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
+	  if (data === undefined) {
+	    throw 'data object is undefined';
+	  }
+
+	  if (!Array.isArray(data)) {
+	    throw 'data object must be an array';
+	  }
+
+	  if (value === undefined) {
+	    throw 'value object must be defined';
+	  }
+
+	  if (comparer === undefined) {
+	    throw 'comparer must be defined';
+	  }
+
+	  let left = 0;
+	  let right = data.length;
+
+	  while (left <= right) {
+	    let middle = Math.floor((left + right) / 2);
+	    if (middle === data.length) {
+	      return middle;
+	    }
+	    let comparisonCalc = comparer(data[middle], value);
+	    if (comparisonCalc < 0) {
+	      left = middle + 1;
+	    } else if (comparisonCalc > 0) {
+	      right = middle - 1;
+	    } else {
+	      return middle;
+	    }
+	  }
+
+	  return ~left;
+	}
+
+	/**
+	 * A class representing an ephemeris look-up table for defining a space object.
+	 * @example
+	 */
+
+	// Constants
+	const MAX_INTERPOLATION_ORDER = 20;
+	const INCREASING_JDATE_SEARCH_METHOD = (a,b) => {
+	  return a[0] - b;
+	};
+
+	//Default Values
+	const DEFAULT_UNITS = {
+	  distance: 'au',
+	  time: 'day',
+	};
+
+	const DEFAULT_EPHEM_TYPE = 'cartesianposvel';
+	const DEFAULT_INTERPOLATION_TYPE = 'lagrange';
+	const DEFAULT_INTERPOLATION_ORDER = 5;
+
+	//Allowable unit types
+	const DISTANCE_UNITS = new Set(['km', 'au']);
+	const EPHEM_TYPES = new Set(['cartesianposvel']);
+	const INTERPOLATION_TYPES = new Set(['lagrange']);
+	const TIME_UNITS = new Set(['day', 'sec']);
+
+
+	/**
+	 * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
+	 * Users of the class pass in their ephemeris data as a data structure with the data and the settings for the ephemeris.
+	 * The settings include things like the units, and the ephemeris representation. The ephemeris data itself is an array
+	 * of arrays where each line constitute the necessary components of the line.
+	 *
+	 * For 'cartesianposvel' style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]
+	 */
+	class EphemerisTable {
+	  /**
+	   * @param {Object} ephemerisData Look up ephemeris data to initialize the table with and the properties of it
+	   * @param {Array.<Array.<Number>>} ephemerisData.data the ephemeris data appropriate for the specified ephemeris type
+	   * @param {String} ephemerisData.ephemerisType the type of ephemeres data here (defaults to 'cartesianposvel')
+	   * @param {String} ephemerisData.distanceUnits the distance units for this data (defaults to AU
+	   * @param {String} ephemerisData.timeUnits the distance units for this data (defaults to day)
+	   * @param {String} ephemerisData.interpolationType the type of interpolater to use (defaults to 'lagrange')
+	   * @param {Number} ephemerisData.interpolationOrder the order of the interpolator to use (defaults to 5)
+	   */
+	  constructor(ephemerisData) {
+	    this._units = JSON.parse(JSON.stringify(DEFAULT_UNITS));
+	    this._ephemType = DEFAULT_EPHEM_TYPE;
+	    this._interpolationType = DEFAULT_INTERPOLATION_TYPE;
+	    this._interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
+
+	    if (!ephemerisData) {
+	      throw 'EphemerisTable must be initialized with an ephemeris data structure';
+	    }
+
+	    if (!ephemerisData.data ||
+	      !Array.isArray(ephemerisData.data) ||
+	      ephemerisData.data.length === 0 ||
+	      !Array.isArray(ephemerisData.data[0])) {
+	      throw 'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data';
+	    }
+	    this._data = JSON.parse(JSON.stringify(ephemerisData.data));
+
+	    if (ephemerisData.distanceUnits) {
+	      if (!DISTANCE_UNITS.has(ephemerisData.distanceUnits)) {
+	        throw `Unknown distance units: ${ephemerisData.distanceUnits}`;
+	      }
+	      this._units.distance = ephemerisData.distanceUnits;
+	    }
+
+	    if (ephemerisData.timeUnits) {
+	      if (!TIME_UNITS.has(ephemerisData.timeUnits)) {
+	        throw `Unknown time units: ${ephemerisData.timeUnits}`;
+	      }
+	      this._units.time = ephemerisData.timeUnits;
+	    }
+
+	    if (ephemerisData.ephemerisType) {
+	      if (!EPHEM_TYPES.has(ephemerisData.ephemerisType)) {
+	        throw `Unknown ephemeris type: ${ephemerisData.ephemerisType}`;
+	      }
+	      this._ephemType = ephemerisData.ephemerisType;
+	    }
+
+	    if (ephemerisData.interpolationType) {
+	      if (!INTERPOLATION_TYPES.has(ephemerisData.interpolationType)) {
+	        throw `Unknown interpolation type: ${ephemerisData.interpolationType}`;
+	      }
+	      this._interpolationType = ephemerisData.interpolationType;
+	    }
+
+	    if (ephemerisData.interpolationOrder !== undefined) {
+	      if (ephemerisData.interpolationOrder < 1 || ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER) {
+	        throw `Interpolation order must be >0 and <${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`;
+	      }
+	      this._interpolationOrder = ephemerisData.interpolationOrder;
+	    }
+
+	    if (
+	      this._units.distance !== DEFAULT_UNITS.distance ||
+	      this._units.time !== DEFAULT_UNITS.time
+	    ) {
+	      let distanceMultiplier = this.calcDistanceMultiplier(this._units.distance);
+	      let timeMultiplier = this.calcTimeMultiplier(this._units.time);
+	      this._data.forEach(line => {
+	        line[1] *= distanceMultiplier;
+	        line[2] *= distanceMultiplier;
+	        line[3] *= distanceMultiplier;
+	        line[4] *= distanceMultiplier * timeMultiplier;
+	        line[5] *= distanceMultiplier * timeMultiplier;
+	        line[6] *= distanceMultiplier * timeMultiplier;
+	      });
+	    }
+	  }
+
+	  /**
+	   * Calculates the interpolated position for the given requested date. If the requested date is before the first
+	   * point it returns the first point. If the requested date is after the last point it returns the last point.
+	   * @param {Number} jd of the requested time
+	   * @returns {Number[]|*[]} x, y, z position in the ephemeris table's reference frame
+	   */
+	  getPositionAtTime(jd) {
+	    if (jd <= this._data[0][0]) {
+	      return [this._data[0][1], this._data[0][2], this._data[0][3]];
+	    }
+
+	    const last = this._data[this._data.length - 1];
+	    if (jd >= last[0]) {
+	      return [last[1], last[2], last[3]];
+	    }
+
+	    const {startIndex, stopIndex} = this.calcBoundingIndices(jd);
+	    const x = interpolate(this._data, jd, startIndex, stopIndex, 0,1);
+	    const y = interpolate(this._data, jd, startIndex, stopIndex, 0,2);
+	    const z = interpolate(this._data, jd, startIndex, stopIndex, 0,3);
+
+	    return [x, y, z];
+	  }
+
+	  /**
+	   * Given the start and stop time returns a uniform ephemeris history.
+	   * @param {Number} startJd the requested start date
+	   * @param {Number} stopJd the requested stop date
+	   * @param {Number} stepDays the step size of the data requested in days (can be fractional days)
+	   * @returns {number[][]}
+	   */
+	  getPositions(startJd, stopJd, stepDays) {
+	    if (startJd > stopJd) {
+	      throw `Requested start needs to be after requested stop`;
+	    }
+
+	    if (stepDays <= 0.0) {
+	      throw 'Step days needs to be greater than zero'
+	    }
+
+	    let result = [];
+	    for(let t = startJd; t <= stopJd; t+=stepDays) {
+	      result.push(this.getPositionAtTime(t));
+	    }
+
+	    return result;
+	  }
+
+	  /**
+	   * @private
+	   */
+	  calcDistanceMultiplier(unitType) {
+	    switch (unitType) {
+	      case 'au':
+	        return 1.0;
+	      case 'km':
+	        return kmToAu(1);
+	      default:
+	        throw new Error('Unknown distance unit type: ' + unitType);
+	    }
+	  }
+
+	  /**
+	   * @private
+	   */
+	  calcTimeMultiplier(unitType) {
+	    switch (unitType) {
+	      case 'day':
+	        return 1.0;
+	      case 'sec':
+	        return 1 / 86400.0;
+	      default:
+	        throw new Error('Unknown time unit type: ' + unitType);
+	    }
+	  }
+
+	  /**
+	   * @private
+	   */
+	  calcBoundingIndices(jd) {
+	    const halfSampleSize = Math.floor(this._interpolationOrder / 2);
+	    let closestIndex = binarySearch(this._data, jd, INCREASING_JDATE_SEARCH_METHOD);
+	    if (closestIndex < 0) {
+	      closestIndex = ~closestIndex - 1;
+	    }
+	    let startIndex = closestIndex - halfSampleSize;
+	    if (startIndex < 0) {
+	      startIndex = 0;
+	    }
+
+	    let stopIndex = startIndex + Number(this._interpolationOrder);
+	    if (stopIndex >= this._data.length) {
+	      stopIndex = this._data.length - 1;
+	      if (this._data.length > halfSampleSize) {
+	        startIndex = stopIndex - halfSampleSize;
+	      }
+	    }
+
+	    return {startIndex: startIndex, stopIndex: stopIndex};
+	  }
 	}
 
 	/**
@@ -51623,10 +51954,17 @@ var Spacekit = (function (exports) {
 	julian.toMillisecondsInJulianDay = toMillisecondsInJulianDay_1;
 	julian.fromJulianDayAndMilliseconds = fromJulianDayAndMilliseconds_1;
 
-	const pi = Math.PI;
 	const sin = Math.sin;
 	const cos = Math.cos;
 	const sqrt = Math.sqrt;
+
+	const DEFAULT_LEAD_TRAIL_YEARS = 10;
+	const DEFAULT_SAMPLE_POINTS = 360;
+	const DEFAULT_ORBIT_PATH_SETTINGS = {
+	  leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+	  trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+	  numberSamplePoints: DEFAULT_SAMPLE_POINTS,
+	};
 
 	/**
 	 * Special cube root function that assumes input is always positive.
@@ -51642,7 +51980,8 @@ var Spacekit = (function (exports) {
 	  PARABOLIC: 1,
 	  HYPERBOLIC: 2,
 	  ELLIPTICAL: 3,
-	  UNKNOWN: 4,
+	  TABLE: 4,
+	  UNKNOWN: 5,
 	});
 
 	/**
@@ -51651,6 +51990,10 @@ var Spacekit = (function (exports) {
 	 * @return {OrbitType} Name of orbit type
 	 */
 	function getOrbitType(ephem) {
+	  if (ephem instanceof EphemerisTable) {
+	    return OrbitType.TABLE;
+	  }
+
 	  let e = ephem.get('e');
 	  if (e > 0.8 && e < 1.2) {
 	    return OrbitType.PARABOLIC;
@@ -51659,7 +52002,6 @@ var Spacekit = (function (exports) {
 	  } else {
 	    return OrbitType.ELLIPTICAL;
 	  }
-	  return OrbitType.UNKNOWN;
 	}
 
 	/**
@@ -51675,9 +52017,14 @@ var Spacekit = (function (exports) {
 	 */
 	class Orbit {
 	  /**
-	   * @param {Ephem} ephem The ephemerides that define this orbit.
+	   * @param {Object} ephem The ephemerides that define this orbit.
 	   * @param {Object} options
 	   * @param {Object} options.color The color of the orbital ellipse.
+	   * @param {Object} options.orbitPathSettings settings for the path
+	   * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+	   * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+	   * @param {Object} options.orbitPathSettings.numberSamplePoints number of points to use when drawing the orbit line
+	   * Only applicable for non-elliptical and ephemeris table orbits.
 	   * @param {Object} options.eclipticLineColor The color of lines drawn
 	   * perpendicular to the ecliptic in order to illustrate depth (defaults to
 	   * 0x333333).
@@ -51695,10 +52042,29 @@ var Spacekit = (function (exports) {
 	    this._options = options || {};
 
 	    /**
+	     * configuring orbit path lead/trail data
+	     */
+	    if (!this._options.orbitPathSettings) {
+	      this._options.orbitPathSettings = DEFAULT_ORBIT_PATH_SETTINGS;
+	    }
+
+	    if (!this._options.orbitPathSettings.leadDurationYears) {
+	      this._options.orbitPathSettings.leadDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+	    }
+
+	    if (!this._options.orbitPathSettings.trailDurationYears) {
+	      this._options.orbitPathSettings.trailDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+	    }
+
+	    if (!this._options.orbitPathSettings.numberSamplePoints) {
+	      this._options.orbitPathSettings.numberSamplePoints = DEFAULT_SAMPLE_POINTS;
+	    }
+
+	    /**
 	     * Cached orbital points.
 	     * @type {Array.<THREE.Vector3>}
 	     */
-	    this._ellipsePoints = null;
+	    this._orbitPoints = null;
 
 	    /**
 	     * Cached ecliptic drop lines.
@@ -51706,12 +52072,17 @@ var Spacekit = (function (exports) {
 	     */
 	    this._eclipticDropLines = null;
 
-
 	    /**
-	     * Cached ellipse.
+	     * Cached orbit shape.
 	     * @type {THREE.Line}
 	     */
 	    this._orbitShape = null;
+
+	    /**
+	     * Time span of the drawn orbit line
+	     */
+	    this._orbitStart = 0;
+	    this._orbitStop = 0;
 	  }
 
 	  /**
@@ -51731,6 +52102,8 @@ var Spacekit = (function (exports) {
 	        return this.getPositionAtTimeHyperbolic(jd, debug);
 	      case OrbitType.ELLIPTICAL:
 	        return this.getPositionAtTimeElliptical(jd, debug);
+	      case OrbitType.TABLE:
+	        return this.getPositionAtTimeTable(jd, debug);
 	    }
 	    throw new Error('No handler for this type of orbit');
 	  }
@@ -51886,6 +52259,11 @@ var Spacekit = (function (exports) {
 	    return this.vectorToHeliocentric(v, r);
 	  }
 
+	  getPositionAtTimeTable(jd, debug) {
+	    const point = this._ephem.getPositionAtTime(jd);
+	    return rescaleXYZ(point[0], point[1], point[2]);
+	  }
+
 	  /**
 	   * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
 	   * @param {Number} v True anomaly
@@ -51908,60 +52286,77 @@ var Spacekit = (function (exports) {
 	    return rescaleXYZ(X, Y, Z);
 	  }
 
-	  getOrbitShape() {
+	  /**
+	   * Returns whether the requested epoch is within the current orbit's definition
+	   * @param jd
+	   * @returns {boolean|boolean} true if it is within the orbit span, false if not
+	   */
+	  timeInRenderedOrbitSpan(jd) {
+	    return jd >= this._orbitStart && jd <= this._orbitStop;
+	  }
+
+	  /**
+	   * Calculates, caches, and returns the orbit state for this orbit around this time
+	   * @param jd center time of the orbit (only used for ephemeris table ephemeris)
+	   * @param forceCompute forces the recomputing of the orbit on this call
+	   * @returns {THREE.Line}
+	   */
+	  getOrbitShape(jd, forceCompute = false) {
 	    // For hyperbolic and parabolic orbits, decide on a time range to draw
 	    // them.
 	    // TODO(ian): Should we compute around current position, not time of perihelion?
-	    const tp = this._ephem.get('tp');
-	    const centerDate = tp ? julian.toDate(tp) : new Date();
+	    const orbitType = getOrbitType(this._ephem);
+	    const tp = orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
+	    const centerDate = tp ? tp : julian.toJulianDay(new Date());
+	    const startJd =
+	      centerDate - this._options.orbitPathSettings.trailDurationYears * 365.0;
+	    const endJd =
+	      centerDate + this._options.orbitPathSettings.leadDurationYears * 365.0;
+	    const step =
+	      (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
 
-	    // Default to +- 10 years
-	    // TODO(ian): A way to configure this logic
-	    const startJd = julian.toJulianDay(
-	      new Date(
-	        centerDate.getFullYear() - 10,
-	        centerDate.getMonth(),
-	        centerDate.getDate(),
-	      ),
-	    );
-	    const endJd = julian.toJulianDay(
-	      new Date(
-	        centerDate.getFullYear() + 10,
-	        centerDate.getMonth(),
-	        centerDate.getDate(),
-	      ),
-	    );
+	    this._orbitStart = startJd;
+	    this._orbitStop = endJd;
 
-	    switch (getOrbitType(this._ephem)) {
+	    if (forceCompute) {
+	      this._orbitShape = undefined;
+	      this._eclipticDropLines = undefined;
+	    }
+
+	    if (this._orbitShape) {
+	      return this._orbitShape;
+	    }
+
+	    switch (orbitType) {
 	      case OrbitType.HYPERBOLIC:
 	        return this.getLine(
 	          this.getPositionAtTimeHyperbolic.bind(this),
 	          startJd,
 	          endJd,
+	          step,
 	        );
 	      case OrbitType.PARABOLIC:
 	        return this.getLine(
 	          this.getPositionAtTimeNearParabolic.bind(this),
 	          startJd,
 	          endJd,
+	          step,
 	        );
 	      case OrbitType.ELLIPTICAL:
 	        return this.getEllipse();
+	      case OrbitType.TABLE:
+	        return this.getTableOrbit(startJd, endJd, step);
 	    }
 	    throw new Error('Unknown orbit shape');
 	  }
 
 	  /**
 	   * Compute a line between a given date range.
+	   * @private
 	   */
 	  getLine(orbitFn, startJd, endJd, step) {
-	    if (this._orbitShape) {
-	      return this._orbitShape;
-	    }
-
-	    const loopStep = step ? step : (endJd - startJd) / 1000.0;
 	    const points = [];
-	    for (let jd = startJd; jd <= endJd; jd += loopStep) {
+	    for (let jd = startJd; jd <= endJd; jd += step) {
 	      const pos = orbitFn(jd);
 	      points.push(new Vector3(pos[0], pos[1], pos[2]));
 	    }
@@ -51970,32 +52365,36 @@ var Spacekit = (function (exports) {
 	    const pointsGeometry = new Geometry();
 	    pointsGeometry.vertices = points;
 
-	    this._orbitShape = new Line(
-	      pointsGeometry,
-	      new LineBasicMaterial({
-	        color: new Color(this._options.color || 0x444444),
-	      }),
-	      LineStrip,
-	    );
-	    return this._orbitShape;
+	    return this.generateAndCacheOrbitShape(pointsGeometry);
 	  }
 
 	  /**
+	   * Returns the orbit for a table lookup orbit definition
+	   * @private
+	   * @param startJd start of orbit in JDate format
+	   * @param stopJd end of orbit in JDate format
+	   * @param step step size in days
+	   * @returns {THREE.Line}
+	   */
+	  getTableOrbit(startJd, stopJd, step) {
+	    const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
+	    const points = rawPoints.map(
+	      values => new Vector3(values[0], values[1], values[2]),
+	    );
+	    const pointGeometry = new Geometry();
+	    pointGeometry.vertices = points;
+	    console.info('Computed', points.length, 'segements for look up orbit');
+
+	    return this.generateAndCacheOrbitShape(pointGeometry);
+	  }
+
+	  /**
+	   * @private
 	   * @return {THREE.Line} The ellipse object that represents this orbit.
 	   */
 	  getEllipse() {
-	    if (this._orbitShape) {
-	      return this._orbitShape;
-	    }
 	    const pointGeometry = this.getEllipsePoints();
-	    this._orbitShape = new Line(
-	      pointGeometry,
-	      new LineBasicMaterial({
-	        color: new Color(this._options.color || 0x444444),
-	      }),
-	      LineStrip,
-	    );
-	    return this._orbitShape;
+	    return this.generateAndCacheOrbitShape(pointGeometry);
 	  }
 
 	  /**
@@ -52003,18 +52402,11 @@ var Spacekit = (function (exports) {
 	   * @return {Array.<THREE.Vector3>} List of points
 	   */
 	  getEllipsePoints() {
-	    if (this._ellipsePoints) {
-	      return this._ellipsePoints;
-	    }
-
 	    const eph = this._ephem;
 
 	    const period = eph.get('period');
 	    const ecc = eph.get('e');
-	    // const minSegments = ecc > 0.4 ? 100 : 50;
-	    const minSegments = 360;
-	    const numSegments = Math.max(period / 8, minSegments);
-	    const step = period / numSegments;
+	    const step = period / this._options.orbitPathSettings.numberSamplePoints;
 
 	    const pts = [];
 	    let prevPos;
@@ -52043,10 +52435,26 @@ var Spacekit = (function (exports) {
 	    }
 	    pts.push(pts[0]);
 
-	    this._ellipsePoints = new Geometry();
-	    this._ellipsePoints.vertices = pts;
+	    console.info('Computed', pts.length, 'segements for ellipse orbit');
 
-	    return this._ellipsePoints;
+	    const pointGeometry = new Geometry();
+	    pointGeometry.vertices = pts;
+	    return pointGeometry;
+	  }
+
+	  /**
+	   * @private
+	   */
+	  generateAndCacheOrbitShape(pointGeometry) {
+	    this._orbitPoints = pointGeometry;
+	    this._orbitShape = new Line(
+	      pointGeometry,
+	      new LineBasicMaterial({
+	        color: new Color(this._options.color || 0x444444),
+	      }),
+	      LineStrip,
+	    );
+	    return this._orbitShape;
 	  }
 
 	  /**
@@ -52061,7 +52469,10 @@ var Spacekit = (function (exports) {
 	      return this._eclipticDropLines;
 	    }
 
-	    const points = this.getEllipsePoints();
+	    if (!this._orbitPoints) {
+	      this.getOrbitShape();
+	    }
+	    const points = this._orbitPoints;
 	    const geometry = new Geometry();
 
 	    points.vertices.forEach(vertex => {
@@ -58003,7 +58414,12 @@ var Spacekit = (function (exports) {
 	   * @param {String} options.labelText Text label to display above object (set undefined for no label)
 	   * @param {String} options.labelUrl Label becomes a link that goes to this url.
 	   * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
+	   * @param {Object} options.orbitPathSettings Contains settings for defining the orbit path
+	   * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+	   * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+	   * @param {Object} options.orbitPathSettings.stepSizeYears orbit step size in years
 	   * @param {Ephem} options.ephem Ephemerides for this orbit
+	   * @param {EphemerisTable} options.ephemTable ephemeris table object which represents look up ephemeris
 	   * @param {String} options.textureUrl Texture for sprite
 	   * @param {String} options.basePath Base path for simulation assets and data
 	   * @param {Object} options.ecliptic Contains settings related to ecliptic
@@ -58020,6 +58436,8 @@ var Spacekit = (function (exports) {
 	    this._id = id;
 	    this._options = options || {};
 	    this._object3js = undefined;
+	    this._useEphemTable = this._options.ephemTable !== undefined;
+	    this._isStaticObject = !this._options.ephem && !this._useEphemTable;
 
 	    // if (contextOrSimulation instanceOf Simulation) {
 	    {
@@ -58072,6 +58490,12 @@ var Spacekit = (function (exports) {
 	      this._showLabel = true;
 	    }
 
+	    /**
+	     * Caching of THREE.js objects for orbitPath
+	     */
+	    this._orbitPath = null;
+	    this._eclipticLines = null;
+
 	    this.update(this._simulation.getJd(), true /* force */);
 
 	    this._initialized = true;
@@ -58116,6 +58540,16 @@ var Spacekit = (function (exports) {
 	      if (!this._options.hideOrbit && this._simulation) {
 	        // Add it all to visualization.
 	        this._simulation.addObject(this, false /* noUpdate */);
+	      }
+
+	      if (this._useEphemTable) {
+	        if (!this._renderMethod) {
+	          this._object3js = this.createSprite();
+	          if (this._simulation) {
+	            this._simulation.addObject(this, true);
+	          }
+	          this._renderMethod = 'SPRITE';
+	        }
 	      }
 
 	      if (!this._renderMethod) {
@@ -58236,7 +58670,12 @@ var Spacekit = (function (exports) {
 	    if (this._orbit) {
 	      return this._orbit;
 	    }
-	    return new Orbit(this._options.ephem, {
+
+	    const ephem = this._useEphemTable
+	      ? this._options.ephemTable
+	      : this._options.ephem;
+	    return new Orbit(ephem, {
+	      orbitPathSettings: this._options.orbitPathSettings,
 	      color: this._options.theme ? this._options.theme.orbitColor : undefined,
 	      eclipticLineColor: this._options.ecliptic
 	        ? this._options.ecliptic.lineColor
@@ -58272,13 +58711,6 @@ var Spacekit = (function (exports) {
 	   * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
 	   */
 	  orbitAround(spaceObj) {
-	    if (this._renderMethod !== 'PARTICLESYSTEM') {
-	      console.error(
-	        `"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
-	      );
-	      return;
-	    }
-
 	    this._orbitAround = spaceObj;
 	  }
 
@@ -58345,15 +58777,39 @@ var Spacekit = (function (exports) {
 	      this._lastPositionUpdate = jd;
 	    }
 
+	    const orbitNeedsRefreshing =
+	      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+	    if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
+	      //Had material but don't think need it if doing this right...
+	      this._simulation.getScene().remove(this._orbitPath);
+	      this._orbitPath = this._orbit.getOrbitShape(jd, true);
+	      this._simulation.getScene().add(this._orbitPath);
+	    }
+
+	    const eclipticNeedsRefreshing =
+	      !this._eclipticLines || orbitNeedsRefreshing;
+	    if (
+	      this._orbit &&
+	      this._options.ecliptic &&
+	      this._options.ecliptic.displayLines &&
+	      eclipticNeedsRefreshing
+	    ) {
+	      this._simulation.getScene().remove(this._eclipticLines);
+	      this._eclipticLines = this._orbit.getLinesToEcliptic();
+	      this._simulation.getScene().add(this._eclipticLines);
+	    }
+
 	    if (this._orbitAround) {
 	      const parentPos = this._orbitAround.getPosition(jd);
-	      this._context.objects.particles.setParticleOrigin(
-	        this._particleIndex,
-	        parentPos,
-	      );
+	      if (this._renderMethod === 'PARTICLESYSTEM') {
+	        this._context.objects.particles.setParticleOrigin(
+	          this._particleIndex,
+	          parentPos,
+	        );
+	      }
+
 	      if (!this._options.hideOrbit) {
-	        this._orbit
-	          .getOrbitShape()
+	        this._orbitPath
 	          .position.set(parentPos[0], parentPos[1], parentPos[2]);
 	      }
 	      if (!newpos) {
@@ -58387,9 +58843,12 @@ var Spacekit = (function (exports) {
 	      ret.push(this._object3js);
 	    }
 	    if (this._orbit) {
-	      ret.push(this._orbit.getOrbitShape());
-	      if (this._options.ecliptic && this._options.ecliptic.displayLines) {
-	        ret.push(this._orbit.getLinesToEcliptic());
+	      if (this._orbitPath) {
+	        ret.push(this._orbitPath);
+	      }
+
+	      if (this._eclipticLines) {
+	        ret.push(this._eclipticLines);
 	      }
 	    }
 	    return ret;
@@ -58460,7 +58919,7 @@ var Spacekit = (function (exports) {
 	   * @return {boolean} Whether this object can change its position.
 	   */
 	  isStaticObject() {
-	    return !this._options.ephem;
+	    return this._isStaticObject;
 	  }
 
 	  /**
@@ -59551,10 +60010,10 @@ var Spacekit = (function (exports) {
 	    camera
 	      .get3jsCamera()
 	      .position.set(
-	      this._cameraDefaultPos[0],
-	      this._cameraDefaultPos[1],
-	      this._cameraDefaultPos[2],
-	    );
+	        this._cameraDefaultPos[0],
+	        this._cameraDefaultPos[1],
+	        this._cameraDefaultPos[2],
+	      );
 	    window.cam = camera.get3jsCamera();
 	    this._camera = camera;
 
@@ -59743,10 +60202,7 @@ var Spacekit = (function (exports) {
 	      const camera = this._camera.get3jsCamera();
 	      camera.aspect = newWidth / newHeight;
 	      camera.updateProjectionMatrix();
-	      this._renderer.setSize(
-	        newWidth,
-	        newHeight
-	      );
+	      this._renderer.setSize(newWidth, newHeight);
 	      this.staticForcedUpdate();
 	      this._lastResizeUpdateTime = now;
 	    }
@@ -60233,6 +60689,7 @@ var Spacekit = (function (exports) {
 	exports.getObliquity = getObliquity;
 	exports.Ephem = Ephem;
 	exports.GM = GM;
+	exports.EphemerisTable = EphemerisTable;
 	exports.EphemPresets = EphemPresets;
 	exports.NaturalSatellites = NaturalSatellites;
 	exports.OrbitType = OrbitType;

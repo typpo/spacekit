@@ -202,11 +202,13 @@ export class SpaceObject {
       }
 
       if (this._useEphemTable) {
-        this._object3js = this.createSprite();
-        if (this._simulation) {
-          this._simulation.addObject(this, true);
+        if (!this._renderMethod) {
+          this._object3js = this.createSprite();
+          if (this._simulation) {
+            this._simulation.addObject(this, true);
+          }
+          this._renderMethod = 'SPRITE';
         }
-        this._renderMethod = 'SPRITE';
       }
 
       if (!this._renderMethod) {
@@ -368,13 +370,6 @@ export class SpaceObject {
    * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
    */
   orbitAround(spaceObj) {
-    if (this._renderMethod !== 'PARTICLESYSTEM') {
-      console.error(
-        `"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
-      );
-      return;
-    }
-
     this._orbitAround = spaceObj;
   }
 
@@ -465,13 +460,15 @@ export class SpaceObject {
 
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
-      this._context.objects.particles.setParticleOrigin(
-        this._particleIndex,
-        parentPos,
-      );
+      if (this._renderMethod === 'PARTICLESYSTEM') {
+        this._context.objects.particles.setParticleOrigin(
+          this._particleIndex,
+          parentPos,
+        );
+      }
+
       if (!this._options.hideOrbit) {
-        this._orbit
-          .getOrbitShape(jd)
+        this._orbitPath
           .position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {

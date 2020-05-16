@@ -208,7 +208,7 @@ export class EphemerisTable {
       startIndex = 0;
     }
 
-    let stopIndex = startIndex + this._interpolationOrder;
+    let stopIndex = startIndex + Number(this._interpolationOrder);
     if (stopIndex >= this._data.length) {
       stopIndex = this._data.length - 1;
       if (this._data.length > halfSampleSize) {

@@ -59842,7 +59842,7 @@ var Spacekit = (function (exports) {
 	      this._scene.remove(x);
 	    });
 
-	    if (typeof obj.removalCleanup == 'function') {
+	    if (typeof obj.removalCleanup === 'function') {
 	      obj.removalCleanup();
 	    }
 	    delete this._subscribedObjects[obj.getId()];

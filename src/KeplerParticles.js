@@ -196,19 +196,20 @@ export class KeplerParticles {
     return offset;
   }
 
+  /**
+   * Hides the particle at the given offset so it is no longer drawn. The particle still takes up space in the array
+   * though.
+   * @param offset
+   */
   hideParticle(offset) {
     const attributes = this._attributes;
-    attributes.size.set(
-      [0],
-      offset,
-    );
+    attributes.size.set([0], offset);
 
     for (const attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
         attributes[attributeKey].needsUpdate = true;
       }
     }
-
   }
 
   /**

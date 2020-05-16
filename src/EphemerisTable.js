@@ -118,6 +118,12 @@ export class EphemerisTable {
     }
   }
 
+  /**
+   * Calculates the interpolated position for the given requested date. If the requested date is before the first
+   * point it returns the first point. If the requested date is after the last point it returns the last point.
+   * @param {Number} jd of the requested time
+   * @returns {Number[]|*[]} x, y, z position in the ephemeris table's reference frame
+   */
   getPositionAtTime(jd) {
     if (jd <= this._data[0][0]) {
       return [this._data[0][1], this._data[0][2], this._data[0][3]];
@@ -134,6 +140,30 @@ export class EphemerisTable {
     const z = SpacekitMath.interpolate(this._data, jd, startIndex, stopIndex, 0,3);
 
     return [x, y, z];
+  }
+
+  /**
+   * Given the start and stop time returns a uniform ephemeris history.
+   * @param {Number} startJd the requested start date
+   * @param {Number} stopJd the requested stop date
+   * @param {Number} stepDays the step size of the data requested in days (can be fractional days)
+   * @returns {number[][]}
+   */
+  getPositions(startJd, stopJd, stepDays) {
+    if (startJd > stopJd) {
+      throw `Requested start needs to be after requested stop`;
+    }
+
+    if (stepDays <= 0.0) {
+      throw 'Step days needs to be greater than zero'
+    }
+
+    let result = [];
+    for(let t = startJd; t <= stopJd; t+=stepDays) {
+      result.push(this.getPositionAtTime(t));
+    }
+
+    return result;
   }
 
   /**

@@ -2,11 +2,19 @@ import * as THREE from 'three';
 import julian from 'julian';
 
 import { rescaleXYZ } from './Scale';
+import {EphemerisTable} from './EphemerisTable';
 
-const pi = Math.PI;
 const sin = Math.sin;
 const cos = Math.cos;
 const sqrt = Math.sqrt;
+
+const DEFAULT_LEAD_TRAIL_YEARS = 10;
+const DEFAULT_SAMPLE_POINTS = 360;
+const DEFAULT_ORBIT_PATH_SETTINGS = {
+  leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+  trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+  numberSamplePoints: DEFAULT_SAMPLE_POINTS,
+};
 
 /**
  * Special cube root function that assumes input is always positive.
@@ -22,7 +30,8 @@ export const OrbitType = Object.freeze({
   PARABOLIC: 1,
   HYPERBOLIC: 2,
   ELLIPTICAL: 3,
-  UNKNOWN: 4,
+  TABLE: 4,
+  UNKNOWN: 5,
 });
 
 /**
@@ -31,6 +40,10 @@ export const OrbitType = Object.freeze({
  * @return {OrbitType} Name of orbit type
  */
 export function getOrbitType(ephem) {
+  if (ephem instanceof EphemerisTable) {
+    return OrbitType.TABLE;
+  }
+
   let e = ephem.get('e');
   if (e > 0.8 && e < 1.2) {
     return OrbitType.PARABOLIC;
@@ -39,7 +52,7 @@ export function getOrbitType(ephem) {
   } else {
     return OrbitType.ELLIPTICAL;
   }
-  return OrbitType.UNKNOWN;
+
 }
 
 /**
@@ -55,9 +68,14 @@ export function getOrbitType(ephem) {
  */
 export class Orbit {
   /**
-   * @param {Ephem} ephem The ephemerides that define this orbit.
+   * @param {Object} ephem The ephemerides that define this orbit.
    * @param {Object} options
    * @param {Object} options.color The color of the orbital ellipse.
+   * @param {Object} options.orbitPathSettings settings for the path
+   * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+   * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+   * @param {Object} options.orbitPathSettings.numberSamplePoints number of points to use when drawing the orbit line
+   * Only applicable for non-elliptical and ephemeris table orbits.
    * @param {Object} options.eclipticLineColor The color of lines drawn
    * perpendicular to the ecliptic in order to illustrate depth (defaults to
    * 0x333333).
@@ -75,16 +93,41 @@ export class Orbit {
     this._options = options || {};
 
     /**
+     * configuring orbit path lead/trail data
+     */
+    if (!this._options.orbitPathSettings) {
+      this._options.orbitPathSettings = DEFAULT_ORBIT_PATH_SETTINGS;
+    }
+
+    if (!this._options.orbitPathSettings.leadDurationYears) {
+      this._options.orbitPathSettings.leadDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+    }
+
+    if (!this._options.orbitPathSettings.trailDurationYears) {
+      this._options.orbitPathSettings.trailDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+    }
+
+    if (!this._options.orbitPathSettings.numberSamplePoints) {
+      this._options.orbitPathSettings.numberSamplePoints = DEFAULT_SAMPLE_POINTS;
+    }
+
+    /**
      * Cached orbital points.
      * @type {Array.<THREE.Vector3>}
      */
-    this._ellipsePoints = null;
+    this._orbitPoints = null;
 
     /**
-     * Cached ellipse.
+     * Cached orbit shape.
      * @type {THREE.Line}
      */
     this._orbitShape = null;
+
+    /**
+     * Time span of the drawn orbit line
+     */
+    this._orbitStart = 0;
+    this._orbitStop = 0;
   }
 
   /**
@@ -104,6 +147,8 @@ export class Orbit {
         return this.getPositionAtTimeHyperbolic(jd, debug);
       case OrbitType.ELLIPTICAL:
         return this.getPositionAtTimeElliptical(jd, debug);
+      case OrbitType.TABLE:
+        return this.getPositionAtTimeTable(jd, debug);
     }
     throw new Error('No handler for this type of orbit');
   }
@@ -259,6 +304,11 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
+  getPositionAtTimeTable(jd, debug) {
+    const point = this._ephem.getPositionAtTime(jd);
+    return rescaleXYZ(point[0], point[1], point[2]);
+  }
+
   /**
    * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
    * @param {Number} v True anomaly
@@ -281,60 +331,74 @@ export class Orbit {
     return rescaleXYZ(X, Y, Z);
   }
 
-  getOrbitShape() {
+  /**
+   * Returns whether the requested epoch is within the current orbit's definition
+   * @param jd
+   * @returns {boolean|boolean} true if it is within the orbit span, false if not
+   */
+  timeInRenderedOrbitSpan(jd) {
+    return jd >= this._orbitStart && jd <= this._orbitStop;
+  }
+
+  /**
+   * Calculates, caches, and returns the orbit state for this orbit around this time
+   * @param jd center time of the orbit (only used for ephemeris table ephemeris)
+   * @param forceCompute forces the recomputing of the orbit on this call
+   * @returns {THREE.Line}
+   */
+  getOrbitShape(jd, forceCompute = false) {
     // For hyperbolic and parabolic orbits, decide on a time range to draw
     // them.
     // TODO(ian): Should we compute around current position, not time of perihelion?
-    const tp = this._ephem.get('tp');
-    const centerDate = tp ? julian.toDate(tp) : new Date();
+    const orbitType = getOrbitType(this._ephem);
+    const tp = orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
+    const centerDate = tp ? tp : julian.toJulianDay(new Date());
+    const startJd = centerDate - this._options.orbitPathSettings.trailDurationYears * 365.0;
+    const endJd = centerDate + this._options.orbitPathSettings.leadDurationYears * 365.0;
+    const step =  (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
 
-    // Default to +- 10 years
-    // TODO(ian): A way to configure this logic
-    const startJd = julian.toJulianDay(
-      new Date(
-        centerDate.getFullYear() - 10,
-        centerDate.getMonth(),
-        centerDate.getDate(),
-      ),
-    );
-    const endJd = julian.toJulianDay(
-      new Date(
-        centerDate.getFullYear() + 10,
-        centerDate.getMonth(),
-        centerDate.getDate(),
-      ),
-    );
+    this._orbitStart = startJd;
+    this._orbitStop = endJd;
 
-    switch (getOrbitType(this._ephem)) {
+    if (forceCompute) {
+      this._orbitShape = undefined;
+    }
+
+    if (this._orbitShape) {
+      return this._orbitShape;
+    }
+
+    switch (orbitType) {
       case OrbitType.HYPERBOLIC:
         return this.getLine(
           this.getPositionAtTimeHyperbolic.bind(this),
           startJd,
           endJd,
+          step
         );
       case OrbitType.PARABOLIC:
         return this.getLine(
           this.getPositionAtTimeNearParabolic.bind(this),
           startJd,
           endJd,
+          step
         );
       case OrbitType.ELLIPTICAL:
         return this.getEllipse();
+      case OrbitType.TABLE:
+        return this.getTableOrbit(startJd, endJd, step);
     }
     throw new Error('Unknown orbit shape');
   }
 
   /**
    * Compute a line between a given date range.
+   * @private
    */
   getLine(orbitFn, startJd, endJd, step) {
-    if (this._orbitShape) {
-      return this._orbitShape;
-    }
 
-    const loopStep = step ? step : (endJd - startJd) / 1000.0;
     const points = [];
-    for (let jd = startJd; jd <= endJd; jd += loopStep) {
+    for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
@@ -343,32 +407,34 @@ export class Orbit {
     const pointsGeometry = new THREE.Geometry();
     pointsGeometry.vertices = points;
 
-    this._orbitShape = new THREE.Line(
-      pointsGeometry,
-      new THREE.LineBasicMaterial({
-        color: new THREE.Color(this._options.color || 0x444444),
-      }),
-      THREE.LineStrip,
-    );
-    return this._orbitShape;
+    return this.generateAndCacheOrbitShape(pointsGeometry);
   }
 
   /**
+   * Returns the orbit for a table lookup orbit definition
+   * @private
+   * @param startJd start of orbit in JDate format
+   * @param stopJd end of orbit in JDate format
+   * @param step step size in days
+   * @returns {THREE.Line}
+   */
+  getTableOrbit(startJd, stopJd, step) {
+    const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
+    const points = rawPoints.map(values => new THREE.Vector3(values[0], values[1], values[2]))
+    const pointGeometry = new THREE.Geometry();
+    pointGeometry.vertices = points;
+    console.info('Computed', points.length, 'segements for look up orbit');
+
+    return this.generateAndCacheOrbitShape(pointGeometry)
+  }
+
+  /**
+   * @private
    * @return {THREE.Line} The ellipse object that represents this orbit.
    */
   getEllipse() {
-    if (this._orbitShape) {
-      return this._orbitShape;
-    }
     const pointGeometry = this.getEllipsePoints();
-    this._orbitShape = new THREE.Line(
-      pointGeometry,
-      new THREE.LineBasicMaterial({
-        color: new THREE.Color(this._options.color || 0x444444),
-      }),
-      THREE.LineStrip,
-    );
-    return this._orbitShape;
+    return this.generateAndCacheOrbitShape(pointGeometry);
   }
 
   /**
@@ -376,18 +442,11 @@ export class Orbit {
    * @return {Array.<THREE.Vector3>} List of points
    */
   getEllipsePoints() {
-    if (this._ellipsePoints) {
-      return this._ellipsePoints;
-    }
-
     const eph = this._ephem;
 
     const period = eph.get('period');
     const ecc = eph.get('e');
-    // const minSegments = ecc > 0.4 ? 100 : 50;
-    const minSegments = 360;
-    const numSegments = Math.max(period / 8, minSegments);
-    const step = period / numSegments;
+    const step = period / this._options.orbitPathSettings.numberSamplePoints;
 
     const pts = [];
     let prevPos;
@@ -416,10 +475,26 @@ export class Orbit {
     }
     pts.push(pts[0]);
 
-    this._ellipsePoints = new THREE.Geometry();
-    this._ellipsePoints.vertices = pts;
+    console.info('Computed', pts.length, 'segements for ellipse orbit');
 
-    return this._ellipsePoints;
+    const pointGeometry = new THREE.Geometry();
+    pointGeometry.vertices = pts;
+    return pointGeometry;
+  }
+
+  /**
+   * @private
+   */
+  generateAndCacheOrbitShape(pointGeometry) {
+    this._orbitPoints = pointGeometry;
+    this._orbitShape = new THREE.Line(
+      pointGeometry,
+      new THREE.LineBasicMaterial({
+        color: new THREE.Color(this._options.color || 0x444444),
+      }),
+      THREE.LineStrip,
+    );
+    return this._orbitShape;
   }
 
   /**
@@ -430,7 +505,10 @@ export class Orbit {
    * @return {THREE.Geometry} A geometry with many line segments.
    */
   getLinesToEcliptic() {
-    const points = this.getEllipsePoints();
+    if (!this._orbitPoints) {
+      this.getOrbitShape();
+    }
+    const points = this._orbitPoints;
     const geometry = new THREE.Geometry();
 
     points.vertices.forEach(vertex => {
@@ -479,4 +557,5 @@ export class Orbit {
   setVisibility(val) {
     this._orbitShape.visible = val;
   }
+
 }

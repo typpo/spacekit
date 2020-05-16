@@ -370,6 +370,7 @@ export class Orbit {
 
     if (forceCompute) {
       this._orbitShape = undefined;
+      this._eclipticDropLines = undefined;
     }
 
     if (this._orbitShape) {

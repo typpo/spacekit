@@ -3,12 +3,8 @@ import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import {
   EffectComposer,
-  BlendFunction,
   EffectPass,
-  GodRaysEffect,
   BloomEffect,
-  KernelSize,
-  SMAAEffect,
   RenderPass,
 } from 'postprocessing';
 
@@ -22,7 +18,7 @@ import { SphereObject } from './SphereObject';
 import { StaticParticles } from './StaticParticles';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
-import { setScaleFactor, rescaleArray, rescaleNumber } from './Scale';
+import { setScaleFactor, rescaleArray } from './Scale';
 
 /**
  * The main entrypoint of a visualization.
@@ -130,6 +126,8 @@ export class Simulation {
     this._stats = null;
     this._fps = 1;
     this._lastUpdatedTime = Date.now();
+    this._lastStaticCameraUpdateTime = Date.now();
+    this._lastResizeUpdateTime = Date.now();
 
     // Rendering
     this._renderEnabled = true;
@@ -160,18 +158,17 @@ export class Simulation {
     }
 
     // Scene
-    const scene = new THREE.Scene();
-    this._scene = scene;
+    this._scene = new THREE.Scene();
 
     // Camera
     const camera = new Camera(this.getContext());
     camera
       .get3jsCamera()
       .position.set(
-        this._cameraDefaultPos[0],
-        this._cameraDefaultPos[1],
-        this._cameraDefaultPos[2],
-      );
+      this._cameraDefaultPos[0],
+      this._cameraDefaultPos[1],
+      this._cameraDefaultPos[2],
+    );
     window.cam = camera.get3jsCamera();
     this._camera = camera;
 
@@ -181,6 +178,18 @@ export class Simulation {
       // drift.
       this._enableCameraDrift = false;
     };
+
+    this._camera.get3jsCameraControls().addEventListener('change', () => {
+      this.staticForcedUpdate();
+    });
+
+    this._simulationElt.addEventListener('resize', () => {
+      this.resizeUpdate();
+    });
+
+    window.addEventListener('resize', () => {
+      this.resizeUpdate();
+    });
 
     // Helper
     if (this._options.debug) {
@@ -262,7 +271,6 @@ export class Simulation {
     const sunGeometry = new THREE.SphereBufferGeometry(
       rescaleNumber(0.004),
       16,
-      16,
     );
     const sunMaterial = new THREE.MeshBasicMaterial({
       color: 0xffddaa,
@@ -309,11 +317,52 @@ export class Simulation {
   /**
    * @private
    */
-  update() {
+  update(force = false) {
     for (const objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {
-        this._subscribedObjects[objId].update(this._jd);
+        this._subscribedObjects[objId].update(this._jd, force);
       }
+    }
+  }
+
+  /**
+   * Performs a forced update of all elements in the view. This is used for when the system isn't animating but the
+   * objects need to update their data to properly capture things like updated label positions.
+   * @private
+   */
+  staticForcedUpdate() {
+    if (this._isPaused) {
+      const now = Date.now();
+      const timeDelta = now - this._lastStaticCameraUpdateTime;
+      const threshold = 30;
+      if (timeDelta > threshold) {
+        this.update(true);
+        this._lastStaticCameraUpdateTime = now;
+      }
+    }
+  }
+
+  /**
+   * @private
+   * Updates the size of the control and forces a refresh of components whenever the control is being resized.
+   */
+  resizeUpdate() {
+    const now = Date.now();
+    const timeDelta = now - this._lastResizeUpdateTime;
+    const threshold = 30;
+
+    if (timeDelta > threshold) {
+      const newWidth = this._simulationElt.offsetWidth;
+      const newHeight = this._simulationElt.offsetHeight
+      const camera = this._camera.get3jsCamera();
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      this._renderer.setSize(
+        newWidth,
+        newHeight
+      );
+      this.staticForcedUpdate();
+      this._lastResizeUpdateTime = now;
     }
   }
 

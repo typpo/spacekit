@@ -52045,7 +52045,7 @@ var Spacekit = (function (exports) {
 	     * configuring orbit path lead/trail data
 	     */
 	    if (!this._options.orbitPathSettings) {
-	      this._options.orbitPathSettings = DEFAULT_ORBIT_PATH_SETTINGS;
+	      this._options.orbitPathSettings = JSON.parse(JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS));
 	    }
 
 	    if (!this._options.orbitPathSettings.leadDurationYears) {

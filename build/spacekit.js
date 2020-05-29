@@ -52378,9 +52378,9 @@ var Spacekit = (function (exports) {
 	   */
 	  getTableOrbit(startJd, stopJd, step) {
 	    const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
-	    const points = rawPoints.map(
-	      values => new Vector3(values[0], values[1], values[2]),
-	    );
+	    const points = rawPoints
+	      .map(values => rescaleArray(values))
+	      .map(values => new Vector3(values[0], values[1], values[2]));
 	    const pointGeometry = new Geometry();
 	    pointGeometry.vertices = points;
 	    console.info('Computed', points.length, 'segements for look up orbit');
@@ -60199,6 +60199,9 @@ var Spacekit = (function (exports) {
 	    if (timeDelta > threshold) {
 	      const newWidth = this._simulationElt.offsetWidth;
 	      const newHeight = this._simulationElt.offsetHeight;
+	      if (newWidth == 0 && newHeight ==0) {
+	        return;
+	      }
 	      const camera = this._camera.get3jsCamera();
 	      camera.aspect = newWidth / newHeight;
 	      camera.updateProjectionMatrix();

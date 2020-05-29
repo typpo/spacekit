@@ -354,6 +354,9 @@ export class Simulation {
     if (timeDelta > threshold) {
       const newWidth = this._simulationElt.offsetWidth;
       const newHeight = this._simulationElt.offsetHeight;
+      if (newWidth == 0 && newHeight ==0) {
+        return;
+      }
       const camera = this._camera.get3jsCamera();
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();

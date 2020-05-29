@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import julian from 'julian';
 
-import { rescaleXYZ } from './Scale';
+import {rescaleArray, rescaleXYZ} from './Scale';
 import { EphemerisTable } from './EphemerisTable';
 
 const sin = Math.sin;
@@ -428,9 +428,9 @@ export class Orbit {
    */
   getTableOrbit(startJd, stopJd, step) {
     const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
-    const points = rawPoints.map(
-      values => new THREE.Vector3(values[0], values[1], values[2]),
-    );
+    const points = rawPoints
+      .map(values => rescaleArray(values))
+      .map(values => new THREE.Vector3(values[0], values[1], values[2]));
     const pointGeometry = new THREE.Geometry();
     pointGeometry.vertices = points;
     console.info('Computed', points.length, 'segements for look up orbit');

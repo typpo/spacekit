@@ -109,10 +109,10 @@ export class EphemerisTable {
       this._units.distance !== DEFAULT_UNITS.distance ||
       this._units.time !== DEFAULT_UNITS.time
     ) {
-      let distanceMultiplier = this.calcDistanceMultiplier(
+      const distanceMultiplier = this.calcDistanceMultiplier(
         this._units.distance,
       );
-      let timeMultiplier = this.calcTimeMultiplier(this._units.time);
+      const timeMultiplier = this.calcTimeMultiplier(this._units.time);
       this._data.forEach(line => {
         line[1] *= distanceMultiplier;
         line[2] *= distanceMultiplier;

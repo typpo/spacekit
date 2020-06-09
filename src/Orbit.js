@@ -27,11 +27,11 @@ function cbrt(x) {
  * Enum of orbital types.
  */
 export const OrbitType = Object.freeze({
+  UNKNOWN: 0,
   PARABOLIC: 1,
   HYPERBOLIC: 2,
   ELLIPTICAL: 3,
   TABLE: 4,
-  UNKNOWN: 5,
 });
 
 /**
@@ -67,7 +67,7 @@ export function getOrbitType(ephem) {
  */
 export class Orbit {
   /**
-   * @param {Object} ephem The ephemerides that define this orbit.
+   * @param {(Ephem | EphemerisTable)} ephem The ephemerides that define this orbit.
    * @param {Object} options
    * @param {Object} options.color The color of the orbital ellipse.
    * @param {Object} options.orbitPathSettings settings for the path

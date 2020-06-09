@@ -60569,6 +60569,7 @@ var Spacekit = (function (exports) {
 	   */
 	  setJd(val) {
 	    this._jd = val;
+	    this.update(true);
 	  }
 
 	  /**

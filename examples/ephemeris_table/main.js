@@ -73,8 +73,9 @@ function createStandardSolarSystemObjects() {
 }
 
 async function configureLacadiaAsteroidObjects() {
-  const lacadieraEphemFile = await fetch('./lacadiera_ephem.json')
-    .then(response => response.json());
+  const lacadieraEphemFile = await fetch(
+    './lacadiera_ephem.json',
+  ).then(response => response.json());
 
   const lacadieraEphem = new Spacekit.EphemerisTable(lacadieraEphemFile);
 
@@ -84,8 +85,8 @@ async function configureLacadiaAsteroidObjects() {
     textureUrl: iconUrl,
     scale: [0.1, 0.1, 0.1],
     orbitPathSettings: {
-      leadDurationYears: .5,
-      trailDurationYears: .5,
+      leadDurationYears: 0.5,
+      trailDurationYears: 0.5,
       numberSamplePoints: 30,
     },
     theme: {
@@ -131,9 +132,9 @@ async function configureJupiter() {
     radius: 0.1, // Exxagerate Jupiter's size
     ephemTable: jupiterEphemeris,
     levelsOfDetail: [
-      {radii: 0, segments: 64},
-      {radii: 30, segments: 16},
-      {radii: 60, segments: 8},
+      { radii: 0, segments: 64 },
+      { radii: 30, segments: 16 },
+      { radii: 60, segments: 8 },
     ],
     atmosphere: {
       enable: true,
@@ -146,14 +147,14 @@ async function configureJupiter() {
     orbitPathSettings: {
       leadDurationYears: 12,
     },
-    labelText: "Jupiter"
+    labelText: 'Jupiter',
   });
-
 }
 
 async function configureRenderedAsteroid() {
-  const asteroidEphemFile = await fetch('./asteroid.json')
-    .then(response => response.json());
+  const asteroidEphemFile = await fetch('./asteroid.json').then(response =>
+    response.json(),
+  );
 
   const asteroidEphm = new Spacekit.EphemerisTable(asteroidEphemFile);
 
@@ -171,25 +172,26 @@ async function configureRenderedAsteroid() {
       phi0: 0,
       jd0: 2443568.0,
     },
-    labelText: 'Asteroid'
+    labelText: 'Asteroid',
   });
 
   asteroid.initRotation();
   asteroid.startRotation();
 
-  const satEphemFile = await fetch('./satEphem.json')
-    .then(response => response.json());
+  const satEphemFile = await fetch('./satEphem.json').then(response =>
+    response.json(),
+  );
 
   const satEphemeris = new Spacekit.EphemerisTable(satEphemFile);
 
-  const color = 0x174b7a
+  const color = 0x174b7a;
   const asteroidSat = viz.createObject('AsteroidSat', {
     ephemTable: satEphemeris,
     textureUrl: iconUrl,
     scale: [0.1, 0.1, 0.1],
     orbitPathSettings: {
-      leadDurationYears: .2,
-      trailDurationYears: .2,
+      leadDurationYears: 0.2,
+      trailDurationYears: 0.2,
       numberSamplePoints: 120,
     },
     theme: {
@@ -200,7 +202,6 @@ async function configureRenderedAsteroid() {
   });
 
   asteroidSat.orbitAround(asteroid);
-
 }
 
 async function configureMarsAndMarsOrbiter() {
@@ -211,19 +212,20 @@ async function configureMarsAndMarsOrbiter() {
     }),
   );
 
-  const satEphemFile = await fetch('./satEphem.json')
-    .then(response => response.json());
+  const satEphemFile = await fetch('./satEphem.json').then(response =>
+    response.json(),
+  );
 
   const satEphemeris = new Spacekit.EphemerisTable(satEphemFile);
 
-  const color = 0x187c23
+  const color = 0x187c23;
   const marsSat = viz.createObject('MarsSat', {
     ephemTable: satEphemeris,
     textureUrl: iconUrl,
     scale: [0.1, 0.1, 0.1],
     orbitPathSettings: {
-      leadDurationYears: .01,
-      trailDurationYears: .01,
+      leadDurationYears: 0.01,
+      trailDurationYears: 0.01,
       numberSamplePoints: 60,
     },
     theme: {
@@ -265,6 +267,5 @@ viz.onTick = function() {
   const d = viz.getDate();
   dateElt.innerHTML = d.toLocaleDateString();
 };
-
 
 window.THREE = Spacekit.THREE;

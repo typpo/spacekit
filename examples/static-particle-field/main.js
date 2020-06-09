@@ -16,9 +16,15 @@ const particleSize = 8;
 fillParticles(surfaceParticlesCount, 1, 1, surfacePositions);
 fillParticles(nearParticlesCount, 1.5, 2.5, nearPositions);
 fillParticles(farParticlesCount, 2.5, 5, farPositions);
-viz.createStaticParticles("surface", surfacePositions, {defaultColor:'yellow', size:particleSize});
-viz.createStaticParticles("near", nearPositions, {defaultColor:0x0099ff, size:particleSize});
-viz.createStaticParticles("far", farPositions, {});
+viz.createStaticParticles('surface', surfacePositions, {
+  defaultColor: 'yellow',
+  size: particleSize,
+});
+viz.createStaticParticles('near', nearPositions, {
+  defaultColor: 0x0099ff,
+  size: particleSize,
+});
+viz.createStaticParticles('far', farPositions, {});
 
 viz.createSphere('earth', {
   textureUrl: './earth.jpg',
@@ -28,7 +34,7 @@ viz.createSphere('earth', {
 });
 
 function fillParticles(count, minRange, maxRange, particles) {
-  for(let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i++) {
     const newParticle = randomPosition(minRange, maxRange);
     particles.push(newParticle);
   }
@@ -48,10 +54,10 @@ function randomPosition(minRange, maxRange) {
   const x = mag * Math.cos(dec) * Math.cos(ra);
   const y = mag * Math.cos(dec) * Math.sin(ra);
 
-  return [x, y, z]
+  return [x, y, z];
 }
 
 function randomAngle(min, max) {
   const delta = max - min;
-  return min + (Math.random() * delta);
+  return min + Math.random() * delta;
 }

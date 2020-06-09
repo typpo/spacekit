@@ -468,8 +468,7 @@ export class SpaceObject {
       }
 
       if (!this._options.hideOrbit) {
-        this._orbitPath
-          .position.set(parentPos[0], parentPos[1], parentPos[2]);
+        this._orbitPath.position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
         newpos = this.getPosition(jd);

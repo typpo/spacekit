@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
-const DEFAULT_COMPARER_METHOD = (a, b) => {return a-b;};
+const DEFAULT_COMPARER_METHOD = (a, b) => {
+  return a - b;
+};
 /**
  * @ignore
  */
@@ -59,7 +61,7 @@ export function getDefaultBasePath() {
  * time as value to compare. Default method is a numerical comparison
  * @returns {number}
  */
-export function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
+export function binarySearch(data, value, comparer = DEFAULT_COMPARER_METHOD) {
   if (data === undefined) {
     throw 'data object is undefined';
   }
@@ -84,7 +86,7 @@ export function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
     if (middle === data.length) {
       return middle;
     }
-    let comparisonCalc = comparer(data[middle], value)
+    let comparisonCalc = comparer(data[middle], value);
     if (comparisonCalc < 0) {
       left = middle + 1;
     } else if (comparisonCalc > 0) {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import julian from 'julian';
 
-import {rescaleArray, rescaleXYZ} from './Scale';
+import { rescaleArray, rescaleXYZ } from './Scale';
 import { EphemerisTable } from './EphemerisTable';
 
 const sin = Math.sin;
@@ -95,7 +95,9 @@ export class Orbit {
      * configuring orbit path lead/trail data
      */
     if (!this._options.orbitPathSettings) {
-      this._options.orbitPathSettings = JSON.parse(JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS));
+      this._options.orbitPathSettings = JSON.parse(
+        JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS),
+      );
     }
 
     if (!this._options.orbitPathSettings.leadDurationYears) {

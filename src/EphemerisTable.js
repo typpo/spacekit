@@ -1,4 +1,4 @@
-import * as SpacekitMath from './Math'
+import * as SpacekitMath from './Math';
 import * as Units from './Units';
 import * as Util from './util';
 
@@ -9,7 +9,7 @@ import * as Util from './util';
 
 // Constants
 const MAX_INTERPOLATION_ORDER = 20;
-const INCREASING_JDATE_SEARCH_METHOD = (a,b) => {
+const INCREASING_JDATE_SEARCH_METHOD = (a, b) => {
   return a[0] - b;
 };
 
@@ -28,7 +28,6 @@ const DISTANCE_UNITS = new Set(['km', 'au']);
 const EPHEM_TYPES = new Set(['cartesianposvel']);
 const INTERPOLATION_TYPES = new Set(['lagrange']);
 const TIME_UNITS = new Set(['day', 'sec']);
-
 
 /**
  * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
@@ -58,10 +57,12 @@ export class EphemerisTable {
       throw 'EphemerisTable must be initialized with an ephemeris data structure';
     }
 
-    if (!ephemerisData.data ||
+    if (
+      !ephemerisData.data ||
       !Array.isArray(ephemerisData.data) ||
       ephemerisData.data.length === 0 ||
-      !Array.isArray(ephemerisData.data[0])) {
+      !Array.isArray(ephemerisData.data[0])
+    ) {
       throw 'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data';
     }
     this._data = JSON.parse(JSON.stringify(ephemerisData.data));
@@ -95,7 +96,10 @@ export class EphemerisTable {
     }
 
     if (ephemerisData.interpolationOrder !== undefined) {
-      if (ephemerisData.interpolationOrder < 1 || ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER) {
+      if (
+        ephemerisData.interpolationOrder < 1 ||
+        ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER
+      ) {
         throw `Interpolation order must be >0 and <${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`;
       }
       this._interpolationOrder = ephemerisData.interpolationOrder;
@@ -105,7 +109,9 @@ export class EphemerisTable {
       this._units.distance !== DEFAULT_UNITS.distance ||
       this._units.time !== DEFAULT_UNITS.time
     ) {
-      let distanceMultiplier = this.calcDistanceMultiplier(this._units.distance);
+      let distanceMultiplier = this.calcDistanceMultiplier(
+        this._units.distance,
+      );
       let timeMultiplier = this.calcTimeMultiplier(this._units.time);
       this._data.forEach(line => {
         line[1] *= distanceMultiplier;
@@ -134,10 +140,31 @@ export class EphemerisTable {
       return [last[1], last[2], last[3]];
     }
 
-    const {startIndex, stopIndex} = this.calcBoundingIndices(jd);
-    const x = SpacekitMath.interpolate(this._data, jd, startIndex, stopIndex, 0,1);
-    const y = SpacekitMath.interpolate(this._data, jd, startIndex, stopIndex, 0,2);
-    const z = SpacekitMath.interpolate(this._data, jd, startIndex, stopIndex, 0,3);
+    const { startIndex, stopIndex } = this.calcBoundingIndices(jd);
+    const x = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      1,
+    );
+    const y = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      2,
+    );
+    const z = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      3,
+    );
 
     return [x, y, z];
   }
@@ -155,11 +182,11 @@ export class EphemerisTable {
     }
 
     if (stepDays <= 0.0) {
-      throw 'Step days needs to be greater than zero'
+      throw 'Step days needs to be greater than zero';
     }
 
     let result = [];
-    for(let t = startJd; t <= stopJd; t+=stepDays) {
+    for (let t = startJd; t <= stopJd; t += stepDays) {
       result.push(this.getPositionAtTime(t));
     }
 
@@ -199,7 +226,11 @@ export class EphemerisTable {
    */
   calcBoundingIndices(jd) {
     const halfSampleSize = Math.floor(this._interpolationOrder / 2);
-    let closestIndex = Util.binarySearch(this._data, jd, INCREASING_JDATE_SEARCH_METHOD);
+    let closestIndex = Util.binarySearch(
+      this._data,
+      jd,
+      INCREASING_JDATE_SEARCH_METHOD,
+    );
     if (closestIndex < 0) {
       closestIndex = ~closestIndex - 1;
     }
@@ -216,6 +247,6 @@ export class EphemerisTable {
       }
     }
 
-    return {startIndex: startIndex, stopIndex: stopIndex};
+    return { startIndex: startIndex, stopIndex: stopIndex };
   }
 }

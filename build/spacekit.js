@@ -51270,57 +51270,66 @@ var Spacekit = (function (exports) {
 	 * @param {Number} yIndex the column of data which represents the 'y' curve data of y = f(x)
 	 * @returns {Number} the interpolated value of the function f(x) from the data
 	 */
-	function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yIndex) {
-	 if (data === undefined) {
-	  throw 'data object is undefined';
-	 }
-
-	 if (!Array.isArray(data)) {
-	  throw 'data object must be an array';
-	 }
-
-	 if (sampleRowMin >= sampleRowMax) {
-	  throw 'first row must be greater than last row';
-	 }
-
-	 if (sampleRowMin < 0 ) {
-	  throw 'first row must be greater than zero';
-	 }
-
-	 if (sampleRowMax > data.length - 1) {
-	  throw 'last row must be '
-	 }
-
-	 if (!Array.isArray(data[sampleRowMin])) {
-	  throw 'data in rows must be array data';
-	 }
-
-	 const maxColumn = data[0].length - 1 ;
-	 if (xIndex < 0 || xIndex > maxColumn) {
-	  throw `xIndex has to be between 0 and ${maxColumn}: ${xIndex}`;
-	 }
-
-	 if (yIndex < 0 || yIndex > maxColumn) {
-	  throw `yIndex has to be between 0 and ${maxColumn}: ${yIndex}`;
-	 }
-
-	 let sum = 0;
-	 for (let j = sampleRowMin; j <= sampleRowMax; j++) {
-	  let prod = 1;
-	  for (let k = sampleRowMin; k <= sampleRowMax; k++) {
-	   if (k === j) {
-	    continue;
-	   }
-	   prod *= (xValue - data[k][xIndex])/(data[j][xIndex] - data[k][xIndex]);
+	function interpolate(
+	  data,
+	  xValue,
+	  sampleRowMin,
+	  sampleRowMax,
+	  xIndex,
+	  yIndex,
+	) {
+	  if (data === undefined) {
+	    throw 'data object is undefined';
 	  }
 
-	  sum += prod * data[j][yIndex];
-	 }
+	  if (!Array.isArray(data)) {
+	    throw 'data object must be an array';
+	  }
 
-	 return sum;
+	  if (sampleRowMin >= sampleRowMax) {
+	    throw 'first row must be greater than last row';
+	  }
+
+	  if (sampleRowMin < 0) {
+	    throw 'first row must be greater than zero';
+	  }
+
+	  if (sampleRowMax > data.length - 1) {
+	    throw 'last row must be ';
+	  }
+
+	  if (!Array.isArray(data[sampleRowMin])) {
+	    throw 'data in rows must be array data';
+	  }
+
+	  const maxColumn = data[0].length - 1;
+	  if (xIndex < 0 || xIndex > maxColumn) {
+	    throw `xIndex has to be between 0 and ${maxColumn}: ${xIndex}`;
+	  }
+
+	  if (yIndex < 0 || yIndex > maxColumn) {
+	    throw `yIndex has to be between 0 and ${maxColumn}: ${yIndex}`;
+	  }
+
+	  let sum = 0;
+	  for (let j = sampleRowMin; j <= sampleRowMax; j++) {
+	    let prod = 1;
+	    for (let k = sampleRowMin; k <= sampleRowMax; k++) {
+	      if (k === j) {
+	        continue;
+	      }
+	      prod *= (xValue - data[k][xIndex]) / (data[j][xIndex] - data[k][xIndex]);
+	    }
+
+	    sum += prod * data[j][yIndex];
+	  }
+
+	  return sum;
 	}
 
-	const DEFAULT_COMPARER_METHOD = (a, b) => {return a-b;};
+	const DEFAULT_COMPARER_METHOD = (a, b) => {
+	  return a - b;
+	};
 	/**
 	 * @ignore
 	 */
@@ -51379,7 +51388,7 @@ var Spacekit = (function (exports) {
 	 * time as value to compare. Default method is a numerical comparison
 	 * @returns {number}
 	 */
-	function binarySearch(data, value, comparer=DEFAULT_COMPARER_METHOD) {
+	function binarySearch(data, value, comparer = DEFAULT_COMPARER_METHOD) {
 	  if (data === undefined) {
 	    throw 'data object is undefined';
 	  }
@@ -51424,7 +51433,7 @@ var Spacekit = (function (exports) {
 
 	// Constants
 	const MAX_INTERPOLATION_ORDER = 20;
-	const INCREASING_JDATE_SEARCH_METHOD = (a,b) => {
+	const INCREASING_JDATE_SEARCH_METHOD = (a, b) => {
 	  return a[0] - b;
 	};
 
@@ -51443,7 +51452,6 @@ var Spacekit = (function (exports) {
 	const EPHEM_TYPES = new Set(['cartesianposvel']);
 	const INTERPOLATION_TYPES = new Set(['lagrange']);
 	const TIME_UNITS = new Set(['day', 'sec']);
-
 
 	/**
 	 * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
@@ -51473,10 +51481,12 @@ var Spacekit = (function (exports) {
 	      throw 'EphemerisTable must be initialized with an ephemeris data structure';
 	    }
 
-	    if (!ephemerisData.data ||
+	    if (
+	      !ephemerisData.data ||
 	      !Array.isArray(ephemerisData.data) ||
 	      ephemerisData.data.length === 0 ||
-	      !Array.isArray(ephemerisData.data[0])) {
+	      !Array.isArray(ephemerisData.data[0])
+	    ) {
 	      throw 'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data';
 	    }
 	    this._data = JSON.parse(JSON.stringify(ephemerisData.data));
@@ -51510,7 +51520,10 @@ var Spacekit = (function (exports) {
 	    }
 
 	    if (ephemerisData.interpolationOrder !== undefined) {
-	      if (ephemerisData.interpolationOrder < 1 || ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER) {
+	      if (
+	        ephemerisData.interpolationOrder < 1 ||
+	        ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER
+	      ) {
 	        throw `Interpolation order must be >0 and <${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`;
 	      }
 	      this._interpolationOrder = ephemerisData.interpolationOrder;
@@ -51520,8 +51533,10 @@ var Spacekit = (function (exports) {
 	      this._units.distance !== DEFAULT_UNITS.distance ||
 	      this._units.time !== DEFAULT_UNITS.time
 	    ) {
-	      let distanceMultiplier = this.calcDistanceMultiplier(this._units.distance);
-	      let timeMultiplier = this.calcTimeMultiplier(this._units.time);
+	      const distanceMultiplier = this.calcDistanceMultiplier(
+	        this._units.distance,
+	      );
+	      const timeMultiplier = this.calcTimeMultiplier(this._units.time);
 	      this._data.forEach(line => {
 	        line[1] *= distanceMultiplier;
 	        line[2] *= distanceMultiplier;
@@ -51549,10 +51564,31 @@ var Spacekit = (function (exports) {
 	      return [last[1], last[2], last[3]];
 	    }
 
-	    const {startIndex, stopIndex} = this.calcBoundingIndices(jd);
-	    const x = interpolate(this._data, jd, startIndex, stopIndex, 0,1);
-	    const y = interpolate(this._data, jd, startIndex, stopIndex, 0,2);
-	    const z = interpolate(this._data, jd, startIndex, stopIndex, 0,3);
+	    const { startIndex, stopIndex } = this.calcBoundingIndices(jd);
+	    const x = interpolate(
+	      this._data,
+	      jd,
+	      startIndex,
+	      stopIndex,
+	      0,
+	      1,
+	    );
+	    const y = interpolate(
+	      this._data,
+	      jd,
+	      startIndex,
+	      stopIndex,
+	      0,
+	      2,
+	    );
+	    const z = interpolate(
+	      this._data,
+	      jd,
+	      startIndex,
+	      stopIndex,
+	      0,
+	      3,
+	    );
 
 	    return [x, y, z];
 	  }
@@ -51570,11 +51606,11 @@ var Spacekit = (function (exports) {
 	    }
 
 	    if (stepDays <= 0.0) {
-	      throw 'Step days needs to be greater than zero'
+	      throw 'Step days needs to be greater than zero';
 	    }
 
 	    let result = [];
-	    for(let t = startJd; t <= stopJd; t+=stepDays) {
+	    for (let t = startJd; t <= stopJd; t += stepDays) {
 	      result.push(this.getPositionAtTime(t));
 	    }
 
@@ -51614,7 +51650,11 @@ var Spacekit = (function (exports) {
 	   */
 	  calcBoundingIndices(jd) {
 	    const halfSampleSize = Math.floor(this._interpolationOrder / 2);
-	    let closestIndex = binarySearch(this._data, jd, INCREASING_JDATE_SEARCH_METHOD);
+	    let closestIndex = binarySearch(
+	      this._data,
+	      jd,
+	      INCREASING_JDATE_SEARCH_METHOD,
+	    );
 	    if (closestIndex < 0) {
 	      closestIndex = ~closestIndex - 1;
 	    }
@@ -51631,7 +51671,7 @@ var Spacekit = (function (exports) {
 	      }
 	    }
 
-	    return {startIndex: startIndex, stopIndex: stopIndex};
+	    return { startIndex: startIndex, stopIndex: stopIndex };
 	  }
 	}
 
@@ -51977,11 +52017,11 @@ var Spacekit = (function (exports) {
 	 * Enum of orbital types.
 	 */
 	const OrbitType = Object.freeze({
+	  UNKNOWN: 0,
 	  PARABOLIC: 1,
 	  HYPERBOLIC: 2,
 	  ELLIPTICAL: 3,
 	  TABLE: 4,
-	  UNKNOWN: 5,
 	});
 
 	/**
@@ -52017,7 +52057,7 @@ var Spacekit = (function (exports) {
 	 */
 	class Orbit {
 	  /**
-	   * @param {Object} ephem The ephemerides that define this orbit.
+	   * @param {(Ephem | EphemerisTable)} ephem The ephemerides that define this orbit.
 	   * @param {Object} options
 	   * @param {Object} options.color The color of the orbital ellipse.
 	   * @param {Object} options.orbitPathSettings settings for the path
@@ -52045,7 +52085,9 @@ var Spacekit = (function (exports) {
 	     * configuring orbit path lead/trail data
 	     */
 	    if (!this._options.orbitPathSettings) {
-	      this._options.orbitPathSettings = JSON.parse(JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS));
+	      this._options.orbitPathSettings = JSON.parse(
+	        JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS),
+	      );
 	    }
 
 	    if (!this._options.orbitPathSettings.leadDurationYears) {
@@ -52360,7 +52402,6 @@ var Spacekit = (function (exports) {
 	      const pos = orbitFn(jd);
 	      points.push(new Vector3(pos[0], pos[1], pos[2]));
 	    }
-	    console.info('Computed', points.length, 'segements for line orbit');
 
 	    const pointsGeometry = new Geometry();
 	    pointsGeometry.vertices = points;
@@ -52383,7 +52424,6 @@ var Spacekit = (function (exports) {
 	      .map(values => new Vector3(values[0], values[1], values[2]));
 	    const pointGeometry = new Geometry();
 	    pointGeometry.vertices = points;
-	    console.info('Computed', points.length, 'segements for look up orbit');
 
 	    return this.generateAndCacheOrbitShape(pointGeometry);
 	  }
@@ -52434,8 +52474,6 @@ var Spacekit = (function (exports) {
 	      pts.push(vector);
 	    }
 	    pts.push(pts[0]);
-
-	    console.info('Computed', pts.length, 'segements for ellipse orbit');
 
 	    const pointGeometry = new Geometry();
 	    pointGeometry.vertices = pts;
@@ -58809,8 +58847,7 @@ var Spacekit = (function (exports) {
 	      }
 
 	      if (!this._options.hideOrbit) {
-	        this._orbitPath
-	          .position.set(parentPos[0], parentPos[1], parentPos[2]);
+	        this._orbitPath.position.set(parentPos[0], parentPos[1], parentPos[2]);
 	      }
 	      if (!newpos) {
 	        newpos = this.getPosition(jd);
@@ -60199,7 +60236,7 @@ var Spacekit = (function (exports) {
 	    if (timeDelta > threshold) {
 	      const newWidth = this._simulationElt.offsetWidth;
 	      const newHeight = this._simulationElt.offsetHeight;
-	      if (newWidth == 0 && newHeight ==0) {
+	      if (newWidth == 0 && newHeight == 0) {
 	        return;
 	      }
 	      const camera = this._camera.get3jsCamera();

@@ -412,7 +412,6 @@ export class Orbit {
       const pos = orbitFn(jd);
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
-    console.info('Computed', points.length, 'segements for line orbit');
 
     const pointsGeometry = new THREE.Geometry();
     pointsGeometry.vertices = points;
@@ -435,7 +434,6 @@ export class Orbit {
       .map(values => new THREE.Vector3(values[0], values[1], values[2]));
     const pointGeometry = new THREE.Geometry();
     pointGeometry.vertices = points;
-    console.info('Computed', points.length, 'segements for look up orbit');
 
     return this.generateAndCacheOrbitShape(pointGeometry);
   }
@@ -486,8 +484,6 @@ export class Orbit {
       pts.push(vector);
     }
     pts.push(pts[0]);
-
-    console.info('Computed', pts.length, 'segements for ellipse orbit');
 
     const pointGeometry = new THREE.Geometry();
     pointGeometry.vertices = pts;

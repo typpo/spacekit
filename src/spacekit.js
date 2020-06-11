@@ -1,6 +1,7 @@
 export * from './Camera';
 export * from './Coordinates';
 export * from './Ephem';
+export * from './EphemerisTable';
 export * from './EphemPresets';
 export * from './Orbit';
 export * from './Simulation';

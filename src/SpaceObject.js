@@ -69,7 +69,12 @@ export class SpaceObject {
    * @param {String} options.labelText Text label to display above object (set undefined for no label)
    * @param {String} options.labelUrl Label becomes a link that goes to this url.
    * @param {boolean} options.hideOrbit If true, don't show an orbital ellipse. Defaults false.
+   * @param {Object} options.orbitPathSettings Contains settings for defining the orbit path
+   * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+   * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+   * @param {Object} options.orbitPathSettings.stepSizeYears orbit step size in years
    * @param {Ephem} options.ephem Ephemerides for this orbit
+   * @param {EphemerisTable} options.ephemTable ephemeris table object which represents look up ephemeris
    * @param {String} options.textureUrl Texture for sprite
    * @param {String} options.basePath Base path for simulation assets and data
    * @param {Object} options.ecliptic Contains settings related to ecliptic
@@ -86,6 +91,8 @@ export class SpaceObject {
     this._id = id;
     this._options = options || {};
     this._object3js = undefined;
+    this._useEphemTable = this._options.ephemTable !== undefined;
+    this._isStaticObject = !this._options.ephem && !this._useEphemTable;
 
     // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
@@ -142,6 +149,12 @@ export class SpaceObject {
       this._showLabel = true;
     }
 
+    /**
+     * Caching of THREE.js objects for orbitPath
+     */
+    this._orbitPath = null;
+    this._eclipticLines = null;
+
     this.update(this._simulation.getJd(), true /* force */);
 
     this._initialized = true;
@@ -186,6 +199,16 @@ export class SpaceObject {
       if (!this._options.hideOrbit && this._simulation) {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);
+      }
+
+      if (this._useEphemTable) {
+        if (!this._renderMethod) {
+          this._object3js = this.createSprite();
+          if (this._simulation) {
+            this._simulation.addObject(this, true);
+          }
+          this._renderMethod = 'SPRITE';
+        }
       }
 
       if (!this._renderMethod) {
@@ -306,7 +329,12 @@ export class SpaceObject {
     if (this._orbit) {
       return this._orbit;
     }
-    return new Orbit(this._options.ephem, {
+
+    const ephem = this._useEphemTable
+      ? this._options.ephemTable
+      : this._options.ephem;
+    return new Orbit(ephem, {
+      orbitPathSettings: this._options.orbitPathSettings,
       color: this._options.theme ? this._options.theme.orbitColor : undefined,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
@@ -342,13 +370,6 @@ export class SpaceObject {
    * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
    */
   orbitAround(spaceObj) {
-    if (this._renderMethod !== 'PARTICLESYSTEM') {
-      console.error(
-        `"${this._renderMethod}" is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
-      );
-      return;
-    }
-
     this._orbitAround = spaceObj;
   }
 
@@ -415,16 +436,39 @@ export class SpaceObject {
       this._lastPositionUpdate = jd;
     }
 
+    const orbitNeedsRefreshing =
+      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+    if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
+      //Had material but don't think need it if doing this right...
+      this._simulation.getScene().remove(this._orbitPath);
+      this._orbitPath = this._orbit.getOrbitShape(jd, true);
+      this._simulation.getScene().add(this._orbitPath);
+    }
+
+    const eclipticNeedsRefreshing =
+      !this._eclipticLines || orbitNeedsRefreshing;
+    if (
+      this._orbit &&
+      this._options.ecliptic &&
+      this._options.ecliptic.displayLines &&
+      eclipticNeedsRefreshing
+    ) {
+      this._simulation.getScene().remove(this._eclipticLines);
+      this._eclipticLines = this._orbit.getLinesToEcliptic();
+      this._simulation.getScene().add(this._eclipticLines);
+    }
+
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
-      this._context.objects.particles.setParticleOrigin(
-        this._particleIndex,
-        parentPos,
-      );
+      if (this._renderMethod === 'PARTICLESYSTEM') {
+        this._context.objects.particles.setParticleOrigin(
+          this._particleIndex,
+          parentPos,
+        );
+      }
+
       if (!this._options.hideOrbit) {
-        this._orbit
-          .getOrbitShape()
-          .position.set(parentPos[0], parentPos[1], parentPos[2]);
+        this._orbitPath.position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -457,9 +501,12 @@ export class SpaceObject {
       ret.push(this._object3js);
     }
     if (this._orbit) {
-      ret.push(this._orbit.getOrbitShape());
-      if (this._options.ecliptic && this._options.ecliptic.displayLines) {
-        ret.push(this._orbit.getLinesToEcliptic());
+      if (this._orbitPath) {
+        ret.push(this._orbitPath);
+      }
+
+      if (this._eclipticLines) {
+        ret.push(this._eclipticLines);
       }
     }
     return ret;
@@ -530,7 +577,7 @@ export class SpaceObject {
    * @return {boolean} Whether this object can change its position.
    */
   isStaticObject() {
-    return !this._options.ephem;
+    return this._isStaticObject;
   }
 
   /**

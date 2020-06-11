@@ -165,10 +165,10 @@ export class Simulation {
     camera
       .get3jsCamera()
       .position.set(
-      this._cameraDefaultPos[0],
-      this._cameraDefaultPos[1],
-      this._cameraDefaultPos[2],
-    );
+        this._cameraDefaultPos[0],
+        this._cameraDefaultPos[1],
+        this._cameraDefaultPos[2],
+      );
     window.cam = camera.get3jsCamera();
     this._camera = camera;
 
@@ -353,14 +353,14 @@ export class Simulation {
 
     if (timeDelta > threshold) {
       const newWidth = this._simulationElt.offsetWidth;
-      const newHeight = this._simulationElt.offsetHeight
+      const newHeight = this._simulationElt.offsetHeight;
+      if (newWidth == 0 && newHeight == 0) {
+        return;
+      }
       const camera = this._camera.get3jsCamera();
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
-      this._renderer.setSize(
-        newWidth,
-        newHeight
-      );
+      this._renderer.setSize(newWidth, newHeight);
       this.staticForcedUpdate();
       this._lastResizeUpdateTime = now;
     }
@@ -724,6 +724,7 @@ export class Simulation {
    */
   setJd(val) {
     this._jd = val;
+    this.update(true);
   }
 
   /**

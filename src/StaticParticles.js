@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 
-import {
-  STAR_SHADER_VERTEX,
-  STAR_SHADER_FRAGMENT,
-} from './shaders';
+import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 
 const DEFAULT_PARTICLE_SIZE = 4;
 const DEFAULT_COLOR = 0xffffff;

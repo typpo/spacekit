@@ -38,6 +38,10 @@ viz.createObject('C/2019 Q4 (Borisov)', {
   theme: {
     orbitColor: 0xffff00,
   },
+  ecliptic: {
+    displayLines: true,
+    lineColor: 0xffff00,
+  },
   labelText: 'Borisov',
 });
 

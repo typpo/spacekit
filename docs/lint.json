@@ -1,5 +1,38 @@
 [
   {
+    "name": "RotatingObject#update",
+    "filePath": "src/RotatingObject.js",
+    "lines": [
+      {
+        "lineNumber": 135,
+        "line": "  /**"
+      },
+      {
+        "lineNumber": 136,
+        "line": "   * Updates the object and its label positions for a given time."
+      },
+      {
+        "lineNumber": 137,
+        "line": "   * @param {Number} jd JD date"
+      },
+      {
+        "lineNumber": 138,
+        "line": "   */"
+      },
+      {
+        "lineNumber": 139,
+        "line": "  update(jd, force = false) {"
+      }
+    ],
+    "codeParams": [
+      "jd",
+      "force"
+    ],
+    "docParams": [
+      "jd"
+    ]
+  },
+  {
     "name": "SphereObject#renderAtmosphereComponent",
     "filePath": "src/SphereObject.js",
     "lines": [

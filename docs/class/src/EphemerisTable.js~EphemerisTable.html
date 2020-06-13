@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">StaticParticles | spacekit.js</title>
+  <title data-ice="title">EphemerisTable | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -93,17 +93,17 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {StaticParticles} from &apos;<span><a href="file/src/StaticParticles.js.html#lineNumber11">spacekit/src/StaticParticles.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {EphemerisTable} from &apos;<span><a href="file/src/EphemerisTable.js.html#lineNumber40">spacekit/src/EphemerisTable.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/StaticParticles.js.html#lineNumber11">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/EphemerisTable.js.html#lineNumber40">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
-  <h1 data-ice="name">StaticParticles</h1>
+  <h1 data-ice="name">EphemerisTable</h1>
 
   
 
@@ -119,7 +119,11 @@
 
   
   
-  <div class="description" data-ice="description"><p>Simulates a static particle field in whichever base reference the simulation is in.</p>
+  <div class="description" data-ice="description"><p>This class encapsulates the data and necessary methods for operating with look up ephemeris data.
+Users of the class pass in their ephemeris data as a data structure with the data and the settings for the ephemeris.
+The settings include things like the units, and the ephemeris representation. The ephemeris data itself is an array
+of arrays where each line constitute the necessary components of the line.</p>
+<p>For &apos;cartesianposvel&apos; style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]</p>
 </div>
   
 
@@ -152,7 +156,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, points: <span>Array.Array</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, contextOrSimulation: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html#instance-constructor-constructor">constructor</a></span></span><span class="code" data-ice="signature">(ephemerisData: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
         </p>
       </div>
       <div>
@@ -188,13 +192,13 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html#instance-method-get3jsObjects">get3jsObjects</a></span></span><span class="code" data-ice="signature">(): <span>THREE.Object</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html#instance-method-getPositionAtTime">getPositionAtTime</a></span></span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span><span>[]</span></span> | <span><span>*</span><span>[]</span></span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>A list of THREE.js objects that are used to compose the skybox.</p>
+        <div data-ice="description"><p>Calculates the interpolated position for the given requested date.</p>
 </div>
       </div>
     </td>
@@ -217,42 +221,14 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html#instance-method-getId">getId</a></span></span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html#instance-method-getPositions">getPositions</a></span></span><span class="code" data-ice="signature">(startJd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, stopJd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, stepDays: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><span>number[]</span><span>[]</span></span></span>
         </p>
       </div>
       <div>
         
         
-        <div data-ice="description"><p>Get the unique ID of this object.</p>
+        <div data-ice="description"><p>Given the start and stop time returns a uniform ephemeris history.</p>
 </div>
-      </div>
-    </td>
-    <td>
-      
-      
-    </td>
-  </tr>
-<tr data-ice="target">
-    <td>
-      <span class="access" data-ice="access">public</span>
-      
-      
-      
-      <span class="override" data-ice="override"></span>
-    </td>
-    <td>
-      <div>
-        <p>
-          
-          
-          
-          <span class="code" data-ice="name"><span><a href="class/src/StaticParticles.js~StaticParticles.html#instance-method-init">init</a></span></span><span class="code" data-ice="signature">()</span>
-        </p>
-      </div>
-      <div>
-        
-        
-        
       </div>
     </td>
     <td>
@@ -278,11 +254,11 @@
     
     
     
-    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, points: <span>Array.Array</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;, options: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, contextOrSimulation: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
+    <span class="code" data-ice="name">constructor</span><span class="code" data-ice="signature">(ephemerisData: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>)</span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/StaticParticles.js.html#lineNumber21">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/EphemerisTable.js.html#lineNumber50">source</a></span></span>
     </span>
   </h3>
 
@@ -302,45 +278,52 @@
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">id</td>
+      <td data-ice="name" class="code" data-depth="0">ephemerisData</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Look up ephemeris data to initialize the table with and the properties of it</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.data</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;&gt;</td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the ephemeris data appropriate for the specified ephemeris type</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.ephemerisType</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Unique ID for this object</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">points</td>
-      <td data-ice="type" class="code"><span>Array.Array</span>&lt;<span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>&gt;</td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>an array of X,Y,Z cartesian points, one for each particle</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">options</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>container</p>
+      <td data-ice="description"><p>the type of ephemeres data here (defaults to &apos;cartesianposvel&apos;)</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.defaultColor</td>
-      <td data-ice="type" class="code"><span>Color</span></td>
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.distanceUnits</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>color to use for all particles can be a THREE string color name or hex value</p>
+      <td data-ice="description"><p>the distance units for this data (defaults to AU</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" class="code" data-depth="1">options.size</td>
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.timeUnits</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the distance units for this data (defaults to day)</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.interpolationType</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the type of interpolater to use (defaults to &apos;lagrange&apos;)</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" class="code" data-depth="1">ephemerisData.interpolationOrder</td>
       <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>the size of each particle</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="0">
-      <td data-ice="name" class="code" data-depth="0">contextOrSimulation</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
-      <td data-ice="appendix"></td>
-      <td data-ice="description"><p>Simulation context or simulation object</p>
+      <td data-ice="description"><p>the order of the interpolator to use (defaults to 5)</p>
 </td>
     </tr>
 </tbody>
@@ -370,30 +353,48 @@
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-get3jsObjects">
+  <h3 data-ice="anchor" id="instance-method-getPositionAtTime">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">get3jsObjects</span><span class="code" data-ice="signature">(): <span>THREE.Object</span></span>
+    <span class="code" data-ice="name">getPositionAtTime</span><span class="code" data-ice="signature">(jd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span><span>[]</span></span> | <span><span>*</span><span>[]</span></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/StaticParticles.js.html#lineNumber89">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/EphemerisTable.js.html#lineNumber133">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>A list of THREE.js objects that are used to compose the skybox.</p>
+  <div data-ice="description"><p>Calculates the interpolated position for the given requested date. If the requested date is before the first
+point it returns the first point. If the requested date is after the last point it returns the last point.</p>
 </div>
 
   
 
-  <div data-ice="properties">
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">jd</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>of the requested time</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
 </div>
 
   <div class="return-params" data-ice="returnParams">
@@ -401,8 +402,8 @@
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span>THREE.Object</span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>Skybox mesh</p>
+          <td class="return-type code" data-ice="returnType"><span><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span><span>[]</span></span> | <span><span>*</span><span>[]</span></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>x, y, z position in the ephemeris table&apos;s reference frame</p>
 </td>
         </tr>
       </tbody>
@@ -427,30 +428,61 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-getId">
+  <h3 data-ice="anchor" id="instance-method-getPositions">
     <span class="access" data-ice="access">public</span>
     
     
     
     
     
-    <span class="code" data-ice="name">getId</span><span class="code" data-ice="signature">(): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></span>
+    <span class="code" data-ice="name">getPositions</span><span class="code" data-ice="signature">(startJd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, stopJd: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>, stepDays: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span><span>number[]</span><span>[]</span></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/StaticParticles.js.html#lineNumber97">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/EphemerisTable.js.html#lineNumber179">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  <div data-ice="description"><p>Get the unique ID of this object.</p>
+  <div data-ice="description"><p>Given the start and stop time returns a uniform ephemeris history.</p>
 </div>
 
   
 
-  <div data-ice="properties">
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">startJd</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the requested start date</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">stopJd</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the requested stop date</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">stepDays</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>the step size of the data requested in days (can be fractional days)</p>
+</td>
+    </tr>
+</tbody>
+  </table>
+</div>
 </div>
 
   <div class="return-params" data-ice="returnParams">
@@ -458,58 +490,14 @@
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
-          <td class="return-desc" data-ice="returnDescription"><p>id</p>
-</td>
+          <td class="return-type code" data-ice="returnType"><span><span>number[]</span><span>[]</span></span></td>
+          
         </tr>
       </tbody>
     </table>
     <div data-ice="returnProperties">
 </div>
   </div>
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-</div>
-<div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-init">
-    <span class="access" data-ice="access">public</span>
-    
-    
-    
-    
-    
-    <span class="code" data-ice="name">init</span><span class="code" data-ice="signature">()</span>
-    <span class="right-info">
-      
-      
-      <span data-ice="source"><span><a href="file/src/StaticParticles.js.html#lineNumber47">source</a></span></span>
-    </span>
-  </h3>
-
-  
-  
-  
-  
-
-  
-
-  <div data-ice="properties">
-</div>
-
-  
 
   
 

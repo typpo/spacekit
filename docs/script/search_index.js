@@ -30,6 +30,12 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
+    "spacekit/src/ephemeristable.js~ephemeristable",
+    "class/src/EphemerisTable.js~EphemerisTable.html",
+    "<span>EphemerisTable</span> <span class=\"search-result-import-path\">spacekit/src/EphemerisTable.js</span>",
+    "class"
+  ],
+  [
     "spacekit/src/shaders.js~generic_particle_shader_fragment",
     "variable/index.html#static-variable-GENERIC_PARTICLE_SHADER_FRAGMENT",
     "<span>GENERIC_PARTICLE_SHADER_FRAGMENT</span> <span class=\"search-result-import-path\">spacekit/src/shaders.js</span>",
@@ -180,6 +186,12 @@ window.esdocSearchIndex = [
     "function"
   ],
   [
+    "spacekit/src/util.js~binarysearch",
+    "function/index.html#static-function-binarySearch",
+    "<span>binarySearch</span> <span class=\"search-result-import-path\">spacekit/src/util.js</span>",
+    "function"
+  ],
+  [
     "spacekit/src/units.js~decimaltosexagesimaldec",
     "function/index.html#static-function-decimalToSexagesimalDec",
     "<span>decimalToSexagesimalDec</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
@@ -261,6 +273,12 @@ window.esdocSearchIndex = [
     "spacekit/src/units.js~hourstodeg",
     "function/index.html#static-function-hoursToDeg",
     "<span>hoursToDeg</span> <span class=\"search-result-import-path\">spacekit/src/Units.js</span>",
+    "function"
+  ],
+  [
+    "spacekit/src/math.js~interpolate",
+    "function/index.html#static-function-interpolate",
+    "<span>interpolate</span> <span class=\"search-result-import-path\">spacekit/src/Math.js</span>",
     "function"
   ],
   [
@@ -744,6 +762,30 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/ephemeristable.js",
+    "file/src/EphemerisTable.js.html",
+    "src/EphemerisTable.js",
+    "file"
+  ],
+  [
+    "src/ephemeristable.js~ephemeristable#constructor",
+    "class/src/EphemerisTable.js~EphemerisTable.html#instance-constructor-constructor",
+    "src/EphemerisTable.js~EphemerisTable#constructor",
+    "method"
+  ],
+  [
+    "src/ephemeristable.js~ephemeristable#getpositionattime",
+    "class/src/EphemerisTable.js~EphemerisTable.html#instance-method-getPositionAtTime",
+    "src/EphemerisTable.js~EphemerisTable#getPositionAtTime",
+    "method"
+  ],
+  [
+    "src/ephemeristable.js~ephemeristable#getpositions",
+    "class/src/EphemerisTable.js~EphemerisTable.html#instance-method-getPositions",
+    "src/EphemerisTable.js~EphemerisTable#getPositions",
+    "method"
+  ],
+  [
     "src/keplerparticles.js",
     "file/src/KeplerParticles.js.html",
     "src/KeplerParticles.js",
@@ -774,6 +816,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/keplerparticles.js~keplerparticles#hideparticle",
+    "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-hideParticle",
+    "src/KeplerParticles.js~KeplerParticles#hideParticle",
+    "method"
+  ],
+  [
     "src/keplerparticles.js~keplerparticles#setparticleorigin",
     "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-setParticleOrigin",
     "src/KeplerParticles.js~KeplerParticles#setParticleOrigin",
@@ -784,6 +832,12 @@ window.esdocSearchIndex = [
     "class/src/KeplerParticles.js~KeplerParticles.html#instance-method-update",
     "src/KeplerParticles.js~KeplerParticles#update",
     "method"
+  ],
+  [
+    "src/math.js",
+    "file/src/Math.js.html",
+    "src/Math.js",
+    "file"
   ],
   [
     "src/orbit.js",
@@ -798,21 +852,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/orbit.js~orbit#getellipse",
-    "class/src/Orbit.js~Orbit.html#instance-method-getEllipse",
-    "src/Orbit.js~Orbit#getEllipse",
-    "method"
-  ],
-  [
     "src/orbit.js~orbit#gethexcolor",
     "class/src/Orbit.js~Orbit.html#instance-method-getHexColor",
     "src/Orbit.js~Orbit#getHexColor",
-    "method"
-  ],
-  [
-    "src/orbit.js~orbit#getline",
-    "class/src/Orbit.js~Orbit.html#instance-method-getLine",
-    "src/Orbit.js~Orbit#getLine",
     "method"
   ],
   [
@@ -858,6 +900,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/orbit.js~orbit#getpositionattimetable",
+    "class/src/Orbit.js~Orbit.html#instance-method-getPositionAtTimeTable",
+    "src/Orbit.js~Orbit#getPositionAtTimeTable",
+    "method"
+  ],
+  [
     "src/orbit.js~orbit#getvisibility",
     "class/src/Orbit.js~Orbit.html#instance-method-getVisibility",
     "src/Orbit.js~Orbit#getVisibility",
@@ -873,6 +921,12 @@ window.esdocSearchIndex = [
     "src/orbit.js~orbit#setvisibility",
     "class/src/Orbit.js~Orbit.html#instance-method-setVisibility",
     "src/Orbit.js~Orbit#setVisibility",
+    "method"
+  ],
+  [
+    "src/orbit.js~orbit#timeinrenderedorbitspan",
+    "class/src/Orbit.js~Orbit.html#instance-method-timeInRenderedOrbitSpan",
+    "src/Orbit.js~Orbit#timeInRenderedOrbitSpan",
     "method"
   ],
   [
@@ -1251,6 +1305,12 @@ window.esdocSearchIndex = [
     "src/spaceobject.js~spaceobject#orbitaround",
     "class/src/SpaceObject.js~SpaceObject.html#instance-method-orbitAround",
     "src/SpaceObject.js~SpaceObject#orbitAround",
+    "method"
+  ],
+  [
+    "src/spaceobject.js~spaceobject#removalcleanup",
+    "class/src/SpaceObject.js~SpaceObject.html#instance-method-removalCleanup",
+    "src/SpaceObject.js~SpaceObject#removalCleanup",
     "method"
   ],
   [

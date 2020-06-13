@@ -32,6 +32,7 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html">NaturalSatellites</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html">EphemerisTable</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/KeplerParticles.js~KeplerParticles.html">KeplerParticles</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RotatingObject.js~RotatingObject.html">RotatingObject</a></span></span></li>
@@ -47,6 +48,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-interpolate">interpolate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
@@ -65,6 +67,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-binarySearch">binarySearch</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
@@ -95,12 +98,8 @@ import julian from &apos;julian&apos;;
 import Stats from &apos;three/examples/jsm/libs/stats.module.js&apos;;
 import {
   EffectComposer,
-  BlendFunction,
   EffectPass,
-  GodRaysEffect,
   BloomEffect,
-  KernelSize,
-  SMAAEffect,
   RenderPass,
 } from &apos;postprocessing&apos;;
 
@@ -114,7 +113,7 @@ import { SphereObject } from &apos;./SphereObject&apos;;
 import { StaticParticles } from &apos;./StaticParticles&apos;;
 import { Stars } from &apos;./Stars&apos;;
 import { getDefaultBasePath } from &apos;./util&apos;;
-import { setScaleFactor, rescaleArray, rescaleNumber } from &apos;./Scale&apos;;
+import { setScaleFactor, rescaleArray } from &apos;./Scale&apos;;
 
 /**
  * The main entrypoint of a visualization.
@@ -193,7 +192,7 @@ export class Simulation {
 
     this._jd =
       typeof this._options.jd === &apos;undefined&apos;
-        ? Number(julian(this._options.startDate)) || 0
+        ? Number(julian(this._options.startDate || new Date()))
         : this._options.jd;
     this._jdDelta = this._options.jdDelta;
     this._jdPerSecond = this._options.jdPerSecond || 100;
@@ -222,6 +221,8 @@ export class Simulation {
     this._stats = null;
     this._fps = 1;
     this._lastUpdatedTime = Date.now();
+    this._lastStaticCameraUpdateTime = Date.now();
+    this._lastResizeUpdateTime = Date.now();
 
     // Rendering
     this._renderEnabled = true;
@@ -252,8 +253,7 @@ export class Simulation {
     }
 
     // Scene
-    const scene = new THREE.Scene();
-    this._scene = scene;
+    this._scene = new THREE.Scene();
 
     // Camera
     const camera = new Camera(this.getContext());
@@ -273,6 +273,18 @@ export class Simulation {
       // drift.
       this._enableCameraDrift = false;
     };
+
+    this._camera.get3jsCameraControls().addEventListener(&apos;change&apos;, () =&gt; {
+      this.staticForcedUpdate();
+    });
+
+    this._simulationElt.addEventListener(&apos;resize&apos;, () =&gt; {
+      this.resizeUpdate();
+    });
+
+    window.addEventListener(&apos;resize&apos;, () =&gt; {
+      this.resizeUpdate();
+    });
 
     // Helper
     if (this._options.debug) {
@@ -354,7 +366,6 @@ export class Simulation {
     const sunGeometry = new THREE.SphereBufferGeometry(
       rescaleNumber(0.004),
       16,
-      16,
     );
     const sunMaterial = new THREE.MeshBasicMaterial({
       color: 0xffddaa,
@@ -401,11 +412,52 @@ export class Simulation {
   /**
    * @private
    */
-  update() {
+  update(force = false) {
     for (const objId in this._subscribedObjects) {
       if (this._subscribedObjects.hasOwnProperty(objId)) {
-        this._subscribedObjects[objId].update(this._jd);
+        this._subscribedObjects[objId].update(this._jd, force);
       }
+    }
+  }
+
+  /**
+   * Performs a forced update of all elements in the view. This is used for when the system isn&apos;t animating but the
+   * objects need to update their data to properly capture things like updated label positions.
+   * @private
+   */
+  staticForcedUpdate() {
+    if (this._isPaused) {
+      const now = Date.now();
+      const timeDelta = now - this._lastStaticCameraUpdateTime;
+      const threshold = 30;
+      if (timeDelta &gt; threshold) {
+        this.update(true);
+        this._lastStaticCameraUpdateTime = now;
+      }
+    }
+  }
+
+  /**
+   * @private
+   * Updates the size of the control and forces a refresh of components whenever the control is being resized.
+   */
+  resizeUpdate() {
+    const now = Date.now();
+    const timeDelta = now - this._lastResizeUpdateTime;
+    const threshold = 30;
+
+    if (timeDelta &gt; threshold) {
+      const newWidth = this._simulationElt.offsetWidth;
+      const newHeight = this._simulationElt.offsetHeight;
+      if (newWidth == 0 &amp;&amp; newHeight == 0) {
+        return;
+      }
+      const camera = this._camera.get3jsCamera();
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      this._renderer.setSize(newWidth, newHeight);
+      this.staticForcedUpdate();
+      this._lastResizeUpdateTime = now;
     }
   }
 
@@ -499,6 +551,9 @@ export class Simulation {
       this._scene.remove(x);
     });
 
+    if (typeof obj.removalCleanup === &apos;function&apos;) {
+      obj.removalCleanup();
+    }
     delete this._subscribedObjects[obj.getId()];
   }
 
@@ -764,6 +819,7 @@ export class Simulation {
    */
   setJd(val) {
     this._jd = val;
+    this.update(true);
   }
 
   /**

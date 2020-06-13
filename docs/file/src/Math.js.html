@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/RotatingObject.js | spacekit.js</title>
+  <title data-ice="title">src/Math.js | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -92,192 +92,75 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/RotatingObject.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
-
-import { SpaceObject } from &apos;./SpaceObject&apos;;
-import { rad } from &apos;./Units&apos;;
-import { rescaleVector } from &apos;./Scale&apos;;
-
-function getAxis(src, dst, color) {
-  const geom = new THREE.Geometry();
-  const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
-
-  geom.vertices.push(rescaleVector(src).clone());
-  geom.vertices.push(rescaleVector(dst).clone());
-
-  const axis = new THREE.Line(geom, mat, THREE.LineSegments);
-  axis.computeLineDistances();
-  return axis;
-}
-
-function getAxes() {
-  return [
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
-  ];
-}
-
-/**
- * This class simulates an object that spins according to provided rotational
- * parameters.
+<div class="content" data-ice="content"><h1 data-ice="title">src/Math.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/**
+ * Interpolates the given 2D array of data using a Lagrange Polynomial interpolation. User specifies first/last row
+ * versus giving a number of sample points and a starting index. For best performance number of points generally would
+ * be between 1 (linear) and 7
+ *
+ * @param {Array} data array
+ * @param {Number} xValue value of x to evaluate for function y = f(x) represented by the data
+ * @param {Number} sampleRowMin first row of data to use for the interpolation
+ * @param {Number} sampleRowMax last row of data to use for the interpolation
+ * @param {Number} xIndex the column of data which represents the &apos;x&apos; variable of y = f(x)
+ * @param {Number} yIndex the column of data which represents the &apos;y&apos; curve data of y = f(x)
+ * @returns {Number} the interpolated value of the function f(x) from the data
  */
-export class RotatingObject extends SpaceObject {
-  /*
-   * FIXME(ian): This implementation is still WIP! Rotational parameters are not
-   * used right now.
-   * @param {boolean} options.rotation.enable Rotate the object
-   * @param {Number} options.rotation.speed Factor that determines speed of rotation
-   * @param {Number} options.rotation.lambdaDeg Ecliptic longitude lambda, in degrees
-   * @param {Number} options.rotation.betaDeg Ecliptic longitude beta, in degrees
-   * @param {Number} options.rotation.period Rotational period, in JD
-   * @param {Number} options.rotation.yorp YORP coefficient, if any (defaults to 0)
-   * @param {Number} options.rotation.phi0 Initial rotation phi, in degrees (defaults to 0)
-   * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
-   * @see SpaceObject
-   */
-  constructor(id, options, contextOrSimulation, autoInit = true) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
-
-    // The THREE.js object
-    this._obj = new THREE.Object3D();
-    this._renderMethod = &apos;ROTATING_OBJECT&apos;;
-    super.setPositionedObject(this._obj);
-
-    this._objectIsRotatable = false;
-    if (this._options.rotation) {
-      this._objectIsRotatable = true;
-    }
-
-    // Offset of axis angle
-    this._axisRotationAngleOffset = 0;
-    this._axisOfRotation = undefined;
-
-    // Keep track of materials that comprise this object.
-    this._materials = [];
-
-    if (autoInit) {
-      this.init();
-    }
+export function interpolate(
+  data,
+  xValue,
+  sampleRowMin,
+  sampleRowMax,
+  xIndex,
+  yIndex,
+) {
+  if (data === undefined) {
+    throw &apos;data object is undefined&apos;;
   }
 
-  init() {
-    if (this._objectIsRotatable) {
-      this.initRotation();
-    }
+  if (!Array.isArray(data)) {
+    throw &apos;data object must be an array&apos;;
+  }
 
-    if (this._options.debug) {
-      if (this._options.debug.showAxes) {
-        getAxes().forEach(axis =&gt; this._obj.add(axis));
+  if (sampleRowMin &gt;= sampleRowMax) {
+    throw &apos;first row must be greater than last row&apos;;
+  }
+
+  if (sampleRowMin &lt; 0) {
+    throw &apos;first row must be greater than zero&apos;;
+  }
+
+  if (sampleRowMax &gt; data.length - 1) {
+    throw &apos;last row must be &apos;;
+  }
+
+  if (!Array.isArray(data[sampleRowMin])) {
+    throw &apos;data in rows must be array data&apos;;
+  }
+
+  const maxColumn = data[0].length - 1;
+  if (xIndex &lt; 0 || xIndex &gt; maxColumn) {
+    throw `xIndex has to be between 0 and ${maxColumn}: ${xIndex}`;
+  }
+
+  if (yIndex &lt; 0 || yIndex &gt; maxColumn) {
+    throw `yIndex has to be between 0 and ${maxColumn}: ${yIndex}`;
+  }
+
+  let sum = 0;
+  for (let j = sampleRowMin; j &lt;= sampleRowMax; j++) {
+    let prod = 1;
+    for (let k = sampleRowMin; k &lt;= sampleRowMax; k++) {
+      if (k === j) {
+        continue;
       }
-
-      if (this._options.debug.showGrid) {
-        const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
-        gridHelper.geometry.rotateX(Math.PI / 2);
-        this._obj.add(gridHelper);
-      }
+      prod *= (xValue - data[k][xIndex]) / (data[j][xIndex] - data[k][xIndex]);
     }
 
-    super.init();
+    sum += prod * data[j][yIndex];
   }
 
-  initRotation() {
-    if (typeof this._options.rotation.jd0 === &apos;undefined&apos;) {
-      return;
-    }
-
-    // Formula
-    // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
-
-    // Testing this asteroid:
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1504
-    // Model 2691
-    const PI = Math.PI;
-
-    // Cacus
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&amp;model_id=1863&amp;jd=2443568.0
-
-    const rotation = this._options.rotation;
-
-    // Latitude
-    const lambda = rad(rotation.lambdaDeg);
-
-    // Longitude
-    const beta = rad(rotation.betaDeg);
-
-    // Other
-    const P = rotation.period;
-    const YORP = rotation.yorp;
-    const phi0 = rad(rotation.phi0);
-    const JD = this._simulation.getJd();
-    const JD0 = rotation.jd0;
-
-    // Asteroid rotation
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-
-    // Adjust Z axis according to time.
-    const zAdjust =
-      phi0 +
-      ((2 * PI) / P) * (JD - JD0) +
-      (1 / 2) * YORP * Math.pow(JD - JD0, 2);
-    this._obj.rotateY(-(PI / 2 - beta));
-    this._obj.rotateZ(-lambda);
-    this._obj.rotateZ(zAdjust);
-  }
-
-  /**
-   * Updates the object and its label positions for a given time.
-   * @param {Number} jd JD date
-   */
-  update(jd, force = false) {
-    if (
-      this._obj &amp;&amp;
-      this._objectIsRotatable &amp;&amp;
-      this._options.rotation &amp;&amp;
-      this._options.rotation.enable
-    ) {
-      // For now, just rotate on X axis.
-      const speed = this._options.rotation.speed || 0.5;
-      this._obj.rotation.z += speed * (Math.PI / 180);
-      this._obj.rotation.z %= 360;
-    }
-    if (this._axisOfRotation) {
-      // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
-    }
-    // this._obj.rotateZ(0.015)
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
-
-    // Update position
-    super.update(jd, force);
-  }
-
-  /**
-   * Gets the THREE.js objects that represent this SpaceObject.
-   * @return {Array.&lt;THREE.Object&gt;} A list of THREE.js objects
-   */
-  get3jsObjects() {
-    const ret = super.get3jsObjects();
-    // Add to the front, because this is the primary object.
-    ret.unshift(this._obj);
-    return ret;
-  }
-
-  /**
-   * Begin rotating this object.
-   */
-  startRotation() {
-    this._options.rotation.enable = true;
-  }
-
-  /**
-   * Stop rotation of this object.
-   */
-  stopRotation() {
-    this._options.rotation.enable = false;
-  }
+  return sum;
 }
 </code></pre>
 

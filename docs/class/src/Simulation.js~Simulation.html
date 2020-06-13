@@ -32,6 +32,7 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html">NaturalSatellites</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html">EphemerisTable</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/KeplerParticles.js~KeplerParticles.html">KeplerParticles</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RotatingObject.js~RotatingObject.html">RotatingObject</a></span></span></li>
@@ -47,6 +48,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-interpolate">interpolate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
@@ -65,6 +67,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-binarySearch">binarySearch</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
@@ -90,13 +93,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber54">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import {Simulation} from &apos;<span><a href="file/src/Simulation.js.html#lineNumber50">spacekit/src/Simulation.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber54">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/Simulation.js.html#lineNumber50">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -1125,7 +1128,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber97">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber93">source</a></span></span>
     </span>
   </h3>
 
@@ -1335,7 +1338,7 @@ float around slightly. False by default.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber109">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber105">source</a></span></span>
     </span>
   </h3>
 
@@ -1381,7 +1384,7 @@ float around slightly. False by default.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber389">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber438">source</a></span></span>
     </span>
   </h3>
 
@@ -1450,7 +1453,7 @@ animated.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber476">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber528">source</a></span></span>
     </span>
   </h3>
 
@@ -1512,7 +1515,7 @@ visualization.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber488">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber540">source</a></span></span>
     </span>
   </h3>
 
@@ -1582,7 +1585,7 @@ with camera.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber418">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber470">source</a></span></span>
     </span>
   </h3>
 
@@ -1655,7 +1658,7 @@ Takes any SpaceObject arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber427">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber479">source</a></span></span>
     </span>
   </h3>
 
@@ -1728,7 +1731,7 @@ Takes any ShapeObject arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber454">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber506">source</a></span></span>
     </span>
   </h3>
 
@@ -1801,7 +1804,7 @@ any Skybox arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber436">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber488">source</a></span></span>
     </span>
   </h3>
 
@@ -1874,7 +1877,7 @@ Takes any SphereObject arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber463">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber515">source</a></span></span>
     </span>
   </h3>
 
@@ -1947,7 +1950,7 @@ Takes any Stars arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber445">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber497">source</a></span></span>
     </span>
   </h3>
 
@@ -2020,7 +2023,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber739">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber792">source</a></span></span>
     </span>
   </h3>
 
@@ -2077,7 +2080,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber681">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber734">source</a></span></span>
     </span>
   </h3>
 
@@ -2134,7 +2137,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber665">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber717">source</a></span></span>
     </span>
   </h3>
 
@@ -2191,7 +2194,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber696">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber749">source</a></span></span>
     </span>
   </h3>
 
@@ -2247,7 +2250,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber716">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber769">source</a></span></span>
     </span>
   </h3>
 
@@ -2304,7 +2307,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber517">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber569">source</a></span></span>
     </span>
   </h3>
 
@@ -2359,7 +2362,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber774">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber827">source</a></span></span>
     </span>
   </h3>
 
@@ -2416,7 +2419,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber758">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber811">source</a></span></span>
     </span>
   </h3>
 
@@ -2473,7 +2476,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber766">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber819">source</a></span></span>
     </span>
   </h3>
 
@@ -2530,7 +2533,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber521">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber573">source</a></span></span>
     </span>
   </h3>
 
@@ -2585,7 +2588,7 @@ Takes any StaticParticles arguments.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber532">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber584">source</a></span></span>
     </span>
   </h3>
 
@@ -2643,7 +2646,7 @@ that is ready to load.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber404">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber453">source</a></span></span>
     </span>
   </h3>
 
@@ -2704,7 +2707,7 @@ that is ready to load.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber542">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber594">source</a></span></span>
     </span>
   </h3>
 
@@ -2750,7 +2753,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber782">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber835">source</a></span></span>
     </span>
   </h3>
 
@@ -2811,7 +2814,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber689">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber742">source</a></span></span>
     </span>
   </h3>
 
@@ -2872,7 +2875,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber673">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber725">source</a></span></span>
     </span>
   </h3>
 
@@ -2933,7 +2936,7 @@ in the user&apos;s viewport.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber708">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber761">source</a></span></span>
     </span>
   </h3>
 
@@ -2995,7 +2998,7 @@ existing &quot;JD per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber728">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber781">source</a></span></span>
     </span>
   </h3>
 
@@ -3068,7 +3071,7 @@ existing &quot;JD per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber649">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber701">source</a></span></span>
     </span>
   </h3>
 
@@ -3112,7 +3115,7 @@ existing &quot;JD per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber657">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber709">source</a></span></span>
     </span>
   </h3>
 
@@ -3156,7 +3159,7 @@ existing &quot;JD per second&quot; setting.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber586">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/Simulation.js.html#lineNumber638">source</a></span></span>
     </span>
   </h3>
 

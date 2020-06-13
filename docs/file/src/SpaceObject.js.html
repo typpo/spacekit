@@ -32,6 +32,7 @@
   <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Camera.js~Camera.html">Camera</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Ephem.js~Ephem.html">Ephem</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemPresets.js~NaturalSatellites.html">NaturalSatellites</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/EphemerisTable.js~EphemerisTable.html">EphemerisTable</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/KeplerParticles.js~KeplerParticles.html">KeplerParticles</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Orbit.js~Orbit.html">Orbit</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/RotatingObject.js~RotatingObject.html">RotatingObject</a></span></span></li>
@@ -47,6 +48,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getNutationAndObliquity">getNutationAndObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getObliquity">getObliquity</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sphericalToCartesian">sphericalToCartesian</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-interpolate">interpolate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getOrbitType">getOrbitType</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getScaleFactor">getScaleFactor</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rescale">rescale</a></span></span></li>
@@ -65,6 +67,7 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rad">rad</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalDec">sexagesimalToDecimalDec</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sexagesimalToDecimalRa">sexagesimalToDecimalRa</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-binarySearch">binarySearch</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getDefaultBasePath">getDefaultBasePath</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullTextureUrl">getFullTextureUrl</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-getFullUrl">getFullUrl</a></span></span></li>
@@ -161,7 +164,12 @@ export class SpaceObject {
    * @param {String} options.labelText Text label to display above object (set undefined for no label)
    * @param {String} options.labelUrl Label becomes a link that goes to this url.
    * @param {boolean} options.hideOrbit If true, don&apos;t show an orbital ellipse. Defaults false.
+   * @param {Object} options.orbitPathSettings Contains settings for defining the orbit path
+   * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+   * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+   * @param {Object} options.orbitPathSettings.stepSizeYears orbit step size in years
    * @param {Ephem} options.ephem Ephemerides for this orbit
+   * @param {EphemerisTable} options.ephemTable ephemeris table object which represents look up ephemeris
    * @param {String} options.textureUrl Texture for sprite
    * @param {String} options.basePath Base path for simulation assets and data
    * @param {Object} options.ecliptic Contains settings related to ecliptic
@@ -178,6 +186,8 @@ export class SpaceObject {
     this._id = id;
     this._options = options || {};
     this._object3js = undefined;
+    this._useEphemTable = this._options.ephemTable !== undefined;
+    this._isStaticObject = !this._options.ephem &amp;&amp; !this._useEphemTable;
 
     // if (contextOrSimulation instanceOf Simulation) {
     if (true) {
@@ -233,6 +243,15 @@ export class SpaceObject {
       this._label = labelElt;
       this._showLabel = true;
     }
+
+    /**
+     * Caching of THREE.js objects for orbitPath
+     */
+    this._orbitPath = null;
+    this._eclipticLines = null;
+
+    this.update(this._simulation.getJd(), true /* force */);
+
     this._initialized = true;
     return true;
   }
@@ -275,6 +294,16 @@ export class SpaceObject {
       if (!this._options.hideOrbit &amp;&amp; this._simulation) {
         // Add it all to visualization.
         this._simulation.addObject(this, false /* noUpdate */);
+      }
+
+      if (this._useEphemTable) {
+        if (!this._renderMethod) {
+          this._object3js = this.createSprite();
+          if (this._simulation) {
+            this._simulation.addObject(this, true);
+          }
+          this._renderMethod = &apos;SPRITE&apos;;
+        }
       }
 
       if (!this._renderMethod) {
@@ -395,7 +424,12 @@ export class SpaceObject {
     if (this._orbit) {
       return this._orbit;
     }
-    return new Orbit(this._options.ephem, {
+
+    const ephem = this._useEphemTable
+      ? this._options.ephemTable
+      : this._options.ephem;
+    return new Orbit(ephem, {
+      orbitPathSettings: this._options.orbitPathSettings,
       color: this._options.theme ? this._options.theme.orbitColor : undefined,
       eclipticLineColor: this._options.ecliptic
         ? this._options.ecliptic.lineColor
@@ -431,13 +465,6 @@ export class SpaceObject {
    * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object&apos;s orbit.
    */
   orbitAround(spaceObj) {
-    if (this._renderMethod !== &apos;PARTICLESYSTEM&apos;) {
-      console.error(
-        `&quot;${this._renderMethod}&quot; is not a valid render method for \`setOrbitCenter\`. Required: PARTICLESYSTEM`,
-      );
-      return;
-    }
-
     this._orbitAround = spaceObj;
   }
 
@@ -485,16 +512,18 @@ export class SpaceObject {
   /**
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
+   * @param {boolean} force Whether to force an update regardless of checks for
+   * movement.
    */
-  update(jd) {
-    if (this.isStaticObject()) {
+  update(jd, force = false) {
+    if (this.isStaticObject() &amp;&amp; !force) {
       return;
     }
 
     let newpos;
     let shouldUpdateObjectPosition = false;
     if (this._object3js || this._label) {
-      shouldUpdateObjectPosition = this.shouldUpdateObjectPosition(jd);
+      shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
     }
     if (this._object3js &amp;&amp; shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
@@ -502,16 +531,39 @@ export class SpaceObject {
       this._lastPositionUpdate = jd;
     }
 
+    const orbitNeedsRefreshing =
+      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+    if (this._orbit &amp;&amp; !this._options.hideOrbit &amp;&amp; orbitNeedsRefreshing) {
+      //Had material but don&apos;t think need it if doing this right...
+      this._simulation.getScene().remove(this._orbitPath);
+      this._orbitPath = this._orbit.getOrbitShape(jd, true);
+      this._simulation.getScene().add(this._orbitPath);
+    }
+
+    const eclipticNeedsRefreshing =
+      !this._eclipticLines || orbitNeedsRefreshing;
+    if (
+      this._orbit &amp;&amp;
+      this._options.ecliptic &amp;&amp;
+      this._options.ecliptic.displayLines &amp;&amp;
+      eclipticNeedsRefreshing
+    ) {
+      this._simulation.getScene().remove(this._eclipticLines);
+      this._eclipticLines = this._orbit.getLinesToEcliptic();
+      this._simulation.getScene().add(this._eclipticLines);
+    }
+
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
-      this._context.objects.particles.setParticleOrigin(
-        this._particleIndex,
-        parentPos,
-      );
+      if (this._renderMethod === &apos;PARTICLESYSTEM&apos;) {
+        this._context.objects.particles.setParticleOrigin(
+          this._particleIndex,
+          parentPos,
+        );
+      }
+
       if (!this._options.hideOrbit) {
-        this._orbit
-          .getOrbitShape()
-          .position.set(parentPos[0], parentPos[1], parentPos[2]);
+        this._orbitPath.position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -520,7 +572,9 @@ export class SpaceObject {
 
     // TODO(ian): Determine this based on orbit and camera position change.
     const shouldUpdateLabelPos =
-      +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS &amp;&amp; this._showLabel;
+      force ||
+      (this._showLabel &amp;&amp;
+        +new Date() - this._lastLabelUpdate &gt; LABEL_UPDATE_MS);
     if (this._label &amp;&amp; shouldUpdateLabelPos) {
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -542,9 +596,12 @@ export class SpaceObject {
       ret.push(this._object3js);
     }
     if (this._orbit) {
-      ret.push(this._orbit.getOrbitShape());
-      if (this._options.ecliptic &amp;&amp; this._options.ecliptic.displayLines) {
-        ret.push(this._orbit.getLinesToEcliptic());
+      if (this._orbitPath) {
+        ret.push(this._orbitPath);
+      }
+
+      if (this._eclipticLines) {
+        ret.push(this._eclipticLines);
       }
     }
     return ret;
@@ -615,7 +672,7 @@ export class SpaceObject {
    * @return {boolean} Whether this object can change its position.
    */
   isStaticObject() {
-    return !this._options.ephem;
+    return this._isStaticObject;
   }
 
   /**
@@ -624,6 +681,17 @@ export class SpaceObject {
    */
   isReady() {
     return this._initialized;
+  }
+
+  removalCleanup() {
+    if (this._label) {
+      this._simulation.getSimulationElement().removeChild(this._label);
+      this._label = null;
+    }
+
+    if (this._particleIndex !== undefined) {
+      this._context.objects.particles.hideParticle(this._particleIndex);
+    }
   }
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <base data-ice="baseUrl" href="../../">
-  <title data-ice="title">src/RotatingObject.js | spacekit.js</title>
+  <title data-ice="title">src/EphemerisTable.js | spacekit.js</title>
   <link type="text/css" rel="stylesheet" href="css/style.css">
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
@@ -92,191 +92,257 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><h1 data-ice="title">src/RotatingObject.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as THREE from &apos;three&apos;;
-
-import { SpaceObject } from &apos;./SpaceObject&apos;;
-import { rad } from &apos;./Units&apos;;
-import { rescaleVector } from &apos;./Scale&apos;;
-
-function getAxis(src, dst, color) {
-  const geom = new THREE.Geometry();
-  const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
-
-  geom.vertices.push(rescaleVector(src).clone());
-  geom.vertices.push(rescaleVector(dst).clone());
-
-  const axis = new THREE.Line(geom, mat, THREE.LineSegments);
-  axis.computeLineDistances();
-  return axis;
-}
-
-function getAxes() {
-  return [
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0), 0xff0000),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0), 0x00ff00),
-    getAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3), 0x0000ff),
-  ];
-}
+<div class="content" data-ice="content"><h1 data-ice="title">src/EphemerisTable.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import * as SpacekitMath from &apos;./Math&apos;;
+import * as Units from &apos;./Units&apos;;
+import * as Util from &apos;./util&apos;;
 
 /**
- * This class simulates an object that spins according to provided rotational
- * parameters.
+ * A class representing an ephemeris look-up table for defining a space object.
+ * @example
  */
-export class RotatingObject extends SpaceObject {
-  /*
-   * FIXME(ian): This implementation is still WIP! Rotational parameters are not
-   * used right now.
-   * @param {boolean} options.rotation.enable Rotate the object
-   * @param {Number} options.rotation.speed Factor that determines speed of rotation
-   * @param {Number} options.rotation.lambdaDeg Ecliptic longitude lambda, in degrees
-   * @param {Number} options.rotation.betaDeg Ecliptic longitude beta, in degrees
-   * @param {Number} options.rotation.period Rotational period, in JD
-   * @param {Number} options.rotation.yorp YORP coefficient, if any (defaults to 0)
-   * @param {Number} options.rotation.phi0 Initial rotation phi, in degrees (defaults to 0)
-   * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
-   * @see SpaceObject
-   */
-  constructor(id, options, contextOrSimulation, autoInit = true) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
 
-    // The THREE.js object
-    this._obj = new THREE.Object3D();
-    this._renderMethod = &apos;ROTATING_OBJECT&apos;;
-    super.setPositionedObject(this._obj);
+// Constants
+const MAX_INTERPOLATION_ORDER = 20;
+const INCREASING_JDATE_SEARCH_METHOD = (a, b) =&gt; {
+  return a[0] - b;
+};
 
-    this._objectIsRotatable = false;
-    if (this._options.rotation) {
-      this._objectIsRotatable = true;
-    }
+//Default Values
+const DEFAULT_UNITS = {
+  distance: &apos;au&apos;,
+  time: &apos;day&apos;,
+};
 
-    // Offset of axis angle
-    this._axisRotationAngleOffset = 0;
-    this._axisOfRotation = undefined;
+const DEFAULT_EPHEM_TYPE = &apos;cartesianposvel&apos;;
+const DEFAULT_INTERPOLATION_TYPE = &apos;lagrange&apos;;
+const DEFAULT_INTERPOLATION_ORDER = 5;
 
-    // Keep track of materials that comprise this object.
-    this._materials = [];
+//Allowable unit types
+const DISTANCE_UNITS = new Set([&apos;km&apos;, &apos;au&apos;]);
+const EPHEM_TYPES = new Set([&apos;cartesianposvel&apos;]);
+const INTERPOLATION_TYPES = new Set([&apos;lagrange&apos;]);
+const TIME_UNITS = new Set([&apos;day&apos;, &apos;sec&apos;]);
 
-    if (autoInit) {
-      this.init();
-    }
-  }
-
-  init() {
-    if (this._objectIsRotatable) {
-      this.initRotation();
-    }
-
-    if (this._options.debug) {
-      if (this._options.debug.showAxes) {
-        getAxes().forEach(axis =&gt; this._obj.add(axis));
-      }
-
-      if (this._options.debug.showGrid) {
-        const gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
-        gridHelper.geometry.rotateX(Math.PI / 2);
-        this._obj.add(gridHelper);
-      }
-    }
-
-    super.init();
-  }
-
-  initRotation() {
-    if (typeof this._options.rotation.jd0 === &apos;undefined&apos;) {
-      return;
-    }
-
-    // Formula
-    // https://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_description
-
-    // Testing this asteroid:
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1504
-    // Model 2691
-    const PI = Math.PI;
-
-    // Cacus
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046
-    // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&amp;model_id=1863&amp;jd=2443568.0
-
-    const rotation = this._options.rotation;
-
-    // Latitude
-    const lambda = rad(rotation.lambdaDeg);
-
-    // Longitude
-    const beta = rad(rotation.betaDeg);
-
-    // Other
-    const P = rotation.period;
-    const YORP = rotation.yorp;
-    const phi0 = rad(rotation.phi0);
-    const JD = this._simulation.getJd();
-    const JD0 = rotation.jd0;
-
-    // Asteroid rotation
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-
-    // Adjust Z axis according to time.
-    const zAdjust =
-      phi0 +
-      ((2 * PI) / P) * (JD - JD0) +
-      (1 / 2) * YORP * Math.pow(JD - JD0, 2);
-    this._obj.rotateY(-(PI / 2 - beta));
-    this._obj.rotateZ(-lambda);
-    this._obj.rotateZ(zAdjust);
-  }
-
+/**
+ * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
+ * Users of the class pass in their ephemeris data as a data structure with the data and the settings for the ephemeris.
+ * The settings include things like the units, and the ephemeris representation. The ephemeris data itself is an array
+ * of arrays where each line constitute the necessary components of the line.
+ *
+ * For &apos;cartesianposvel&apos; style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]
+ */
+export class EphemerisTable {
   /**
-   * Updates the object and its label positions for a given time.
-   * @param {Number} jd JD date
+   * @param {Object} ephemerisData Look up ephemeris data to initialize the table with and the properties of it
+   * @param {Array.&lt;Array.&lt;Number&gt;&gt;} ephemerisData.data the ephemeris data appropriate for the specified ephemeris type
+   * @param {String} ephemerisData.ephemerisType the type of ephemeres data here (defaults to &apos;cartesianposvel&apos;)
+   * @param {String} ephemerisData.distanceUnits the distance units for this data (defaults to AU
+   * @param {String} ephemerisData.timeUnits the distance units for this data (defaults to day)
+   * @param {String} ephemerisData.interpolationType the type of interpolater to use (defaults to &apos;lagrange&apos;)
+   * @param {Number} ephemerisData.interpolationOrder the order of the interpolator to use (defaults to 5)
    */
-  update(jd, force = false) {
+  constructor(ephemerisData) {
+    this._units = JSON.parse(JSON.stringify(DEFAULT_UNITS));
+    this._ephemType = DEFAULT_EPHEM_TYPE;
+    this._interpolationType = DEFAULT_INTERPOLATION_TYPE;
+    this._interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
+
+    if (!ephemerisData) {
+      throw &apos;EphemerisTable must be initialized with an ephemeris data structure&apos;;
+    }
+
     if (
-      this._obj &amp;&amp;
-      this._objectIsRotatable &amp;&amp;
-      this._options.rotation &amp;&amp;
-      this._options.rotation.enable
+      !ephemerisData.data ||
+      !Array.isArray(ephemerisData.data) ||
+      ephemerisData.data.length === 0 ||
+      !Array.isArray(ephemerisData.data[0])
     ) {
-      // For now, just rotate on X axis.
-      const speed = this._options.rotation.speed || 0.5;
-      this._obj.rotation.z += speed * (Math.PI / 180);
-      this._obj.rotation.z %= 360;
+      throw &apos;EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data&apos;;
     }
-    if (this._axisOfRotation) {
-      // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
+    this._data = JSON.parse(JSON.stringify(ephemerisData.data));
+
+    if (ephemerisData.distanceUnits) {
+      if (!DISTANCE_UNITS.has(ephemerisData.distanceUnits)) {
+        throw `Unknown distance units: ${ephemerisData.distanceUnits}`;
+      }
+      this._units.distance = ephemerisData.distanceUnits;
     }
-    // this._obj.rotateZ(0.015)
-    // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
 
-    // Update position
-    super.update(jd, force);
+    if (ephemerisData.timeUnits) {
+      if (!TIME_UNITS.has(ephemerisData.timeUnits)) {
+        throw `Unknown time units: ${ephemerisData.timeUnits}`;
+      }
+      this._units.time = ephemerisData.timeUnits;
+    }
+
+    if (ephemerisData.ephemerisType) {
+      if (!EPHEM_TYPES.has(ephemerisData.ephemerisType)) {
+        throw `Unknown ephemeris type: ${ephemerisData.ephemerisType}`;
+      }
+      this._ephemType = ephemerisData.ephemerisType;
+    }
+
+    if (ephemerisData.interpolationType) {
+      if (!INTERPOLATION_TYPES.has(ephemerisData.interpolationType)) {
+        throw `Unknown interpolation type: ${ephemerisData.interpolationType}`;
+      }
+      this._interpolationType = ephemerisData.interpolationType;
+    }
+
+    if (ephemerisData.interpolationOrder !== undefined) {
+      if (
+        ephemerisData.interpolationOrder &lt; 1 ||
+        ephemerisData.interpolationOrder &gt; MAX_INTERPOLATION_ORDER
+      ) {
+        throw `Interpolation order must be &gt;0 and &lt;${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`;
+      }
+      this._interpolationOrder = ephemerisData.interpolationOrder;
+    }
+
+    if (
+      this._units.distance !== DEFAULT_UNITS.distance ||
+      this._units.time !== DEFAULT_UNITS.time
+    ) {
+      const distanceMultiplier = this.calcDistanceMultiplier(
+        this._units.distance,
+      );
+      const timeMultiplier = this.calcTimeMultiplier(this._units.time);
+      this._data.forEach(line =&gt; {
+        line[1] *= distanceMultiplier;
+        line[2] *= distanceMultiplier;
+        line[3] *= distanceMultiplier;
+        line[4] *= distanceMultiplier * timeMultiplier;
+        line[5] *= distanceMultiplier * timeMultiplier;
+        line[6] *= distanceMultiplier * timeMultiplier;
+      });
+    }
   }
 
   /**
-   * Gets the THREE.js objects that represent this SpaceObject.
-   * @return {Array.&lt;THREE.Object&gt;} A list of THREE.js objects
+   * Calculates the interpolated position for the given requested date. If the requested date is before the first
+   * point it returns the first point. If the requested date is after the last point it returns the last point.
+   * @param {Number} jd of the requested time
+   * @returns {Number[]|*[]} x, y, z position in the ephemeris table&apos;s reference frame
    */
-  get3jsObjects() {
-    const ret = super.get3jsObjects();
-    // Add to the front, because this is the primary object.
-    ret.unshift(this._obj);
-    return ret;
+  getPositionAtTime(jd) {
+    if (jd &lt;= this._data[0][0]) {
+      return [this._data[0][1], this._data[0][2], this._data[0][3]];
+    }
+
+    const last = this._data[this._data.length - 1];
+    if (jd &gt;= last[0]) {
+      return [last[1], last[2], last[3]];
+    }
+
+    const { startIndex, stopIndex } = this.calcBoundingIndices(jd);
+    const x = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      1,
+    );
+    const y = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      2,
+    );
+    const z = SpacekitMath.interpolate(
+      this._data,
+      jd,
+      startIndex,
+      stopIndex,
+      0,
+      3,
+    );
+
+    return [x, y, z];
   }
 
   /**
-   * Begin rotating this object.
+   * Given the start and stop time returns a uniform ephemeris history.
+   * @param {Number} startJd the requested start date
+   * @param {Number} stopJd the requested stop date
+   * @param {Number} stepDays the step size of the data requested in days (can be fractional days)
+   * @returns {number[][]}
    */
-  startRotation() {
-    this._options.rotation.enable = true;
+  getPositions(startJd, stopJd, stepDays) {
+    if (startJd &gt; stopJd) {
+      throw `Requested start needs to be after requested stop`;
+    }
+
+    if (stepDays &lt;= 0.0) {
+      throw &apos;Step days needs to be greater than zero&apos;;
+    }
+
+    let result = [];
+    for (let t = startJd; t &lt;= stopJd; t += stepDays) {
+      result.push(this.getPositionAtTime(t));
+    }
+
+    return result;
   }
 
   /**
-   * Stop rotation of this object.
+   * @private
    */
-  stopRotation() {
-    this._options.rotation.enable = false;
+  calcDistanceMultiplier(unitType) {
+    switch (unitType) {
+      case &apos;au&apos;:
+        return 1.0;
+      case &apos;km&apos;:
+        return Units.kmToAu(1);
+      default:
+        throw new Error(&apos;Unknown distance unit type: &apos; + unitType);
+    }
+  }
+
+  /**
+   * @private
+   */
+  calcTimeMultiplier(unitType) {
+    switch (unitType) {
+      case &apos;day&apos;:
+        return 1.0;
+      case &apos;sec&apos;:
+        return 1 / 86400.0;
+      default:
+        throw new Error(&apos;Unknown time unit type: &apos; + unitType);
+    }
+  }
+
+  /**
+   * @private
+   */
+  calcBoundingIndices(jd) {
+    const halfSampleSize = Math.floor(this._interpolationOrder / 2);
+    let closestIndex = Util.binarySearch(
+      this._data,
+      jd,
+      INCREASING_JDATE_SEARCH_METHOD,
+    );
+    if (closestIndex &lt; 0) {
+      closestIndex = ~closestIndex - 1;
+    }
+    let startIndex = closestIndex - halfSampleSize;
+    if (startIndex &lt; 0) {
+      startIndex = 0;
+    }
+
+    let stopIndex = startIndex + Number(this._interpolationOrder);
+    if (stopIndex &gt;= this._data.length) {
+      stopIndex = this._data.length - 1;
+      if (this._data.length &gt; halfSampleSize) {
+        startIndex = stopIndex - halfSampleSize;
+      }
+    }
+
+    return { startIndex: startIndex, stopIndex: stopIndex };
   }
 }
 </code></pre>

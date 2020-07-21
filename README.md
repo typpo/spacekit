@@ -20,7 +20,7 @@ const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
  basePath: '../path/to/asset',
  // Optional
  camera: {
-   position: [0, -10, 5],
+   initialPosition: [0, -10, 5],
    enableDrift: false,
  },
  debug: {

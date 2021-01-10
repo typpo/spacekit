@@ -72,7 +72,9 @@ export class SpaceObject {
    * @param {Object} options.orbitPathSettings Contains settings for defining the orbit path
    * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
    * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
-   * @param {Object} options.orbitPathSettings.stepSizeYears orbit step size in years
+   * @param {Object} options.orbitPathSettings.numberSamplePoints number of
+   * points to use when drawing the orbit line. Only applicable for
+   * non-elliptical and ephemeris table orbits.
    * @param {Ephem} options.ephem Ephemerides for this orbit
    * @param {EphemerisTable} options.ephemTable ephemeris table object which represents look up ephemeris
    * @param {String} options.textureUrl Texture for sprite

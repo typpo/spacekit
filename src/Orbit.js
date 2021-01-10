@@ -15,6 +15,7 @@ const DEFAULT_ORBIT_PATH_SETTINGS = {
   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
   numberSamplePoints: DEFAULT_SAMPLE_POINTS,
 };
+const MAX_NUM_ECLIPTIC_DROPLINES = 90;
 
 /**
  * Special cube root function that assumes input is always positive.
@@ -45,7 +46,7 @@ export function getOrbitType(ephem) {
   }
 
   let e = ephem.get('e');
-  if (e > 0.8 && e < 1.2) {
+  if (e > 0.9 && e < 1.2) {
     return OrbitType.PARABOLIC;
   } else if (e > 1.2) {
     return OrbitType.HYPERBOLIC;
@@ -73,8 +74,9 @@ export class Orbit {
    * @param {Object} options.orbitPathSettings settings for the path
    * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
    * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
-   * @param {Object} options.orbitPathSettings.numberSamplePoints number of points to use when drawing the orbit line
-   * Only applicable for non-elliptical and ephemeris table orbits.
+   * @param {Object} options.orbitPathSettings.numberSamplePoints number of
+   * points to use when drawing the orbit line. Only applicable for
+   * non-elliptical and ephemeris table orbits.
    * @param {Object} options.eclipticLineColor The color of lines drawn
    * perpendicular to the ecliptic in order to illustrate depth (defaults to
    * 0x333333).
@@ -443,18 +445,19 @@ export class Orbit {
    * @return {THREE.Line} The ellipse object that represents this orbit.
    */
   getEllipse() {
-    const pointGeometry = this.getEllipsePoints();
+    const pointGeometry = this.getEllipseGeometry();
     return this.generateAndCacheOrbitShape(pointGeometry);
   }
 
   /**
    * @private
-   * @return {Array.<THREE.Vector3>} List of points
+   * @return {Array.<THREE.Geometry>} A THREE.js geometry
    */
-  getEllipsePoints() {
+  getEllipseGeometry() {
     const eph = this._ephem;
 
     const period = eph.get('period');
+    const a = eph.get('a');
     const ecc = eph.get('e');
     const step = period / this._options.orbitPathSettings.numberSamplePoints;
 
@@ -518,20 +521,28 @@ export class Orbit {
     }
 
     if (!this._orbitPoints) {
+      // Generate the orbitPoints cache.
       this.getOrbitShape();
     }
     const points = this._orbitPoints;
     const geometry = new THREE.Geometry();
 
-    points.vertices.forEach(vertex => {
-      geometry.vertices.push(vertex);
-      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+    // Place a cap on visible lines, for large or highly inclined orbits.
+    const everyN = Math.ceil(
+      points.vertices.length / MAX_NUM_ECLIPTIC_DROPLINES,
+    );
+    points.vertices.forEach((vertex, idx) => {
+      if (idx % everyN === 0) {
+        geometry.vertices.push(vertex);
+        geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+      }
     });
 
     this._eclipticDropLines = new THREE.LineSegments(
       geometry,
       new THREE.LineBasicMaterial({
         color: this._options.eclipticLineColor || 0x333333,
+        blending: THREE.AdditiveBlending,
       }),
       THREE.LineStrip,
     );

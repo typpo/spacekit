@@ -52005,7 +52005,6 @@ var Spacekit = (function (exports) {
 	  trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
 	  numberSamplePoints: DEFAULT_SAMPLE_POINTS,
 	};
-	const MAX_NUM_ECLIPTIC_DROPLINES = 90;
 
 	/**
 	 * Special cube root function that assumes input is always positive.
@@ -52127,6 +52126,12 @@ var Spacekit = (function (exports) {
 	     */
 	    this._orbitStart = 0;
 	    this._orbitStop = 0;
+
+	    /**
+	     * Orbit type
+	     * @type {OrbitType}
+	     */
+	    this._orbitType = getOrbitType(this._ephem);
 	  }
 
 	  /**
@@ -52139,7 +52144,7 @@ var Spacekit = (function (exports) {
 	    // Note: logic below must match the vertex shader.
 
 	    // This position calculation is used to create orbital ellipses.
-	    switch (getOrbitType(this._ephem)) {
+	    switch (this._orbitType) {
 	      case OrbitType.PARABOLIC:
 	        return this.getPositionAtTimeNearParabolic(jd, debug);
 	      case OrbitType.HYPERBOLIC:
@@ -52331,39 +52336,42 @@ var Spacekit = (function (exports) {
 	  }
 
 	  /**
-	   * Returns whether the requested epoch is within the current orbit's definition
-	   * @param jd
-	   * @returns {boolean|boolean} true if it is within the orbit span, false if not
+	   * Returns whether the requested epoch is within the current orbit's
+	   * definition. Used only for ephemeris tables.
+	   * @param {Number} jd
+	   * @return {boolean} true if it is within the orbit span, false if not
 	   */
-	  timeInRenderedOrbitSpan(jd) {
-	    return jd >= this._orbitStart && jd <= this._orbitStop;
+	  needsUpdateForTime(jd) {
+	    if (this._orbitType === OrbitType.TABLE) {
+	      return jd < this._orbitStart || jd > this._orbitStop;
+	    }
+	    // Renderings for other types are static.
+	    return false;
 	  }
 
 	  /**
 	   * Calculates, caches, and returns the orbit state for this orbit around this time
-	   * @param jd center time of the orbit (only used for ephemeris table ephemeris)
-	   * @param forceCompute forces the recomputing of the orbit on this call
-	   * @returns {THREE.Line}
+	   * @param {Number} jd center time of the orbit (only used for ephemeris table ephemeris)
+	   * @param {boolean} forceCompute forces the recomputing of the orbit on this call
+	   * @return {THREE.Line}
 	   */
 	  getOrbitShape(jd, forceCompute = false) {
-	    // For hyperbolic and parabolic orbits, decide on a time range to draw
-	    // them.
-	    // TODO(ian): Should we compute around current position, not time of perihelion?
-	    const orbitType = getOrbitType(this._ephem);
-	    const tp = orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
-	    const centerDate = tp ? tp : julian.toJulianDay(new Date());
-	    const startJd =
-	      centerDate - this._options.orbitPathSettings.trailDurationYears * 365.0;
-	    const endJd =
-	      centerDate + this._options.orbitPathSettings.leadDurationYears * 365.0;
-	    const step =
-	      (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
-
-	    this._orbitStart = startJd;
-	    this._orbitStop = endJd;
-
 	    if (forceCompute) {
+	      if (this._orbitShape) {
+	        this._orbitShape.geometry.dispose();
+	        this._orbitShape.material.dispose();
+	      }
 	      this._orbitShape = undefined;
+
+	      if (this._orbitPoints) {
+	        this._orbitPoints.dispose();
+	      }
+	      this._orbitPoints = undefined;
+
+	      if (this._eclipticDropLines) {
+	        this._eclipticDropLines.geometry.dispose();
+	        this._eclipticDropLines.material.dispose();
+	      }
 	      this._eclipticDropLines = undefined;
 	    }
 
@@ -52371,7 +52379,27 @@ var Spacekit = (function (exports) {
 	      return this._orbitShape;
 	    }
 
-	    switch (orbitType) {
+	    if (this._orbitType === OrbitType.ELLIPTICAL) {
+	      return this.getEllipse();
+	    }
+
+	    // For hyperbolic and parabolic orbits, decide on a time range to draw
+	    // them.
+	    // TODO(ian): Should we compute around current position, not time of perihelion?
+	    const tp = this._orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
+	    // Use current date as a fallback if time of perihelion is not available.
+	    const centerDate = tp ? tp : julian.toJulianDay(new Date());
+	    const startJd =
+	      centerDate - this._options.orbitPathSettings.trailDurationYears * 365.25;
+	    const endJd =
+	      centerDate + this._options.orbitPathSettings.leadDurationYears * 365.25;
+	    const step =
+	      (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
+
+	    this._orbitStart = startJd;
+	    this._orbitStop = endJd;
+
+	    switch (this._orbitType) {
 	      case OrbitType.HYPERBOLIC:
 	        return this.getLine(
 	          this.getPositionAtTimeHyperbolic.bind(this),
@@ -52386,8 +52414,6 @@ var Spacekit = (function (exports) {
 	          endJd,
 	          step,
 	        );
-	      case OrbitType.ELLIPTICAL:
-	        return this.getEllipse();
 	      case OrbitType.TABLE:
 	        return this.getTableOrbit(startJd, endJd, step);
 	    }
@@ -52414,10 +52440,10 @@ var Spacekit = (function (exports) {
 	  /**
 	   * Returns the orbit for a table lookup orbit definition
 	   * @private
-	   * @param startJd start of orbit in JDate format
-	   * @param stopJd end of orbit in JDate format
-	   * @param step step size in days
-	   * @returns {THREE.Line}
+	   * @param {Number} startJd start of orbit in JDate format
+	   * @param {Number} stopJd end of orbit in JDate format
+	   * @param {Number} step step size in days
+	   * @return {THREE.Line}
 	   */
 	  getTableOrbit(startJd, stopJd, step) {
 	    const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
@@ -52441,7 +52467,7 @@ var Spacekit = (function (exports) {
 
 	  /**
 	   * @private
-	   * @return {Array.<THREE.Geometry>} A THREE.js geometry
+	   * @return {THREE.Geometry} A THREE.js geometry
 	   */
 	  getEllipseGeometry() {
 	    const eph = this._ephem;
@@ -52449,32 +52475,22 @@ var Spacekit = (function (exports) {
 	    const period = eph.get('period');
 	    const a = eph.get('a');
 	    const ecc = eph.get('e');
-	    const step = period / this._options.orbitPathSettings.numberSamplePoints;
 
+	    const twoPi = Math.PI * 2;
+	    const step = twoPi / 90;
 	    const pts = [];
-	    let prevPos;
-	    for (let time = 0; time < period; time += step) {
-	      const pos = this.getPositionAtTime(time);
+	    for (let E = 0; E < twoPi; E += step) {
+	      const v = 2 * Math.atan(sqrt((1 + ecc) / (1 - ecc)) * Math.tan(E / 2));
+	      const r = (a * (1 - ecc * ecc)) / (1 + ecc * cos(v));
+	      const pos = this.vectorToHeliocentric(v, r);
+
 	      if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
 	        console.error(
 	          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
 	        );
 	        console.error(eph);
 	      }
-	      const vector = new Vector3(pos[0], pos[1], pos[2]);
-	      if (
-	        prevPos &&
-	        Math.abs(prevPos[0] - pos[0]) +
-	          Math.abs(prevPos[1] - pos[1]) +
-	          Math.abs(prevPos[2] - pos[2]) >
-	          120
-	      ) {
-	        // Don't render bogus or very large ellipses.
-	        points.vertices = [];
-	        return points;
-	      }
-	      prevPos = pos;
-	      pts.push(vector);
+	      pts.push(new Vector3(pos[0], pos[1], pos[2]));
 	    }
 	    pts.push(pts[0]);
 
@@ -52518,14 +52534,16 @@ var Spacekit = (function (exports) {
 	    const geometry = new Geometry();
 
 	    // Place a cap on visible lines, for large or highly inclined orbits.
-	    const everyN = Math.ceil(
-	      points.vertices.length / MAX_NUM_ECLIPTIC_DROPLINES,
-	    );
 	    points.vertices.forEach((vertex, idx) => {
-	      if (idx % everyN === 0) {
-	        geometry.vertices.push(vertex);
-	        geometry.vertices.push(new Vector3(vertex.x, vertex.y, 0));
+	      // Drop last point because it's a repeat of the first point.
+	      if (
+	        idx === points.vertices.length - 1 &&
+	        this._orbitType === OrbitType.ELLIPTICAL
+	      ) {
+	        return;
 	      }
+	      geometry.vertices.push(vertex);
+	      geometry.vertices.push(new Vector3(vertex.x, vertex.y, 0));
 	    });
 
 	    this._eclipticDropLines = new LineSegments(
@@ -58408,9 +58426,8 @@ var Spacekit = (function (exports) {
 	    }
 
 	    const orbitNeedsRefreshing =
-	      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+	      !this._orbitPath || this._orbit.needsUpdateForTime(jd);
 	    if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
-	      //Had material but don't think need it if doing this right...
 	      this._simulation.getScene().remove(this._orbitPath);
 	      this._orbitPath = this._orbit.getOrbitShape(jd, true);
 	      this._simulation.getScene().add(this._orbitPath);

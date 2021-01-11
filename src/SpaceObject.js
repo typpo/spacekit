@@ -439,9 +439,8 @@ export class SpaceObject {
     }
 
     const orbitNeedsRefreshing =
-      !this._orbitPath || !this._orbit.timeInRenderedOrbitSpan(jd);
+      !this._orbitPath || this._orbit.needsUpdateForTime(jd);
     if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
-      //Had material but don't think need it if doing this right...
       this._simulation.getScene().remove(this._orbitPath);
       this._orbitPath = this._orbit.getOrbitShape(jd, true);
       this._simulation.getScene().add(this._orbitPath);

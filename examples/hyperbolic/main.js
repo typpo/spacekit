@@ -84,7 +84,11 @@ viz.createObject('Great Comet of 1680', {
     'deg',
   ),
   theme: {
-    orbitColor: 0x0000ff,
+    orbitColor: 0x00ffff,
+  },
+  ecliptic: {
+    displayLines: true,
+    lineColor: 0x00ffff,
   },
   labelText: 'Comet of 1680',
 });

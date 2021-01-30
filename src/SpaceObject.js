@@ -24,12 +24,7 @@ const LABEL_UPDATE_MS = 30;
  */
 function toScreenXY(position, camera, canvas) {
   const pos = new THREE.Vector3(position[0], position[1], position[2]);
-  const projScreenMat = new THREE.Matrix4();
-  projScreenMat.multiplyMatrices(
-    camera.projectionMatrix,
-    camera.matrixWorldInverse,
-  );
-  pos.applyMatrix4(projScreenMat);
+  pos.project(camera);
   return {
     x: ((pos.x + 1) * canvas.clientWidth) / 2,
     y: ((-pos.y + 1) * canvas.clientHeight) / 2,
@@ -246,12 +241,9 @@ export class SpaceObject {
     text.style.fontSize = '12px';
     text.style.color = '#fff';
     text.style.position = 'absolute';
-    text.style.marginLeft = '1.5em';
 
     text.style.backgroundColor = '#0009';
-    text.style.borderRadius = '4px';
-    text.style.padding = '0px 1px';
-    text.style.border = '1px solid #5f5f5f';
+    text.style.outline = '1px solid #5f5f5f';
 
     return text;
   }
@@ -271,19 +263,19 @@ export class SpaceObject {
       simulationElt,
     );
     const loc = {
-      left: pos.x - 30,
-      top: pos.y - 25,
-      right: pos.x + label.clientWidth - 20,
+      left: pos.x,
+      top: pos.y,
+      right: pos.x + label.clientWidth,
       bottom: pos.y + label.clientHeight,
     };
     if (
-      loc.left > 0 &&
-      loc.right < simulationElt.clientWidth &&
-      loc.top > 0 &&
+      loc.left - 30 > 0 &&
+      loc.right + 20 < simulationElt.clientWidth &&
+      loc.top - 25 > 0 &&
       loc.bottom < simulationElt.clientHeight
     ) {
-      label.style.left = `${loc.left}px`;
-      label.style.top = `${loc.top}px`;
+      label.style.left = `${loc.left - label.clientWidth / 2}px`;
+      label.style.top = `${loc.top - label.clientHeight - 8}px`;
       label.style.visibility = 'visible';
     } else {
       label.style.visibility = 'hidden';
@@ -477,16 +469,18 @@ export class SpaceObject {
     }
 
     // TODO(ian): Determine this based on orbit and camera position change.
-    const shouldUpdateLabelPos =
-      force ||
-      (this._showLabel &&
-        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
-    if (this._label && shouldUpdateLabelPos) {
-      if (!newpos) {
-        newpos = this.getPosition(jd);
+    if (this._label) {
+      const meetsLabelUpdateThreshold =
+        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+      const shouldUpdateLabelPos =
+        force || (this._showLabel && meetsLabelUpdateThreshold);
+      if (shouldUpdateLabelPos) {
+        if (!newpos) {
+          newpos = this.getPosition(jd);
+        }
+        this.updateLabelPosition(newpos);
+        this._lastLabelUpdate = +new Date();
       }
-      this.updateLabelPosition(newpos);
-      this._lastLabelUpdate = +new Date();
     }
   }
 

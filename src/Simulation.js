@@ -169,7 +169,7 @@ export class Simulation {
         this._cameraDefaultPos[1],
         this._cameraDefaultPos[2],
       );
-    window.cam = camera.get3jsCamera();
+    // window.cam = camera.get3jsCamera();
     this._camera = camera;
 
     // Events
@@ -336,7 +336,7 @@ export class Simulation {
       const timeDelta = now - this._lastStaticCameraUpdateTime;
       const threshold = 30;
       if (timeDelta > threshold) {
-        this.update(true);
+        this.update(true /* force */);
         this._lastStaticCameraUpdateTime = now;
       }
     }

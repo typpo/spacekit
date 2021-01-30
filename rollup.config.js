@@ -2,8 +2,9 @@ import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import resolve from 'rollup-plugin-node-resolve';
 import serve from 'rollup-plugin-serve';
+import typescript from 'rollup-plugin-typescript2';
 
-const plugins = [resolve(), commonjs()];
+const plugins = [typescript(), resolve(), commonjs()];
 
 if (process.env.ENABLE_DEV_SERVER) {
   // envar set via `yarn build:watch`
@@ -12,7 +13,7 @@ if (process.env.ENABLE_DEV_SERVER) {
 }
 
 export default {
-  input: 'src/spacekit.js',
+  input: 'src/index.ts',
   output: [
     {
       format: 'iife',

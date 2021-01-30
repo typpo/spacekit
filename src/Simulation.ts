@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import julian from 'julian';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
+import Stats from 'three/examples/jsm/libs/stats.module';
 import {
   EffectComposer,
   EffectPass,
@@ -8,7 +8,7 @@ import {
   RenderPass,
 } from 'postprocessing';
 
-import { Camera } from './Camera';
+import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -19,6 +19,23 @@ import { StaticParticles } from './StaticParticles';
 import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
 import { setScaleFactor, rescaleArray } from './Scale';
+
+interface SpacekitOptions {
+  // ...
+}
+
+interface SimulationContext {
+    simulation: Simulation,
+    options: SpacekitOptions,
+    objects: {
+      particles?: KeplerParticles,
+      camera?: Camera,
+    },
+    container: {
+      width: Number,
+      height: Number,
+    },
+}
 
 /**
  * The main entrypoint of a visualization.
@@ -47,7 +64,7 @@ import { setScaleFactor, rescaleArray } from './Scale';
  *  },
  * });
  */
-export class Simulation {
+export default class Simulation {
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation

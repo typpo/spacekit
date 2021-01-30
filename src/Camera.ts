@@ -1,17 +1,27 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import type { PerspectiveCamera } from 'three';
 
 import { rescaleNumber, rescaleArray } from './Scale';
+import type Simulation from './Simulation';
 
 /**
  * A wrapper for Three.js camera and controls.
  * TODO(ian): Rename to "Viewer"
  */
-export class Camera {
+export default class Camera {
+  _context: Simulation;
+
+  _camera?: PerspectiveCamera;
+
+  _cameraControls?: OrbitControls;
+
+  _followMesh: THREE.Object3D;
+
   /**
    * @param {Object} context The simulation context
    */
-  constructor(context) {
+  constructor(context: Simulation) {
     // TODO(ian): Accept either context or container
     this._context = context;
 

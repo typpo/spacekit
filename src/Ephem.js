@@ -184,12 +184,15 @@ export class Ephem {
       this.set('period', period);
     }
 
-    if (isDef(period) && !isDef(n)) {
-      // Set radians
-      const newN = (2.0 * Math.PI) / period;
-      this.set('n', newN);
-    } else if (isDef(n) && !isDef(period)) {
-      this.set('period', (2.0 * Math.PI) / n);
+    if (e < 1.0) {
+      // Only work with mean motion for elliptical orbits.
+      if (isDef(period) && !isDef(n)) {
+        // Set radians
+        const newN = (2.0 * Math.PI) / period;
+        this.set('n', newN);
+      } else if (isDef(n) && !isDef(period)) {
+        this.set('period', (2.0 * Math.PI) / n);
+      }
     }
 
     // Mean longitude

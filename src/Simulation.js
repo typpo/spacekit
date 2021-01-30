@@ -125,6 +125,7 @@ export class Simulation {
     // stats.js panel
     this._stats = null;
     this._fps = 1;
+
     this._lastUpdatedTime = Date.now();
     this._lastStaticCameraUpdateTime = Date.now();
     this._lastResizeUpdateTime = Date.now();
@@ -179,9 +180,20 @@ export class Simulation {
       this._enableCameraDrift = false;
     };
 
-    this._camera.get3jsCameraControls().addEventListener('change', () => {
-      this.staticForcedUpdate();
-    });
+    (() => {
+      let listenToCameraEvents = false;
+      this._camera.get3jsCameraControls().addEventListener('change', () => {
+        // Camera will send a few initial events - ignore these.
+        if (listenToCameraEvents) {
+          this.staticForcedUpdate();
+        }
+      });
+      setTimeout(() => {
+        // Send an update when the visualization is done loading.
+        this.staticForcedUpdate();
+        listenToCameraEvents = true;
+      }, 0);
+    })();
 
     this._simulationElt.addEventListener('resize', () => {
       this.resizeUpdate();
@@ -335,6 +347,7 @@ export class Simulation {
       const now = Date.now();
       const timeDelta = now - this._lastStaticCameraUpdateTime;
       const threshold = 30;
+      // TODO(ian): Also do this based on viewport change. Otherwise things like scrolling don't work well.
       if (timeDelta > threshold) {
         this.update(true /* force */);
         this._lastStaticCameraUpdateTime = now;

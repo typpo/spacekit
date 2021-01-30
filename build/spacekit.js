@@ -51190,12 +51190,15 @@ var Spacekit = (function (exports) {
 	      this.set('period', period);
 	    }
 
-	    if (isDef(period) && !isDef(n)) {
-	      // Set radians
-	      const newN = (2.0 * Math.PI) / period;
-	      this.set('n', newN);
-	    } else if (isDef(n) && !isDef(period)) {
-	      this.set('period', (2.0 * Math.PI) / n);
+	    if (e < 1.0) {
+	      // Only work with mean motion for elliptical orbits.
+	      if (isDef(period) && !isDef(n)) {
+	        // Set radians
+	        const newN = (2.0 * Math.PI) / period;
+	        this.set('n', newN);
+	      } else if (isDef(n) && !isDef(period)) {
+	        this.set('period', (2.0 * Math.PI) / n);
+	      }
 	    }
 
 	    // Mean longitude
@@ -58015,12 +58018,7 @@ var Spacekit = (function (exports) {
 	 */
 	function toScreenXY(position, camera, canvas) {
 	  const pos = new Vector3(position[0], position[1], position[2]);
-	  const projScreenMat = new Matrix4();
-	  projScreenMat.multiplyMatrices(
-	    camera.projectionMatrix,
-	    camera.matrixWorldInverse,
-	  );
-	  pos.applyMatrix4(projScreenMat);
+	  pos.project(camera);
 	  return {
 	    x: ((pos.x + 1) * canvas.clientWidth) / 2,
 	    y: ((-pos.y + 1) * canvas.clientHeight) / 2,
@@ -58233,12 +58231,9 @@ var Spacekit = (function (exports) {
 	    text.style.fontSize = '12px';
 	    text.style.color = '#fff';
 	    text.style.position = 'absolute';
-	    text.style.marginLeft = '1.5em';
 
 	    text.style.backgroundColor = '#0009';
-	    text.style.borderRadius = '4px';
-	    text.style.padding = '0px 1px';
-	    text.style.border = '1px solid #5f5f5f';
+	    text.style.outline = '1px solid #5f5f5f';
 
 	    return text;
 	  }
@@ -58258,19 +58253,19 @@ var Spacekit = (function (exports) {
 	      simulationElt,
 	    );
 	    const loc = {
-	      left: pos.x - 30,
-	      top: pos.y - 25,
-	      right: pos.x + label.clientWidth - 20,
+	      left: pos.x,
+	      top: pos.y,
+	      right: pos.x + label.clientWidth,
 	      bottom: pos.y + label.clientHeight,
 	    };
 	    if (
-	      loc.left > 0 &&
-	      loc.right < simulationElt.clientWidth &&
-	      loc.top > 0 &&
+	      loc.left - 30 > 0 &&
+	      loc.right + 20 < simulationElt.clientWidth &&
+	      loc.top - 25 > 0 &&
 	      loc.bottom < simulationElt.clientHeight
 	    ) {
-	      label.style.left = `${loc.left}px`;
-	      label.style.top = `${loc.top}px`;
+	      label.style.left = `${loc.left - label.clientWidth / 2}px`;
+	      label.style.top = `${loc.top - label.clientHeight - 8}px`;
 	      label.style.visibility = 'visible';
 	    } else {
 	      label.style.visibility = 'hidden';
@@ -58464,16 +58459,18 @@ var Spacekit = (function (exports) {
 	    }
 
 	    // TODO(ian): Determine this based on orbit and camera position change.
-	    const shouldUpdateLabelPos =
-	      force ||
-	      (this._showLabel &&
-	        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS);
-	    if (this._label && shouldUpdateLabelPos) {
-	      if (!newpos) {
-	        newpos = this.getPosition(jd);
+	    if (this._label) {
+	      const meetsLabelUpdateThreshold =
+	        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+	      const shouldUpdateLabelPos =
+	        force || (this._showLabel && meetsLabelUpdateThreshold);
+	      if (shouldUpdateLabelPos) {
+	        if (!newpos) {
+	          newpos = this.getPosition(jd);
+	        }
+	        this.updateLabelPosition(newpos);
+	        this._lastLabelUpdate = +new Date();
 	      }
-	      this.updateLabelPosition(newpos);
-	      this._lastLabelUpdate = +new Date();
 	    }
 	  }
 
@@ -59616,6 +59613,7 @@ var Spacekit = (function (exports) {
 	    // stats.js panel
 	    this._stats = null;
 	    this._fps = 1;
+
 	    this._lastUpdatedTime = Date.now();
 	    this._lastStaticCameraUpdateTime = Date.now();
 	    this._lastResizeUpdateTime = Date.now();
@@ -59660,7 +59658,7 @@ var Spacekit = (function (exports) {
 	        this._cameraDefaultPos[1],
 	        this._cameraDefaultPos[2],
 	      );
-	    window.cam = camera.get3jsCamera();
+	    // window.cam = camera.get3jsCamera();
 	    this._camera = camera;
 
 	    // Events
@@ -59670,9 +59668,20 @@ var Spacekit = (function (exports) {
 	      this._enableCameraDrift = false;
 	    };
 
-	    this._camera.get3jsCameraControls().addEventListener('change', () => {
-	      this.staticForcedUpdate();
-	    });
+	    (() => {
+	      let listenToCameraEvents = false;
+	      this._camera.get3jsCameraControls().addEventListener('change', () => {
+	        // Camera will send a few initial events - ignore these.
+	        if (listenToCameraEvents) {
+	          this.staticForcedUpdate();
+	        }
+	      });
+	      setTimeout(() => {
+	        // Send an update when the visualization is done loading.
+	        this.staticForcedUpdate();
+	        listenToCameraEvents = true;
+	      }, 0);
+	    })();
 
 	    this._simulationElt.addEventListener('resize', () => {
 	      this.resizeUpdate();
@@ -59826,8 +59835,9 @@ var Spacekit = (function (exports) {
 	      const now = Date.now();
 	      const timeDelta = now - this._lastStaticCameraUpdateTime;
 	      const threshold = 30;
+	      // TODO(ian): Also do this based on viewport change. Otherwise things like scrolling don't work well.
 	      if (timeDelta > threshold) {
-	        this.update(true);
+	        this.update(true /* force */);
 	        this._lastStaticCameraUpdateTime = now;
 	      }
 	    }

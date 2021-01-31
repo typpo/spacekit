@@ -132,6 +132,7 @@ export class Simulation {
 
     // Rendering
     this._renderEnabled = true;
+    this._initialRenderComplete = false;
     this.animate = this.animate.bind(this);
 
     this._scene = null;
@@ -192,6 +193,7 @@ export class Simulation {
         // Send an update when the visualization is done loading.
         this.staticForcedUpdate();
         listenToCameraEvents = true;
+        this._initialRenderComplete = true;
       }, 0);
     })();
 
@@ -396,7 +398,7 @@ export class Simulation {
    * @private
    */
   animate() {
-    if (!this._renderEnabled) {
+    if (!this._renderEnabled && this._initialRenderComplete) {
       return;
     }
 

@@ -59620,6 +59620,7 @@ var Spacekit = (function (exports) {
 
 	    // Rendering
 	    this._renderEnabled = true;
+	    this._initialRenderComplete = false;
 	    this.animate = this.animate.bind(this);
 
 	    this._scene = null;
@@ -59680,6 +59681,7 @@ var Spacekit = (function (exports) {
 	        // Send an update when the visualization is done loading.
 	        this.staticForcedUpdate();
 	        listenToCameraEvents = true;
+	        this._initialRenderComplete = true;
 	      }, 0);
 	    })();
 
@@ -59884,7 +59886,7 @@ var Spacekit = (function (exports) {
 	   * @private
 	   */
 	  animate() {
-	    if (!this._renderEnabled) {
+	    if (!this._renderEnabled && this._initialRenderComplete) {
 	      return;
 	    }
 

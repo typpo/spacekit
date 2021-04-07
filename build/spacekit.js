@@ -51086,6 +51086,10 @@ var Spacekit = (function (exports) {
 	    }
 	    this.fill();
 
+	    if (this.get('e') > 0.9 && typeof this.get('tp') === 'undefined') {
+	      console.warn('You must specify "tp" (time of perihelion) for highly eccentric orbits');
+	    }
+
 	    this._locked = locked;
 	  }
 

@@ -56750,7 +56750,7 @@ var Spacekit = (function (exports) {
     }
 
     vec3 getPos() {
-      if (e > 0.8 && e < 1.2) {
+      if (e > 0.9 && e < 1.2) {
         return getPosNearParabolic();
       } else if (e > 1.2) {
         return getPosHyperbolic();

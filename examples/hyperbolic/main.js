@@ -27,7 +27,6 @@ viz.createObject('C/2019 Q4 (Borisov)', {
       e: 3.356615336479035,
       q: 2.006568576283542,
       n: 1.25445796493601,
-      //e: 1.0,
       i: 44.05126537510564,
       om: 308.1483826038324,
       w: 209.1246306195056,
@@ -85,7 +84,11 @@ viz.createObject('Great Comet of 1680', {
     'deg',
   ),
   theme: {
-    orbitColor: 0x0000ff,
+    orbitColor: 0x00ffff,
+  },
+  ecliptic: {
+    displayLines: true,
+    lineColor: 0x00ffff,
   },
   labelText: 'Comet of 1680',
 });

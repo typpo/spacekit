@@ -796,6 +796,9 @@ export class Simulation {
       objects: {
         particles: this._particles,
         camera: this._camera,
+        scene: this._scene,
+        renderer: this._renderer,
+        composer: this._composer,
       },
       container: {
         width: this._simulationElt.offsetWidth,

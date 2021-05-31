@@ -52734,15 +52734,14 @@ var Spacekit = (function (exports) {
 	};
 
 	/**
-	 * postprocessing v6.13.3 build Fri Apr 10 2020
+	 * postprocessing v6.8.0 build Tue Oct 01 2019
 	 * https://github.com/vanruesc/postprocessing
-	 * Copyright 2020 Raoul van Rüschen
-	 * @license Zlib
+	 * Copyright 2019 Raoul van Rüschen, Zlib
 	 */
 
 	var vertexShader = "varying vec2 vUv;void main(){vUv=position.xy*0.5+0.5;gl_Position=vec4(position.xy,1.0,1.0);}";
 
-	var fragmentShader$3 = "#include <common>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;void main(){vec4 sum=texture2D(inputBuffer,vUv0);sum+=texture2D(inputBuffer,vUv1);sum+=texture2D(inputBuffer,vUv2);sum+=texture2D(inputBuffer,vUv3);gl_FragColor=sum*0.25;\n#include <dithering_fragment>\n}";
+	var fragmentShader$2 = "#include <common>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;void main(){vec4 sum=texture2D(inputBuffer,vUv0);sum+=texture2D(inputBuffer,vUv1);sum+=texture2D(inputBuffer,vUv2);sum+=texture2D(inputBuffer,vUv3);gl_FragColor=sum*0.25;\n#include <dithering_fragment>\n}";
 
 	var vertexShader$2 = "uniform vec2 texelSize;uniform vec2 halfTexelSize;uniform float kernel;uniform float scale;/*Packing multiple texture coordinates into one varying and using a swizzle toextract them in the fragment shader still causes a dependent texture read.*/varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;void main(){vec2 uv=position.xy*0.5+0.5;vec2 dUv=(texelSize*vec2(kernel)+halfTexelSize)*scale;vUv0=vec2(uv.x-dUv.x,uv.y+dUv.y);vUv1=vec2(uv.x+dUv.x,uv.y+dUv.y);vUv2=vec2(uv.x+dUv.x,uv.y-dUv.y);vUv3=vec2(uv.x-dUv.x,uv.y-dUv.y);gl_Position=vec4(position.xy,1.0,1.0);}";
 
@@ -52758,8 +52757,6 @@ var Spacekit = (function (exports) {
 	 *
 	 * Further modified according to Apple's
 	 * [Best Practices for Shaders](https://goo.gl/lmRoM5).
-	 *
-	 * @todo Remove dithering code from fragment shader.
 	 */
 
 	class ConvolutionMaterial extends ShaderMaterial {
@@ -52777,17 +52774,18 @@ var Spacekit = (function (exports) {
 				type: "ConvolutionMaterial",
 
 				uniforms: {
+
 					inputBuffer: new Uniform(null),
 					texelSize: new Uniform(new Vector2()),
 					halfTexelSize: new Uniform(new Vector2()),
 					kernel: new Uniform(0.0),
 					scale: new Uniform(1.0)
+
 				},
 
-				fragmentShader: fragmentShader$3,
+				fragmentShader: fragmentShader$2,
 				vertexShader: vertexShader$2,
 
-				toneMapped: false,
 				depthWrite: false,
 				depthTest: false
 
@@ -52872,7 +52870,7 @@ var Spacekit = (function (exports) {
 
 	};
 
-	var fragmentShader$4 = "uniform sampler2D inputBuffer;uniform float opacity;varying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);gl_FragColor=opacity*texel;\n#include <encodings_fragment>\n}";
+	var fragmentShader$3 = "uniform sampler2D inputBuffer;uniform float opacity;varying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);gl_FragColor=opacity*texel;}";
 
 	/**
 	 * A simple copy shader material.
@@ -52891,14 +52889,15 @@ var Spacekit = (function (exports) {
 				type: "CopyMaterial",
 
 				uniforms: {
+
 					inputBuffer: new Uniform(null),
 					opacity: new Uniform(1.0)
+
 				},
 
-				fragmentShader: fragmentShader$4,
+				fragmentShader: fragmentShader$3,
 				vertexShader,
 
-				toneMapped: false,
 				depthWrite: false,
 				depthTest: false
 
@@ -52908,7 +52907,7 @@ var Spacekit = (function (exports) {
 
 	}
 
-	var fragmentTemplate = "#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform sampler2D depthBuffer;uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;float readDepth(const in vec2 uv){\n#if DEPTH_PACKING == 3201\nreturn unpackRGBAToDepth(texture2D(depthBuffer,uv));\n#else\nreturn texture2D(depthBuffer,uv).r;\n#endif\n}float getViewZ(const in float depth){\n#ifdef PERSPECTIVE_CAMERA\nreturn perspectiveDepthToViewZ(depth,cameraNear,cameraFar);\n#else\nreturn orthographicDepthToViewZ(depth,cameraNear,cameraFar);\n#endif\n}FRAGMENT_HEADvoid main(){FRAGMENT_MAIN_UVvec4 color0=texture2D(inputBuffer,UV);vec4 color1=vec4(0.0);FRAGMENT_MAIN_IMAGEgl_FragColor=color0;\n#ifdef ENCODE_OUTPUT\n#include <encodings_fragment>\n#endif\n#include <dithering_fragment>\n}";
+	var fragmentTemplate = "#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\nuniform sampler2D inputBuffer;uniform sampler2D depthBuffer;uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;float readDepth(const in vec2 uv){\n#if DEPTH_PACKING == 3201\nreturn unpackRGBAToDepth(texture2D(depthBuffer,uv));\n#else\nreturn texture2D(depthBuffer,uv).r;\n#endif\n}FRAGMENT_HEADvoid main(){FRAGMENT_MAIN_UVvec4 color0=texture2D(inputBuffer,UV);vec4 color1=vec4(0.0);FRAGMENT_MAIN_IMAGEgl_FragColor=color0;\n#include <dithering_fragment>\n}";
 
 	var vertexTemplate = "uniform vec2 resolution;uniform vec2 texelSize;uniform float cameraNear;uniform float cameraFar;uniform float aspect;uniform float time;varying vec2 vUv;VERTEX_HEADvoid main(){vUv=position.xy*0.5+0.5;VERTEX_MAIN_SUPPORTgl_Position=vec4(position.xy,1.0,1.0);}";
 
@@ -52925,57 +52924,70 @@ var Spacekit = (function (exports) {
 		/**
 		 * Constructs a new effect material.
 		 *
-		 * @param {Map<String, String>} [shaderParts=null] - A collection of shader snippets. See {@link Section}.
-		 * @param {Map<String, String>} [defines=null] - A collection of preprocessor macro definitions.
-		 * @param {Map<String, Uniform>} [uniforms=null] - A collection of uniforms.
+		 * @param {Map<String, String>} shaderParts - A collection of shader snippets.
+		 * @param {Map<String, String>} defines - A collection of preprocessor macro definitions.
+		 * @param {Map<String, Uniform>} uniforms - A collection of uniforms.
 		 * @param {Camera} [camera=null] - A camera.
 		 * @param {Boolean} [dithering=false] - Whether dithering should be enabled.
 		 */
 
-		constructor(shaderParts = null, defines = null, uniforms = null, camera = null, dithering = false) {
+		constructor(shaderParts, defines, uniforms, camera = null, dithering = false) {
 
 			super({
 
 				type: "EffectMaterial",
 
 				defines: {
-					DEPTH_PACKING: "0",
-					ENCODE_OUTPUT: "1"
+
+					DEPTH_PACKING: "0"
+
 				},
 
 				uniforms: {
+
 					inputBuffer: new Uniform(null),
 					depthBuffer: new Uniform(null),
+
 					resolution: new Uniform(new Vector2()),
 					texelSize: new Uniform(new Vector2()),
+
 					cameraNear: new Uniform(0.3),
 					cameraFar: new Uniform(1000.0),
 					aspect: new Uniform(1.0),
 					time: new Uniform(0.0)
+
 				},
 
-				toneMapped: false,
+				fragmentShader: fragmentTemplate.replace(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD))
+					.replace(Section.FRAGMENT_MAIN_UV, shaderParts.get(Section.FRAGMENT_MAIN_UV))
+					.replace(Section.FRAGMENT_MAIN_IMAGE, shaderParts.get(Section.FRAGMENT_MAIN_IMAGE)),
+
+				vertexShader: vertexTemplate.replace(Section.VERTEX_HEAD, shaderParts.get(Section.VERTEX_HEAD))
+					.replace(Section.VERTEX_MAIN_SUPPORT, shaderParts.get(Section.VERTEX_MAIN_SUPPORT)),
+
+				dithering: dithering,
 				depthWrite: false,
-				depthTest: false,
-				dithering
+				depthTest: false
 
 			});
 
-			if(shaderParts !== null) {
-
-				this.setShaderParts(shaderParts);
-
-			}
-
 			if(defines !== null) {
 
-				this.setDefines(defines);
+				for(const entry of defines.entries()) {
+
+					this.defines[entry[0]] = entry[1];
+
+				}
 
 			}
 
 			if(uniforms !== null) {
 
-				this.setUniforms(uniforms);
+				for(const entry of uniforms.entries()) {
+
+					this.uniforms[entry[0]] = entry[1];
+
+				}
 
 			}
 
@@ -52991,7 +53003,7 @@ var Spacekit = (function (exports) {
 
 		get depthPacking() {
 
-			return Number(this.defines.DEPTH_PACKING);
+			return Number.parseInt(this.defines.DEPTH_PACKING);
 
 		}
 
@@ -53009,71 +53021,24 @@ var Spacekit = (function (exports) {
 		set depthPacking(value) {
 
 			this.defines.DEPTH_PACKING = value.toFixed(0);
-			this.needsUpdate = true;
 
 		}
 
 		/**
-		 * Sets the shader parts.
+		 * Sets the resolution.
 		 *
-		 * @param {Map<String, String>} shaderParts - A collection of shader snippets. See {@link Section}.
-		 * @return {EffectMaterial} This material.
+		 * @param {Number} width - The width.
+		 * @param {Number} height - The height.
 		 */
 
-		setShaderParts(shaderParts) {
+		setSize(width, height) {
 
-			this.fragmentShader = fragmentTemplate
-				.replace(Section.FRAGMENT_HEAD, shaderParts.get(Section.FRAGMENT_HEAD))
-				.replace(Section.FRAGMENT_MAIN_UV, shaderParts.get(Section.FRAGMENT_MAIN_UV))
-				.replace(Section.FRAGMENT_MAIN_IMAGE, shaderParts.get(Section.FRAGMENT_MAIN_IMAGE));
+			width = Math.max(width, 1.0);
+			height = Math.max(height, 1.0);
 
-			this.vertexShader = vertexTemplate
-				.replace(Section.VERTEX_HEAD, shaderParts.get(Section.VERTEX_HEAD))
-				.replace(Section.VERTEX_MAIN_SUPPORT, shaderParts.get(Section.VERTEX_MAIN_SUPPORT));
-
-			this.needsUpdate = true;
-
-			return this;
-
-		}
-
-		/**
-		 * Sets the shader macros.
-		 *
-		 * @param {Map<String, String>} defines - A collection of preprocessor macro definitions.
-		 * @return {EffectMaterial} This material.
-		 */
-
-		setDefines(defines) {
-
-			for(const entry of defines.entries()) {
-
-				this.defines[entry[0]] = entry[1];
-
-			}
-
-			this.needsUpdate = true;
-
-			return this;
-
-		}
-
-		/**
-		 * Sets the shader uniforms.
-		 *
-		 * @param {Map<String, Uniform>} uniforms - A collection of uniforms.
-		 * @return {EffectMaterial} This material.
-		 */
-
-		setUniforms(uniforms) {
-
-			for(const entry of uniforms.entries()) {
-
-				this.uniforms[entry[0]] = entry[1];
-
-			}
-
-			return this;
+			this.uniforms.resolution.value.set(width, height);
+			this.uniforms.texelSize.value.set(1.0 / width, 1.0 / height);
+			this.uniforms.aspect.value = width / height;
 
 		}
 
@@ -53100,27 +53065,7 @@ var Spacekit = (function (exports) {
 
 				}
 
-				this.needsUpdate = true;
-
 			}
-
-		}
-
-		/**
-		 * Sets the resolution.
-		 *
-		 * @param {Number} width - The width.
-		 * @param {Number} height - The height.
-		 */
-
-		setSize(width, height) {
-
-			width = Math.max(width, 1.0);
-			height = Math.max(height, 1.0);
-
-			this.uniforms.resolution.value.set(width, height);
-			this.uniforms.texelSize.value.set(1.0 / width, 1.0 / height);
-			this.uniforms.aspect.value = width / height;
 
 		}
 
@@ -53147,7 +53092,7 @@ var Spacekit = (function (exports) {
 
 	};
 
-	var fragmentShader$8 = "#include <common>\nuniform sampler2D inputBuffer;\n#ifdef RANGE\nuniform vec2 range;\n#elif defined(THRESHOLD)\nuniform float threshold;uniform float smoothing;\n#endif\nvarying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);float l=linearToRelativeLuminance(texel.rgb);\n#ifdef RANGE\nfloat low=step(range.x,l);float high=step(l,range.y);l*=low*high;\n#elif defined(THRESHOLD)\nl=smoothstep(threshold,threshold+smoothing,l);\n#endif\n#ifdef COLOR\ngl_FragColor=vec4(texel.rgb*l,l);\n#else\ngl_FragColor=vec4(l);\n#endif\n}";
+	var fragmentShader$7 = "#include <common>\nuniform sampler2D inputBuffer;\n#ifdef RANGE\nuniform vec2 range;\n#elif defined(THRESHOLD)\nuniform float threshold;uniform float smoothing;\n#endif\nvarying vec2 vUv;void main(){vec4 texel=texture2D(inputBuffer,vUv);float l=linearToRelativeLuminance(texel.rgb);\n#ifdef RANGE\nfloat low=step(range.x,l);float high=step(l,range.y);l*=low*high;\n#elif defined(THRESHOLD)\nl=smoothstep(threshold,threshold+smoothing,l);\n#endif\n#ifdef COLOR\ngl_FragColor=vec4(texel.rgb*l,l);\n#else\ngl_FragColor=vec4(l);\n#endif\n}";
 
 	/**
 	 * A luminance shader material.
@@ -53187,16 +53132,17 @@ var Spacekit = (function (exports) {
 				type: "LuminanceMaterial",
 
 				uniforms: {
+
 					inputBuffer: new Uniform(null),
 					threshold: new Uniform(0.0),
 					smoothing: new Uniform(1.0),
 					range: new Uniform(useRange ? luminanceRange : new Vector2())
+
 				},
 
-				fragmentShader: fragmentShader$8,
+				fragmentShader: fragmentShader$7,
 				vertexShader,
 
-				toneMapped: false,
 				depthWrite: false,
 				depthTest: false
 
@@ -53397,199 +53343,6 @@ var Spacekit = (function (exports) {
 	}
 
 	/**
-	 * An auto sizing constant.
-	 *
-	 * @type {Number}
-	 * @private
-	 */
-
-	const AUTO_SIZE = -1;
-
-	/**
-	 * A resizer.
-	 */
-
-	class Resizer {
-
-		/**
-		 * Constructs a new resizer.
-		 *
-		 * @param {Resizable} resizeable - A resizable object.
-		 * @param {Number} [width=Resizer.AUTO_SIZE] - The width.
-		 * @param {Number} [height=Resizer.AUTO_SIZE] - The height.
-		 */
-
-		constructor(resizable, width = AUTO_SIZE, height = AUTO_SIZE) {
-
-			/**
-			 * A resizable object.
-			 *
-			 * @type {Resizable}
-			 */
-
-			this.resizable = resizable;
-
-			/**
-			 * The base size.
-			 *
-			 * This size will be passed to the resizable object every time the width or
-			 * height is changed.
-			 *
-			 * @type {Vector2}
-			 */
-
-			this.base = new Vector2(1, 1);
-
-			/**
-			 * The target size.
-			 *
-			 * @type {Vector2}
-			 * @private
-			 */
-
-			this.target = new Vector2(width, height);
-
-			/**
-			 * A scale.
-			 *
-			 * If both the width and the height are set to {@link Resizer.AUTO_SIZE},
-			 * they will be scaled uniformly using this scalar.
-			 *
-			 * @type {Number}
-			 * @deprecated Added for internal use only.
-			 */
-
-			this.scale = 1.0;
-
-		}
-
-		/**
-		 * The calculated width.
-		 *
-		 * If both the width and the height are set to {@link Resizer.AUTO_SIZE}, the
-		 * base width will be returned.
-		 *
-		 * @type {Number}
-		 */
-
-		get width() {
-
-			const base = this.base;
-			const target = this.target;
-
-			let result;
-
-			if(target.x !== AUTO_SIZE) {
-
-				result = target.x;
-
-			} else if(target.y !== AUTO_SIZE) {
-
-				result = Math.round(target.y * (base.x / base.y));
-
-			} else {
-
-				result = Math.round(base.x * this.scale);
-
-			}
-
-			return result;
-
-		}
-
-		/**
-		 * Sets the target width.
-		 *
-		 * Use {@link Resizer.AUTO_SIZE} to automatically calculate the width based
-		 * on the height and the original aspect ratio.
-		 *
-		 * @type {Number}
-		 */
-
-		set width(value) {
-
-			this.target.x = value;
-			this.resizable.setSize(this.base.x, this.base.y);
-
-		}
-
-		/**
-		 * The calculated height.
-		 *
-		 * If both the width and the height are set to {@link Resizer.AUTO_SIZE}, the
-		 * base height will be returned.
-		 *
-		 * @type {Number}
-		 */
-
-		get height() {
-
-			const base = this.base;
-			const target = this.target;
-
-			let result;
-
-			if(target.y !== AUTO_SIZE) {
-
-				result = target.y;
-
-			} else if(target.x !== AUTO_SIZE) {
-
-				result = Math.round(target.x / (base.x / base.y));
-
-			} else {
-
-				result = Math.round(base.y * this.scale);
-
-			}
-
-			return result;
-
-		}
-
-		/**
-		 * Sets the target height.
-		 *
-		 * Use {@link Resizer.AUTO_SIZE} to automatically calculate the height based
-		 * on the width and the original aspect ratio.
-		 *
-		 * @type {Number}
-		 */
-
-		set height(value) {
-
-			this.target.y = value;
-			this.resizable.setSize(this.base.x, this.base.y);
-
-		}
-
-		/**
-		 * An auto sizing constant.
-		 *
-		 * Can be used to automatically calculate the width or height based on the
-		 * original aspect ratio.
-		 *
-		 * @type {Number}
-		 */
-
-		static get AUTO_SIZE() {
-
-			return AUTO_SIZE;
-
-		}
-
-	}
-
-	/**
-	 * A dummy camera
-	 *
-	 * @type {Camera}
-	 * @private
-	 */
-
-	const dummyCamera = new Camera();
-
-	/**
 	 * Shared fullscreen geometry.
 	 *
 	 * @type {BufferGeometry}
@@ -53615,19 +53368,8 @@ var Spacekit = (function (exports) {
 			const vertices = new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]);
 			const uvs = new Float32Array([0, 0, 2, 0, 0, 2]);
 			geometry$1 = new BufferGeometry();
-
-			// Added for backward compatibility (setAttribute was added in three r110).
-			if(geometry$1.setAttribute !== undefined) {
-
-				geometry$1.setAttribute("position", new BufferAttribute(vertices, 3));
-				geometry$1.setAttribute("uv", new BufferAttribute(uvs, 2));
-
-			} else {
-
-				geometry$1.addAttribute("position", new BufferAttribute(vertices, 3));
-				geometry$1.addAttribute("uv", new BufferAttribute(uvs, 2));
-
-			}
+			geometry$1.addAttribute("position", new BufferAttribute(vertices, 3));
+			geometry$1.addAttribute("uv", new BufferAttribute(uvs, 2));
 
 		}
 
@@ -53656,10 +53398,10 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {String} [name] - The name of this pass. Does not have to be unique.
 		 * @param {Scene} [scene] - The scene to render. The default scene contains a single mesh that fills the screen.
-		 * @param {Camera} [camera] - A camera. Fullscreen effect passes don't require a camera.
+		 * @param {Camera} [camera] - The camera. The default camera perfectly captures the screen mesh.
 		 */
 
-		constructor(name = "Pass", scene = new Scene(), camera = dummyCamera) {
+		constructor(name = "Pass", scene = new Scene(), camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)) {
 
 			/**
 			 * The name of this pass.
@@ -53697,15 +53439,6 @@ var Spacekit = (function (exports) {
 			this.screen = null;
 
 			/**
-			 * Indicates whether this pass should render to texture.
-			 *
-			 * @type {Boolean}
-			 * @private
-			 */
-
-			this.rtt = true;
-
-			/**
 			 * Only relevant for subclassing.
 			 *
 			 * Indicates whether the {@link EffectComposer} should swap the frame
@@ -53720,6 +53453,8 @@ var Spacekit = (function (exports) {
 			this.needsSwap = true;
 
 			/**
+			 * Only relevant for subclassing.
+			 *
 			 * Indicates whether the {@link EffectComposer} should prepare a depth
 			 * texture for this pass.
 			 *
@@ -53732,51 +53467,20 @@ var Spacekit = (function (exports) {
 			this.needsDepthTexture = false;
 
 			/**
+			 * Indicates whether this pass should render to screen.
+			 *
+			 * @type {Boolean}
+			 */
+
+			this.renderToScreen = false;
+
+			/**
 			 * Indicates whether this pass should be executed.
 			 *
 			 * @type {Boolean}
 			 */
 
 			this.enabled = true;
-
-		}
-
-		/**
-		 * Indicates whether this pass should render to screen.
-		 *
-		 * @type {Boolean}
-		 */
-
-		get renderToScreen() {
-
-			return !this.rtt;
-
-		}
-
-		/**
-		 * Sets the render to screen flag.
-		 *
-		 * If the flag is changed to a different value, the fullscreen material will
-		 * be updated as well.
-		 *
-		 * @type {Boolean}
-		 */
-
-		set renderToScreen(value) {
-
-			if(this.rtt === value) {
-
-				const material = this.getFullscreenMaterial();
-
-				if(material !== null) {
-
-					material.needsUpdate = true;
-
-				}
-
-				this.rtt = !value;
-
-			}
 
 		}
 
@@ -53903,11 +53607,10 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {WebGLRenderer} renderer - The renderer.
 		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
-		 * @param {Number} frameBufferType - The type of the main frame buffers.
-		 * @example if(!alpha && frameBufferType === UnsignedByteType) { this.myRenderTarget.texture.format = RGBFormat; }
+		 * @example if(!alpha) { this.myRenderTarget.texture.format = RGBFormat; }
 		 */
 
-		initialize(renderer, alpha, frameBufferType) {}
+		initialize(renderer, alpha) {}
 
 		/**
 		 * Performs a shallow search for disposable properties and deletes them. The
@@ -53949,6 +53652,15 @@ var Spacekit = (function (exports) {
 	}
 
 	/**
+	 * An auto sizing constant.
+	 *
+	 * @type {Number}
+	 * @private
+	 */
+
+	const AUTO_SIZE = -1;
+
+	/**
 	 * An efficient, incremental blur pass.
 	 */
 
@@ -53959,15 +53671,15 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {Object} [options] - The options.
 		 * @param {Number} [options.resolutionScale=0.5] - Deprecated. Adjust the height or width instead for consistent results.
-		 * @param {Number} [options.width=Resizer.AUTO_SIZE] - The blur render width.
-		 * @param {Number} [options.height=Resizer.AUTO_SIZE] - The blur render height.
+		 * @param {Number} [options.width=BlurPass.AUTO_SIZE] - The blur render width.
+		 * @param {Number} [options.height=BlurPass.AUTO_SIZE] - The blur render height.
 		 * @param {KernelSize} [options.kernelSize=KernelSize.LARGE] - The blur kernel size.
 		 */
 
 		constructor({
 			resolutionScale = 0.5,
-			width = Resizer.AUTO_SIZE,
-			height = Resizer.AUTO_SIZE,
+			width = AUTO_SIZE,
+			height = AUTO_SIZE,
 			kernelSize = KernelSize.LARGE
 		} = {}) {
 
@@ -53980,14 +53692,14 @@ var Spacekit = (function (exports) {
 			 * @private
 			 */
 
-			this.renderTargetA = new WebGLRenderTarget(1, 1, {
+			this.renderTargetX = new WebGLRenderTarget(1, 1, {
 				minFilter: LinearFilter,
 				magFilter: LinearFilter,
 				stencilBuffer: false,
 				depthBuffer: false
 			});
 
-			this.renderTargetA.texture.name = "Blur.Target.A";
+			this.renderTargetX.texture.name = "Blur.TargetX";
 
 			/**
 			 * A second render target.
@@ -53996,23 +53708,36 @@ var Spacekit = (function (exports) {
 			 * @private
 			 */
 
-			this.renderTargetB = this.renderTargetA.clone();
-			this.renderTargetB.texture.name = "Blur.Target.B";
+			this.renderTargetY = this.renderTargetX.clone();
+			this.renderTargetY.texture.name = "Blur.TargetY";
 
 			/**
-			 * The desired render resolution.
+			 * The current main render size.
 			 *
-			 * It's recommended to set the height or the width to an absolute value for
-			 * consistent results across different devices and resolutions.
-			 *
-			 * Use {@link Resizer.AUTO_SIZE} for the width or height to automatically
-			 * calculate it based on its counterpart and the original aspect ratio.
-			 *
-			 * @type {Resizer}
+			 * @type {Vector2}
+			 * @private
 			 */
 
-			this.resolution = new Resizer(this, width, height);
-			this.resolution.scale = resolutionScale;
+			this.originalSize = new Vector2();
+
+			/**
+			 * The absolute render resolution.
+			 *
+			 * @type {Vector2}
+			 * @private
+			 */
+
+			this.resolution = new Vector2(width, height);
+
+			/**
+			 * The current resolution scale.
+			 *
+			 * @type {Number}
+			 * @private
+			 * @deprecated
+			 */
+
+			this.resolutionScale = resolutionScale;
 
 			/**
 			 * A convolution shader material.
@@ -54037,7 +53762,6 @@ var Spacekit = (function (exports) {
 			 * Whether the blurred result should also be dithered using noise.
 			 *
 			 * @type {Boolean}
-			 * @deprecated Set the frameBufferType of the EffectComposer to HalfFloatType instead.
 			 */
 
 			this.dithering = false;
@@ -54050,25 +53774,27 @@ var Spacekit = (function (exports) {
 		 * The current width of the internal render targets.
 		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.width instead.
 		 */
 
 		get width() {
 
-			return this.resolution.width;
+			return this.renderTargetX.width;
 
 		}
 
 		/**
 		 * Sets the render width.
 		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render height and aspect ratio.
+		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.width instead.
 		 */
 
 		set width(value) {
 
-			this.resolution.width = value;
+			this.resolution.x = value;
+			this.setSize(this.originalSize.x, this.originalSize.y);
 
 		}
 
@@ -54076,25 +53802,27 @@ var Spacekit = (function (exports) {
 		 * The current height of the internal render targets.
 		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.height instead.
 		 */
 
 		get height() {
 
-			return this.resolution.height;
+			return this.renderTargetX.height;
 
 		}
 
 		/**
 		 * Sets the render height.
 		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render width and aspect ratio.
+		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.height instead.
 		 */
 
 		set height(value) {
 
-			this.resolution.height = value;
+			this.resolution.y = value;
+			this.setSize(this.originalSize.x, this.originalSize.y);
 
 		}
 
@@ -54159,15 +53887,28 @@ var Spacekit = (function (exports) {
 		}
 
 		/**
+		 * Returns the original resolution.
+		 *
+		 * @return {Vector2} The original resolution received via {@link setSize}.
+		 * @deprecated Added for internal use only.
+		 */
+
+		getOriginalSize() {
+
+			return this.originalSize;
+
+		}
+
+		/**
 		 * Returns the current resolution scale.
 		 *
 		 * @return {Number} The resolution scale.
-		 * @deprecated Adjust the fixed resolution width or height instead.
+		 * @deprecated Adjust the width or height instead.
 		 */
 
 		getResolutionScale() {
 
-			return this.resolution.scale;
+			return this.resolutionScale;
 
 		}
 
@@ -54175,13 +53916,13 @@ var Spacekit = (function (exports) {
 		 * Sets the resolution scale.
 		 *
 		 * @param {Number} scale - The new resolution scale.
-		 * @deprecated Adjust the fixed resolution width or height instead.
+		 * @deprecated Adjust the width or height instead.
 		 */
 
 		setResolutionScale(scale) {
 
-			this.resolution.scale = scale;
-			this.setSize(this.resolution.base.x, this.resolution.base.y);
+			this.resolutionScale = scale;
+			this.setSize(this.originalSize.x, this.originalSize.y);
 
 		}
 
@@ -54201,8 +53942,8 @@ var Spacekit = (function (exports) {
 			const scene = this.scene;
 			const camera = this.camera;
 
-			const renderTargetA = this.renderTargetA;
-			const renderTargetB = this.renderTargetB;
+			const renderTargetX = this.renderTargetX;
+			const renderTargetY = this.renderTargetY;
 
 			let material = this.convolutionMaterial;
 			let uniforms = material.uniforms;
@@ -54218,7 +53959,7 @@ var Spacekit = (function (exports) {
 			for(i = 0, l = kernel.length - 1; i < l; ++i) {
 
 				// Alternate between targets.
-				destRT = ((i & 1) === 0) ? renderTargetA : renderTargetB;
+				destRT = ((i % 2) === 0) ? renderTargetX : renderTargetY;
 
 				uniforms.kernel.value = kernel[i];
 				uniforms.inputBuffer.value = lastRT.texture;
@@ -54254,13 +53995,34 @@ var Spacekit = (function (exports) {
 		setSize(width, height) {
 
 			const resolution = this.resolution;
-			resolution.base.set(width, height);
+			const aspect = width / height;
 
-			width = resolution.width;
-			height = resolution.height;
+			this.originalSize.set(width, height);
 
-			this.renderTargetA.setSize(width, height);
-			this.renderTargetB.setSize(width, height);
+			if(resolution.x !== AUTO_SIZE && resolution.y !== AUTO_SIZE) {
+
+				width = Math.max(1, resolution.x);
+				height = Math.max(1, resolution.y);
+
+			} else if(resolution.x !== AUTO_SIZE) {
+
+				width = Math.max(1, resolution.x);
+				height = Math.round(Math.max(1, resolution.y) / aspect);
+
+			} else if(resolution.y !== AUTO_SIZE) {
+
+				width = Math.round(Math.max(1, resolution.y) * aspect);
+				height = Math.max(1, resolution.y);
+
+			} else {
+
+				width = Math.max(1, Math.round(width * this.resolutionScale));
+				height = Math.max(1, Math.round(height * this.resolutionScale));
+
+			}
+
+			this.renderTargetX.setSize(width, height);
+			this.renderTargetY.setSize(width, height);
 
 			this.convolutionMaterial.setTexelSize(1.0 / width, 1.0 / height);
 			this.ditheredConvolutionMaterial.setTexelSize(1.0 / width, 1.0 / height);
@@ -54272,37 +54034,32 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {WebGLRenderer} renderer - The renderer.
 		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
-		 * @param {Number} frameBufferType - The type of the main frame buffers.
 		 */
 
-		initialize(renderer, alpha, frameBufferType) {
+		initialize(renderer, alpha) {
 
-			if(!alpha && frameBufferType === UnsignedByteType) {
+			if(!alpha) {
 
-				this.renderTargetA.texture.format = RGBFormat;
-				this.renderTargetB.texture.format = RGBFormat;
-
-			}
-
-			if(frameBufferType !== undefined) {
-
-				this.renderTargetA.texture.type = frameBufferType;
-				this.renderTargetB.texture.type = frameBufferType;
+				this.renderTargetX.texture.format = RGBFormat;
+				this.renderTargetY.texture.format = RGBFormat;
 
 			}
 
 		}
 
 		/**
-		 * An auto sizing flag.
+		 * An auto sizing flag that can be used for the render {@link BlurPass.width}
+		 * and {@link BlurPass.height}.
+		 *
+		 * It's recommended to set the height or the width to an absolute value for
+		 * consistent blur results across different devices and resolutions.
 		 *
 		 * @type {Number}
-		 * @deprecated Use {@link Resizer.AUTO_SIZE} instead.
 		 */
 
 		static get AUTO_SIZE() {
 
-			return Resizer.AUTO_SIZE;
+			return AUTO_SIZE;
 
 		}
 
@@ -54574,7 +54331,7 @@ var Spacekit = (function (exports) {
 		 * The provided texture will be attached to the input buffer unless this pass
 		 * renders to screen.
 		 *
-		 * @param {DepthTexture} depthTexture - A depth texture.
+		 * @param {Texture} depthTexture - A depth texture.
 		 * @param {Number} [depthPacking=0] - The depth packing.
 		 */
 
@@ -54962,11 +54719,10 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {WebGLRenderer} renderer - The renderer.
 		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
-		 * @param {Number} frameBufferType - The type of the main frame buffers.
-		 * @example if(!alpha && frameBufferType === UnsignedByteType) { this.myRenderTarget.texture.format = RGBFormat; }
+		 * @example if(!alpha) { this.myRenderTarget.texture.format = RGBFormat; }
 		 */
 
-		initialize(renderer, alpha, frameBufferType) {}
+		initialize(renderer, alpha) {}
 
 		/**
 		 * Performs a shallow search for properties that define a dispose method and
@@ -55007,7 +54763,8 @@ var Spacekit = (function (exports) {
 	 * @property {Number} CONVOLUTION - Describes effects that fetch additional samples from the input buffer. There cannot be more than one effect with this attribute per {@link EffectPass}.
 	 * @property {Number} DEPTH - Describes effects that require a depth texture.
 	 * @property {Number} NONE - No attributes. Most effects don't need to specify any attributes.
-	 * @example const attributes = EffectAttribute.CONVOLUTION | EffectAttribute.DEPTH;
+	 * @example
+	 * const attributes = EffectAttribute.CONVOLUTION | EffectAttribute.DEPTH;
 	 */
 
 	const EffectAttribute = {
@@ -55153,10 +54910,9 @@ var Spacekit = (function (exports) {
 
 			}
 
-			// Assemble all names while ignoring parameters of function-like macros.
 			names = names.concat(findSubstrings(functionRegExp, shaders.get("fragment")))
-				.concat(Array.from(effect.defines.keys()).map((s) => s.replace(/\([\w\s,]*\)/g, "")))
-				.concat(Array.from(effect.uniforms.keys()));
+				.concat(Array.from(effect.uniforms.keys()))
+				.concat(Array.from(effect.defines.keys()));
 
 			// Store prefixed uniforms and macros.
 			effect.uniforms.forEach((value, key) => uniforms.set(prefix + key.charAt(0).toUpperCase() + key.slice(1), value));
@@ -55237,7 +54993,14 @@ var Spacekit = (function (exports) {
 
 			super("EffectPass");
 
-			this.setFullscreenMaterial(new EffectMaterial(null, null, null, camera));
+			/**
+			 * The main camera.
+			 *
+			 * @type {Camera}
+			 * @private
+			 */
+
+			this.mainCamera = camera;
 
 			/**
 			 * The effects, sorted by attribute priority, DESC.
@@ -55249,6 +55012,15 @@ var Spacekit = (function (exports) {
 			this.effects = effects.sort((a, b) => (b.attributes - a.attributes));
 
 			/**
+			 * The current render size.
+			 *
+			 * @type {Vector2}
+			 * @private
+			 */
+
+			this.size = new Vector2();
+
+			/**
 			 * Indicates whether this pass should skip rendering.
 			 *
 			 * Effects will still be updated, even if this flag is true.
@@ -55258,6 +55030,15 @@ var Spacekit = (function (exports) {
 			 */
 
 			this.skipRendering = false;
+
+			/**
+			 * Indicates whether dithering is enabled.
+			 *
+			 * @type {Boolean}
+			 * @private
+			 */
+
+			this.quantize = false;
 
 			/**
 			 * The amount of shader uniforms that this pass uses.
@@ -55300,45 +55081,6 @@ var Spacekit = (function (exports) {
 		}
 
 		/**
-		 * Indicates whether this pass encodes its output when rendering to screen.
-		 *
-		 * @type {Boolean}
-		 */
-
-		get encodeOutput() {
-
-			return (this.getFullscreenMaterial().defines.ENCODE_OUTPUT !== undefined);
-
-		}
-
-		/**
-		 * Enables or disables output encoding.
-		 *
-		 * @type {Boolean}
-		 */
-
-		set encodeOutput(value) {
-
-			if(this.encodeOutput !== value) {
-
-				const material = this.getFullscreenMaterial();
-				material.needsUpdate = true;
-
-				if(value) {
-
-					material.defines.ENCODE_OUTPUT = "1";
-
-				} else {
-
-					delete material.defines.ENCODE_OUTPUT;
-
-				}
-
-			}
-
-		}
-
-		/**
 		 * Indicates whether dithering is enabled.
 		 *
 		 * Color quantization reduces banding artifacts but degrades performance.
@@ -55348,36 +55090,45 @@ var Spacekit = (function (exports) {
 
 		get dithering() {
 
-			return this.getFullscreenMaterial().dithering;
+			return this.quantize;
 
 		}
 
 		/**
 		 * Enables or disables dithering.
 		 *
+		 * Note that some effects have their own dithering setting.
+		 *
 		 * @type {Boolean}
 		 */
 
 		set dithering(value) {
 
-			const material = this.getFullscreenMaterial();
+			if(this.quantize !== value) {
 
-			if(material.dithering !== value) {
+				const material = this.getFullscreenMaterial();
 
-				material.dithering = value;
-				material.needsUpdate = true;
+				if(material !== null) {
+
+					material.dithering = value;
+					material.needsUpdate = true;
+
+				}
+
+				this.quantize = value;
 
 			}
 
 		}
 
 		/**
-		 * Updates the compound shader material.
+		 * Creates a compound shader material.
 		 *
 		 * @private
+		 * @return {Material} The new material.
 		 */
 
-		updateMaterial() {
+		createMaterial() {
 
 			const blendRegExp = /\bblend\b/g;
 
@@ -55454,12 +55205,7 @@ var Spacekit = (function (exports) {
 
 				}
 
-				// Only request a depth texture if none has been provided yet.
-				this.needsDepthTexture = (this.getDepthTexture() === null);
-
-			} else {
-
-				this.needsDepthTexture = false;
+				this.needsDepthTexture = true;
 
 			}
 
@@ -55477,8 +55223,7 @@ var Spacekit = (function (exports) {
 
 			}
 
-			// Ensure that leading preprocessor directives start at a new line.
-			shaderParts.forEach((value, key, map) => map.set(key, value.trim().replace(/^#/, "\n#")));
+			shaderParts.forEach((value, key, map) => map.set(key, value.trim()));
 
 			this.uniforms = uniforms.size;
 			this.varyings = varyings;
@@ -55486,9 +55231,7 @@ var Spacekit = (function (exports) {
 			this.skipRendering = (id === 0);
 			this.needsSwap = !this.skipRendering;
 
-			const material = this.getFullscreenMaterial();
-			material.setShaderParts(shaderParts).setDefines(defines).setUniforms(uniforms);
-			material.extensions = {};
+			const material = new EffectMaterial(shaderParts, defines, uniforms, this.mainCamera, this.dithering);
 
 			if(extensions.size > 0) {
 
@@ -55501,17 +55244,37 @@ var Spacekit = (function (exports) {
 
 			}
 
+			return material;
+
 		}
 
 		/**
-		 * Updates the shader material.
+		 * Destroys the current fullscreen shader material and builds a new one.
 		 *
-		 * Warning: This method triggers a relatively expensive shader recompilation.
+		 * Warning: This method performs a relatively expensive shader recompilation.
 		 */
 
 		recompile() {
 
-			this.updateMaterial();
+			let material = this.getFullscreenMaterial();
+			let depthTexture = null;
+			let depthPacking = 0;
+
+			if(material !== null) {
+
+				depthTexture = material.uniforms.depthBuffer.value;
+				depthPacking = material.depthPacking;
+				material.dispose();
+
+				this.uniforms = 0;
+				this.varyings = 0;
+
+			}
+
+			material = this.createMaterial();
+			material.setSize(this.size.x, this.size.y);
+			this.setFullscreenMaterial(material);
+			this.setDepthTexture(depthTexture, depthPacking);
 
 		}
 
@@ -55523,7 +55286,9 @@ var Spacekit = (function (exports) {
 
 		getDepthTexture() {
 
-			return this.getFullscreenMaterial().uniforms.depthBuffer.value;
+			const material = this.getFullscreenMaterial();
+
+			return (material !== null) ? material.uniforms.depthBuffer.value : null;
 
 		}
 
@@ -55537,6 +55302,7 @@ var Spacekit = (function (exports) {
 		setDepthTexture(depthTexture, depthPacking = 0) {
 
 			const material = this.getFullscreenMaterial();
+
 			material.uniforms.depthBuffer.value = depthTexture;
 			material.depthPacking = depthPacking;
 			material.needsUpdate = true;
@@ -55590,7 +55356,15 @@ var Spacekit = (function (exports) {
 
 		setSize(width, height) {
 
-			this.getFullscreenMaterial().setSize(width, height);
+			const material = this.getFullscreenMaterial();
+
+			if(material !== null) {
+
+				material.setSize(width, height);
+
+			}
+
+			this.size.set(width, height);
 
 			for(const effect of this.effects) {
 
@@ -55605,20 +55379,20 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {WebGLRenderer} renderer - The renderer.
 		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
-		 * @param {Number} frameBufferType - The type of the main frame buffers.
 		 */
 
-		initialize(renderer, alpha, frameBufferType) {
+		initialize(renderer, alpha) {
 
 			// Initialize effects before building the final shader.
 			for(const effect of this.effects) {
 
-				effect.initialize(renderer, alpha, frameBufferType);
+				effect.initialize(renderer, alpha);
 
 			}
 
-			// Initialize the fullscreen material.
-			this.updateMaterial();
+			// Generate the fullscreen material.
+			this.setFullscreenMaterial(this.createMaterial());
+			this.getFullscreenMaterial().setSize(this.size.x, this.size.y);
 
 			// Compare required resources with capabilities.
 			const capabilities = renderer.capabilities;
@@ -55661,7 +55435,7 @@ var Spacekit = (function (exports) {
 	}
 
 	/**
-	 * A stencil mask pass.
+	 * A mask pass.
 	 *
 	 * This pass requires that the input and output buffers have a stencil buffer.
 	 * You can enable the stencil buffer via the {@link EffectComposer} constructor.
@@ -55885,7 +55659,7 @@ var Spacekit = (function (exports) {
 
 		render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest) {
 
-			if(this.uniform !== null && inputBuffer !== null) {
+			if(this.uniform !== null) {
 
 				this.uniform.value = inputBuffer.texture;
 
@@ -55920,19 +55694,15 @@ var Spacekit = (function (exports) {
 		 * @param {Object} [options] - The options.
 		 * @param {Boolean} [options.depthBuffer=true] - Whether the main render targets should have a depth buffer.
 		 * @param {Boolean} [options.stencilBuffer=false] - Whether the main render targets should have a stencil buffer.
-		 * @param {Number} [options.multisampling=0] - The number of samples used for multisample antialiasing. Requires WebGL 2.
-		 * @param {Boolean} [options.frameBufferType] - The type of the internal frame buffers. It's recommended to use HalfFloatType if possible.
 		 */
 
-		constructor(renderer = null, {
-			depthBuffer = true,
-			stencilBuffer = false,
-			multisampling = 0,
-			frameBufferType
-		} = {}) {
+		constructor(renderer = null, { depthBuffer = true, stencilBuffer = false } = {}) {
 
 			/**
 			 * The renderer.
+			 *
+			 * You may replace the renderer at any time by using
+			 * {@link EffectComposer#replaceRenderer}.
 			 *
 			 * @type {WebGLRenderer}
 			 * @private
@@ -55964,9 +55734,8 @@ var Spacekit = (function (exports) {
 			if(this.renderer !== null) {
 
 				this.renderer.autoClear = false;
-				this.inputBuffer = this.createBuffer(depthBuffer, stencilBuffer, frameBufferType, multisampling);
+				this.inputBuffer = this.createBuffer(depthBuffer, stencilBuffer);
 				this.outputBuffer = this.inputBuffer.clone();
-				this.enableExtensions();
 
 			}
 
@@ -55997,72 +55766,10 @@ var Spacekit = (function (exports) {
 
 			this.passes = [];
 
-			/**
-			 * Determines whether the last pass automatically renders to screen.
-			 *
-			 * @type {Boolean}
-			 * @private
-			 */
-
-			this.autoRenderToScreen = true;
-
-		}
-
-		/**
-		 * The current amount of samples used for multisample antialiasing.
-		 *
-		 * @type {Number}
-		 */
-
-		get multisampling() {
-
-			return (this.inputBuffer instanceof WebGLMultisampleRenderTarget) ?
-				this.inputBuffer.samples : 0;
-
-		}
-
-		/**
-		 * Sets the amount of MSAA samples.
-		 *
-		 * Requires WebGL 2. Set to zero to disable multisampling.
-		 *
-		 * @type {Number}
-		 */
-
-		set multisampling(value) {
-
-			const buffer = this.inputBuffer;
-			const multisampling = this.multisampling;
-
-			if(multisampling > 0 && value > 0) {
-
-				this.inputBuffer.samples = value;
-				this.outputBuffer.samples = value;
-
-			} else if(multisampling !== value) {
-
-				this.inputBuffer.dispose();
-				this.outputBuffer.dispose();
-
-				// Enable or disable MSAA.
-				this.inputBuffer = this.createBuffer(
-					buffer.depthBuffer,
-					buffer.stencilBuffer,
-					buffer.texture.type,
-					value
-				);
-
-				this.outputBuffer = this.inputBuffer.clone();
-
-			}
-
 		}
 
 		/**
 		 * Returns the WebGL renderer.
-		 *
-		 * You may replace the renderer at any time by using
-		 * {@link EffectComposer#replaceRenderer}.
 		 *
 		 * @return {WebGLRenderer} The renderer.
 		 */
@@ -56070,34 +55777,6 @@ var Spacekit = (function (exports) {
 		getRenderer() {
 
 			return this.renderer;
-
-		}
-
-		/**
-		 * Explicitly enables required WebGL extensions.
-		 *
-		 * @private
-		 */
-
-		enableExtensions() {
-
-			const frameBufferType = this.inputBuffer.texture.type;
-			const capabilities = this.renderer.capabilities;
-			const context = this.renderer.getContext();
-
-			if(frameBufferType !== UnsignedByteType) {
-
-				if(capabilities.isWebGL2) {
-
-					context.getExtension("EXT_color_buffer_float");
-
-				} else {
-
-					context.getExtension("EXT_color_buffer_half_float");
-
-				}
-
-			}
 
 		}
 
@@ -56142,8 +55821,6 @@ var Spacekit = (function (exports) {
 
 				}
 
-				this.enableExtensions();
-
 			}
 
 			return oldRenderer;
@@ -56170,10 +55847,6 @@ var Spacekit = (function (exports) {
 				depthTexture.format = DepthStencilFormat;
 				depthTexture.type = UnsignedInt248Type;
 
-			} else {
-
-				depthTexture.type = UnsignedIntType;
-
 			}
 
 			return depthTexture;
@@ -56187,39 +55860,23 @@ var Spacekit = (function (exports) {
 		 * magnification. Its render texture format depends on whether the renderer
 		 * uses the alpha channel. Mipmaps are disabled.
 		 *
-		 * Note: The buffer format will also be set to RGBA if the frame buffer type
-		 * is HalfFloatType because RGB16F buffers are not renderable.
-		 *
 		 * @param {Boolean} depthBuffer - Whether the render target should have a depth buffer.
 		 * @param {Boolean} stencilBuffer - Whether the render target should have a stencil buffer.
-		 * @param {Number} type - The frame buffer type.
-		 * @param {Number} multisampling - The number of samples to use for antialiasing.
 		 * @return {WebGLRenderTarget} A new render target that equals the renderer's canvas.
 		 */
 
-		createBuffer(depthBuffer, stencilBuffer, type, multisampling) {
+		createBuffer(depthBuffer, stencilBuffer) {
 
-			const size = this.renderer.getDrawingBufferSize(new Vector2());
+			const drawingBufferSize = this.renderer.getDrawingBufferSize(new Vector2());
 			const alpha = this.renderer.getContext().getContextAttributes().alpha;
 
-			const options = {
-				format: (!alpha && type === UnsignedByteType) ? RGBFormat : RGBAFormat,
+			const renderTarget = new WebGLRenderTarget(drawingBufferSize.width, drawingBufferSize.height, {
 				minFilter: LinearFilter,
 				magFilter: LinearFilter,
-				stencilBuffer,
-				depthBuffer,
-				type
-			};
-
-			const renderTarget = (multisampling > 0) ?
-				new WebGLMultisampleRenderTarget(size.width, size.height, options) :
-				new WebGLRenderTarget(size.width, size.height, options);
-
-			if(multisampling > 0) {
-
-				renderTarget.samples = multisampling;
-
-			}
+				format: alpha ? RGBAFormat : RGBFormat,
+				depthBuffer: depthBuffer,
+				stencilBuffer: stencilBuffer
+			});
 
 			renderTarget.texture.name = "EffectComposer.Buffer";
 			renderTarget.texture.generateMipmaps = false;
@@ -56239,28 +55896,10 @@ var Spacekit = (function (exports) {
 
 			const passes = this.passes;
 			const renderer = this.renderer;
-			const alpha = renderer.getContext().getContextAttributes().alpha;
-			const frameBufferType = this.inputBuffer.texture.type;
 			const drawingBufferSize = renderer.getDrawingBufferSize(new Vector2());
 
 			pass.setSize(drawingBufferSize.width, drawingBufferSize.height);
-			pass.initialize(renderer, alpha, frameBufferType);
-
-			if(this.autoRenderToScreen) {
-
-				if(passes.length > 0) {
-
-					passes[passes.length - 1].renderToScreen = false;
-
-				}
-
-				if(pass.renderToScreen) {
-
-					this.autoRenderToScreen = false;
-
-				}
-
-			}
+			pass.initialize(renderer, renderer.getContext().getContextAttributes().alpha);
 
 			if(index !== undefined) {
 
@@ -56269,12 +55908,6 @@ var Spacekit = (function (exports) {
 			} else {
 
 				passes.push(pass);
-
-			}
-
-			if(this.autoRenderToScreen) {
-
-				passes[passes.length - 1].renderToScreen = true;
 
 			}
 
@@ -56309,43 +55942,24 @@ var Spacekit = (function (exports) {
 		removePass(pass) {
 
 			const passes = this.passes;
-			const index = passes.indexOf(pass);
-			const removed = (passes.splice(index, 1).length > 0);
+			const removed = (passes.splice(passes.indexOf(pass), 1).length > 0);
 
-			if(removed) {
+			if(removed && this.depthTexture !== null) {
 
-				if(this.depthTexture !== null) {
+				const reducer = (a, b) => a || b.needsDepthTexture;
+				const depthTextureRequired = passes.reduce(reducer, false);
 
-					// Check if the depth texture is still required.
-					const reducer = (a, b) => (a || b.needsDepthTexture);
-					const depthTextureRequired = passes.reduce(reducer, false);
+				if(!depthTextureRequired) {
 
-					if(!depthTextureRequired) {
+					this.depthTexture.dispose();
+					this.depthTexture = null;
 
-						this.depthTexture.dispose();
-						this.depthTexture = null;
+					this.inputBuffer.depthTexture = null;
+					this.outputBuffer.depthTexture = null;
 
-						this.inputBuffer.depthTexture = null;
-						this.outputBuffer.depthTexture = null;
+					for(pass of passes) {
 
 						pass.setDepthTexture(null);
-
-						for(pass of passes) {
-
-							pass.setDepthTexture(null);
-
-						}
-
-					}
-
-				}
-
-				if(this.autoRenderToScreen && passes.length > 0) {
-
-					// Check if the removed pass was the last one in the chain.
-					if(index === passes.length) {
-
-						passes[passes.length - 1].renderToScreen = true;
 
 					}
 
@@ -56426,10 +56040,9 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {Number} [width] - The width.
 		 * @param {Number} [height] - The height.
-		 * @param {Boolean} [updateStyle] - Determines whether the style of the canvas should be updated.
 		 */
 
-		setSize(width, height, updateStyle) {
+		setSize(width, height) {
 
 			const renderer = this.renderer;
 
@@ -56441,7 +56054,7 @@ var Spacekit = (function (exports) {
 			}
 
 			// Update the logical render size.
-			renderer.setSize(width, height, updateStyle);
+			renderer.setSize(width, height);
 
 			// The drawing buffer size takes the device pixel ratio into account.
 			const drawingBufferSize = renderer.getDrawingBufferSize(new Vector2());
@@ -56463,7 +56076,10 @@ var Spacekit = (function (exports) {
 
 		reset() {
 
-			const renderTarget = this.inputBuffer.clone();
+			const renderTarget = this.createBuffer(
+				this.inputBuffer.depthBuffer,
+				this.inputBuffer.stencilBuffer
+			);
 
 			this.dispose();
 
@@ -56472,7 +56088,6 @@ var Spacekit = (function (exports) {
 			this.outputBuffer = renderTarget.clone();
 			this.depthTexture = null;
 			this.copyPass = new ShaderPass(new CopyMaterial());
-			this.autoRenderToScreen = true;
 
 		}
 
@@ -56519,7 +56134,7 @@ var Spacekit = (function (exports) {
 
 	}
 
-	var fragmentShader$c = "uniform sampler2D texture;uniform float intensity;void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){outputColor=clamp(texture2D(texture,uv)*intensity,0.0,1.0);}";
+	var fragmentShader$a = "uniform sampler2D texture;\n#ifdef ASPECT_CORRECTION\nvarying vec2 vUv2;\n#endif\nvoid mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){\n#ifdef ASPECT_CORRECTION\noutputColor=texture2D(texture,vUv2);\n#else\noutputColor=texture2D(texture,uv);\n#endif\n}";
 
 	/**
 	 * A bloom effect.
@@ -56538,9 +56153,8 @@ var Spacekit = (function (exports) {
 		 * @param {Number} [options.luminanceThreshold=0.9] - The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1].
 		 * @param {Number} [options.luminanceSmoothing=0.025] - Controls the smoothness of the luminance threshold. Range is [0, 1].
 		 * @param {Number} [options.resolutionScale=0.5] - Deprecated. Use height or width instead.
-		 * @param {Number} [options.intensity=1.0] - The intensity.
-		 * @param {Number} [options.width=Resizer.AUTO_SIZE] - The render width.
-		 * @param {Number} [options.height=Resizer.AUTO_SIZE] - The render height.
+		 * @param {Number} [options.width=BlurPass.AUTO_SIZE] - The render width.
+		 * @param {Number} [options.height=BlurPass.AUTO_SIZE] - The render height.
 		 * @param {KernelSize} [options.kernelSize=KernelSize.LARGE] - The blur kernel size.
 		 */
 
@@ -56549,19 +56163,17 @@ var Spacekit = (function (exports) {
 			luminanceThreshold = 0.9,
 			luminanceSmoothing = 0.025,
 			resolutionScale = 0.5,
-			intensity = 1.0,
-			width = Resizer.AUTO_SIZE,
-			height = Resizer.AUTO_SIZE,
+			width = BlurPass.AUTO_SIZE,
+			height = BlurPass.AUTO_SIZE,
 			kernelSize = KernelSize.LARGE
 		} = {}) {
 
-			super("BloomEffect", fragmentShader$c, {
+			super("BloomEffect", fragmentShader$a, {
 
 				blendFunction,
 
 				uniforms: new Map([
-					["texture", new Uniform(null)],
-					["intensity", new Uniform(intensity)]
+					["texture", new Uniform(null)]
 				])
 
 			});
@@ -56588,11 +56200,13 @@ var Spacekit = (function (exports) {
 			/**
 			 * A blur pass.
 			 *
+			 * Do not adjust the width or height of this pass directly. Use
+			 * {@link width} or {@link height} instead.
+			 *
 			 * @type {BlurPass}
 			 */
 
 			this.blurPass = new BlurPass({ resolutionScale, width, height, kernelSize });
-			this.blurPass.resolution.resizable = this;
 
 			/**
 			 * A luminance shader pass.
@@ -56637,40 +56251,31 @@ var Spacekit = (function (exports) {
 		}
 
 		/**
-		 * The resolution of this effect.
-		 *
-		 * @type {Resizer}
-		 */
-
-		get resolution() {
-
-			return this.blurPass.resolution;
-
-		}
-
-		/**
 		 * The current width of the internal render targets.
 		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.width instead.
 		 */
 
 		get width() {
 
-			return this.resolution.width;
+			return this.blurPass.width;
 
 		}
 
 		/**
 		 * Sets the render width.
 		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render height and aspect ratio.
+		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.width instead.
 		 */
 
 		set width(value) {
 
-			this.resolution.width = value;
+			const blurPass = this.blurPass;
+			blurPass.width = value;
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -56678,25 +56283,28 @@ var Spacekit = (function (exports) {
 		 * The current height of the internal render targets.
 		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.height instead.
 		 */
 
 		get height() {
 
-			return this.resolution.height;
+			return this.blurPass.height;
 
 		}
 
 		/**
 		 * Sets the render height.
 		 *
+		 * Use {@link BlurPass.AUTO_SIZE} to activate automatic sizing based on the
+		 * render width and aspect ratio.
+		 *
 		 * @type {Number}
-		 * @deprecated Use resolution.height instead.
 		 */
 
 		set height(value) {
 
-			this.resolution.height = value;
+			const blurPass = this.blurPass;
+			blurPass.height = value;
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -56704,7 +56312,7 @@ var Spacekit = (function (exports) {
 		 * Indicates whether dithering is enabled.
 		 *
 		 * @type {Boolean}
-		 * @deprecated Set the frameBufferType of the EffectComposer to HalfFloatType instead.
+		 * @deprecated Use blurPass.dithering instead.
 		 */
 
 		get dithering() {
@@ -56717,7 +56325,7 @@ var Spacekit = (function (exports) {
 		 * Enables or disables dithering.
 		 *
 		 * @type {Boolean}
-		 * @deprecated Set the frameBufferType of the EffectComposer to HalfFloatType instead.
+		 * @deprecated Use blurPass.dithering instead.
 		 */
 
 		set dithering(value) {
@@ -56775,39 +56383,15 @@ var Spacekit = (function (exports) {
 		}
 
 		/**
-		 * The bloom intensity.
-		 *
-		 * @type {Number}
-		 */
-
-		get intensity() {
-
-			return this.uniforms.get("intensity").value;
-
-		}
-
-		/**
-		 * Sets the bloom intensity.
-		 *
-		 * @type {Number}
-		 */
-
-		set intensity(value) {
-
-			this.uniforms.get("intensity").value = value;
-
-		}
-
-		/**
 		 * Returns the current resolution scale.
 		 *
 		 * @return {Number} The resolution scale.
-		 * @deprecated Adjust the fixed resolution width or height instead.
+		 * @deprecated Adjust the width or height instead.
 		 */
 
 		getResolutionScale() {
 
-			return this.resolution.scale;
+			return this.blurPass.getResolutionScale();
 
 		}
 
@@ -56815,13 +56399,14 @@ var Spacekit = (function (exports) {
 		 * Sets the resolution scale.
 		 *
 		 * @param {Number} scale - The new resolution scale.
-		 * @deprecated Adjust the fixed resolution width or height instead.
+		 * @deprecated Adjust the width or height instead.
 		 */
 
 		setResolutionScale(scale) {
 
-			this.resolution.scale = scale;
-			this.setSize(this.resolution.base.x, this.resolution.base.y);
+			const blurPass = this.blurPass;
+			blurPass.setResolutionScale(scale);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -56859,8 +56444,9 @@ var Spacekit = (function (exports) {
 
 		setSize(width, height) {
 
-			this.blurPass.setSize(width, height);
-			this.renderTarget.setSize(this.resolution.width, this.resolution.height);
+			const blurPass = this.blurPass;
+			blurPass.setSize(width, height);
+			this.renderTarget.setSize(blurPass.width, blurPass.height);
 
 		}
 
@@ -56869,22 +56455,15 @@ var Spacekit = (function (exports) {
 		 *
 		 * @param {WebGLRenderer} renderer - The renderer.
 		 * @param {Boolean} alpha - Whether the renderer uses the alpha channel or not.
-		 * @param {Number} frameBufferType - The type of the main frame buffers.
 		 */
 
-		initialize(renderer, alpha, frameBufferType) {
+		initialize(renderer, alpha) {
 
-			this.blurPass.initialize(renderer, alpha, frameBufferType);
+			this.blurPass.initialize(renderer, alpha);
 
-			if(!alpha && frameBufferType === UnsignedByteType) {
+			if(!alpha) {
 
 				this.renderTarget.texture.format = RGBFormat;
-
-			}
-
-			if(frameBufferType !== undefined) {
-
-				this.renderTarget.texture.type = frameBufferType;
 
 			}
 
@@ -60678,6 +60257,9 @@ var Spacekit = (function (exports) {
 	      objects: {
 	        particles: this._particles,
 	        camera: this._camera,
+	        scene: this._scene,
+	        renderer: this._renderer,
+	        composer: this._composer,
 	      },
 	      container: {
 	        width: this._simulationElt.offsetWidth,

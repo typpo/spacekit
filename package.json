@@ -33,6 +33,6 @@
     "julian": "^0.2.0",
     "postprocessing": "^6.8.0",
     "rollup-plugin-serve": "^1.0.2",
-    "three": "^0.107.0"
+    "three": "^0.125.0"
   }
 }

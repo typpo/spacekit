@@ -6,7 +6,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
 viz.createStars();
 
 viz.createSphere('earth', {
-  textureUrl: './earth_66mya.jpg',
+  textureUrl: './eso_earth.jpg',
   debug: {
     showAxes: true,
   },

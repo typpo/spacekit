@@ -457,7 +457,13 @@ export class Simulation {
 
     if (!noUpdate) {
       // Call for updates as time passes.
-      this._subscribedObjects[obj.getId()] = obj;
+      const objId = obj.getId();
+      if (this._subscribedObjects[objId]) {
+        console.warn(
+          `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
+        );
+      }
+      this._subscribedObjects[objId] = obj;
     }
   }
 

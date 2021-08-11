@@ -73,9 +73,9 @@ function createStandardSolarSystemObjects() {
 }
 
 async function configureLacadiaAsteroidObjects() {
-  const lacadieraEphemFile = await fetch(
-    './lacadiera_ephem.json',
-  ).then(response => response.json());
+  const lacadieraEphemFile = await fetch('./lacadiera_ephem.json').then(
+    response => response.json(),
+  );
 
   const lacadieraEphem = new Spacekit.EphemerisTable(lacadieraEphemFile);
 

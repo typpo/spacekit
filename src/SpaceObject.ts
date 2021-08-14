@@ -1,28 +1,71 @@
 import * as THREE from 'three';
 
+import type { PerspectiveCamera } from 'three';
+
 import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 import { rescaleArray, rescaleNumber } from './Scale';
+
+import type { Simulation, SimulationContext } from './Simulation';
+import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
+
+interface Ephemeris {
+
+}
+
+interface EphemerisTable {
+
+}
+
+interface SpaceObjectOptions {
+  position: Coordinate3d;
+  scale: [number, number, number];
+  particleSize: number;
+  labelText: string;
+  labelUrl: string;
+  hideOrbit: boolean;
+  orbitPathSettings: {
+    leadDurationYears: number;
+    trailDurationYears: number;
+    numberSamplePoints: number;
+  };
+  ephem: Ephemeris;
+  ephemTable: EphemerisTable;
+  textureUrl: string;
+  basePath: string;
+  ecliptic: {
+    lineColor: number;
+    displayLines: boolean;
+  };
+  theme: {
+    color: number;
+    orbitColor: number;
+  };
+}
 
 /**
  * @private
  * Minimum number of degrees per day an object must move in order for its
  * position to be updated in the visualization.
  */
-const MIN_DEG_MOVE_PER_DAY = 0.05;
+const MIN_DEG_MOVE_PER_DAY: number = 0.05;
 
 /**
  * @private
  * Number of milliseconds between label position updates.
  */
-const LABEL_UPDATE_MS = 30;
+const LABEL_UPDATE_MS: number = 30;
 
 /**
  * @private
  * Converts (X, Y, Z) position in visualization to pixel coordinates.
  */
-function toScreenXY(position, camera, canvas) {
+function toScreenXY(
+  position: CoordinateXYZ,
+  camera: PerspectiveCamera,
+  canvas: HTMLCanvasElement,
+): { x: number; y: number } {
   const pos = new THREE.Vector3(position[0], position[1], position[2]);
   pos.project(camera);
   return {
@@ -84,7 +127,12 @@ export class SpaceObject {
    * @param {boolean} autoInit Automatically initialize this object. If false
    * you must call init() manually.
    */
-  constructor(id, options, contextOrSimulation, autoInit = true) {
+  constructor(
+    id: string,
+    options: SpaceObjectOptions,
+    contextOrSimulation: Simulation | SimulationContext,
+    autoInit: boolean = true,
+  ) {
     this._id = id;
     this._options = options || {};
     this._object3js = undefined;

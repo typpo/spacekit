@@ -50,7 +50,7 @@ interface SpacekitOptions {
   debug?: DebugOptions;
 }
 
-interface SimulationContext {
+export interface SimulationContext {
   simulation: Simulation;
   options: SpacekitOptions;
   objects: {
@@ -93,7 +93,7 @@ interface SimulationContext {
  *  },
  * });
  */
-export default class Simulation {
+export class Simulation {
   onTick: () => void;
 
   private simulationElt: HTMLElement;
@@ -954,3 +954,5 @@ export default class Simulation {
     this.enableCameraDrift = driftOn;
   }
 }
+
+export default Simulation;

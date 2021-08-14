@@ -103,15 +103,18 @@ export class Orbit {
     }
 
     if (!this._options.orbitPathSettings.leadDurationYears) {
-      this._options.orbitPathSettings.leadDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+      this._options.orbitPathSettings.leadDurationYears =
+        DEFAULT_LEAD_TRAIL_YEARS;
     }
 
     if (!this._options.orbitPathSettings.trailDurationYears) {
-      this._options.orbitPathSettings.trailDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+      this._options.orbitPathSettings.trailDurationYears =
+        DEFAULT_LEAD_TRAIL_YEARS;
     }
 
     if (!this._options.orbitPathSettings.numberSamplePoints) {
-      this._options.orbitPathSettings.numberSamplePoints = DEFAULT_SAMPLE_POINTS;
+      this._options.orbitPathSettings.numberSamplePoints =
+        DEFAULT_SAMPLE_POINTS;
     }
 
     /**
@@ -459,8 +462,8 @@ export class Orbit {
   getTableOrbit(startJd, stopJd, step) {
     const rawPoints = this._ephem.getPositions(startJd, stopJd, step);
     const points = rawPoints
-      .map(values => rescaleArray(values))
-      .map(values => new THREE.Vector3(values[0], values[1], values[2]));
+      .map((values) => rescaleArray(values))
+      .map((values) => new THREE.Vector3(values[0], values[1], values[2]));
     const pointGeometry = new THREE.Geometry();
     pointGeometry.vertices = points;
 

@@ -39,8 +39,8 @@ export class ShapeObject extends RotatingObject {
     };
     const loader = new OBJLoader(manager);
     // TODO(ian): Make shapeurl follow assetpath logic.
-    loader.load(this._options.shape.shapeUrl, object => {
-      object.traverse(child => {
+    loader.load(this._options.shape.shapeUrl, (object) => {
+      object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           const material = new THREE.MeshStandardMaterial({
             color: this._options.shape.color || 0xcccccc,

@@ -210,9 +210,9 @@ export class NaturalSatellites {
 
     this._readyPromise = new Promise((resolve, reject) => {
       fetch(dataUrl)
-        .then(resp => resp.json())
-        .then(moons => {
-          moons.forEach(moon => {
+        .then((resp) => resp.json())
+        .then((moons) => {
+          moons.forEach((moon) => {
             const planetName = moon.Planet.toLowerCase();
             if (!this._satellitesByPlanet[planetName]) {
               this._satellitesByPlanet[planetName] = [];
@@ -279,7 +279,7 @@ export class NaturalSatellites {
           console.info('Loaded', moons.length, 'natural satellites');
           resolve(this);
         })
-        .catch(err => {
+        .catch((err) => {
           reject(err);
         });
     });

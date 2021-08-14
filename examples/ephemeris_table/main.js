@@ -74,7 +74,7 @@ function createStandardSolarSystemObjects() {
 
 async function configureLacadiaAsteroidObjects() {
   const lacadieraEphemFile = await fetch('./lacadiera_ephem.json').then(
-    response => response.json(),
+    (response) => response.json(),
   );
 
   const lacadieraEphem = new Spacekit.EphemerisTable(lacadieraEphemFile);
@@ -124,7 +124,7 @@ async function configureLacadiaAsteroidObjects() {
 }
 
 async function configureJupiter() {
-  const jupiterEphemFile = await fetch('./jupiter.json').then(r => r.json());
+  const jupiterEphemFile = await fetch('./jupiter.json').then((r) => r.json());
   const jupiterEphemeris = new Spacekit.EphemerisTable(jupiterEphemFile);
   viz.createSphere('jupiter2', {
     textureUrl: './jupiter2_4k.jpg',
@@ -152,7 +152,7 @@ async function configureJupiter() {
 }
 
 async function configureRenderedAsteroid() {
-  const asteroidEphemFile = await fetch('./asteroid.json').then(response =>
+  const asteroidEphemFile = await fetch('./asteroid.json').then((response) =>
     response.json(),
   );
 
@@ -178,7 +178,7 @@ async function configureRenderedAsteroid() {
   asteroid.initRotation();
   asteroid.startRotation();
 
-  const satEphemFile = await fetch('./satEphem.json').then(response =>
+  const satEphemFile = await fetch('./satEphem.json').then((response) =>
     response.json(),
   );
 
@@ -212,7 +212,7 @@ async function configureMarsAndMarsOrbiter() {
     }),
   );
 
-  const satEphemFile = await fetch('./satEphem.json').then(response =>
+  const satEphemFile = await fetch('./satEphem.json').then((response) =>
     response.json(),
   );
 
@@ -240,30 +240,30 @@ async function configureMarsAndMarsOrbiter() {
 
 // Set up event listeners
 
-document.getElementById('btn-start').onclick = function() {
+document.getElementById('btn-start').onclick = function () {
   viz.start();
 };
-document.getElementById('btn-stop').onclick = function() {
+document.getElementById('btn-stop').onclick = function () {
   viz.stop();
 };
-document.getElementById('btn-set-time').onclick = function() {
+document.getElementById('btn-set-time').onclick = function () {
   viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
 };
 
-document.getElementById('btn-set-jd-per-second').onclick = function() {
+document.getElementById('btn-set-jd-per-second').onclick = function () {
   viz.setJdPerSecond(parseInt(prompt('Enter jd per second'), 10));
 };
 
-document.getElementById('btn-faster').onclick = function() {
+document.getElementById('btn-faster').onclick = function () {
   viz.setJdDelta(viz.getJdDelta() * 1.5);
 };
 
-document.getElementById('btn-slower').onclick = function() {
+document.getElementById('btn-slower').onclick = function () {
   viz.setJdDelta(viz.getJdDelta() * 0.5);
 };
 
 const dateElt = document.getElementById('current-date');
-viz.onTick = function() {
+viz.onTick = function () {
   const d = viz.getDate();
   dateElt.innerHTML = d.toLocaleDateString();
 };

@@ -125,7 +125,7 @@ export class KeplerParticles {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
-    Object.keys(this._attributes).forEach(attributeName => {
+    Object.keys(this._attributes).forEach((attributeName) => {
       const attribute = this._attributes[attributeName];
       // attribute.setDynamic(true);
       geometry.addAttribute(attributeName, attribute);

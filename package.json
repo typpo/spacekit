@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "docs": "esdoc",
-    "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.js'",
+    "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.{js,ts}'",
     "test": "jest"
   },
   "devDependencies": {
@@ -24,7 +24,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
     "jest": "^25.4.0",
-    "prettier": "^1.18.2",
+    "prettier": "^2.3.2",
     "rollup": "^0.67.4",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-livereload": "^1.0.3",

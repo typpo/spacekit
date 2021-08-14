@@ -74,7 +74,7 @@ export class RotatingObject extends SpaceObject {
 
     if (this._options.debug) {
       if (this._options.debug.showAxes) {
-        getAxes().forEach(axis => this._obj.add(axis));
+        getAxes().forEach((axis) => this._obj.add(axis));
       }
 
       if (this._options.debug.showGrid) {

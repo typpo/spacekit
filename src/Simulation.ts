@@ -25,16 +25,16 @@ interface SpacekitOptions {
 }
 
 interface SimulationContext {
-    simulation: Simulation,
-    options: SpacekitOptions,
-    objects: {
-      particles?: KeplerParticles,
-      camera?: Camera,
-    },
-    container: {
-      width: Number,
-      height: Number,
-    },
+  simulation: Simulation;
+  options: SpacekitOptions;
+  objects: {
+    particles?: KeplerParticles;
+    camera?: Camera;
+  };
+  container: {
+    width: Number;
+    height: Number;
+  };
 }
 
 /**
@@ -468,7 +468,7 @@ export default class Simulation {
    * animated.
    */
   addObject(obj, noUpdate = false) {
-    obj.get3jsObjects().map(x => {
+    obj.get3jsObjects().map((x) => {
       this._scene.add(x);
     });
 
@@ -490,7 +490,7 @@ export default class Simulation {
    */
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
-    obj.get3jsObjects().map(x => {
+    obj.get3jsObjects().map((x) => {
       this._scene.remove(x);
     });
 

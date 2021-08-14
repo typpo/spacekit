@@ -8,6 +8,8 @@ import {
   RenderPass,
 } from 'postprocessing';
 
+import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
+
 import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
@@ -20,8 +22,32 @@ import { Stars } from './Stars';
 import { getDefaultBasePath } from './util';
 import { setScaleFactor, rescaleArray } from './Scale';
 
+import type { Coordinate3d } from './Coordinates';
+
+interface CameraOptions {
+  initialPosition?: Coordinate3d;
+  enableDrift?: boolean;
+}
+
+interface DebugOptions {
+  showAxes?: boolean;
+  showGrid?: boolean;
+  showStats?: boolean;
+}
+
 interface SpacekitOptions {
-  // ...
+  basePath?: string;
+  startDate?: Date;
+  jd?: number;
+  jdDelta?: number;
+  jdPerSecond?: number;
+  unitsPerAu?: number;
+  startPaused?: boolean;
+  maxNumParticles?: number;
+  particleTextureUrl?: string;
+  particleDefaultSize?: number;
+  camera?: CameraOptions;
+  debug?: DebugOptions;
 }
 
 interface SimulationContext {
@@ -30,10 +56,13 @@ interface SimulationContext {
   objects: {
     particles?: KeplerParticles;
     camera?: Camera;
+    scene?: Scene;
+    renderer?: WebGLRenderer;
+    composer?: EffectComposer;
   };
   container: {
-    width: Number;
-    height: Number;
+    width: number;
+    height: number;
   };
 }
 
@@ -65,6 +94,54 @@ interface SimulationContext {
  * });
  */
 export default class Simulation {
+  onTick: () => void;
+
+  private simulationElt: HTMLElement;
+
+  private options: SpacekitOptions;
+
+  private jd: number;
+
+  private jdDelta?: number;
+
+  private jdPerSecond: number;
+
+  private isPaused: boolean;
+
+  private enableCameraDrift: boolean;
+
+  private cameraDefaultPos: Coordinate3d;
+
+  private camera: Camera;
+
+  private useLightSources: boolean;
+
+  private lightPosition?: Vector3;
+
+  private subscribedObjects: Record<string, Object3D>;
+
+  private particles: KeplerParticles;
+
+  private stats?: Stats;
+
+  private fps: number;
+
+  private lastUpdatedTime: number;
+
+  private lastStaticCameraUpdateTime: number;
+
+  private lastResizeUpdateTime: number;
+
+  private renderEnabled: boolean;
+
+  private initialRenderComplete: boolean;
+
+  private scene?: Scene;
+
+  private renderer?: WebGLRenderer;
+
+  private composer?: EffectComposer;
+
   /**
    * @param {HTMLElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
@@ -107,54 +184,54 @@ export default class Simulation {
    * @param {boolean} options.debug.showStats Show FPS and other stats
    * (requires stats.js).
    */
-  constructor(simulationElt, options) {
-    this._simulationElt = simulationElt;
-    this._options = options || {};
-    this._options.basePath = this._options.basePath || getDefaultBasePath();
+  constructor(simulationElt: HTMLElement, options: SpacekitOptions) {
+    this.simulationElt = simulationElt;
+    this.options = options || {};
+    this.options.basePath = this.options.basePath || getDefaultBasePath();
 
-    this._jd =
-      typeof this._options.jd === 'undefined'
-        ? Number(julian(this._options.startDate || new Date()))
-        : this._options.jd;
-    this._jdDelta = this._options.jdDelta;
-    this._jdPerSecond = this._options.jdPerSecond || 100;
-    this._isPaused = options.startPaused || false;
+    this.jd =
+      typeof this.options.jd === 'undefined'
+        ? Number(julian(this.options.startDate || new Date()))
+        : this.options.jd;
+    this.jdDelta = this.options.jdDelta;
+    this.jdPerSecond = this.options.jdPerSecond || 100;
+    this.isPaused = options.startPaused || false;
     this.onTick = null;
 
-    this._enableCameraDrift = false;
-    this._cameraDefaultPos = rescaleArray([0, -10, 5]);
-    if (this._options.camera) {
-      this._enableCameraDrift = !!this._options.camera.enableDrift;
-      if (this._options.camera.initialPosition) {
-        this._cameraDefaultPos = rescaleArray(
-          this._options.camera.initialPosition,
+    this.enableCameraDrift = false;
+    this.cameraDefaultPos = rescaleArray([0, -10, 5]);
+    if (this.options.camera) {
+      this.enableCameraDrift = !!this.options.camera.enableDrift;
+      if (this.options.camera.initialPosition) {
+        this.cameraDefaultPos = rescaleArray(
+          this.options.camera.initialPosition,
         );
       }
     }
 
-    this._camera = null;
-    this._isUsingLightSources = false;
-    this._lightPosition = null;
+    this.camera = null;
+    this.useLightSources = false;
+    this.lightPosition = null;
 
-    this._subscribedObjects = {};
-    this._particles = null;
+    this.subscribedObjects = {};
+    this.particles = null;
 
     // stats.js panel
-    this._stats = null;
-    this._fps = 1;
+    this.stats = null;
+    this.fps = 1;
 
-    this._lastUpdatedTime = Date.now();
-    this._lastStaticCameraUpdateTime = Date.now();
-    this._lastResizeUpdateTime = Date.now();
+    this.lastUpdatedTime = Date.now();
+    this.lastStaticCameraUpdateTime = Date.now();
+    this.lastResizeUpdateTime = Date.now();
 
     // Rendering
-    this._renderEnabled = true;
-    this._initialRenderComplete = false;
+    this.renderEnabled = true;
+    this.initialRenderComplete = false;
     this.animate = this.animate.bind(this);
 
-    this._scene = null;
-    this._renderer = null;
-    this._composer = null;
+    this.scene = null;
+    this.renderer = null;
+    this.composer = null;
 
     this.init();
     this.animate();
@@ -172,35 +249,35 @@ export default class Simulation {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     // Scale
-    if (this._options.unitsPerAu) {
-      setScaleFactor(this._options.unitsPerAu);
+    if (this.options.unitsPerAu) {
+      setScaleFactor(this.options.unitsPerAu);
     }
 
     // Scene
-    this._scene = new THREE.Scene();
+    this.scene = new THREE.Scene();
 
     // Camera
     const camera = new Camera(this.getContext());
     camera
       .get3jsCamera()
       .position.set(
-        this._cameraDefaultPos[0],
-        this._cameraDefaultPos[1],
-        this._cameraDefaultPos[2],
+        this.cameraDefaultPos[0],
+        this.cameraDefaultPos[1],
+        this.cameraDefaultPos[2],
       );
     // window.cam = camera.get3jsCamera();
-    this._camera = camera;
+    this.camera = camera;
 
     // Events
-    this._simulationElt.onmousedown = this._simulationElt.ontouchstart = () => {
+    this.simulationElt.onmousedown = this.simulationElt.ontouchstart = () => {
       // When user begins interacting with the visualization, disable camera
       // drift.
-      this._enableCameraDrift = false;
+      this.enableCameraDrift = false;
     };
 
     (() => {
       let listenToCameraEvents = false;
-      this._camera.get3jsCameraControls().addEventListener('change', () => {
+      this.camera.get3jsCameraControls().addEventListener('change', () => {
         // Camera will send a few initial events - ignore these.
         if (listenToCameraEvents) {
           this.staticForcedUpdate();
@@ -210,11 +287,11 @@ export default class Simulation {
         // Send an update when the visualization is done loading.
         this.staticForcedUpdate();
         listenToCameraEvents = true;
-        this._initialRenderComplete = true;
+        this.initialRenderComplete = true;
       }, 0);
     })();
 
-    this._simulationElt.addEventListener('resize', () => {
+    this.simulationElt.addEventListener('resize', () => {
       this.resizeUpdate();
     });
 
@@ -223,31 +300,31 @@ export default class Simulation {
     });
 
     // Helper
-    if (this._options.debug) {
-      if (this._options.debug.showGrid) {
+    if (this.options.debug) {
+      if (this.options.debug.showGrid) {
         const gridHelper = new THREE.GridHelper();
         gridHelper.geometry.rotateX(Math.PI / 2);
-        this._scene.add(gridHelper);
+        this.scene.add(gridHelper);
       }
-      if (this._options.debug.showAxes) {
-        this._scene.add(new THREE.AxesHelper(0.5));
+      if (this.options.debug.showAxes) {
+        this.scene.add(new THREE.AxesHelper(0.5));
       }
-      if (this._options.debug.showStats) {
-        this._stats = new Stats();
-        this._stats.showPanel(0);
-        this._simulationElt.appendChild(this._stats.dom);
+      if (this.options.debug.showStats) {
+        this.stats = new Stats();
+        this.stats.showPanel(0);
+        this.simulationElt.appendChild(this.stats.dom);
       }
     }
 
     // Orbit particle system must be initialized after scene is created.
-    this._particles = new KeplerParticles(
+    this.particles = new KeplerParticles(
       {
         textureUrl:
-          this._options.particleTextureUrl ||
+          this.options.particleTextureUrl ||
           '{{assets}}/sprites/smallparticle.png',
-        jd: this._jd,
-        maxNumParticles: this._options.maxNumParticles,
-        defaultSize: this._options.particleDefaultSize,
+        jd: this.jd,
+        maxNumParticles: this.options.maxNumParticles,
+        defaultSize: this.options.particleDefaultSize,
       },
       this,
     );
@@ -280,13 +357,13 @@ export default class Simulation {
 
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(
-      this._simulationElt.offsetWidth,
-      this._simulationElt.offsetHeight,
+      this.simulationElt.offsetWidth,
+      this.simulationElt.offsetHeight,
     );
 
-    this._simulationElt.appendChild(renderer.domElement);
+    this.simulationElt.appendChild(renderer.domElement);
 
-    this._renderer = renderer;
+    this.renderer = renderer;
   }
 
   /**
@@ -296,7 +373,7 @@ export default class Simulation {
     //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
     //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
 
-    const camera = this._camera.get3jsCamera();
+    const camera = this.camera.get3jsCamera();
 
     /*
     const sunGeometry = new THREE.SphereBufferGeometry(
@@ -322,7 +399,7 @@ export default class Simulation {
     */
     //godRaysEffect.dithering = true;
 
-    const bloomEffect = new BloomEffect(this._scene, camera, {
+    const bloomEffect = new BloomEffect(this.scene, camera, {
       width: 240,
       height: 240,
       luminanceThreshold: 0.2,
@@ -330,7 +407,7 @@ export default class Simulation {
     bloomEffect.inverted = true;
     bloomEffect.blendMode.opacity.value = 2.3;
 
-    const renderPass = new RenderPass(this._scene, camera);
+    const renderPass = new RenderPass(this.scene, camera);
     renderPass.renderToScreen = false;
 
     const effectPass = new EffectPass(
@@ -339,19 +416,19 @@ export default class Simulation {
     );
     effectPass.renderToScreen = true;
 
-    const composer = new EffectComposer(this._renderer);
+    const composer = new EffectComposer(this.renderer);
     composer.addPass(renderPass);
     composer.addPass(effectPass);
-    this._composer = composer;
+    this.composer = composer;
   }
 
   /**
    * @private
    */
   update(force = false) {
-    for (const objId in this._subscribedObjects) {
-      if (this._subscribedObjects.hasOwnProperty(objId)) {
-        this._subscribedObjects[objId].update(this._jd, force);
+    for (const objId in this.subscribedObjects) {
+      if (this.subscribedObjects.hasOwnProperty(objId)) {
+        this.subscribedObjects[objId].update(this.jd, force);
       }
     }
   }
@@ -362,14 +439,14 @@ export default class Simulation {
    * @private
    */
   staticForcedUpdate() {
-    if (this._isPaused) {
+    if (this.isPaused) {
       const now = Date.now();
-      const timeDelta = now - this._lastStaticCameraUpdateTime;
+      const timeDelta = now - this.lastStaticCameraUpdateTime;
       const threshold = 30;
       // TODO(ian): Also do this based on viewport change. Otherwise things like scrolling don't work well.
       if (timeDelta > threshold) {
         this.update(true /* force */);
-        this._lastStaticCameraUpdateTime = now;
+        this.lastStaticCameraUpdateTime = now;
       }
     }
   }
@@ -380,21 +457,21 @@ export default class Simulation {
    */
   resizeUpdate() {
     const now = Date.now();
-    const timeDelta = now - this._lastResizeUpdateTime;
+    const timeDelta = now - this.lastResizeUpdateTime;
     const threshold = 30;
 
     if (timeDelta > threshold) {
-      const newWidth = this._simulationElt.offsetWidth;
-      const newHeight = this._simulationElt.offsetHeight;
+      const newWidth = this.simulationElt.offsetWidth;
+      const newHeight = this.simulationElt.offsetHeight;
       if (newWidth == 0 && newHeight == 0) {
         return;
       }
-      const camera = this._camera.get3jsCamera();
+      const camera = this.camera.get3jsCamera();
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
-      this._renderer.setSize(newWidth, newHeight);
+      this.renderer.setSize(newWidth, newHeight);
       this.staticForcedUpdate();
-      this._lastResizeUpdateTime = now;
+      this.lastResizeUpdateTime = now;
     }
   }
 
@@ -405,8 +482,8 @@ export default class Simulation {
   doCameraDrift() {
     // Follow floating path around
     const timer = 0.0001 * Date.now();
-    const pos = this._cameraDefaultPos;
-    const cam = this._camera.get3jsCamera();
+    const pos = this.cameraDefaultPos;
+    const cam = this.camera.get3jsCamera();
     cam.position.x = pos[0] + (pos[0] * (Math.cos(timer) + 1)) / 3;
     cam.position.z = pos[2] + (pos[2] * (Math.sin(timer) + 1)) / 3;
   }
@@ -415,48 +492,48 @@ export default class Simulation {
    * @private
    */
   animate() {
-    if (!this._renderEnabled && this._initialRenderComplete) {
+    if (!this.renderEnabled && this.initialRenderComplete) {
       return;
     }
 
     window.requestAnimationFrame(this.animate);
 
-    if (this._stats) {
-      this._stats.begin();
+    if (this.stats) {
+      this.stats.begin();
     }
 
-    if (!this._isPaused) {
-      if (this._jdDelta) {
-        this._jd += this._jdDelta;
+    if (!this.isPaused) {
+      if (this.jdDelta) {
+        this.jd += this.jdDelta;
       } else {
         // N jd per second
-        this._jd += this._jdPerSecond / this._fps;
+        this.jd += this.jdPerSecond / this.fps;
       }
 
-      const timeDelta = (Date.now() - this._lastUpdatedTime) / 1000;
-      this._lastUpdatedTime = Date.now();
-      this._fps = 1 / timeDelta || 1;
+      const timeDelta = (Date.now() - this.lastUpdatedTime) / 1000;
+      this.lastUpdatedTime = Date.now();
+      this.fps = 1 / timeDelta || 1;
 
       // Update objects in this simulation
       this.update();
     }
 
     // Update camera drifting, if applicable
-    if (this._enableCameraDrift) {
+    if (this.enableCameraDrift) {
       this.doCameraDrift();
     }
-    this._camera.update();
+    this.camera.update();
 
     // Update three.js scene
-    this._renderer.render(this._scene, this._camera.get3jsCamera());
-    //this._composer.render(0.1);
+    this.renderer.render(this.scene, this.camera.get3jsCamera());
+    //this.composer.render(0.1);
 
     if (this.onTick) {
       this.onTick();
     }
 
-    if (this._stats) {
-      this._stats.end();
+    if (this.stats) {
+      this.stats.end();
     }
   }
 
@@ -469,18 +546,18 @@ export default class Simulation {
    */
   addObject(obj, noUpdate = false) {
     obj.get3jsObjects().map((x) => {
-      this._scene.add(x);
+      this.scene.add(x);
     });
 
     if (!noUpdate) {
       // Call for updates as time passes.
       const objId = obj.getId();
-      if (this._subscribedObjects[objId]) {
+      if (this.subscribedObjects[objId]) {
         console.warn(
           `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
         );
       }
-      this._subscribedObjects[objId] = obj;
+      this.subscribedObjects[objId] = obj;
     }
   }
 
@@ -491,13 +568,13 @@ export default class Simulation {
   removeObject(obj) {
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
-      this._scene.remove(x);
+      this.scene.remove(x);
     });
 
     if (typeof obj.removalCleanup === 'function') {
       obj.removalCleanup();
     }
-    delete this._subscribedObjects[obj.getId()];
+    delete this.subscribedObjects[obj.getId()];
   }
 
   /**
@@ -564,8 +641,8 @@ export default class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color = 0x333333) {
-    this._scene.add(new THREE.AmbientLight(color));
-    this._isUsingLightSources = true;
+    this.scene.add(new THREE.AmbientLight(color));
+    this.useLightSources = true;
   }
 
   /**
@@ -575,13 +652,13 @@ export default class Simulation {
    * with camera.
    * @param {Number} color Color of light, default 0xFFFFFF
    */
-  createLight(pos = undefined, color = 0xffffff) {
-    if (this._lightPosition) {
+  createLight(pos: Coordinate3d = undefined, color: number = 0xffffff) {
+    if (this.lightPosition) {
       console.warn(
         "Spacekit doesn't support more than one light source for SphereObjects",
       );
     }
-    this._lightPosition = new THREE.Vector3();
+    this.lightPosition = new THREE.Vector3();
 
     // Pointlight is for standard meshes created by ShapeObjects.
     // TODO(ian): Remove this point light.
@@ -589,27 +666,27 @@ export default class Simulation {
 
     if (typeof pos !== 'undefined') {
       const rescaled = rescaleArray(pos);
-      this._lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
+      this.lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
       pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     } else {
       // The light comes from the camera.
       // FIXME(ian): This only affects the point source.
-      this._camera.get3jsCameraControls().addEventListener('change', () => {
-        this._lightPosition.copy(this._camera.get3jsCamera().position);
-        pointLight.position.copy(this._camera.get3jsCamera().position);
+      this.camera.get3jsCameraControls().addEventListener('change', () => {
+        this.lightPosition.copy(this.camera.get3jsCamera().position);
+        pointLight.position.copy(this.camera.get3jsCamera().position);
       });
     }
 
-    this._scene.add(pointLight);
-    this._isUsingLightSources = true;
+    this.scene.add(pointLight);
+    this.useLightSources = true;
   }
 
-  getLightPosition() {
-    return this._lightPosition;
+  getLightPosition(): Vector3 {
+    return this.lightPosition;
   }
 
-  isUsingLightSources() {
-    return this._isUsingLightSources;
+  isUsingLightSources(): boolean {
+    return this.useLightSources;
   }
 
   /**
@@ -632,7 +709,7 @@ export default class Simulation {
   renderOnlyInViewport() {
     let previouslyInView = true;
     const isInView = () => {
-      const rect = this._simulationElt.getBoundingClientRect();
+      const rect = this.simulationElt.getBoundingClientRect();
       const windowHeight =
         window.innerHeight || document.documentElement.clientHeight;
       const windowWidth =
@@ -648,11 +725,11 @@ export default class Simulation {
       const inView = isInView();
       if (previouslyInView && !inView) {
         // Went out of view
-        this._renderEnabled = false;
+        this.renderEnabled = false;
         previouslyInView = false;
       } else if (!previouslyInView && inView) {
         // Came into view
-        this._renderEnabled = true;
+        this.renderEnabled = true;
         window.requestAnimationFrame(this.animate);
         previouslyInView = true;
       }
@@ -661,7 +738,7 @@ export default class Simulation {
     if (!isInView()) {
       // Initial state is render enabled, so disable it if currently out of
       // view.
-      this._renderEnabled = false;
+      this.renderEnabled = false;
       previouslyInView = false;
     }
   }
@@ -673,7 +750,7 @@ export default class Simulation {
    * @param {Number} offset Add some extra room in the viewport. Increase to be
    * further zoomed out, decrease to be closer. Default 3.0.
    */
-  zoomToFit(spaceObj, offset = 3.0) {
+  zoomToFit(spaceObj: SpaceObject, offset: number = 3.0) {
     const checkZoomFit = () => {
       const orbit = spaceObj.getOrbit();
       const obj = orbit ? orbit.getOrbitShape() : spaceObj.getBoundingObject();
@@ -698,11 +775,11 @@ export default class Simulation {
   /**
    * @private
    * Perform the actual zoom to fit behavior.
-   * @param {SpaceObject} obj Object to fit within viewport.
+   * @param {Object3D} obj Three.js object to fit within viewport.
    * @param {Number} offset Add some extra room in the viewport. Increase to be
    * further zoomed out, decrease to be closer. Default 3.0.
    */
-  doZoomToFit(obj, offset) {
+  doZoomToFit(obj: Object3D, offset: number) {
     const boundingBox = new THREE.Box3();
     boundingBox.setFromObject(obj);
 
@@ -712,7 +789,7 @@ export default class Simulation {
     boundingBox.getSize(size);
 
     // Get the max side of the bounding box (fits to width OR height as needed)
-    const camera = this._camera.get3jsCamera();
+    const camera = this.camera.get3jsCamera();
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = camera.fov * (Math.PI / 180);
     const cameraZ = Math.abs((maxDim / 2) * Math.tan(fov * 2)) * offset;
@@ -730,38 +807,38 @@ export default class Simulation {
 
     // Update default camera pos so if drift is on, camera will drift around
     // its new position.
-    this._cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
+    this.cameraDefaultPos = [newpos.x, newpos.y, newpos.z];
   }
 
   /**
    * Run the animation
    */
   start() {
-    this._lastUpdatedTime = Date.now();
-    this._isPaused = false;
+    this.lastUpdatedTime = Date.now();
+    this.isPaused = false;
   }
 
   /**
    * Stop the animation
    */
   stop() {
-    this._isPaused = true;
+    this.isPaused = true;
   }
 
   /**
    * Gets the current JD date of the simulation
    * @return {Number} JD date
    */
-  getJd() {
-    return this._jd;
+  getJd(): number {
+    return this.jd;
   }
 
   /**
    * Sets the JD date of the simulation.
    * @param {Number} val JD date
    */
-  setJd(val) {
-    this._jd = val;
+  setJd(val: number) {
+    this.jd = val;
     this.update(true);
   }
 
@@ -769,15 +846,15 @@ export default class Simulation {
    * Get a date object representing local date and time of the simulation.
    * @return {Date} Date of simulation
    */
-  getDate() {
-    return julian.toDate(this._jd);
+  getDate(): Date {
+    return julian.toDate(this.jd);
   }
 
   /**
    * Set the local date and time of the simulation.
    * @param {Date} date Date of simulation
    */
-  setDate(date) {
+  setDate(date: Date) {
     this.setJd(Number(julian(date)));
   }
 
@@ -785,10 +862,10 @@ export default class Simulation {
    * Get the JD per frame of the visualization.
    */
   getJdDelta() {
-    if (!this._jdDelta) {
-      return this._jdPerSecond / this._fps;
+    if (!this.jdDelta) {
+      return this.jdPerSecond / this.fps;
     }
-    return this._jdDelta;
+    return this.jdDelta;
   }
 
   /**
@@ -796,51 +873,51 @@ export default class Simulation {
    * existing "JD per second" setting.
    * @param {Number} delta JD per frame
    */
-  setJdDelta(delta) {
-    this._jdDelta = delta;
+  setJdDelta(delta: number) {
+    this.jdDelta = delta;
   }
 
   /**
    * Get the JD change per second of the visualization.
    * @return {Number} JD per second
    */
-  getJdPerSecond() {
-    if (this._jdDelta) {
+  getJdPerSecond(): number {
+    if (this.jdDelta) {
       // Jd per second can vary
       return undefined;
     }
-    return this._jdPerSecond;
+    return this.jdPerSecond;
   }
 
   /**
    * Set the JD change per second of the visualization.
-   * @return {Number} x JD per second
+   * @param {Number} x JD per second
    */
-  setJdPerSecond(x) {
+  setJdPerSecond(x: number) {
     // Delta overrides jd per second, so unset it.
-    this._jdDelta = undefined;
+    this.jdDelta = undefined;
 
-    this._jdPerSecond = x;
+    this.jdPerSecond = x;
   }
 
   /**
    * Get an object that contains useful context for this visualization
    * @return {Object} Context object
    */
-  getContext() {
+  getContext(): SimulationContext {
     return {
       simulation: this,
-      options: this._options,
+      options: this.options,
       objects: {
-        particles: this._particles,
-        camera: this._camera,
-        scene: this._scene,
-        renderer: this._renderer,
-        composer: this._composer,
+        particles: this.particles,
+        camera: this.camera,
+        scene: this.scene,
+        renderer: this.renderer,
+        composer: this.composer,
       },
       container: {
-        width: this._simulationElt.offsetWidth,
-        height: this._simulationElt.offsetHeight,
+        width: this.simulationElt.offsetWidth,
+        height: this.simulationElt.offsetHeight,
       },
     };
   }
@@ -849,31 +926,31 @@ export default class Simulation {
    * Get the element containing this simulation
    * @return {HTMLElement} The html container of this simulation
    */
-  getSimulationElement() {
-    return this._simulationElt;
+  getSimulationElement(): HTMLElement {
+    return this.simulationElt;
   }
 
   /**
    * Get the Camera and CameraControls wrapper object
    * @return {Camera} The Camera wrapper
    */
-  getViewer() {
-    return this._camera;
+  getViewer(): Camera {
+    return this.camera;
   }
 
   /**
    * Get the three.js scene object
    * @return {THREE.Scene} The THREE.js scene object
    */
-  getScene() {
-    return this._scene;
+  getScene(): THREE.Scene {
+    return this.scene;
   }
 
   /**
    * Enable or disable camera drift.
    * @param {boolean} driftOn True if you want the camera to float around a bit
    */
-  setCameraDrift(driftOn) {
-    this._enableCameraDrift = driftOn;
+  setCameraDrift(driftOn: boolean) {
+    this.enableCameraDrift = driftOn;
   }
 }

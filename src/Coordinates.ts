@@ -1,6 +1,13 @@
 import { rad, deg } from './Units';
 
-const J2000 = 2451545.0;
+export type Coordinate3d = [number, number, number];
+export type CoordinateXYZ = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+const J2000: number = 2451545.0;
 
 export function sphericalToCartesian(ra, dec, dist) {
   // See http://www.stargazing.net/kepler/rectang.html

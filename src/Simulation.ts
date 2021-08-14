@@ -142,12 +142,14 @@ export default class Simulation {
     // stats.js panel
     this._stats = null;
     this._fps = 1;
+
     this._lastUpdatedTime = Date.now();
     this._lastStaticCameraUpdateTime = Date.now();
     this._lastResizeUpdateTime = Date.now();
 
     // Rendering
     this._renderEnabled = true;
+    this._initialRenderComplete = false;
     this.animate = this.animate.bind(this);
 
     this._scene = null;
@@ -186,7 +188,7 @@ export default class Simulation {
         this._cameraDefaultPos[1],
         this._cameraDefaultPos[2],
       );
-    window.cam = camera.get3jsCamera();
+    // window.cam = camera.get3jsCamera();
     this._camera = camera;
 
     // Events
@@ -196,9 +198,21 @@ export default class Simulation {
       this._enableCameraDrift = false;
     };
 
-    this._camera.get3jsCameraControls().addEventListener('change', () => {
-      this.staticForcedUpdate();
-    });
+    (() => {
+      let listenToCameraEvents = false;
+      this._camera.get3jsCameraControls().addEventListener('change', () => {
+        // Camera will send a few initial events - ignore these.
+        if (listenToCameraEvents) {
+          this.staticForcedUpdate();
+        }
+      });
+      setTimeout(() => {
+        // Send an update when the visualization is done loading.
+        this.staticForcedUpdate();
+        listenToCameraEvents = true;
+        this._initialRenderComplete = true;
+      }, 0);
+    })();
 
     this._simulationElt.addEventListener('resize', () => {
       this.resizeUpdate();
@@ -352,8 +366,9 @@ export default class Simulation {
       const now = Date.now();
       const timeDelta = now - this._lastStaticCameraUpdateTime;
       const threshold = 30;
+      // TODO(ian): Also do this based on viewport change. Otherwise things like scrolling don't work well.
       if (timeDelta > threshold) {
-        this.update(true);
+        this.update(true /* force */);
         this._lastStaticCameraUpdateTime = now;
       }
     }
@@ -400,7 +415,7 @@ export default class Simulation {
    * @private
    */
   animate() {
-    if (!this._renderEnabled) {
+    if (!this._renderEnabled && this._initialRenderComplete) {
       return;
     }
 
@@ -459,7 +474,13 @@ export default class Simulation {
 
     if (!noUpdate) {
       // Call for updates as time passes.
-      this._subscribedObjects[obj.getId()] = obj;
+      const objId = obj.getId();
+      if (this._subscribedObjects[objId]) {
+        console.warn(
+          `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
+        );
+      }
+      this._subscribedObjects[objId] = obj;
     }
   }
 
@@ -813,6 +834,9 @@ export default class Simulation {
       objects: {
         particles: this._particles,
         camera: this._camera,
+        scene: this._scene,
+        renderer: this._renderer,
+        composer: this._composer,
       },
       container: {
         width: this._simulationElt.offsetWidth,

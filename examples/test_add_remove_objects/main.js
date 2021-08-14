@@ -131,10 +131,7 @@ document.getElementById('btn-add-static').onclick = function() {
   if (!staticParticles) {
     staticParticles = viz.createStaticParticles(
       'Particles',
-      [
-        [1, 1, 1],
-        [2, 2, 2],
-      ],
+      [[1, 1, 1], [2, 2, 2]],
       {},
     );
   }

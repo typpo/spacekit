@@ -7,14 +7,33 @@ import * as Util from './util';
  * @example
  */
 
+// Types
+type InterpolationType = 'lagrange';
+type EphemType = 'cartesianposvel';
+type DistanceUnits = 'au' | 'km';
+type TimeUnits = 'day' | 'sec';
+
+interface EphemerisTableUnits {
+  distance: string;
+  time: string;
+}
+
+interface EphemerisTableData {
+  data: number[][];
+  // TODO(ian): Add the valid strings to typing.
+  ephemerisType: EphemType;
+  distanceUnits: DistanceUnits;
+  timeUnits: TimeUnits;
+  interpolationType: InterpolationType;
+  interpolationOrder: number;
+}
+
 // Constants
 const MAX_INTERPOLATION_ORDER = 20;
-const INCREASING_JDATE_SEARCH_METHOD = (a, b) => {
-  return a[0] - b;
-};
+const INCREASING_JDATE_SEARCH_METHOD = (a, b) => a[0] - b;
 
-//Default Values
-const DEFAULT_UNITS = {
+// Default Values
+const DEFAULT_UNITS: EphemerisTableUnits = {
   distance: 'au',
   time: 'day',
 };
@@ -23,7 +42,7 @@ const DEFAULT_EPHEM_TYPE = 'cartesianposvel';
 const DEFAULT_INTERPOLATION_TYPE = 'lagrange';
 const DEFAULT_INTERPOLATION_ORDER = 5;
 
-//Allowable unit types
+// Allowable unit types
 const DISTANCE_UNITS = new Set(['km', 'au']);
 const EPHEM_TYPES = new Set(['cartesianposvel']);
 const INTERPOLATION_TYPES = new Set(['lagrange']);
@@ -37,7 +56,17 @@ const TIME_UNITS = new Set(['day', 'sec']);
  *
  * For 'cartesianposvel' style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]
  */
-export class EphemerisTable {
+export default class EphemerisTable {
+  private units: EphemerisTableUnits;
+
+  private ephemType: EphemType;
+
+  private interpolationType: InterpolationType;
+
+  private interpolationOrder: number;
+
+  private data: number[][];
+
   /**
    * @param {Object} ephemerisData Look up ephemeris data to initialize the table with and the properties of it
    * @param {Array.<Array.<Number>>} ephemerisData.data the ephemeris data appropriate for the specified ephemeris type
@@ -47,14 +76,16 @@ export class EphemerisTable {
    * @param {String} ephemerisData.interpolationType the type of interpolater to use (defaults to 'lagrange')
    * @param {Number} ephemerisData.interpolationOrder the order of the interpolator to use (defaults to 5)
    */
-  constructor(ephemerisData) {
-    this._units = JSON.parse(JSON.stringify(DEFAULT_UNITS));
-    this._ephemType = DEFAULT_EPHEM_TYPE;
-    this._interpolationType = DEFAULT_INTERPOLATION_TYPE;
-    this._interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
+  constructor(ephemerisData: EphemerisTableData) {
+    this.units = JSON.parse(JSON.stringify(DEFAULT_UNITS));
+    this.ephemType = DEFAULT_EPHEM_TYPE;
+    this.interpolationType = DEFAULT_INTERPOLATION_TYPE;
+    this.interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
 
     if (!ephemerisData) {
-      throw 'EphemerisTable must be initialized with an ephemeris data structure';
+      throw new Error(
+        'EphemerisTable must be initialized with an ephemeris data structure',
+      );
     }
 
     if (
@@ -63,36 +94,44 @@ export class EphemerisTable {
       ephemerisData.data.length === 0 ||
       !Array.isArray(ephemerisData.data[0])
     ) {
-      throw 'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data';
+      throw new Error(
+        'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data',
+      );
     }
-    this._data = JSON.parse(JSON.stringify(ephemerisData.data));
+    this.data = JSON.parse(JSON.stringify(ephemerisData.data));
 
     if (ephemerisData.distanceUnits) {
       if (!DISTANCE_UNITS.has(ephemerisData.distanceUnits)) {
-        throw `Unknown distance units: ${ephemerisData.distanceUnits}`;
+        throw new Error(
+          `Unknown distance units: ${ephemerisData.distanceUnits}`,
+        );
       }
-      this._units.distance = ephemerisData.distanceUnits;
+      this.units.distance = ephemerisData.distanceUnits;
     }
 
     if (ephemerisData.timeUnits) {
       if (!TIME_UNITS.has(ephemerisData.timeUnits)) {
-        throw `Unknown time units: ${ephemerisData.timeUnits}`;
+        throw new Error(`Unknown time units: ${ephemerisData.timeUnits}`);
       }
-      this._units.time = ephemerisData.timeUnits;
+      this.units.time = ephemerisData.timeUnits;
     }
 
     if (ephemerisData.ephemerisType) {
       if (!EPHEM_TYPES.has(ephemerisData.ephemerisType)) {
-        throw `Unknown ephemeris type: ${ephemerisData.ephemerisType}`;
+        throw new Error(
+          `Unknown ephemeris type: ${ephemerisData.ephemerisType}`,
+        );
       }
-      this._ephemType = ephemerisData.ephemerisType;
+      this.ephemType = ephemerisData.ephemerisType;
     }
 
     if (ephemerisData.interpolationType) {
       if (!INTERPOLATION_TYPES.has(ephemerisData.interpolationType)) {
-        throw `Unknown interpolation type: ${ephemerisData.interpolationType}`;
+        throw new Error(
+          `Unknown interpolation type: ${ephemerisData.interpolationType}`,
+        );
       }
-      this._interpolationType = ephemerisData.interpolationType;
+      this.interpolationType = ephemerisData.interpolationType;
     }
 
     if (ephemerisData.interpolationOrder !== undefined) {
@@ -100,20 +139,22 @@ export class EphemerisTable {
         ephemerisData.interpolationOrder < 1 ||
         ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER
       ) {
-        throw `Interpolation order must be >0 and <${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`;
+        throw new Error(
+          `Interpolation order must be >0 and <${MAX_INTERPOLATION_ORDER}: ${ephemerisData.interpolationOrder}`,
+        );
       }
-      this._interpolationOrder = ephemerisData.interpolationOrder;
+      this.interpolationOrder = ephemerisData.interpolationOrder;
     }
 
     if (
-      this._units.distance !== DEFAULT_UNITS.distance ||
-      this._units.time !== DEFAULT_UNITS.time
+      this.units.distance !== DEFAULT_UNITS.distance ||
+      this.units.time !== DEFAULT_UNITS.time
     ) {
       const distanceMultiplier = this.calcDistanceMultiplier(
-        this._units.distance,
+        this.units.distance,
       );
-      const timeMultiplier = this.calcTimeMultiplier(this._units.time);
-      this._data.forEach((line) => {
+      const timeMultiplier = this.calcTimeMultiplier(this.units.time);
+      this.data.forEach((line) => {
         line[1] *= distanceMultiplier;
         line[2] *= distanceMultiplier;
         line[3] *= distanceMultiplier;
@@ -131,18 +172,18 @@ export class EphemerisTable {
    * @returns {Number[]|*[]} x, y, z position in the ephemeris table's reference frame
    */
   getPositionAtTime(jd) {
-    if (jd <= this._data[0][0]) {
-      return [this._data[0][1], this._data[0][2], this._data[0][3]];
+    if (jd <= this.data[0][0]) {
+      return [this.data[0][1], this.data[0][2], this.data[0][3]];
     }
 
-    const last = this._data[this._data.length - 1];
+    const last = this.data[this.data.length - 1];
     if (jd >= last[0]) {
       return [last[1], last[2], last[3]];
     }
 
     const { startIndex, stopIndex } = this.calcBoundingIndices(jd);
     const x = SpacekitMath.interpolate(
-      this._data,
+      this.data,
       jd,
       startIndex,
       stopIndex,
@@ -150,7 +191,7 @@ export class EphemerisTable {
       1,
     );
     const y = SpacekitMath.interpolate(
-      this._data,
+      this.data,
       jd,
       startIndex,
       stopIndex,
@@ -158,7 +199,7 @@ export class EphemerisTable {
       2,
     );
     const z = SpacekitMath.interpolate(
-      this._data,
+      this.data,
       jd,
       startIndex,
       stopIndex,
@@ -178,14 +219,14 @@ export class EphemerisTable {
    */
   getPositions(startJd, stopJd, stepDays) {
     if (startJd > stopJd) {
-      throw `Requested start needs to be after requested stop`;
+      throw new Error(`Requested start needs to be after requested stop`);
     }
 
     if (stepDays <= 0.0) {
-      throw 'Step days needs to be greater than zero';
+      throw new Error('Step days needs to be greater than zero');
     }
 
-    let result = [];
+    const result = [];
     for (let t = startJd; t <= stopJd; t += stepDays) {
       result.push(this.getPositionAtTime(t));
     }
@@ -196,7 +237,7 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcDistanceMultiplier(unitType) {
+  calcDistanceMultiplier(unitType): number {
     switch (unitType) {
       case 'au':
         return 1.0;
@@ -210,7 +251,7 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcTimeMultiplier(unitType) {
+  calcTimeMultiplier(unitType): number {
     switch (unitType) {
       case 'day':
         return 1.0;
@@ -224,10 +265,13 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcBoundingIndices(jd) {
-    const halfSampleSize = Math.floor(this._interpolationOrder / 2);
+  calcBoundingIndices(jd): {
+    startIndex: number;
+    stopIndex: number;
+  } {
+    const halfSampleSize = Math.floor(this.interpolationOrder / 2);
     let closestIndex = Util.binarySearch(
-      this._data,
+      this.data,
       jd,
       INCREASING_JDATE_SEARCH_METHOD,
     );
@@ -239,10 +283,10 @@ export class EphemerisTable {
       startIndex = 0;
     }
 
-    let stopIndex = startIndex + Number(this._interpolationOrder);
-    if (stopIndex >= this._data.length) {
-      stopIndex = this._data.length - 1;
-      if (this._data.length > halfSampleSize) {
+    let stopIndex = startIndex + Number(this.interpolationOrder);
+    if (stopIndex >= this.data.length) {
+      stopIndex = this.data.length - 1;
+      if (this.data.length > halfSampleSize) {
         startIndex = stopIndex - halfSampleSize;
       }
     }

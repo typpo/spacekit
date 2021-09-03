@@ -1,9 +1,43 @@
 const METERS_IN_AU = 149597870700;
 const SECONDS_IN_DAY = 86400;
 
+type EphemAttribute =
+  | 'a'
+  | 'e'
+  | 'i'
+  | 'q'
+  | 'epoch'
+  | 'period'
+  | 'tp'
+  | 'ma'
+  | 'n'
+  | 'L'
+  | 'om'
+  | 'w'
+  | 'wBar'
+  | 'GM';
+
+interface EphemAttributes {
+  a?: number;
+  e?: number;
+  i?: number;
+  q?: number;
+  epoch?: number;
+  period?: number;
+  tp?: number;
+
+  ma?: number;
+  n?: number;
+  L?: number;
+  om?: number;
+  w?: number;
+  wBar?: number;
+  GM?: number;
+}
+
 // TODO(ian): Allow multiple valid attrs for a single quantity and map them
 // internally to a single canonical attribute.
-const EPHEM_VALID_ATTRS = new Set([
+const EPHEM_VALID_ATTRS: Set<string> = new Set([
   'a', // Semi-major axis
   'e', // Eccentricity
   'i', // Inclination
@@ -25,7 +59,44 @@ const EPHEM_VALID_ATTRS = new Set([
 ]);
 
 // Which of these are angular measurements.
-const ANGLE_UNITS = new Set(['i', 'ma', 'n', 'L', 'om', 'w', 'wBar']);
+const ANGLE_UNITS: Set<string> = new Set([
+  'i',
+  'ma',
+  'n',
+  'L',
+  'om',
+  'w',
+  'wBar',
+]);
+
+/**
+ * Standard gravitational parameter for objects orbiting these bodies.
+ * Units in m^3/s^2
+ */
+export const GM: {
+  SUN: number;
+  MERCURY: number;
+  VENUS: number;
+  EARTH_MOON: number;
+  MARS: number;
+  JUPITER: number;
+  SATURN: number;
+  URANUS: number;
+  NEPTUNE: number;
+  PLUTO_CHARON: number;
+} = {
+  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+  SUN: 1.3271244004193938e20,
+  MERCURY: 2.2031780000000021e13,
+  VENUS: 3.2485859200000006e14,
+  EARTH_MOON: 4.0350323550225981e14,
+  MARS: 4.2828375214000022e13,
+  JUPITER: 1.2671276480000021e17,
+  SATURN: 3.7940585200000003e16,
+  URANUS: 5.794548600000008e15,
+  NEPTUNE: 6.8365271005800236e15,
+  PLUTO_CHARON: 9.7700000000000068e11,
+};
 
 // Returns true if object is defined.
 function isDef(obj) {
@@ -46,6 +117,10 @@ function isDef(obj) {
  * }, 'deg'),
  */
 export class Ephem {
+  private attrs: EphemAttributes;
+
+  private locked: boolean;
+
   /**
    * @param {Object} initialValues A dictionary of initial values. Not all values
    * are required as some may be inferred from others.
@@ -64,19 +139,23 @@ export class Ephem {
    * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
-  constructor(initialValues, units = 'rad', locked = false) {
-    this._attrs = {};
-    this._locked = false;
+  constructor(
+    initialValues: EphemAttributes,
+    units: 'rad' | 'deg' = 'rad',
+    locked: boolean = false,
+  ) {
+    this.attrs = {};
+    this.locked = false;
 
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
         const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
-        this.set(attr, initialValues[attr], actualUnits);
+        this.set(attr as EphemAttribute, initialValues[attr], actualUnits);
       }
     }
 
-    if (typeof this._attrs.GM === 'undefined') {
-      this._attrs.GM = GM.SUN;
+    if (typeof this.attrs.GM === 'undefined') {
+      this.attrs.GM = GM.SUN;
     }
     this.fill();
 
@@ -86,7 +165,7 @@ export class Ephem {
       );
     }
 
-    this._locked = locked;
+    this.locked = locked;
   }
 
   /**
@@ -95,8 +174,8 @@ export class Ephem {
    * @param {Number} val The value of the attribute (e.g. 0.5)
    * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
    */
-  set(attr, val, units = 'rad') {
-    if (this._locked) {
+  set(attr: EphemAttribute, val: number, units: 'deg' | 'rad' = 'rad') {
+    if (this.locked) {
       throw new Error('Attempted to modify locked (immutable) Ephem object');
     }
 
@@ -108,9 +187,9 @@ export class Ephem {
     // Store everything in radians.
     // TODO(ian): Make sure value can't be set with bogus units.
     if (units === 'deg') {
-      this._attrs[attr] = (val * Math.PI) / 180;
+      this.attrs[attr] = (val * Math.PI) / 180;
     } else {
-      this._attrs[attr] = val;
+      this.attrs[attr] = val;
     }
     return true;
   }
@@ -121,11 +200,11 @@ export class Ephem {
    * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
    * input is ignored for values that are not angle measurements.
    */
-  get(attr, units = 'rad') {
+  get(attr: EphemAttribute, units: 'deg' | 'rad' = 'rad') {
     if (units === 'deg') {
-      return (this._attrs[attr] * 180) / Math.PI;
+      return (this.attrs[attr] * 180) / Math.PI;
     }
-    return this._attrs[attr];
+    return this.attrs[attr];
   }
 
   /**
@@ -222,10 +301,10 @@ export class Ephem {
    * Make this ephem object immutable.
    */
   lock() {
-    this._locked = true;
+    this.locked = true;
   }
 
-  copy() {
+  copy(): Ephem {
     return new Ephem(
       {
         GM: this.get('GM'),
@@ -241,21 +320,3 @@ export class Ephem {
     );
   }
 }
-
-/**
- * Standard gravitational parameter for objects orbiting these bodies.
- * Units in m^3/s^2
- */
-export const GM = {
-  // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
-  SUN: 1.3271244004193938e20,
-  MERCURY: 2.2031780000000021e13,
-  VENUS: 3.2485859200000006e14,
-  EARTH_MOON: 4.0350323550225981e14,
-  MARS: 4.2828375214000022e13,
-  JUPITER: 1.2671276480000021e17,
-  SATURN: 3.7940585200000003e16,
-  URANUS: 5.794548600000008e15,
-  NEPTUNE: 6.8365271005800236e15,
-  PLUTO_CHARON: 9.7700000000000068e11,
-};

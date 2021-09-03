@@ -3,42 +3,42 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import type { PerspectiveCamera } from 'three';
 
 import { rescaleNumber, rescaleArray } from './Scale';
-import type Simulation from './Simulation';
+import type { SimulationContext } from './Simulation';
 
 /**
  * A wrapper for Three.js camera and controls.
  * TODO(ian): Rename to "Viewer"
  */
 export default class Camera {
-  _context: Simulation;
+  private context: SimulationContext;
 
-  _camera?: PerspectiveCamera;
+  private camera?: PerspectiveCamera;
 
-  _cameraControls?: OrbitControls;
+  private cameraControls?: OrbitControls;
 
-  _followMesh: THREE.Object3D;
+  private followMesh: THREE.Object3D;
 
   /**
    * @param {Object} context The simulation context
    */
-  constructor(context: Simulation) {
+  constructor(context: SimulationContext) {
     // TODO(ian): Accept either context or container
-    this._context = context;
+    this.context = context;
 
-    this._camera = null;
-    this._cameraControls = null;
+    this.camera = null;
+    this.cameraControls = null;
 
     // Optional mesh that we are following.
-    this._followMesh = null;
+    this.followMesh = null;
 
     this.init();
   }
 
   init() {
-    const containerWidth = this._context.container.width;
-    const containerHeight = this._context.container.height;
+    const containerWidth = this.context.container.width;
+    const containerHeight = this.context.container.height;
 
-    this._camera = new THREE.PerspectiveCamera(
+    this.camera = new THREE.PerspectiveCamera(
       50,
       containerWidth / containerHeight,
       rescaleNumber(0.00001),
@@ -50,19 +50,19 @@ export default class Camera {
     // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
 
     // TODO(ian): Access this better
-    const renderer = this._context.simulation._renderer;
+    const renderer = this.context.simulation.getRenderer();
 
-    const controls = new OrbitControls(this._camera, renderer.domElement);
+    const controls = new OrbitControls(this.camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = true;
     controls.zoomSpeed = 1.5;
-    controls.userPanSpeed = 20;
+    controls.panSpeed = 20;
     controls.rotateSpeed = 2;
     controls.touches = {
       ONE: THREE.TOUCH.ROTATE,
       TWO: THREE.TOUCH.DOLLY_ROTATE,
     };
-    this._cameraControls = controls;
+    this.cameraControls = controls;
   }
 
   /**
@@ -75,47 +75,47 @@ export default class Camera {
   followObject(obj, position) {
     const followMesh = obj.get3jsObjects()[0];
 
-    this._cameraControls.enablePan = false;
+    this.cameraControls.enablePan = false;
 
     const rescaled = rescaleArray(position);
-    this._camera.position.add(
+    this.camera.position.add(
       new THREE.Vector3(rescaled[0], rescaled[1], rescaled[2]),
     );
 
-    this._cameraControls.update();
-    this._followMesh = followMesh;
+    this.cameraControls.update();
+    this.followMesh = followMesh;
   }
 
   /**
    * Stop the camera from following the object.
    */
   stopFollowingObject() {
-    if (this._followMesh) {
-      this._followMesh.remove(this._camera);
-      this._followMesh = null;
-      this._cameraControls.enablePan = true;
+    if (this.followMesh) {
+      this.followMesh.remove(this.camera);
+      this.followMesh = null;
+      this.cameraControls.enablePan = true;
     }
   }
 
   /**
    * @returns {boolean} True if camera is following object.
    */
-  isFollowingObject() {
-    return !!this._followMesh;
+  isFollowingObject(): boolean {
+    return !!this.followMesh;
   }
 
   /**
-   * @returns {THREE.Camera} The THREE.js camera object.
+   * @returns {THREE.PerspectiveCamera} The THREE.js camera object.
    */
-  get3jsCamera() {
-    return this._camera;
+  get3jsCamera(): THREE.PerspectiveCamera {
+    return this.camera;
   }
 
   /**
-   * @returns {THREE.CameraControls} The THREE.js CameraControls object.
+   * @returns {THREE.OrbitControls} The THREE.js CameraControls object.
    */
-  get3jsCameraControls() {
-    return this._cameraControls;
+  get3jsCameraControls(): OrbitControls {
+    return this.cameraControls;
   }
 
   /**
@@ -123,18 +123,18 @@ export default class Camera {
    */
   update() {
     if (this.isFollowingObject()) {
-      const newpos = this._followMesh.position.clone();
+      const newpos = this.followMesh.position.clone();
 
-      const offset = newpos.clone().sub(this._cameraControls.target);
-      this._camera.position.add(offset);
+      const offset = newpos.clone().sub(this.cameraControls.target);
+      this.camera.position.add(offset);
 
-      this._cameraControls.target.set(newpos.x, newpos.y, newpos.z);
+      this.cameraControls.target.set(newpos.x, newpos.y, newpos.z);
     }
 
     // Handle control movements
-    this._cameraControls.update();
+    this.cameraControls.update();
 
     // Update camera matrix
-    this._camera.updateMatrixWorld();
+    this.camera.updateMatrixWorld();
   }
 }

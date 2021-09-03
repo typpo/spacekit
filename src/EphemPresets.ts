@@ -2,6 +2,8 @@ import { Ephem, GM } from './Ephem';
 import { getFullUrl } from './util';
 import { kmToAu } from './Units';
 
+import type { Simulation, SimulationContext } from './Simulation';
+
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
  * @example
@@ -9,7 +11,18 @@ import { kmToAu } from './Units';
  *   ephem: EphemPresets.MERCURY,
  * });
  */
-export const EphemPresets = {
+export const EphemPresets: {
+  MERCURY: Ephem;
+  VENUS: Ephem;
+  EARTH: Ephem;
+  MOON: Ephem;
+  MARS: Ephem;
+  JUPITER: Ephem;
+  SATURN: Ephem;
+  URANUS: Ephem;
+  NEPTUNE: Ephem;
+  PLUTO: Ephem;
+} = {
   // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
   MERCURY: new Ephem(
     {
@@ -185,16 +198,26 @@ export const EphemPresets = {
  * system.
  */
 export class NaturalSatellites {
+  private _simulation: Simulation;
+
+  private _context: SimulationContext;
+
+  private _satellitesByPlanet: Record<
+    string,
+    {
+      name: string;
+      elementType: string;
+      tags: Set<string>;
+      ephem: Ephem;
+    }[]
+  >;
+
+  private _readyPromise?: Promise<NaturalSatellites>;
+
   constructor(contextOrSimulation) {
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+    // User passed in Simulation
+    this._simulation = contextOrSimulation;
+    this._context = contextOrSimulation.getContext();
 
     this._satellitesByPlanet = {};
     this._readyPromise = null;
@@ -226,17 +249,19 @@ export class NaturalSatellites {
               case 'Equatorial':
                 // TODO(ian): Convert equatorial coords
                 ephemType = 'equatorial';
-                break;
+                throw new Error(
+                  `Ephemeris type not yet implemented: ${ephemType}`,
+                );
               case 'Laplace':
                 // TODO(ian): Convert laplace coords
                 ephemType = 'equatorial';
-                break;
-              default:
-                console.error(
-                  'Unknown element type in natural satellites object:',
-                  moon,
+                throw new Error(
+                  `Ephemeris type not yet implemented: ${ephemType}`,
                 );
-                return;
+              default:
+                throw new Error(
+                  `Ephemeris type not yet implemented: ${ephemType}`,
+                );
             }
 
             let ephemGM;

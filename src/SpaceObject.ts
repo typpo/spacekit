@@ -10,13 +10,9 @@ import { rescaleArray, rescaleNumber } from './Scale';
 import type { Simulation, SimulationContext } from './Simulation';
 import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
 
-interface Ephemeris {
+interface Ephemeris {}
 
-}
-
-interface EphemerisTable {
-
-}
+interface EphemerisTable {}
 
 interface SpaceObjectOptions {
   position: Coordinate3d;

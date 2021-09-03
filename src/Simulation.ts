@@ -118,7 +118,7 @@ export class Simulation {
 
   private lightPosition?: Vector3;
 
-  private subscribedObjects: Record<string, Object3D>;
+  private subscribedObjects: Record<string, SpaceObject>;
 
   private particles: KeplerParticles;
 
@@ -302,7 +302,7 @@ export class Simulation {
     // Helper
     if (this.options.debug) {
       if (this.options.debug.showGrid) {
-        const gridHelper = new THREE.GridHelper();
+        const gridHelper = new THREE.GridHelper(undefined, undefined);
         gridHelper.geometry.rotateX(Math.PI / 2);
         this.scene.add(gridHelper);
       }
@@ -348,7 +348,7 @@ export class Simulation {
       renderer.capabilities.maxTextureSize,
     );
 
-    const maxPrecision = renderer.capabilities.getMaxPrecision();
+    const maxPrecision = renderer.capabilities.getMaxPrecision('highp');
     if (maxPrecision !== 'highp') {
       console.warn(
         `Shader maximum precision is "${maxPrecision}", GPU rendering may not be accurate.`,
@@ -463,7 +463,7 @@ export class Simulation {
     if (timeDelta > threshold) {
       const newWidth = this.simulationElt.offsetWidth;
       const newHeight = this.simulationElt.offsetHeight;
-      if (newWidth == 0 && newHeight == 0) {
+      if (newWidth === 0 && newHeight === 0) {
         return;
       }
       const camera = this.camera.get3jsCamera();
@@ -582,7 +582,8 @@ export class Simulation {
    * Takes any SpaceObject arguments.
    * @see SpaceObject
    */
-  createObject(...args) {
+  createObject(...args): SpaceObject {
+    // @ts-ignore
     return new SpaceObject(...args, this);
   }
 
@@ -591,7 +592,8 @@ export class Simulation {
    * Takes any ShapeObject arguments.
    * @see ShapeObject
    */
-  createShape(...args) {
+  createShape(...args): ShapeObject {
+    // @ts-ignore
     return new ShapeObject(...args, this);
   }
 
@@ -600,7 +602,8 @@ export class Simulation {
    * Takes any SphereObject arguments.
    * @see SphereObject
    */
-  createSphere(...args) {
+  createSphere(...args): SphereObject {
+    // @ts-ignore
     return new SphereObject(...args, this);
   }
 
@@ -609,7 +612,8 @@ export class Simulation {
    * Takes any StaticParticles arguments.
    * @see SphereObject
    */
-  createStaticParticles(...args) {
+  createStaticParticles(...args): StaticParticles {
+    // @ts-ignore
     return new StaticParticles(...args, this);
   }
 
@@ -618,7 +622,8 @@ export class Simulation {
    * any Skybox arguments.
    * @see Skybox
    */
-  createSkybox(...args) {
+  createSkybox(...args): Skybox {
+    // @ts-ignore
     return new Skybox(...args, this);
   }
 
@@ -627,8 +632,9 @@ export class Simulation {
    * Takes any Stars arguments.
    * @see Stars
    */
-  createStars(...args) {
+  createStars(...args): Stars {
     if (args.length) {
+      // @ts-ignore
       return new Stars(...args, this);
     }
     // No arguments supplied
@@ -640,7 +646,7 @@ export class Simulation {
    * visualization.
    * @param {Number} color Color of light, default 0x333333
    */
-  createAmbientLight(color = 0x333333) {
+  createAmbientLight(color: number = 0x333333) {
     this.scene.add(new THREE.AmbientLight(color));
     this.useLightSources = true;
   }
@@ -691,12 +697,13 @@ export class Simulation {
 
   /**
    * Returns a promise that receives a NaturalSatellites object when it is
-   * resolved.  @return {Promise<NaturalSatellites>} NaturalSatellites object
-   * that is ready to load.
+   * resolved.
+   * @return {Promise<NaturalSatellites>} NaturalSatellites object that is
+   * ready to load.
    *
    * @see {NaturalSatellites}
    */
-  loadNaturalSatellites() {
+  loadNaturalSatellites(): Promise<NaturalSatellites> {
     return new NaturalSatellites(this).load();
   }
 
@@ -944,6 +951,14 @@ export class Simulation {
    */
   getScene(): THREE.Scene {
     return this.scene;
+  }
+
+  /**
+   * Get the three.js renderer
+   * @return {THREE.WebGLRenderer} The THREE.js renderer
+   */
+  getRenderer(): THREE.WebGLRenderer {
+    return this.renderer;
   }
 
   /**

@@ -4,7 +4,18 @@ import resolve from 'rollup-plugin-node-resolve';
 import serve from 'rollup-plugin-serve';
 import typescript from 'rollup-plugin-typescript2';
 
-const plugins = [typescript(), resolve(), commonjs()];
+const plugins = [
+  typescript({
+    tsconfigDefaults: {
+      compilerOptions: {
+        target: 'es6',
+        lib: ['es6', 'dom'],
+      },
+    },
+  }),
+  resolve(),
+  commonjs(),
+];
 
 if (process.env.ENABLE_DEV_SERVER) {
   // envar set via `yarn build:watch`

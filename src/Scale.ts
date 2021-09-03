@@ -29,7 +29,7 @@ export function rescaleArray(XYZ: Coordinate3d): Coordinate3d {
   return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
 }
 
-export function rescaleXYZ(X: number, Y: number, Z: number) {
+export function rescaleXYZ(X: number, Y: number, Z: number): Coordinate3d {
   return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
 }
 

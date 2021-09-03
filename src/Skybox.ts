@@ -1,35 +1,43 @@
 import * as THREE from 'three';
 
+import type { Simulation, SimulationContext } from './Simulation';
 import { getFullTextureUrl } from './util';
+
+interface SkyboxOptions {
+  textureUrl: string;
+  basePath: string;
+}
 
 /**
  * A class that adds a skybox (technically a skysphere) to a visualization.
  */
 export class Skybox {
+  private simulation: Simulation;
+
+  private context: SimulationContext;
+
+  private id: string;
+
+  private options: SkyboxOptions;
+
+  private mesh?: THREE.Mesh;
+
   /**
    * @param {Object} options Options
    * @param {String} options.textureUrl Texture to use
    * @param {String} options.basePath Base path to simulation supporting files
-   * @param {Object} contextOrSimulation Simulation context or simulation
-   * object
+   * @param {Simulation} simulation Simulation object
    */
-  constructor(options, contextOrSimulation) {
+  constructor(options: SkyboxOptions, simulation) {
     // TODO(ian): Support for actual box instead of sphere...
-    this._options = options;
-    this._id = `__skybox_${new Date().getTime()}`;
+    this.options = options;
+    this.id = `__skybox_${new Date().getTime()}`;
 
-    // if (contextOrSimulation instanceOf Simulation) {
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+    // User passed in Simulation
+    this.simulation = simulation;
+    this.context = simulation.getContext();
 
-    this._mesh = undefined;
+    this.mesh = undefined;
 
     this.init();
   }
@@ -41,8 +49,8 @@ export class Skybox {
     const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(
-      this._options.textureUrl,
-      this._context.options.basePath,
+      this.options.textureUrl,
+      this.context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
 
@@ -62,10 +70,10 @@ export class Skybox {
     // We're on the inside of the skybox, so invert it to correct it.
     sky.scale.set(-1, 1, 1);
 
-    this._mesh = sky;
+    this.mesh = sky;
 
-    if (this._simulation) {
-      this._simulation.addObject(this, true /* noUpdate */);
+    if (this.simulation) {
+      this.simulation.addObject(this, true /* noUpdate */);
     }
   }
 
@@ -73,16 +81,16 @@ export class Skybox {
    * A list of THREE.js objects that are used to compose the skybox.
    * @return {THREE.Object} Skybox mesh
    */
-  get3jsObjects() {
-    return [this._mesh];
+  get3jsObjects(): THREE.Object3D[] {
+    return [this.mesh];
   }
 
   /**
    * Get the unique ID of this object.
    * @return {String} id
    */
-  getId() {
-    return this._id;
+  getId(): string {
+    return this.id;
   }
 }
 
@@ -92,7 +100,7 @@ export class Skybox {
  * @example
  * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
  */
-export const SkyboxPresets = {
+export const SkyboxPresets: Record<string, { textureUrl: string }> = {
   ESO_GIGAGALAXY: {
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
   },

@@ -188,7 +188,7 @@ export class KeplerParticles {
     Object.keys(this._attributes).forEach((attributeName) => {
       const attribute = this._attributes[attributeName];
       // attribute.setDynamic(true);
-      geometry.addAttribute(attributeName, attribute);
+      geometry.setAttribute(attributeName, attribute);
     });
 
     const shader = new THREE.ShaderMaterial({

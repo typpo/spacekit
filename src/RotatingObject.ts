@@ -8,11 +8,11 @@ import type { Simulation } from './Simulation';
 import type { SpaceObjectOptions } from './SpaceObject';
 
 function getAxis(src, dst, color) {
-  const geom = new THREE.BufferGeometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
-
-  geom.vertices.push(rescaleVector(src).clone());
-  geom.vertices.push(rescaleVector(dst).clone());
+  const geom = new THREE.BufferGeometry().setFromPoints([
+    rescaleVector(src).clone(),
+    rescaleVector(dst).clone(),
+  ]);
 
   const axis = new THREE.Line(geom, mat);
   axis.computeLineDistances();

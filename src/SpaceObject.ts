@@ -399,6 +399,7 @@ export class SpaceObject {
       this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
+    texture.encoding = THREE.GammaEncoding;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: texture,

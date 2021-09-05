@@ -8,7 +8,7 @@ import {
   RenderPass,
 } from 'postprocessing';
 
-import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
+import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
 
 import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
@@ -57,7 +57,7 @@ export interface SimulationContext {
     particles?: KeplerParticles;
     camera?: Camera;
     scene?: Scene;
-    renderer?: WebGLRenderer;
+    renderer?: WebGL1Renderer;
     composer?: EffectComposer;
   };
   container: {
@@ -138,7 +138,7 @@ export class Simulation {
 
   private scene?: Scene;
 
-  private renderer?: WebGLRenderer;
+  private renderer?: WebGL1Renderer;
 
   private composer?: EffectComposer;
 
@@ -337,12 +337,11 @@ export class Simulation {
    * @private
    */
   initRenderer() {
-    const renderer = new THREE.WebGLRenderer({
+    // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
+    const renderer = new THREE.WebGL1Renderer({
       antialias: true,
       //logarithmicDepthBuffer: true,
     });
-    renderer.gammaInput = true;
-    renderer.gammaOutput = true;
     console.info(
       'Max texture resolution:',
       renderer.capabilities.maxTextureSize,
@@ -955,9 +954,9 @@ export class Simulation {
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGLRenderer} The THREE.js renderer
+   * @return {THREE.WebGL1Renderer} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGLRenderer {
+  getRenderer(): THREE.WebGL1Renderer {
     return this.renderer;
   }
 

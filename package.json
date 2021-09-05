@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --minify --sourcemap --outfile=build/spacekit.js",
-    "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --watch --outfile=build/spacekit.js",
+    "build": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --outfile=build/spacekit.js",
+    "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --watch --outfile=build/spacekit.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "docs": "esdoc",

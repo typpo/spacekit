@@ -249,19 +249,26 @@ export class NaturalSatellites {
               case 'Equatorial':
                 // TODO(ian): Convert equatorial coords
                 ephemType = 'equatorial';
+                /*
                 throw new Error(
                   `Ephemeris type not yet implemented: ${ephemType}`,
                 );
+                 */
+                break;
               case 'Laplace':
                 // TODO(ian): Convert laplace coords
                 ephemType = 'equatorial';
+                /*
                 throw new Error(
                   `Ephemeris type not yet implemented: ${ephemType}`,
                 );
+                 */
+                break;
               default:
-                throw new Error(
+                console.warn(
                   `Ephemeris type not yet implemented: ${ephemType}`,
                 );
+                return;
             }
 
             let ephemGM;

@@ -100,12 +100,12 @@ export class Stars {
         const colors = new Float32Array(n * 3);
         const sizes = new Float32Array(n);
 
-        geometry.addAttribute(
+        geometry.setAttribute(
           'position',
           new THREE.BufferAttribute(positions, 3),
         );
-        geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
-        geometry.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
         library.forEach((star, idx) => {
           const [ra, dec, temp, mag] = star;

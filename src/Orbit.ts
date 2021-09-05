@@ -82,7 +82,7 @@ export class Orbit {
 
   private options: OrbitOptions;
 
-  private orbitPoints?: THREE.Geometry;
+  private orbitPoints?: THREE.Vector3[];
 
   private eclipticDropLines?: THREE.LineSegments;
 
@@ -145,7 +145,7 @@ export class Orbit {
 
     /**
      * Cached orbital points.
-     * @type {Array.<THREE.Geometry>}
+     * @type {Array.<THREE.BufferGeometry>}
      */
     this.orbitPoints = null;
 
@@ -495,16 +495,12 @@ export class Orbit {
    * @private
    */
   private getLine(orbitFn, startJd, endJd, step) {
-    const points = [];
+    const points: THREE.Vector3[] = [];
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
-
-    const pointsGeometry = new THREE.BufferGeometry();
-    pointsGeometry.vertices = points;
-
-    return this.generateAndCacheOrbitShape(pointsGeometry);
+    return this.generateAndCacheOrbitShape(points);
   }
 
   /**
@@ -529,10 +525,8 @@ export class Orbit {
     const points = rawPoints
       .map((values) => rescaleArray(values))
       .map((values) => new THREE.Vector3(values[0], values[1], values[2]));
-    const pointGeometry = new THREE.BufferGeometry();
-    pointGeometry.vertices = points;
 
-    return this.generateAndCacheOrbitShape(pointGeometry);
+    return this.generateAndCacheOrbitShape(points);
   }
 
   /**
@@ -540,15 +534,15 @@ export class Orbit {
    * @return {THREE.Line} The ellipse object that represents this orbit.
    */
   private getEllipse() {
-    const pointGeometry = this.getEllipseGeometry();
-    return this.generateAndCacheOrbitShape(pointGeometry);
+    const points = this.getEllipsePoints();
+    return this.generateAndCacheOrbitShape(points);
   }
 
   /**
    * @private
-   * @return {THREE.BufferGeometry} A THREE.js geometry
+   * @return {THREE.Vector3[]} A THREE.js geometry
    */
-  private getEllipseGeometry() {
+  private getEllipsePoints(): THREE.Vector3[] {
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
       throw new Error('Attempted to compute coordinates from ephemeris table');
@@ -574,19 +568,19 @@ export class Orbit {
       pts.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
     pts.push(pts[0]);
-
-    const pointGeometry = new THREE.BufferGeometry();
-    pointGeometry.vertices = pts;
-    return pointGeometry;
+    return pts;
   }
 
   /**
    * @private
+   * @return {THREE.Line} Line object
    */
-  private generateAndCacheOrbitShape(pointGeometry: THREE.Geometry) {
-    this.orbitPoints = pointGeometry;
+  private generateAndCacheOrbitShape(
+    pointVectors: THREE.Vector3[],
+  ): THREE.Line {
+    this.orbitPoints = pointVectors;
     this.orbitShape = new THREE.Line(
-      pointGeometry,
+      new THREE.BufferGeometry().setFromPoints(pointVectors),
       new THREE.LineBasicMaterial({
         color: new THREE.Color(this.options.color || 0x444444),
       }),
@@ -611,21 +605,22 @@ export class Orbit {
       // Generate the orbitPoints cache.
       this.getOrbitShape();
     }
-    const points = this.orbitPoints;
-    const geometry = new THREE.BufferGeometry();
 
     // Place a cap on visible lines, for large or highly inclined orbits.
-    points.vertices.forEach((vertex, idx) => {
+    const points = this.orbitPoints;
+    let filteredPoints = [];
+    points.forEach((vertex, idx) => {
       // Drop last point because it's a repeat of the first point.
       if (
-        idx === points.vertices.length - 1 &&
+        idx === points.length - 1 &&
         this.orbitType === OrbitType.ELLIPTICAL
       ) {
         return;
       }
-      geometry.vertices.push(vertex);
-      geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+      filteredPoints.push(vertex);
+      filteredPoints.push(new THREE.Vector3(vertex.x, vertex.y, 0));
     });
+    const geometry = new THREE.BufferGeometry().setFromPoints(filteredPoints);
 
     this.eclipticDropLines = new THREE.LineSegments(
       geometry,

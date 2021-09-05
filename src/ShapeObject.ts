@@ -4,7 +4,6 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { RotatingObject } from './RotatingObject';
 
 export class ShapeObject extends RotatingObject {
-
   private _shapeObj: THREE.Object3D;
 
   /**

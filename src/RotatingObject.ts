@@ -32,7 +32,6 @@ function getAxes() {
  * parameters.
  */
 export class RotatingObject extends SpaceObject {
-
   protected _obj: THREE.Object3D;
 
   protected _materials: THREE.Material[];
@@ -56,7 +55,12 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
-  constructor(id: string, options: SpaceObjectOptions, simulation: Simulation, autoInit: boolean = true) {
+  constructor(
+    id: string,
+    options: SpaceObjectOptions,
+    simulation: Simulation,
+    autoInit: boolean = true,
+  ) {
     super(id, options, simulation, false /* autoInit */);
 
     // The THREE.js object

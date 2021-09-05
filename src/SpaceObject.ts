@@ -22,7 +22,7 @@ export interface SpaceObjectOptions {
   axialTilt?: number;
   color?: number;
   radius?: number;
-  levelsOfDetail?: {radii: number; segments: number; }[]
+  levelsOfDetail?: { radii: number; segments: number }[];
   atmosphere?: {
     color?: number;
     innerSizeRatio?: number;
@@ -120,7 +120,6 @@ function toScreenXY(
  * });
  */
 export class SpaceObject {
-
   protected _id: string;
 
   protected _options: SpaceObjectOptions;
@@ -129,7 +128,11 @@ export class SpaceObject {
 
   protected _context: SimulationContext;
 
-  protected _renderMethod: 'SPRITE' | 'PARTICLESYSTEM' | 'ROTATING_OBJECT' | 'SPHERE';
+  protected _renderMethod:
+    | 'SPRITE'
+    | 'PARTICLESYSTEM'
+    | 'ROTATING_OBJECT'
+    | 'SPHERE';
 
   protected _initialized: boolean;
 

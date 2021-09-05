@@ -17,7 +17,6 @@ const DEFAULT_COLOR = 0xffffff;
  * Simulates a static particle field in whichever base reference the simulation is in.
  */
 export class StaticParticles {
-
   private id: string;
 
   private options: StaticParticleOptions;
@@ -41,7 +40,12 @@ export class StaticParticles {
    * @param {Number} options.size the size of each particle
    * @param {Object} contextOrSimulation Simulation context or simulation object
    */
-  constructor(id: string, points: Coordinate3d[], options: StaticParticleOptions, simulation: Simulation) {
+  constructor(
+    id: string,
+    points: Coordinate3d[],
+    options: StaticParticleOptions,
+    simulation: Simulation,
+  ) {
     this.options = options;
 
     this.id = id;

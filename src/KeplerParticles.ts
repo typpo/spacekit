@@ -51,7 +51,6 @@ function getA0(ephem, jd) {
  * @see Simulation
  */
 export class KeplerParticles {
-
   static instanceCount: number;
 
   private _id: string;
@@ -69,7 +68,7 @@ export class KeplerParticles {
   private _elements?: Ephem[];
 
   private _uniforms?: {
-    texture: { value: THREE.Texture; };
+    texture: { value: THREE.Texture };
   };
 
   private _geometry?: THREE.BufferGeometry;
@@ -106,7 +105,10 @@ export class KeplerParticles {
    * can be overriden by SpaceObject particleSize. Defaults to 25
    * @param {Object} contextOrSimulation Simulation context or object
    */
-  constructor(options: KeplerParticlesOptions, contextOrSimulation: Simulation) {
+  constructor(
+    options: KeplerParticlesOptions,
+    contextOrSimulation: Simulation,
+  ) {
     this._options = options;
 
     this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;

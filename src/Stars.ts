@@ -18,7 +18,7 @@ import type { Simulation, SimulationContext } from './Simulation';
 
 interface StarOptions {
   minSize?: number;
-};
+}
 
 const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
 const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);

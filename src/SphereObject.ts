@@ -177,7 +177,13 @@ export class SphereObject extends RotatingObject {
    * @param {Number} power Power value
    * @param {THREE.Color} colorObj Color of atmosphere
    */
-  private renderAtmosphereComponent(radius: number, size: number, coefficient: number, power: number, colorObj: THREE.Color) {
+  private renderAtmosphereComponent(
+    radius: number,
+    size: number,
+    coefficient: number,
+    power: number,
+    colorObj: THREE.Color,
+  ) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
     const uniforms = {
       c: { value: coefficient },
@@ -209,7 +215,12 @@ export class SphereObject extends RotatingObject {
    * @param {Number} segments  Number of segments to use to render ring.
    * (optional)
    */
-  addRings(innerRadiusKm: number, outerRadiusKm: number, texturePath: string, segments: number = 128) {
+  addRings(
+    innerRadiusKm: number,
+    outerRadiusKm: number,
+    texturePath: string,
+    segments: number = 128,
+  ) {
     const radius = this.getScaledRadius();
 
     const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));

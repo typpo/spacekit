@@ -227,7 +227,10 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeNearParabolic(jd: number, debug: boolean = false): Coordinate3d {
+  getPositionAtTimeNearParabolic(
+    jd: number,
+    debug: boolean = false,
+  ): Coordinate3d {
     // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
@@ -268,7 +271,10 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeHyperbolic(jd: number, debug: boolean = false): Coordinate3d {
+  getPositionAtTimeHyperbolic(
+    jd: number,
+    debug: boolean = false,
+  ): Coordinate3d {
     // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
@@ -314,7 +320,10 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeElliptical(jd: number, debug: boolean = false): Coordinate3d {
+  getPositionAtTimeElliptical(
+    jd: number,
+    debug: boolean = false,
+  ): Coordinate3d {
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
       throw new Error('Attempted to compute coordinates from ephemeris table');

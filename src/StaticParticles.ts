@@ -2,6 +2,14 @@ import * as THREE from 'three';
 
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 
+import type { Coordinate3d } from './Coordinates';
+import type { Simulation, SimulationContext } from './Simulation';
+
+interface StaticParticleOptions {
+  defaultColor: number;
+  size: number;
+}
+
 const DEFAULT_PARTICLE_SIZE = 4;
 const DEFAULT_COLOR = 0xffffff;
 
@@ -9,6 +17,21 @@ const DEFAULT_COLOR = 0xffffff;
  * Simulates a static particle field in whichever base reference the simulation is in.
  */
 export class StaticParticles {
+
+  private id: string;
+
+  private options: StaticParticleOptions;
+
+  private simulation: Simulation;
+
+  private context: SimulationContext;
+
+  private particleCount: number;
+
+  private points: Coordinate3d[];
+
+  private pointObject?: THREE.Points;
+
   /**
    *
    * @param {String} id Unique ID for this object
@@ -18,50 +41,43 @@ export class StaticParticles {
    * @param {Number} options.size the size of each particle
    * @param {Object} contextOrSimulation Simulation context or simulation object
    */
-  constructor(id, points, options, contextOrSimulation) {
-    this._options = options;
+  constructor(id: string, points: Coordinate3d[], options: StaticParticleOptions, simulation: Simulation) {
+    this.options = options;
 
-    this._id = id;
+    this.id = id;
 
-    // TODO(ian): Add to ctx
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+    // User passed in Simulation
+    this.simulation = simulation;
+    this.context = simulation.getContext();
 
     // Number of particles in the scene.
-    this._particleCount = points.length;
+    this.particleCount = points.length;
 
-    this._points = points;
-    this._geometry = undefined;
+    this.points = points;
+    this.pointObject = undefined;
 
     this.init();
-    this._simulation.addObject(this, true);
+    this.simulation.addObject(this, true);
   }
 
   init() {
-    const positions = new Float32Array(this._points.length * 3);
-    const colors = new Float32Array(this._points.length * 3);
-    const sizes = new Float32Array(this._points.length);
+    const positions = new Float32Array(this.points.length * 3);
+    const colors = new Float32Array(this.points.length * 3);
+    const sizes = new Float32Array(this.points.length);
     let color = new THREE.Color(DEFAULT_COLOR);
 
-    if (this._options.defaultColor) {
-      color = new THREE.Color(this._options.defaultColor);
+    if (this.options.defaultColor) {
+      color = new THREE.Color(this.options.defaultColor);
     }
 
     let size = DEFAULT_PARTICLE_SIZE;
 
-    if (this._options.size) {
-      size = this._options.size;
+    if (this.options.size) {
+      size = this.options.size;
     }
 
-    for (let i = 0, l = this._points.length; i < l; i++) {
-      const vertex = this._points[i];
+    for (let i = 0, l = this.points.length; i < l; i++) {
+      const vertex = this.points[i];
       positions.set(vertex, i * 3);
       color.toArray(colors, i * 3);
       sizes[i] = size;
@@ -79,22 +95,22 @@ export class StaticParticles {
       transparent: true,
     });
 
-    this._geometry = new THREE.Points(geometry, material);
+    this.pointObject = new THREE.Points(geometry, material);
   }
 
   /**
-   * A list of THREE.js objects that are used to compose the skybox.
-   * @return {THREE.Object} Skybox mesh
+   * A list of THREE.js objects that are used to compose the particle system.
+   * @return {THREE.Object3D} Point geometry
    */
-  get3jsObjects() {
-    return [this._geometry];
+  get3jsObjects(): THREE.Object3D[] {
+    return [this.pointObject];
   }
 
   /**
    * Get the unique ID of this object.
    * @return {String} id
    */
-  getId() {
-    return this._id;
+  getId(): string {
+    return this.id;
   }
 }

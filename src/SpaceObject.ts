@@ -7,36 +7,62 @@ import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 import { rescaleArray, rescaleNumber } from './Scale';
 
-import type { Simulation, SimulationContext } from './Simulation';
+import type EphemerisTable from './EphemerisTable';
 import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
+import type { Ephem } from './Ephem';
+import type { Simulation, SimulationContext } from './Simulation';
 
-interface Ephemeris {}
-
-interface EphemerisTable {}
-
-interface SpaceObjectOptions {
-  position: Coordinate3d;
-  scale: [number, number, number];
-  particleSize: number;
-  labelText: string;
-  labelUrl: string;
-  hideOrbit: boolean;
-  orbitPathSettings: {
-    leadDurationYears: number;
-    trailDurationYears: number;
-    numberSamplePoints: number;
+export interface SpaceObjectOptions {
+  position?: Coordinate3d;
+  scale?: [number, number, number];
+  particleSize?: number;
+  labelText?: string;
+  labelUrl?: string;
+  hideOrbit?: boolean;
+  axialTilt?: number;
+  color?: number;
+  radius?: number;
+  levelsOfDetail?: {radii: number; segments: number; }[]
+  atmosphere?: {
+    color?: number;
+    innerSizeRatio?: number;
+    outerSizeRatio?: number;
+    enable?: boolean;
   };
-  ephem: Ephemeris;
-  ephemTable: EphemerisTable;
-  textureUrl: string;
-  basePath: string;
-  ecliptic: {
-    lineColor: number;
-    displayLines: boolean;
+  orbitPathSettings?: {
+    leadDurationYears?: number;
+    trailDurationYears?: number;
+    numberSamplePoints?: number;
   };
-  theme: {
-    color: number;
-    orbitColor: number;
+  ephem?: Ephem;
+  ephemTable?: EphemerisTable;
+  textureUrl?: string;
+  basePath?: string;
+  rotation?: {
+    enable?: boolean;
+    speed?: number;
+    lambdaDeg?: number;
+    betaDeg?: number;
+    period?: number;
+    yorp?: number;
+    phi0?: number;
+    jd0?: number;
+  };
+  shape?: {
+    shapeUrl?: string;
+    color?: number;
+  };
+  ecliptic?: {
+    lineColor?: number;
+    displayLines?: boolean;
+  };
+  theme?: {
+    color?: number;
+    orbitColor?: number;
+  };
+  debug?: {
+    showAxes: boolean;
+    showGrid: boolean;
   };
 }
 
@@ -55,10 +81,10 @@ const LABEL_UPDATE_MS: number = 30;
 
 /**
  * @private
- * Converts (X, Y, Z) position in visualization to pixel coordinates.
+ * Converts [X, Y, Z] position in visualization to pixel coordinates.
  */
 function toScreenXY(
-  position: CoordinateXYZ,
+  position: Coordinate3d,
   camera: PerspectiveCamera,
   canvas: HTMLCanvasElement,
 ): { x: number; y: number } {
@@ -94,6 +120,49 @@ function toScreenXY(
  * });
  */
 export class SpaceObject {
+
+  protected _id: string;
+
+  protected _options: SpaceObjectOptions;
+
+  protected _simulation: Simulation;
+
+  protected _context: SimulationContext;
+
+  protected _renderMethod: 'SPRITE' | 'PARTICLESYSTEM' | 'ROTATING_OBJECT' | 'SPHERE';
+
+  protected _initialized: boolean;
+
+  private _object3js?: THREE.Object3D;
+
+  private _useEphemTable: boolean;
+
+  private _isStaticObject: boolean;
+
+  private _label?: HTMLElement;
+
+  private _showLabel: boolean;
+
+  private _lastLabelUpdate: number;
+
+  private _lastPositionUpdate: number;
+
+  private _position: Coordinate3d;
+
+  private _orbitAround?: SpaceObject;
+
+  private _scale: [number, number, number];
+
+  private _particleIndex?: number;
+
+  private _degreesPerDay?: number;
+
+  private _orbitPath?: THREE.Object3D;
+
+  private _eclipticLines?: THREE.Object3D;
+
+  private _orbit?: Orbit;
+
   /**
    * @param {String} id Unique id of this object
    * @param {Object} options Options container
@@ -119,14 +188,14 @@ export class SpaceObject {
    * @param {Object} options.theme Contains settings related to appearance of orbit
    * @param {Number} options.theme.color Hex color of the object, if applicable
    * @param {Number} options.theme.orbitColor Hex color of the orbit
-   * @param {Object} contextOrSimulation Simulation context or simulation object
+   * @param {Simulation} contextOrSimulation Simulation context or simulation object
    * @param {boolean} autoInit Automatically initialize this object. If false
    * you must call init() manually.
    */
   constructor(
     id: string,
     options: SpaceObjectOptions,
-    contextOrSimulation: Simulation | SimulationContext,
+    simulation: Simulation,
     autoInit: boolean = true,
   ) {
     this._id = id;
@@ -135,18 +204,8 @@ export class SpaceObject {
     this._useEphemTable = this._options.ephemTable !== undefined;
     this._isStaticObject = !this._options.ephem && !this._useEphemTable;
 
-    // if (contextOrSimulation instanceOf Simulation) {
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
-
-    this._renderMethod = null;
+    this._simulation = simulation;
+    this._context = simulation.getContext();
 
     this._label = null;
     this._showLabel = false;
@@ -180,7 +239,7 @@ export class SpaceObject {
    * set autoInit to false in constructor (this init is suppressed by some
    * child classes).
    */
-  init() {
+  init(): boolean {
     this.renderObject();
 
     if (this._options.labelText) {
@@ -207,7 +266,7 @@ export class SpaceObject {
    * Used by child classes to set the object that gets its position updated.
    * @param {THREE.Object3D} obj Any THREE.js object
    */
-  setPositionedObject(obj) {
+  protected setPositionedObject(obj: THREE.Object3D) {
     this._object3js = obj;
   }
 
@@ -215,7 +274,7 @@ export class SpaceObject {
    * @private
    * Build the THREE.js object for this SpaceObject.
    */
-  renderObject() {
+  private renderObject() {
     if (this.isStaticObject()) {
       if (!this._renderMethod) {
         // TODO(ian): It kinda sucks to have SpaceObject care about
@@ -271,7 +330,7 @@ export class SpaceObject {
    * Builds the label div and adds it to the visualization
    * @return {HTMLElement} A div that contains the label for this object
    */
-  createLabel() {
+  private createLabel(): HTMLElement {
     const text = document.createElement('div');
     text.className = 'spacekit__object-label';
 
@@ -298,7 +357,7 @@ export class SpaceObject {
    * @param {Array.Number} newpos Position of the label in the visualization's
    * coordinate system
    */
-  updateLabelPosition(newpos) {
+  private updateLabelPosition(newpos: Coordinate3d) {
     const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
     const pos = toScreenXY(
@@ -331,7 +390,7 @@ export class SpaceObject {
    * Builds the sprite for this object
    * @return {THREE.Sprite} A sprite object
    */
-  createSprite() {
+  private createSprite(): THREE.Sprite {
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
       this._context.options.basePath,
@@ -363,7 +422,7 @@ export class SpaceObject {
    * Builds the {Orbit} for this object
    * @return {Orbit} An orbit object
    */
-  createOrbit() {
+  private createOrbit(): Orbit {
     if (this._orbit) {
       return this._orbit;
     }
@@ -387,7 +446,7 @@ export class SpaceObject {
    * @param {Number} afterJd Next JD
    * @return {boolean} Whether to update
    */
-  shouldUpdateObjectPosition(afterJd) {
+  private shouldUpdateObjectPosition(afterJd: number): boolean {
     // TODO(ian): Reenable this as a function of zoom level, because as you get
     // closer the chopiness gets more noticeable.
     return true;
@@ -407,7 +466,7 @@ export class SpaceObject {
    * Make this object orbit another orbit.
    * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
    */
-  orbitAround(spaceObj) {
+  orbitAround(spaceObj: SpaceObject) {
     this._orbitAround = spaceObj;
   }
 
@@ -418,7 +477,7 @@ export class SpaceObject {
    * @param {Number} y Y position
    * @param {Number} z Z position
    */
-  setPosition(x, y, z) {
+  setPosition(x: number, y: number, z: number) {
     this._position[0] = rescaleNumber(x);
     this._position[1] = rescaleNumber(y);
     this._position[2] = rescaleNumber(z);
@@ -429,7 +488,7 @@ export class SpaceObject {
    * @param {Number} jd JD date
    * @return {Array.<Number>} [X, Y,Z] coordinates
    */
-  getPosition(jd) {
+  getPosition(jd: number): Coordinate3d {
     const pos = this._position;
     if (!this._orbit) {
       // Default implementation, a static object.
@@ -458,7 +517,7 @@ export class SpaceObject {
    * @param {boolean} force Whether to force an update regardless of checks for
    * movement.
    */
-  update(jd, force = false) {
+  update(jd: number, force: boolean = false) {
     if (this.isStaticObject() && !force) {
       return;
     }
@@ -532,9 +591,9 @@ export class SpaceObject {
    * Gets the THREE.js objects that represent this SpaceObject.  The first
    * object returned is the primary object.  Other objects may be returned,
    * such as rings, ellipses, etc.
-   * @return {Array.<THREE.Object>} A list of THREE.js objects
+   * @return {Array.<THREE.Object3D>} A list of THREE.js objects
    */
-  get3jsObjects() {
+  get3jsObjects(): THREE.Object3D[] {
     const ret = [];
     if (this._object3js) {
       ret.push(this._object3js);
@@ -556,7 +615,7 @@ export class SpaceObject {
    * this will be the first THREE.js object in this class's list of objects.
    * @return {THREE.Object3D} THREE.js object
    */
-  getBoundingObject() {
+  getBoundingObject(): THREE.Object3D {
     return this.get3jsObjects()[0];
   }
 
@@ -565,7 +624,7 @@ export class SpaceObject {
    * the dot representing the object as well as its orbit.
    * @return {Number} A hexidecimal color value, e.g. 0xFFFFFF
    */
-  getColor() {
+  getColor(): number {
     if (this._options.theme) {
       return this._options.theme.color || 0xffffff;
     }
@@ -576,7 +635,7 @@ export class SpaceObject {
    * Gets the {Orbit} object for this SpaceObject.
    * @return {Orbit} Orbit object
    */
-  getOrbit() {
+  getOrbit(): Orbit {
     return this._orbit;
   }
 
@@ -584,7 +643,7 @@ export class SpaceObject {
    * Gets label visilibity status.
    * @return {boolean} Whether label is visible.
    */
-  getLabelVisibility() {
+  getLabelVisibility(): boolean {
     return this._showLabel;
   }
 
@@ -592,7 +651,7 @@ export class SpaceObject {
    * Toggle the visilibity of the label.
    * @param {boolean} val Whether to show or hide.
    */
-  setLabelVisibility(val) {
+  setLabelVisibility(val: boolean) {
     if (val) {
       this._showLabel = true;
       this._label.style.display = 'block';
@@ -606,7 +665,7 @@ export class SpaceObject {
    * Gets the unique ID of this object.
    * @return {String} Unique ID
    */
-  getId() {
+  getId(): string {
     return this._id;
   }
 
@@ -615,7 +674,7 @@ export class SpaceObject {
    * its position can be updated (ie, it has ephemeris)
    * @return {boolean} Whether this object can change its position.
    */
-  isStaticObject() {
+  isStaticObject(): boolean {
     return this._isStaticObject;
   }
 
@@ -623,7 +682,7 @@ export class SpaceObject {
    * Determines whether object is ready to be measured or added to scene.
    * @return {boolean} True if ready
    */
-  isReady() {
+  isReady(): boolean {
     return this._initialized;
   }
 

@@ -2,8 +2,29 @@ import * as THREE from 'three';
 
 import { getThreeJsTexture } from './util';
 
+import { Coordinate3d } from './Coordinates';
 import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
 import { getOrbitType, OrbitType } from './Orbit';
+
+import type { Ephem } from './Ephem';
+import type { Simulation, SimulationContext } from './Simulation';
+
+interface BaseKeplerParticleOptions {
+  color?: number;
+  textureUrl?: string;
+  basePath?: string;
+  jd?: number;
+  maxNumParticles?: number;
+}
+
+// TODO(ian): Clean this up - we probably don't need a separate type.
+type KeplerParticlesOptions = BaseKeplerParticleOptions & {
+  defaultSize?: number;
+};
+
+type KeplerParticleOptions = BaseKeplerParticleOptions & {
+  particleSize?: number;
+};
 
 const DEFAULT_PARTICLE_COUNT = 4096;
 
@@ -30,6 +51,51 @@ function getA0(ephem, jd) {
  * @see Simulation
  */
 export class KeplerParticles {
+
+  static instanceCount: number;
+
+  private _id: string;
+
+  private _options: KeplerParticlesOptions;
+
+  private _simulation: Simulation;
+
+  private _context: SimulationContext;
+
+  private _addedToScene: boolean;
+
+  private _particleCount: number;
+
+  private _elements?: Ephem[];
+
+  private _uniforms?: {
+    texture: { value: THREE.Texture; };
+  };
+
+  private _geometry?: THREE.BufferGeometry;
+
+  private _shaderMaterial?: THREE.ShaderMaterial;
+
+  private _particleSystem?: THREE.Points;
+
+  private _attributes?: {
+    size: THREE.BufferAttribute;
+    origin: THREE.BufferAttribute;
+    position: THREE.BufferAttribute;
+    fuzzColor: THREE.BufferAttribute;
+    a: THREE.BufferAttribute;
+    e: THREE.BufferAttribute;
+    i: THREE.BufferAttribute;
+    om: THREE.BufferAttribute;
+    ma: THREE.BufferAttribute;
+    n: THREE.BufferAttribute;
+    w: THREE.BufferAttribute;
+    wBar: THREE.BufferAttribute;
+    q: THREE.BufferAttribute;
+    M: THREE.BufferAttribute;
+    a0: THREE.BufferAttribute;
+  };
+
   /**
    * @param {Object} options Options container
    * @param {Object} options.textureUrl Template url for sprite
@@ -40,21 +106,13 @@ export class KeplerParticles {
    * can be overriden by SpaceObject particleSize. Defaults to 25
    * @param {Object} contextOrSimulation Simulation context or object
    */
-  constructor(options, contextOrSimulation) {
+  constructor(options: KeplerParticlesOptions, contextOrSimulation: Simulation) {
     this._options = options;
 
     this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;
 
-    // TODO(ian): Add to ctx
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+    this._simulation = contextOrSimulation;
+    this._context = contextOrSimulation.getContext();
 
     // Whether Points object has been added to the Simulation/Scene. This
     // happens lazily when the first data point is added in order to prevent
@@ -154,7 +212,7 @@ export class KeplerParticles {
    * @param {Number} options.color Color of particles
    * @return {Number} The index of this article in the attribute list.
    */
-  addParticle(ephem, options = {}) {
+  addParticle(ephem: Ephem, options: KeplerParticleOptions = {}): number {
     this._elements.push(ephem);
     const attributes = this._attributes;
     const offset = this._particleCount++;
@@ -201,7 +259,7 @@ export class KeplerParticles {
    * though.
    * @param offset
    */
-  hideParticle(offset) {
+  hideParticle(offset: number) {
     const attributes = this._attributes;
     attributes.size.set([0], offset);
 
@@ -217,7 +275,7 @@ export class KeplerParticles {
    * @param {Number} offset The location of this particle in the attributes * array.
    * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.
    */
-  setParticleOrigin(offset, newOrigin) {
+  setParticleOrigin(offset: number, newOrigin: Coordinate3d) {
     this._attributes.origin.set(newOrigin, offset * 3);
     this._attributes.origin.needsUpdate = true;
   }
@@ -226,7 +284,7 @@ export class KeplerParticles {
    * Update the position for all particles
    * @param {Number} jd JD date
    */
-  update(jd) {
+  update(jd: number) {
     const Ms = [];
     const a0s = [];
     for (let i = 0; i < this._elements.length; i++) {
@@ -254,9 +312,9 @@ export class KeplerParticles {
 
   /**
    * Get THREE.js objects that comprise this point cloud
-   * @return {Array.<THREE.Object>} List of objects to add to THREE.js scene
+   * @return {Array.<THREE.Object3D>} List of objects to add to THREE.js scene
    */
-  get3jsObjects() {
+  get3jsObjects(): THREE.Object3D[] {
     return [this._particleSystem];
   }
 
@@ -264,7 +322,7 @@ export class KeplerParticles {
    * Get unique id for this object.
    * @return {String} Unique id
    */
-  getId() {
+  getId(): string {
     return this._id;
   }
 }

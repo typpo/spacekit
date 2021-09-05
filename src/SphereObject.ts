@@ -13,6 +13,9 @@ import {
   SPHERE_SHADER_FRAGMENT,
 } from './shaders';
 
+import type { Simulation } from './Simulation';
+import type { SpaceObjectOptions } from './SpaceObject';
+
 /**
  * Simulates a planet or other object as a perfect sphere.
  */
@@ -39,13 +42,13 @@ export class SphereObject extends RotatingObject {
    * @see SpaceObject
    * @see RotatingObject
    */
-  constructor(id, options, contextOrSimulation) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id: string, options: SpaceObjectOptions, simulation: Simulation) {
+    super(id, options, simulation, false /* autoInit */);
 
     this.init();
   }
 
-  init() {
+  init(): boolean {
     let map;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
@@ -120,13 +123,13 @@ export class SphereObject extends RotatingObject {
       this._simulation.addObject(this, false /* noUpdate */);
     }
 
-    super.init();
+    return super.init();
   }
 
   /**
    * @private
    */
-  getScaledRadius() {
+  private getScaledRadius(): number {
     return rescaleNumber(this._options.radius || 1);
   }
 
@@ -135,7 +138,7 @@ export class SphereObject extends RotatingObject {
    * Model the atmosphere as two layers - a thick inner layer and a diffuse
    * outer one.
    */
-  renderFullAtmosphere() {
+  private renderFullAtmosphere() {
     if (!this._simulation.isUsingLightSources()) {
       console.warn('Cannot render atmosphere without a light source');
       return null;
@@ -168,14 +171,18 @@ export class SphereObject extends RotatingObject {
 
   /**
    * @private
-   * @param {THREE.Color} color Color of atmosphere
+   * @param {Number} radius Radius of object
+   * @param {Number} size Size of atmosphere
+   * @param {Number} coefficient Coefficient value
+   * @param {Number} power Power value
+   * @param {THREE.Color} colorObj Color of atmosphere
    */
-  renderAtmosphereComponent(radius, size, coefficient, power, color) {
+  private renderAtmosphereComponent(radius: number, size: number, coefficient: number, power: number, colorObj: THREE.Color) {
     const geometry = new THREE.SphereGeometry(radius + size, 32, 32);
     const uniforms = {
       c: { value: coefficient },
       p: { value: power },
-      color: { value: color },
+      color: { value: colorObj },
       lightPos: { value: new THREE.Vector3() },
     };
     uniforms.lightPos.value.copy(this._simulation.getLightPosition());
@@ -202,7 +209,7 @@ export class SphereObject extends RotatingObject {
    * @param {Number} segments  Number of segments to use to render ring.
    * (optional)
    */
-  addRings(innerRadiusKm, outerRadiusKm, texturePath, segments = 128) {
+  addRings(innerRadiusKm: number, outerRadiusKm: number, texturePath: string, segments: number = 128) {
     const radius = this.getScaledRadius();
 
     const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
@@ -224,9 +231,10 @@ export class SphereObject extends RotatingObject {
       // TODO(ian): Follow recommendation for defining ShaderMaterials here:
       // https://discourse.threejs.org/t/cant-get-a-sampler2d-uniform-to-work-from-datatexture/6366/14?u=ianw
       const uniforms = THREE.UniformsUtils.merge([
-        THREE.UniformsLib.ambient,
+        // TODO(ian): These failed due to type check. Remove?
+        // THREE.UniformsLib.ambient,
         THREE.UniformsLib.lights,
-        THREE.UniformsLib.shadowmap,
+        // THREE.UniformsLib.shadowmap,
         {
           ringTexture: { value: null },
           innerRadius: { value: innerRadiusSize },

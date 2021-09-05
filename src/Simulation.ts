@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
+  BloomEffect,
   EffectComposer,
   EffectPass,
-  BloomEffect,
   RenderPass,
 } from 'postprocessing';
 
@@ -94,9 +94,9 @@ export interface SimulationContext {
  * });
  */
 export class Simulation {
-  onTick: () => void;
+  public onTick?: () => void;
 
-  private simulationElt: HTMLElement;
+  private simulationElt: HTMLCanvasElement;
 
   private options: SpacekitOptions;
 
@@ -143,7 +143,7 @@ export class Simulation {
   private composer?: EffectComposer;
 
   /**
-   * @param {HTMLElement} simulationElt The container for this simulation.
+   * @param {HTMLCanvasElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
    * @param {String} options.basePath Path to simulation assets and data
    * @param {Date} options.startDate The start date and time for this
@@ -184,7 +184,7 @@ export class Simulation {
    * @param {boolean} options.debug.showStats Show FPS and other stats
    * (requires stats.js).
    */
-  constructor(simulationElt: HTMLElement, options: SpacekitOptions) {
+  constructor(simulationElt: HTMLCanvasElement, options: SpacekitOptions) {
     this.simulationElt = simulationElt;
     this.options = options || {};
     this.options.basePath = this.options.basePath || getDefaultBasePath();
@@ -369,7 +369,7 @@ export class Simulation {
   /**
    * @private
    */
-  initPasses() {
+  private initPasses() {
     //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
     //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
 
@@ -425,7 +425,7 @@ export class Simulation {
   /**
    * @private
    */
-  update(force = false) {
+  private update(force = false) {
     for (const objId in this.subscribedObjects) {
       if (this.subscribedObjects.hasOwnProperty(objId)) {
         this.subscribedObjects[objId].update(this.jd, force);
@@ -438,7 +438,7 @@ export class Simulation {
    * objects need to update their data to properly capture things like updated label positions.
    * @private
    */
-  staticForcedUpdate() {
+  private staticForcedUpdate() {
     if (this.isPaused) {
       const now = Date.now();
       const timeDelta = now - this.lastStaticCameraUpdateTime;
@@ -455,7 +455,7 @@ export class Simulation {
    * @private
    * Updates the size of the control and forces a refresh of components whenever the control is being resized.
    */
-  resizeUpdate() {
+  private resizeUpdate() {
     const now = Date.now();
     const timeDelta = now - this.lastResizeUpdateTime;
     const threshold = 30;
@@ -479,7 +479,7 @@ export class Simulation {
    * @private
    * TODO(ian): Move this into Camera
    */
-  doCameraDrift() {
+  private doCameraDrift() {
     // Follow floating path around
     const timer = 0.0001 * Date.now();
     const pos = this.cameraDefaultPos;
@@ -491,7 +491,7 @@ export class Simulation {
   /**
    * @private
    */
-  animate() {
+  private animate() {
     if (!this.renderEnabled && this.initialRenderComplete) {
       return;
     }
@@ -786,7 +786,7 @@ export class Simulation {
    * @param {Number} offset Add some extra room in the viewport. Increase to be
    * further zoomed out, decrease to be closer. Default 3.0.
    */
-  doZoomToFit(obj: Object3D, offset: number) {
+  private doZoomToFit(obj: Object3D, offset: number) {
     const boundingBox = new THREE.Box3();
     boundingBox.setFromObject(obj);
 
@@ -933,7 +933,7 @@ export class Simulation {
    * Get the element containing this simulation
    * @return {HTMLElement} The html container of this simulation
    */
-  getSimulationElement(): HTMLElement {
+  getSimulationElement(): HTMLCanvasElement {
     return this.simulationElt;
   }
 

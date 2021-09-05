@@ -4,6 +4,9 @@ import { SpaceObject } from './SpaceObject';
 import { rad } from './Units';
 import { rescaleVector } from './Scale';
 
+import type { Simulation } from './Simulation';
+import type { SpaceObjectOptions } from './SpaceObject';
+
 function getAxis(src, dst, color) {
   const geom = new THREE.Geometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
@@ -11,7 +14,7 @@ function getAxis(src, dst, color) {
   geom.vertices.push(rescaleVector(src).clone());
   geom.vertices.push(rescaleVector(dst).clone());
 
-  const axis = new THREE.Line(geom, mat, THREE.LineSegments);
+  const axis = new THREE.Line(geom, mat);
   axis.computeLineDistances();
   return axis;
 }
@@ -29,6 +32,17 @@ function getAxes() {
  * parameters.
  */
 export class RotatingObject extends SpaceObject {
+
+  protected _obj: THREE.Object3D;
+
+  protected _materials: THREE.Material[];
+
+  private _objectIsRotatable: boolean;
+
+  private _axisRotationAngleOffset: number;
+
+  private _axisOfRotation?: THREE.Vector3;
+
   /*
    * FIXME(ian): This implementation is still WIP! Rotational parameters are not
    * used right now.
@@ -42,8 +56,8 @@ export class RotatingObject extends SpaceObject {
    * @param {Number} options.rotation.jd0 JD epoch of rotational parameters
    * @see SpaceObject
    */
-  constructor(id, options, contextOrSimulation, autoInit = true) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id: string, options: SpaceObjectOptions, simulation: Simulation, autoInit: boolean = true) {
+    super(id, options, simulation, false /* autoInit */);
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
@@ -67,7 +81,7 @@ export class RotatingObject extends SpaceObject {
     }
   }
 
-  init() {
+  init(): boolean {
     if (this._objectIsRotatable) {
       this.initRotation();
     }
@@ -84,7 +98,7 @@ export class RotatingObject extends SpaceObject {
       }
     }
 
-    super.init();
+    return super.init();
   }
 
   initRotation() {
@@ -98,13 +112,13 @@ export class RotatingObject extends SpaceObject {
     // Testing this asteroid:
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
     // Model 2691
-    const PI = Math.PI;
+    const { PI } = Math;
 
     // Cacus
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
-    const rotation = this._options.rotation;
+    const { rotation } = this._options;
 
     // Latitude
     const lambda = rad(rotation.lambdaDeg);
@@ -137,7 +151,7 @@ export class RotatingObject extends SpaceObject {
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
    */
-  update(jd, force = false) {
+  update(jd: number, force: boolean = false) {
     if (
       this._obj &&
       this._objectIsRotatable &&
@@ -163,7 +177,7 @@ export class RotatingObject extends SpaceObject {
    * Gets the THREE.js objects that represent this SpaceObject.
    * @return {Array.<THREE.Object>} A list of THREE.js objects
    */
-  get3jsObjects() {
+  get3jsObjects(): THREE.Object3D[] {
     const ret = super.get3jsObjects();
     // Add to the front, because this is the primary object.
     ret.unshift(this._obj);

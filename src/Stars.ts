@@ -14,6 +14,12 @@ import {
   getObliquity,
 } from './Coordinates';
 
+import type { Simulation, SimulationContext } from './Simulation';
+
+interface StarOptions {
+  minSize?: number;
+};
+
 const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
 const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);
 
@@ -22,7 +28,7 @@ const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);
  * @param temp {Number} Star temperature in Kelvin
  * @return {Number} Color for star of given spectral class
  */
-function getColorForStar(temp) {
+function getColorForStar(temp: number): number {
   if (temp >= 30000) return 0x92b5ff;
   if (temp >= 10000) return 0xa2c0ff;
   if (temp >= 7500) return 0xd5e0ff;
@@ -39,7 +45,7 @@ function getColorForStar(temp) {
  * @param minSize {Number} Pixel size of the smallest star
  * @return {Number} Pixel size of star.
  */
-function getSizeForStar(mag, minSize) {
+function getSizeForStar(mag: number, minSize: number): number {
   if (mag < 2.0) return minSize * 4;
   if (mag < 4.0) return minSize * 2;
   if (mag < 6.0) return minSize;
@@ -51,24 +57,26 @@ function getSizeForStar(mag, minSize) {
  * space.
  */
 export class Stars {
+  private _id: string;
+
+  private _options: StarOptions;
+
+  private _simulation: Simulation;
+
+  private _context: SimulationContext;
+
+  private _stars?: THREE.Points;
+
   /**
    * @param {Number} options.minSize The size of the smallest star.
    * Defaults to 0.75
    */
-  constructor(options, contextOrSimulation) {
+  constructor(options: StarOptions, simulation) {
     this._options = options;
     this._id = `__stars_${new Date().getTime()}`;
 
-    // if (contextOrSimulation instanceOf Simulation) {
-    if (true) {
-      // User passed in Simulation
-      this._simulation = contextOrSimulation;
-      this._context = contextOrSimulation.getContext();
-    } else {
-      // User just passed in options
-      this._simulation = null;
-      this._context = contextOrSimulation;
-    }
+    this._simulation = simulation;
+    this._context = simulation.getContext();
 
     this._stars = undefined;
 
@@ -142,10 +150,10 @@ export class Stars {
   }
 
   /**
-   * A list of THREE.js objects that are used to compose the skybox.
-   * @return {THREE.Object} Skybox mesh
+   * A list of THREE.js objects that are used to compose this object
+   * @return {THREE.Object3D[]} Star objects
    */
-  get3jsObjects() {
+  get3jsObjects(): THREE.Object3D[] {
     return [this._stars];
   }
 
@@ -153,7 +161,7 @@ export class Stars {
    * Get the unique ID of this object.
    * @return {String} id
    */
-  getId() {
+  getId(): string {
     return this._id;
   }
 }

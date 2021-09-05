@@ -40,18 +40,3 @@ export function rescaleVector(vec: Vector3): Vector3 {
 export function rescaleNumber(x: number): number {
   return scaleFactor * x;
 }
-
-export function rescale(
-  ...args: Coordinate3d | [Coordinate3d] | [CoordinateXYZ] | [number]
-): number | Coordinate3d | CoordinateXYZ {
-  if (Array.isArray(args[0]) && args[0].length === 3) {
-    return rescaleArray(args[0]);
-  }
-  if (typeof args[0] === 'number') {
-    if (args.length === 3) {
-      return rescaleXYZ(...args);
-    }
-    return rescaleNumber(args[0]);
-  }
-  return rescalePos(args[0]);
-}

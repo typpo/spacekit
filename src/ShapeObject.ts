@@ -4,6 +4,9 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { RotatingObject } from './RotatingObject';
 
 export class ShapeObject extends RotatingObject {
+
+  private _shapeObj: THREE.Object3D;
+
   /**
    * @param {Object} options.shape Shape specification
    * @param {String} options.shape.type Type of object ("custom" or "sphere")
@@ -32,7 +35,7 @@ export class ShapeObject extends RotatingObject {
   /**
    * @private
    */
-  init() {
+  init(): boolean {
     const manager = new THREE.LoadingManager();
     manager.onProgress = (item, loaded, total) => {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -68,14 +71,14 @@ export class ShapeObject extends RotatingObject {
     });
 
     // TODO(ian): Create an orbit if applicable
-    super.init();
+    return super.init();
   }
 
   /**
    * Specifies the object that is used to compute the bounding box.
    * @return {THREE.Object3D} THREE.js object
    */
-  getBoundingObject() {
+  getBoundingObject(): THREE.Object3D {
     return this._shapeObj;
   }
 }

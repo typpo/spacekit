@@ -180,7 +180,7 @@ export class Orbit {
    * @param {boolean} debug Set true for debug output.
    * @return {Array.<Number>} [X, Y, Z] coordinates
    */
-  getPositionAtTime(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTime(jd: number, debug: boolean = false): Coordinate3d {
     // Note: logic below must match the vertex shader.
 
     // This position calculation is used to create orbital ellipses.
@@ -198,7 +198,7 @@ export class Orbit {
     }
   }
 
-  getPositionAtTimeParabolic(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTimeParabolic(jd: number, debug: boolean = false): Coordinate3d {
     // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
@@ -227,7 +227,7 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeNearParabolic(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTimeNearParabolic(jd: number, debug: boolean = false): Coordinate3d {
     // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
@@ -268,7 +268,7 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeHyperbolic(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTimeHyperbolic(jd: number, debug: boolean = false): Coordinate3d {
     // See https://stjarnhimlen.se/comp/ppcomp.html#17
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
@@ -314,7 +314,7 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeElliptical(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTimeElliptical(jd: number, debug: boolean = false): Coordinate3d {
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
       throw new Error('Attempted to compute coordinates from ephemeris table');
@@ -361,7 +361,7 @@ export class Orbit {
     return this.vectorToHeliocentric(v, r);
   }
 
-  getPositionAtTimeTable(jd: number, debug: boolean): Coordinate3d {
+  getPositionAtTimeTable(jd: number, debug: boolean = false): Coordinate3d {
     if (this.ephem instanceof EphemerisTable) {
       const point = this.ephem.getPositionAtTime(jd);
       return rescaleXYZ(point[0], point[1], point[2]);

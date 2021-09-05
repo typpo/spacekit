@@ -15,12 +15,12 @@ describe('Ephemeris Table Construction', () =>{
 
     const ephemTable = new EphemerisTable(ephemerisData);
     expect(ephemTable).toBeDefined();
-    expect(ephemTable._data.length).toBe(2);
-    expect(ephemTable._units.distance).toBe('au');
-    expect(ephemTable._units.time).toBe('day');
-    expect(ephemTable._ephemType).toBe('cartesianposvel');
-    expect(ephemTable._interpolationType).toBe('lagrange');
-    expect(ephemTable._interpolationOrder).toBe(5);
+    expect(ephemTable.data.length).toBe(2);
+    expect(ephemTable.units.distance).toBe('au');
+    expect(ephemTable.units.time).toBe('day');
+    expect(ephemTable.ephemType).toBe('cartesianposvel');
+    expect(ephemTable.interpolationType).toBe('lagrange');
+    expect(ephemTable.interpolationOrder).toBe(5);
   });
 
   test('Minimal full argument success', () => {
@@ -35,12 +35,12 @@ describe('Ephemeris Table Construction', () =>{
 
     const ephemTable = new EphemerisTable(ephemerisData);
     expect(ephemTable).toBeDefined();
-    expect(ephemTable._data.length).toBe(2);
-    expect(ephemTable._units.distance).toBe('km');
-    expect(ephemTable._units.time).toBe('sec');
-    expect(ephemTable._ephemType).toBe('cartesianposvel');
-    expect(ephemTable._interpolationType).toBe('lagrange');
-    expect(ephemTable._interpolationOrder).toBe(6);
+    expect(ephemTable.data.length).toBe(2);
+    expect(ephemTable.units.distance).toBe('km');
+    expect(ephemTable.units.time).toBe('sec');
+    expect(ephemTable.ephemType).toBe('cartesianposvel');
+    expect(ephemTable.interpolationType).toBe('lagrange');
+    expect(ephemTable.interpolationOrder).toBe(6);
   });
 
   describe('Failure modes', () =>{
@@ -173,7 +173,7 @@ describe('Ephemeris Table Unit Conversions', () => {
       timeUnits: timeUnitName
     });
 
-    const firstLine = ephemTable._data[0];
+    const firstLine = ephemTable.data[0];
     expect(firstLine[1]).toBeCloseTo(x,10);
     expect(firstLine[2]).toBeCloseTo(y,10);
     expect(firstLine[3]).toBeCloseTo(z,10);

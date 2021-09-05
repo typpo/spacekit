@@ -7,9 +7,9 @@ import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 import { rescaleArray, rescaleNumber } from './Scale';
 
-import type EphemerisTable from './EphemerisTable';
 import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
 import type { Ephem } from './Ephem';
+import type { EphemerisTable } from './EphemerisTable';
 import type { Simulation, SimulationContext } from './Simulation';
 
 export interface SpaceObjectOptions {

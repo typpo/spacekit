@@ -56,7 +56,7 @@ const TIME_UNITS = new Set(['day', 'sec']);
  *
  * For 'cartesianposvel' style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]
  */
-export default class EphemerisTable {
+export class EphemerisTable {
   private units: EphemerisTableUnits;
 
   private ephemType: EphemType;

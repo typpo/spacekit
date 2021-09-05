@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import julian from 'julian';
 
-import EphemerisTable from './EphemerisTable';
 import { Ephem } from './Ephem';
+import { EphemerisTable } from './EphemerisTable';
 import { rescaleArray, rescaleXYZ } from './Scale';
 
 import type { Coordinate3d } from './Coordinates';
@@ -41,7 +41,7 @@ const MAX_NUM_ECLIPTIC_DROPLINES = 90;
 /**
  * Special cube root function that assumes input is always positive.
  */
-function cbrt(x) {
+function cbrt(x: number) {
   return Math.exp(Math.log(x) / 3.0);
 }
 
@@ -108,7 +108,7 @@ export class Orbit {
    * perpendicular to the ecliptic in order to illustrate depth (defaults to
    * 0x333333).
    */
-  constructor(ephem, options) {
+  constructor(ephem: Ephem | EphemerisTable, options: OrbitOptions) {
     /**
      * Ephem object
      * @type {(Ephem | EphemerisTable)}
@@ -494,14 +494,14 @@ export class Orbit {
    * Compute a line between a given date range.
    * @private
    */
-  getLine(orbitFn, startJd, endJd, step) {
+  private getLine(orbitFn, startJd, endJd, step) {
     const points = [];
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
 
-    const pointsGeometry = new THREE.Geometry();
+    const pointsGeometry = new THREE.BufferGeometry();
     pointsGeometry.vertices = points;
 
     return this.generateAndCacheOrbitShape(pointsGeometry);
@@ -515,7 +515,11 @@ export class Orbit {
    * @param {Number} step step size in days
    * @return {THREE.Line}
    */
-  getTableOrbit(startJd, stopJd, step) {
+  private getTableOrbit(
+    startJd: number,
+    stopJd: number,
+    step: number,
+  ): THREE.Line {
     if (this.ephem instanceof Ephem) {
       throw new Error(
         'Attempted to compute table orbit on non-table ephemeris',
@@ -525,7 +529,7 @@ export class Orbit {
     const points = rawPoints
       .map((values) => rescaleArray(values))
       .map((values) => new THREE.Vector3(values[0], values[1], values[2]));
-    const pointGeometry = new THREE.Geometry();
+    const pointGeometry = new THREE.BufferGeometry();
     pointGeometry.vertices = points;
 
     return this.generateAndCacheOrbitShape(pointGeometry);
@@ -535,16 +539,16 @@ export class Orbit {
    * @private
    * @return {THREE.Line} The ellipse object that represents this orbit.
    */
-  getEllipse() {
+  private getEllipse() {
     const pointGeometry = this.getEllipseGeometry();
     return this.generateAndCacheOrbitShape(pointGeometry);
   }
 
   /**
    * @private
-   * @return {THREE.Geometry} A THREE.js geometry
+   * @return {THREE.BufferGeometry} A THREE.js geometry
    */
-  getEllipseGeometry() {
+  private getEllipseGeometry() {
     const eph = this.ephem;
     if (eph instanceof EphemerisTable) {
       throw new Error('Attempted to compute coordinates from ephemeris table');
@@ -571,7 +575,7 @@ export class Orbit {
     }
     pts.push(pts[0]);
 
-    const pointGeometry = new THREE.Geometry();
+    const pointGeometry = new THREE.BufferGeometry();
     pointGeometry.vertices = pts;
     return pointGeometry;
   }
@@ -579,7 +583,7 @@ export class Orbit {
   /**
    * @private
    */
-  generateAndCacheOrbitShape(pointGeometry: THREE.Geometry) {
+  private generateAndCacheOrbitShape(pointGeometry: THREE.Geometry) {
     this.orbitPoints = pointGeometry;
     this.orbitShape = new THREE.Line(
       pointGeometry,
@@ -608,7 +612,7 @@ export class Orbit {
       this.getOrbitShape();
     }
     const points = this.orbitPoints;
-    const geometry = new THREE.Geometry();
+    const geometry = new THREE.BufferGeometry();
 
     // Place a cap on visible lines, for large or highly inclined orbits.
     points.vertices.forEach((vertex, idx) => {

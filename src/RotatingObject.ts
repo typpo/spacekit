@@ -8,7 +8,7 @@ import type { Simulation } from './Simulation';
 import type { SpaceObjectOptions } from './SpaceObject';
 
 function getAxis(src, dst, color) {
-  const geom = new THREE.Geometry();
+  const geom = new THREE.BufferGeometry();
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
 
   geom.vertices.push(rescaleVector(src).clone());

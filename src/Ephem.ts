@@ -343,14 +343,14 @@ export class Ephem {
   copy(): Ephem {
     return new Ephem(
       {
-        GM: this.get('GM'),
-        epoch: this.get('epoch'),
-        a: this.get('a'),
-        e: this.get('e'),
-        i: this.get('i'),
-        om: this.get('om'),
-        ma: this.get('ma'),
-        w: this.get('w'),
+        GM: this.getUnsafe('GM'),
+        epoch: this.getUnsafe('epoch'),
+        a: this.getUnsafe('a'),
+        e: this.getUnsafe('e'),
+        i: this.getUnsafe('i'),
+        om: this.getUnsafe('om'),
+        ma: this.getUnsafe('ma'),
+        w: this.getUnsafe('w'),
       },
       'rad',
     );

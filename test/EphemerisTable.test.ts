@@ -1,6 +1,7 @@
 import { expect } from '@jest/globals';
+
+import Units from '../src/Units';
 import { EphemerisTable } from '../src/EphemerisTable';
-import { kmToAu } from '../src/Units';
 
 describe('Ephemeris Table Construction', () => {
   const ephemeris = [
@@ -173,22 +174,22 @@ describe('Ephemeris Table Unit Conversions', () => {
     [
       'km',
       'day',
-      kmToAu(1.0),
-      kmToAu(2.0),
-      kmToAu(3.0),
-      kmToAu(0.1),
-      kmToAu(0.2),
-      kmToAu(0.3),
+      Units.kmToAu(1.0),
+      Units.kmToAu(2.0),
+      Units.kmToAu(3.0),
+      Units.kmToAu(0.1),
+      Units.kmToAu(0.2),
+      Units.kmToAu(0.3),
     ],
     [
       'km',
       'sec',
-      kmToAu(1.0),
-      kmToAu(2.0),
-      kmToAu(3.0),
-      kmToAu(0.1) / 86400.0,
-      kmToAu(0.2) / 86400.0,
-      kmToAu(0.3) / 86400.0,
+      Units.kmToAu(1.0),
+      Units.kmToAu(2.0),
+      Units.kmToAu(3.0),
+      Units.kmToAu(0.1) / 86400.0,
+      Units.kmToAu(0.2) / 86400.0,
+      Units.kmToAu(0.3) / 86400.0,
     ],
   ])(
     '%s distance, %s time, to internal units',
@@ -259,9 +260,9 @@ describe('Ephemeris Table getPosition', () => {
     timeUnits: 'sec',
   });
   const compare = (position, expectedRow) => {
-    expect(position[0]).toBeCloseTo(kmToAu(expectedRow[1]), 12);
-    expect(position[1]).toBeCloseTo(kmToAu(expectedRow[2]), 12);
-    expect(position[2]).toBeCloseTo(kmToAu(expectedRow[3]), 12);
+    expect(position[0]).toBeCloseTo(Units.kmToAu(expectedRow[1]), 12);
+    expect(position[1]).toBeCloseTo(Units.kmToAu(expectedRow[2]), 12);
+    expect(position[2]).toBeCloseTo(Units.kmToAu(expectedRow[3]), 12);
   };
 
   test('Get at first point', () => {

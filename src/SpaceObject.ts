@@ -10,7 +10,7 @@ import { rescaleArray, rescaleNumber } from './Scale';
 import type { Coordinate3d } from './Coordinates';
 import type { Ephem } from './Ephem';
 import type { EphemerisTable } from './EphemerisTable';
-import type { Simulation, SimulationContext } from './Simulation';
+import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
 
 export interface SpaceObjectOptions {
   position?: Coordinate3d;
@@ -39,11 +39,11 @@ export interface SpaceObjectOptions {
   textureUrl?: string;
   basePath?: string;
   rotation?: {
-    enable?: boolean;
+    enable: boolean;
+    period: number;
     speed?: number;
     lambdaDeg?: number;
     betaDeg?: number;
-    period?: number;
     yorp?: number;
     phi0?: number;
     jd0?: number;
@@ -121,7 +121,7 @@ function toScreenXY(
  * });
  * ```
  */
-export class SpaceObject {
+export class SpaceObject implements SimulationObject {
   protected _id: string;
 
   protected _options: SpaceObjectOptions;
@@ -317,9 +317,6 @@ export class SpaceObject {
       }
 
       if (!this._renderMethod) {
-        if (!this._context.objects.particles) {
-          throw new Error('Attempting to create a particle system, but no particle system context has been provided.');
-        }
         if (!this._options.ephem) {
           throw new Error('Attempting to create a particle system, but ephemeris are not available.');
         }
@@ -723,11 +720,7 @@ export class SpaceObject {
     }
 
     if (this._particleIndex !== undefined) {
-      if (this._context.objects.particles) {
-        this._context?.objects.particles.hideParticle(this._particleIndex);
-      } else {
-        throw new Error(`Could not cleanup particle with removalCleanup(). Index ${this._particleIndex}`);
-      }
+      this._context?.objects.particles.hideParticle(this._particleIndex);
     }
   }
 }

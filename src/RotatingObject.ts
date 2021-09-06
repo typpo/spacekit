@@ -7,7 +7,7 @@ import { rescaleVector } from './Scale';
 import type { Simulation } from './Simulation';
 import type { SpaceObjectOptions } from './SpaceObject';
 
-function getAxis(src, dst, color) {
+function getAxis(src: THREE.Vector3, dst: THREE.Vector3, color: number) {
   const mat = new THREE.LineBasicMaterial({ linewidth: 3, color });
   const geom = new THREE.BufferGeometry().setFromPoints([
     rescaleVector(src).clone(),
@@ -85,7 +85,7 @@ export class RotatingObject extends SpaceObject {
     }
   }
 
-  init(): boolean {
+  override init(): boolean {
     if (this._objectIsRotatable) {
       this.initRotation();
     }
@@ -106,7 +106,12 @@ export class RotatingObject extends SpaceObject {
   }
 
   initRotation() {
-    if (typeof this._options.rotation.jd0 === 'undefined') {
+    if (!this._options.rotation) {
+      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+    }
+
+    const { rotation } = this._options;
+    if (typeof rotation.jd0 === 'undefined') {
       return;
     }
 
@@ -122,18 +127,16 @@ export class RotatingObject extends SpaceObject {
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
     // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
 
-    const { rotation } = this._options;
-
     // Latitude
-    const lambda = Units.rad(rotation.lambdaDeg);
+    const lambda = Units.rad(rotation.lambdaDeg || 0);
 
     // Longitude
-    const beta = Units.rad(rotation.betaDeg);
+    const beta = Units.rad(rotation.betaDeg || 0);
 
     // Other
     const P = rotation.period;
-    const YORP = rotation.yorp;
-    const phi0 = Units.rad(rotation.phi0);
+    const YORP = rotation.yorp || 0;
+    const phi0 = Units.rad(rotation.phi0 || 0);
     const JD = this._simulation.getJd();
     const JD0 = rotation.jd0;
 
@@ -155,7 +158,7 @@ export class RotatingObject extends SpaceObject {
    * Updates the object and its label positions for a given time.
    * @param {Number} jd JD date
    */
-  update(jd: number, force: boolean = false) {
+  override update(jd: number, force: boolean = false) {
     if (
       this._obj &&
       this._objectIsRotatable &&
@@ -181,7 +184,7 @@ export class RotatingObject extends SpaceObject {
    * Gets the THREE.js objects that represent this SpaceObject.
    * @return {Array.<THREE.Object>} A list of THREE.js objects
    */
-  get3jsObjects(): THREE.Object3D[] {
+  override get3jsObjects(): THREE.Object3D[] {
     const ret = super.get3jsObjects();
     // Add to the front, because this is the primary object.
     ret.unshift(this._obj);
@@ -192,6 +195,9 @@ export class RotatingObject extends SpaceObject {
    * Begin rotating this object.
    */
   startRotation() {
+    if (!this._options.rotation) {
+      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+    }
     this._options.rotation.enable = true;
   }
 
@@ -199,6 +205,9 @@ export class RotatingObject extends SpaceObject {
    * Stop rotation of this object.
    */
   stopRotation() {
+    if (!this._options.rotation) {
+      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+    }
     this._options.rotation.enable = false;
   }
 }

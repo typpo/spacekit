@@ -3,8 +3,11 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 
 import { RotatingObject } from './RotatingObject';
 
+import type { Simulation } from './Simulation';
+import type { SpaceObjectOptions } from './SpaceObject';
+
 export class ShapeObject extends RotatingObject {
-  private _shapeObj: THREE.Object3D;
+  private _shapeObj: THREE.Object3D | undefined;
 
   /**
    * @param {Object} options.shape Shape specification
@@ -19,8 +22,8 @@ export class ShapeObject extends RotatingObject {
    * @see SpaceObject
    * @see RotatingObject
    */
-  constructor(id, options, contextOrSimulation) {
-    super(id, options, contextOrSimulation, false /* autoInit */);
+  constructor(id: string, options: SpaceObjectOptions, simulation: Simulation) {
+    super(id, options, simulation, false /* autoInit */);
     if (!options.shape) {
       console.error('ShapeObject requires an options.shape object');
       return;
@@ -34,7 +37,10 @@ export class ShapeObject extends RotatingObject {
   /**
    * @private
    */
-  init(): boolean {
+  override init(): boolean {
+    if (!this._options.shape?.shapeUrl) {
+      throw new Error('Must specify shape.shapeUrl when creating a ShapeObject');
+    }
     const manager = new THREE.LoadingManager();
     manager.onProgress = (item, loaded, total) => {
       console.info(this._id, item, 'loading progress:', loaded, '/', total);
@@ -45,7 +51,7 @@ export class ShapeObject extends RotatingObject {
       object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           const material = new THREE.MeshStandardMaterial({
-            color: this._options.shape.color || 0xcccccc,
+            color: this._options.shape!.color || 0xcccccc,
           });
           child.material = material;
           child.geometry.scale(0.05, 0.05, 0.05);
@@ -77,7 +83,7 @@ export class ShapeObject extends RotatingObject {
    * Specifies the object that is used to compute the bounding box.
    * @return {THREE.Object3D} THREE.js object
    */
-  getBoundingObject(): THREE.Object3D {
+  override getBoundingObject(): THREE.Object3D {
     return this._shapeObj;
   }
 }

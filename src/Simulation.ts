@@ -24,6 +24,13 @@ import { setScaleFactor, rescaleArray } from './Scale';
 
 import type { Coordinate3d } from './Coordinates';
 
+// TODO(ian): Make this an interface.
+export interface SimulationObject {
+  update: (jd: number, force: boolean) => void;
+  get3jsObjects(): THREE.Object3D[];
+  getId(): string;
+}
+
 interface CameraOptions {
   initialPosition?: Coordinate3d;
   enableDrift?: boolean;
@@ -54,10 +61,10 @@ export interface SimulationContext {
   simulation: Simulation;
   options: SpacekitOptions;
   objects: {
-    particles?: KeplerParticles;
-    camera?: Camera;
-    scene?: Scene;
-    renderer?: WebGL1Renderer;
+    renderer: WebGL1Renderer;
+    camera: Camera;
+    scene: Scene;
+    particles: KeplerParticles;
     composer?: EffectComposer;
   };
   container: {
@@ -120,7 +127,7 @@ export class Simulation {
 
   private lightPosition?: Vector3;
 
-  private subscribedObjects: Record<string, SpaceObject>;
+  private subscribedObjects: Record<string, SimulationObject>;
 
   private particles: KeplerParticles;
 
@@ -138,9 +145,9 @@ export class Simulation {
 
   private initialRenderComplete: boolean;
 
-  private scene?: Scene;
+  private scene: Scene;
 
-  private renderer?: WebGL1Renderer;
+  private renderer: WebGL1Renderer;
 
   private composer?: EffectComposer;
 
@@ -198,7 +205,7 @@ export class Simulation {
     this.jdDelta = this.options.jdDelta;
     this.jdPerSecond = this.options.jdPerSecond || 100;
     this.isPaused = options.startPaused || false;
-    this.onTick = null;
+    this.onTick = undefined;
 
     this.enableCameraDrift = false;
     this.cameraDefaultPos = rescaleArray([0, -10, 5]);
@@ -211,15 +218,26 @@ export class Simulation {
       }
     }
 
-    this.camera = null;
     this.useLightSources = false;
-    this.lightPosition = null;
+    this.lightPosition = undefined;
 
     this.subscribedObjects = {};
-    this.particles = null;
+
+    // Orbit particle system must be initialized after scene is created.
+    this.particles = new KeplerParticles(
+      {
+        textureUrl:
+          this.options.particleTextureUrl ||
+          '{{assets}}/sprites/smallparticle.png',
+        jd: this.jd,
+        maxNumParticles: this.options.maxNumParticles,
+        defaultSize: this.options.particleDefaultSize,
+      },
+      this,
+    );
 
     // stats.js panel
-    this.stats = null;
+    this.stats = undefined;
     this.fps = 1;
 
     this.lastUpdatedTime = Date.now();
@@ -231,8 +249,9 @@ export class Simulation {
     this.initialRenderComplete = false;
     this.animate = this.animate.bind(this);
 
-    this.scene = null;
-    this.renderer = null;
+    this.renderer = this.initRenderer();
+    this.scene = new THREE.Scene();
+    this.camera = new Camera(this.getContext());
     this.composer = null;
 
     this.init();
@@ -243,7 +262,6 @@ export class Simulation {
    * @private
    */
   private init() {
-    this.initRenderer();
 
     // Misc
     // This makes controls.lookAt and other objects treat the positive Z axis
@@ -255,12 +273,8 @@ export class Simulation {
       setScaleFactor(this.options.unitsPerAu);
     }
 
-    // Scene
-    this.scene = new THREE.Scene();
-
     // Camera
-    const camera = new Camera(this.getContext());
-    camera
+    this.camera
       .get3jsCamera()
       .position.set(
         this.cameraDefaultPos[0],
@@ -268,7 +282,6 @@ export class Simulation {
         this.cameraDefaultPos[2],
       );
     // window.cam = camera.get3jsCamera();
-    this.camera = camera;
 
     // Events
     this.simulationElt.onmousedown = this.simulationElt.ontouchstart = () => {
@@ -318,19 +331,6 @@ export class Simulation {
       }
     }
 
-    // Orbit particle system must be initialized after scene is created.
-    this.particles = new KeplerParticles(
-      {
-        textureUrl:
-          this.options.particleTextureUrl ||
-          '{{assets}}/sprites/smallparticle.png',
-        jd: this.jd,
-        maxNumParticles: this.options.maxNumParticles,
-        defaultSize: this.options.particleDefaultSize,
-      },
-      this,
-    );
-
     // Set up effect composer, etc.
     this.initPasses();
   }
@@ -338,7 +338,7 @@ export class Simulation {
   /**
    * @private
    */
-  private initRenderer() {
+  private initRenderer(): THREE.WebGL1Renderer {
     // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
     const renderer = new THREE.WebGL1Renderer({
       antialias: true,
@@ -364,7 +364,7 @@ export class Simulation {
 
     this.simulationElt.appendChild(renderer.domElement);
 
-    this.renderer = renderer;
+    return renderer;
   }
 
   /**
@@ -545,7 +545,7 @@ export class Simulation {
    * @param {boolean} noUpdate Set to true if object does not need to be
    * animated.
    */
-  addObject(obj, noUpdate = false) {
+  addObject(obj: SimulationObject, noUpdate: boolean = false) {
     obj.get3jsObjects().map((x) => {
       this.scene.add(x);
     });
@@ -566,7 +566,7 @@ export class Simulation {
    * Removes an object from the visualization.
    * @param {Object} obj Object to remove
    */
-  removeObject(obj) {
+  removeObject(obj: SpaceObject) {
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
       this.scene.remove(x);
@@ -583,6 +583,7 @@ export class Simulation {
    * Takes any SpaceObject arguments.
    * @see SpaceObject
    */
+  // @ts-ignore
   createObject(...args): SpaceObject {
     // @ts-ignore
     return new SpaceObject(...args, this);
@@ -593,6 +594,7 @@ export class Simulation {
    * Takes any ShapeObject arguments.
    * @see ShapeObject
    */
+  // @ts-ignore
   createShape(...args): ShapeObject {
     // @ts-ignore
     return new ShapeObject(...args, this);
@@ -603,6 +605,7 @@ export class Simulation {
    * Takes any SphereObject arguments.
    * @see SphereObject
    */
+  // @ts-ignore
   createSphere(...args): SphereObject {
     // @ts-ignore
     return new SphereObject(...args, this);
@@ -613,6 +616,7 @@ export class Simulation {
    * Takes any StaticParticles arguments.
    * @see SphereObject
    */
+  // @ts-ignore
   createStaticParticles(...args): StaticParticles {
     // @ts-ignore
     return new StaticParticles(...args, this);
@@ -623,6 +627,7 @@ export class Simulation {
    * any Skybox arguments.
    * @see Skybox
    */
+  // @ts-ignore
   createSkybox(...args): Skybox {
     // @ts-ignore
     return new Skybox(...args, this);
@@ -633,6 +638,7 @@ export class Simulation {
    * Takes any Stars arguments.
    * @see Stars
    */
+  // @ts-ignore
   createStars(...args): Stars {
     if (args.length) {
       // @ts-ignore
@@ -648,7 +654,7 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene!.add(new THREE.AmbientLight(color));
+    this.scene.add(new THREE.AmbientLight(color));
     this.useLightSources = true;
   }
 
@@ -659,7 +665,7 @@ export class Simulation {
    * with camera.
    * @param {Number} color Color of light, default 0xFFFFFF
    */
-  createLight(pos: Coordinate3d = undefined, color: number = 0xffffff) {
+  createLight(pos: Coordinate3d | undefined = undefined, color: number = 0xffffff) {
     if (this.lightPosition) {
       console.warn(
         "Spacekit doesn't support more than one light source for SphereObjects",
@@ -671,20 +677,20 @@ export class Simulation {
     // TODO(ian): Remove this point light.
     const pointLight = new THREE.PointLight();
 
-    if (typeof pos !== 'undefined') {
-      const rescaled = rescaleArray(pos);
-      this.lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
-      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
-    } else {
+    if (typeof pos === 'undefined') {
       // The light comes from the camera.
       // FIXME(ian): This only affects the point source.
       this.camera.get3jsCameraControls().addEventListener('change', () => {
         this.lightPosition!.copy(this.camera.get3jsCamera().position);
         pointLight.position.copy(this.camera.get3jsCamera().position);
       });
+    } else {
+      const rescaled = rescaleArray(pos);
+      this.lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
+      pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     }
 
-    this.scene!.add(pointLight);
+    this.scene.add(pointLight);
     this.useLightSources = true;
   }
 
@@ -949,17 +955,17 @@ export class Simulation {
 
   /**
    * Get the three.js scene object
-   * @return {THREE.Scene | undefined} The THREE.js scene object
+   * @return {THREE.Scene} The THREE.js scene object
    */
-  getScene(): THREE.Scene | undefined {
+  getScene(): THREE.Scene {
     return this.scene;
   }
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGL1Renderer | undefined} The THREE.js renderer
+   * @return {THREE.WebGL1Renderer} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGL1Renderer | undefined {
+  getRenderer(): THREE.WebGL1Renderer {
     return this.renderer;
   }
 

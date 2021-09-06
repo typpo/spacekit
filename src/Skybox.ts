@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import type { Simulation, SimulationContext } from './Simulation';
+import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
 import { getFullTextureUrl } from './util';
 
 interface SkyboxOptions {
@@ -11,7 +11,7 @@ interface SkyboxOptions {
 /**
  * A class that adds a skybox (technically a skysphere) to a visualization.
  */
-export class Skybox {
+export class Skybox implements SimulationObject {
   private simulation: Simulation;
 
   private context: SimulationContext;
@@ -45,7 +45,7 @@ export class Skybox {
   /**
    * @private
    */
-  init() {
+  private init() {
     const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(
@@ -94,6 +94,10 @@ export class Skybox {
    */
   getId(): string {
     return this.id;
+  }
+
+  update() {
+    // Skyboxes don't update
   }
 }
 

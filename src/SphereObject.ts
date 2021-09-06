@@ -198,7 +198,11 @@ export class SphereObject extends RotatingObject {
       color: { value: colorObj },
       lightPos: { value: new THREE.Vector3() },
     };
-    uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+    const lightPosition = this._simulation.getLightPosition();
+    if (lightPosition) {
+      uniforms.lightPos.value.copy(lightPosition);
+    }
+    // TODO(ian): Handle case where there is no light.
 
     const material = new THREE.ShaderMaterial({
       uniforms,

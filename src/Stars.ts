@@ -5,7 +5,7 @@ import Units from './Units';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullUrl } from './util';
 
-import type { Simulation, SimulationContext } from './Simulation';
+import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
 
 interface StarOptions {
   minSize?: number;
@@ -46,7 +46,7 @@ function getSizeForStar(mag: number, minSize: number): number {
  * Builds a starry background that is accurate for the Earth's position in
  * space.
  */
-export class Stars {
+export class Stars implements SimulationObject {
   private _id: string;
 
   private _options: StarOptions;
@@ -159,5 +159,9 @@ export class Stars {
    */
   getId(): string {
     return this._id;
+  }
+
+  update() {
+    // Stars don't update
   }
 }

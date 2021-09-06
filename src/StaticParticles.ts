@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 
 import type { Coordinate3d } from './Coordinates';
-import type { Simulation } from './Simulation';
+import type { Simulation, SimulationObject } from './Simulation';
 
 interface StaticParticleOptions {
   defaultColor: number;
@@ -16,7 +16,7 @@ const DEFAULT_COLOR = 0xffffff;
 /**
  * Simulates a static particle field in whichever base reference the simulation is in.
  */
-export class StaticParticles {
+export class StaticParticles implements SimulationObject {
   private id: string;
 
   private options: StaticParticleOptions;
@@ -110,5 +110,9 @@ export class StaticParticles {
    */
   getId(): string {
     return this.id;
+  }
+
+  update() {
+    // Static particles don't update
   }
 }

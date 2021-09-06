@@ -3,6 +3,8 @@ import * as Util from './util';
 
 import Units from './Units';
 
+import type { Coordinate3d } from './Coordinates';
+
 /**
  * A class representing an ephemeris look-up table for defining a space object.
  */
@@ -14,8 +16,8 @@ type DistanceUnits = 'au' | 'km';
 type TimeUnits = 'day' | 'sec';
 
 interface EphemerisTableUnits {
-  distance: string;
-  time: string;
+  distance: DistanceUnits;
+  time: TimeUnits;
 }
 
 interface EphemerisTableData {
@@ -30,7 +32,7 @@ interface EphemerisTableData {
 
 // Constants
 const MAX_INTERPOLATION_ORDER = 20;
-const INCREASING_JDATE_SEARCH_METHOD = (a, b) => a[0] - b;
+const INCREASING_JDATE_SEARCH_METHOD = (a: number[], b: number) => a[0] - b;
 
 // Default Values
 const DEFAULT_UNITS: EphemerisTableUnits = {
@@ -171,7 +173,7 @@ export class EphemerisTable {
    * @param {Number} jd of the requested time
    * @returns {Number[]|*[]} x, y, z position in the ephemeris table's reference frame
    */
-  getPositionAtTime(jd) {
+  getPositionAtTime(jd: number): Coordinate3d {
     if (jd <= this.data[0][0]) {
       return [this.data[0][1], this.data[0][2], this.data[0][3]];
     }
@@ -217,7 +219,11 @@ export class EphemerisTable {
    * @param {Number} stepDays the step size of the data requested in days (can be fractional days)
    * @returns {number[][]}
    */
-  getPositions(startJd, stopJd, stepDays) {
+  getPositions(
+    startJd: number,
+    stopJd: number,
+    stepDays: number,
+  ): Coordinate3d[] {
     if (startJd > stopJd) {
       throw new Error(`Requested start needs to be after requested stop`);
     }
@@ -226,7 +232,7 @@ export class EphemerisTable {
       throw new Error('Step days needs to be greater than zero');
     }
 
-    const result = [];
+    const result: Coordinate3d[] = [];
     for (let t = startJd; t <= stopJd; t += stepDays) {
       result.push(this.getPositionAtTime(t));
     }
@@ -237,7 +243,7 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcDistanceMultiplier(unitType): number {
+  private calcDistanceMultiplier(unitType: DistanceUnits): number {
     switch (unitType) {
       case 'au':
         return 1.0;
@@ -251,7 +257,7 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcTimeMultiplier(unitType): number {
+  private calcTimeMultiplier(unitType: TimeUnits): number {
     switch (unitType) {
       case 'day':
         return 1.0;
@@ -265,7 +271,7 @@ export class EphemerisTable {
   /**
    * @private
    */
-  calcBoundingIndices(jd): {
+  private calcBoundingIndices(jd: number): {
     startIndex: number;
     stopIndex: number;
   } {

@@ -195,6 +195,29 @@ export const EphemPresets: {
   ),
 };
 
+interface NaturalSatelliteRecord {
+  Planet: string;
+  'Epoch String': string;
+  'Epoch JD': number;
+  'Element Type': string;
+  'Sat.': string;
+  tags: string;
+  a: number;
+  e: number;
+  w: number;
+  M: number;
+  i: number;
+  node: number;
+  n: number;
+  P: number;
+  Pw: number;
+  Pnode: number;
+  RA: number;
+  Dec: number | null;
+  Tilt: number | null;
+  Ref: string;
+}
+
 /**
  * A class for fetching orbital elements of natural satellites in our solar
  * system.
@@ -217,12 +240,11 @@ export class NaturalSatellites {
   private _readyPromise?: Promise<NaturalSatellites>;
 
   constructor(simulation: Simulation) {
-    // User passed in Simulation
     this._simulation = simulation;
     this._context = simulation.getContext();
 
     this._satellitesByPlanet = {};
-    this._readyPromise = null;
+    this._readyPromise = undefined;
 
     this.init();
   }
@@ -237,7 +259,7 @@ export class NaturalSatellites {
       fetch(dataUrl)
         .then((resp) => resp.json())
         .then((moons) => {
-          moons.forEach((moon) => {
+          moons.forEach((moon: NaturalSatelliteRecord) => {
             const planetName = moon.Planet.toLowerCase();
             if (!this._satellitesByPlanet[planetName]) {
               this._satellitesByPlanet[planetName] = [];
@@ -282,7 +304,7 @@ export class NaturalSatellites {
                 ephemGM = GM.PLUTO_CHARON;
                 break;
               default:
-                ephemGM = GM[moon.Planet.toUpperCase()];
+                ephemGM = GM[moon.Planet.toUpperCase() as keyof typeof GM];
             }
             if (!ephemGM) {
               console.error(`Could not look up GM for ${moon.Planet}`);
@@ -293,11 +315,11 @@ export class NaturalSatellites {
                 GM: ephemGM,
                 epoch: moon['Epoch JD'],
                 a: Units.kmToAu(moon.a),
-                e: parseFloat(moon.e),
-                i: parseFloat(moon.i),
-                w: parseFloat(moon.w),
-                om: parseFloat(moon.node),
-                ma: parseFloat(moon.M),
+                e: moon.e,
+                i: moon.i,
+                w: moon.w,
+                om: moon.node,
+                ma: moon.M,
               },
               'deg',
               true /* locked */,

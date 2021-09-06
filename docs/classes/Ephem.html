@@ -117,6 +117,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="Ephem.html#copy" class="tsd-kind-icon">copy</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="Ephem.html#fill" class="tsd-kind-icon">fill</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="Ephem.html#get" class="tsd-kind-icon">get</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="Ephem.html#getUnsafe" class="tsd-kind-icon">get<wbr>Unsafe</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="Ephem.html#lock" class="tsd-kind-icon">lock</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="Ephem.html#set" class="tsd-kind-icon">set</a></li>
 							</ul>
@@ -136,7 +137,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L144">Ephem.ts:144</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L144">Ephem.ts:144</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -175,7 +176,7 @@
 					<div class="tsd-signature tsd-kind-icon">attrs<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">EphemAttributes</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L122">Ephem.ts:122</a></li>
+							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L122">Ephem.ts:122</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -185,7 +186,7 @@
 					<div class="tsd-signature tsd-kind-icon">locked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L124">Ephem.ts:124</a></li>
+							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L124">Ephem.ts:124</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -202,7 +203,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L309">Ephem.ts:309</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L333">Ephem.ts:333</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="Ephem.html" class="tsd-signature-type" data-tsd-kind="Class">Ephem</a></h4>
@@ -219,7 +220,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L217">Ephem.ts:217</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L238">Ephem.ts:238</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -236,7 +237,33 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L205">Ephem.ts:205</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L223">Ephem.ts:223</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>attr: <span class="tsd-signature-type">EphemAttribute</span></h5>
+								</li>
+								<li>
+									<h5>units: <span class="tsd-signature-type">&quot;rad&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;deg&quot;</span><span class="tsd-signature-symbol"> = &#x27;rad&#x27;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getUnsafe" class="tsd-anchor"></a>
+					<h3>get<wbr>Unsafe</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Unsafe<span class="tsd-signature-symbol">(</span>attr<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">EphemAttribute</span>, units<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;rad&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;deg&quot;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L209">Ephem.ts:209</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -260,7 +287,7 @@
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -274,7 +301,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L305">Ephem.ts:305</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L329">Ephem.ts:329</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -296,7 +323,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/79fd0f9/src/Ephem.ts#L179">Ephem.ts:179</a></li>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/be9d933/src/Ephem.ts#L183">Ephem.ts:183</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -368,6 +395,9 @@
 								<a href="Ephem.html#get" class="tsd-kind-icon">get</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="Ephem.html#getUnsafe" class="tsd-kind-icon">get<wbr>Unsafe</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="Ephem.html#lock" class="tsd-kind-icon">lock</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -417,6 +447,9 @@
 						<a href="../interfaces/SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
 					</li>
 					<li class=" tsd-kind-interface">
+						<a href="../interfaces/SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-interface">
 						<a href="../interfaces/SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
@@ -455,6 +488,10 @@
 				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
 			</ul>
@@ -465,9 +502,6 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>

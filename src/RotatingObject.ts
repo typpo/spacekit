@@ -38,7 +38,7 @@ export class RotatingObject extends SpaceObject {
 
   private _objectIsRotatable: boolean;
 
-  private _axisRotationAngleOffset: number;
+  // private _axisRotationAngleOffset: number;
 
   private _axisOfRotation?: THREE.Vector3;
 
@@ -74,7 +74,7 @@ export class RotatingObject extends SpaceObject {
     }
 
     // Offset of axis angle
-    this._axisRotationAngleOffset = 0;
+    // this._axisRotationAngleOffset = 0;
     this._axisOfRotation = undefined;
 
     // Keep track of materials that comprise this object.

@@ -12,13 +12,13 @@
  * @returns {Number} the interpolated value of the function f(x) from the data
  */
 export function interpolate(
-  data,
-  xValue,
-  sampleRowMin,
-  sampleRowMax,
-  xIndex,
-  yIndex,
-) {
+  data: number[][],
+  xValue: number,
+  sampleRowMin: number,
+  sampleRowMax: number,
+  xIndex: number,
+  yIndex: number,
+): number {
   if (data === undefined) {
     throw 'data object is undefined';
   }

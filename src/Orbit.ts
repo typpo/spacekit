@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+// @ts-ignore
 import julian from 'julian';
 
 import { Ephem } from './Ephem';
@@ -31,12 +32,11 @@ const { sin, cos, sqrt } = Math;
 
 const DEFAULT_LEAD_TRAIL_YEARS = 10;
 const DEFAULT_SAMPLE_POINTS = 360;
-const DEFAULTorbit_PATH_SETTINGS = {
+const DEFAULT_ORBIT_PATH_SETTINGS = {
   leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
   numberSamplePoints: DEFAULT_SAMPLE_POINTS,
 };
-const MAX_NUM_ECLIPTIC_DROPLINES = 90;
 
 /**
  * Special cube root function that assumes input is always positive.
@@ -69,7 +69,7 @@ export class Orbit {
 
   private orbitShape?: THREE.Line;
 
-  private orbitStart?: number;
+  private orbitStart: number;
 
   private orbitStop: number;
 
@@ -85,9 +85,8 @@ export class Orbit {
    * @param {Number} options.orbitPathSettings.trailDurationYears orbit path trail time in years
    * @param {Number} options.orbitPathSettings.numberSamplePoints number of
    * points to use when drawing the orbit line. Only applicable for
-   * non-elliptical and ephemeris table orbits.
-   * perpendicular to the ecliptic in order to illustrate depth (defaults to
-   * 0x333333).
+   * non-elliptical and ephemeris table orbits.  perpendicular to the ecliptic
+   * in order to illustrate depth (defaults to 0x333333).
    */
   constructor(ephem: Ephem | EphemerisTable, options: OrbitOptions) {
     /**
@@ -106,41 +105,42 @@ export class Orbit {
      */
     if (!this.options.orbitPathSettings) {
       this.options.orbitPathSettings = JSON.parse(
-        JSON.stringify(DEFAULTorbit_PATH_SETTINGS),
+        JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS),
       );
     }
 
-    if (!this.options.orbitPathSettings.leadDurationYears) {
-      this.options.orbitPathSettings.leadDurationYears =
+    if (!this.options.orbitPathSettings?.leadDurationYears) {
+      this.options.orbitPathSettings!.leadDurationYears =
         DEFAULT_LEAD_TRAIL_YEARS;
     }
 
-    if (!this.options.orbitPathSettings.trailDurationYears) {
-      this.options.orbitPathSettings.trailDurationYears =
+    if (!this.options.orbitPathSettings?.trailDurationYears) {
+      this.options.orbitPathSettings!.trailDurationYears =
         DEFAULT_LEAD_TRAIL_YEARS;
     }
 
-    if (!this.options.orbitPathSettings.numberSamplePoints) {
-      this.options.orbitPathSettings.numberSamplePoints = DEFAULT_SAMPLE_POINTS;
+    if (!this.options.orbitPathSettings?.numberSamplePoints) {
+      this.options.orbitPathSettings!.numberSamplePoints =
+        DEFAULT_SAMPLE_POINTS;
     }
 
     /**
      * Cached orbital points.
      * @type {Array.<THREE.BufferGeometry>}
      */
-    this.orbitPoints = null;
+    this.orbitPoints = undefined;
 
     /**
      * Cached ecliptic drop lines.
      * @type {Array.<THREE.LineSegments>}
      */
-    this.eclipticDropLines = null;
+    this.eclipticDropLines = undefined;
 
     /**
      * Cached orbit shape.
      * @type {THREE.Line}
      */
-    this.orbitShape = null;
+    this.orbitShape = undefined;
 
     /**
      * Time span of the drawn orbit line
@@ -265,9 +265,6 @@ export class Orbit {
     // Eccentricity
     const e = eph.get('e');
 
-    // Perihelion distance
-    const q = eph.get('q');
-
     // Semimajor axis
     const a = eph.get('a');
 
@@ -390,7 +387,7 @@ export class Orbit {
    * @param {Number} jd
    * @return {boolean} true if it is within the orbit span, false if not
    */
-  needsUpdateForTime(jd) {
+  needsUpdateForTime(jd: number): boolean {
     if (this.orbitType === OrbitType.TABLE) {
       return jd < this.orbitStart || jd > this.orbitStop;
     }
@@ -404,14 +401,14 @@ export class Orbit {
    * @param {boolean} forceCompute forces the recomputing of the orbit on this call
    * @return {THREE.Line}
    */
-  getOrbitShape(jd?: number, forceCompute = false) {
+  getOrbitShape(jd?: number, forceCompute = false): THREE.Line {
     if (forceCompute) {
       if (this.orbitShape) {
         this.orbitShape.geometry.dispose();
         (this.orbitShape.material as LineBasicMaterial).dispose();
       }
-      this.orbitShape = undefined;
 
+      this.orbitShape = undefined;
       this.orbitPoints = undefined;
 
       if (this.eclipticDropLines) {
@@ -422,6 +419,7 @@ export class Orbit {
     }
 
     if (this.orbitShape) {
+      // Orbit shape is already computed.
       return this.orbitShape;
     }
 
@@ -440,11 +438,11 @@ export class Orbit {
     // Use current date as a fallback if time of perihelion is not available.
     const centerDate = tp ? tp : julian.toJulianDay(new Date());
     const startJd =
-      centerDate - this.options.orbitPathSettings.trailDurationYears * 365.25;
+      centerDate - this.options.orbitPathSettings!.trailDurationYears! * 365.25;
     const endJd =
-      centerDate + this.options.orbitPathSettings.leadDurationYears * 365.25;
+      centerDate + this.options.orbitPathSettings!.leadDurationYears! * 365.25;
     const step =
-      (endJd - startJd) / this.options.orbitPathSettings.numberSamplePoints;
+      (endJd - startJd) / this.options.orbitPathSettings!.numberSamplePoints!;
 
     this.orbitStart = startJd;
     this.orbitStop = endJd;
@@ -475,7 +473,12 @@ export class Orbit {
    * Compute a line between a given date range.
    * @private
    */
-  private getLine(orbitFn, startJd, endJd, step) {
+  private getLine(
+    orbitFn: (jd: number) => Coordinate3d,
+    startJd: number,
+    endJd: number,
+    step: number,
+  ) {
     const points: THREE.Vector3[] = [];
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
@@ -565,7 +568,6 @@ export class Orbit {
       new THREE.LineBasicMaterial({
         color: new THREE.Color(this.options.color || 0x444444),
       }),
-      THREE.LineStrip,
     );
     return this.orbitShape;
   }
@@ -588,8 +590,8 @@ export class Orbit {
     }
 
     // Place a cap on visible lines, for large or highly inclined orbits.
-    const points = this.orbitPoints;
-    let filteredPoints = [];
+    const points = this.orbitPoints || [];
+    let filteredPoints: THREE.Vector3[] = [];
     points.forEach((vertex, idx) => {
       // Drop last point because it's a repeat of the first point.
       if (
@@ -609,7 +611,6 @@ export class Orbit {
         color: this.options.eclipticLineColor || 0x333333,
         blending: THREE.AdditiveBlending,
       }),
-      THREE.LineStrip,
     );
 
     return this.eclipticDropLines;
@@ -620,16 +621,15 @@ export class Orbit {
    * @return {Number} The hexadecimal color of the orbital ellipse.
    */
   getHexColor(): number {
-    return (this.orbitShape.material as LineBasicMaterial).color.getHex();
+    return (this.getOrbitShape().material as LineBasicMaterial).color.getHex();
   }
 
   /**
    * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
    */
   setHexColor(hexVal: number) {
-    (this.orbitShape.material as LineBasicMaterial).color = new THREE.Color(
-      hexVal,
-    );
+    (this.getOrbitShape().material as LineBasicMaterial).color =
+      new THREE.Color(hexVal);
   }
 
   /**
@@ -639,7 +639,7 @@ export class Orbit {
    * underlying Scene and Simultation.
    */
   getVisibility(): boolean {
-    return this.orbitShape.visible;
+    return this.getOrbitShape().visible;
   }
 
   /**
@@ -647,7 +647,7 @@ export class Orbit {
    * @param {boolean} val Whether to show the orbital ellipse.
    */
   setVisibility(val: boolean) {
-    this.orbitShape.visible = val;
+    this.getOrbitShape().visible = val;
   }
 
   /**

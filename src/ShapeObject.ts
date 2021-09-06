@@ -86,6 +86,12 @@ export class ShapeObject extends RotatingObject {
    * @return {THREE.Object3D} THREE.js object
    */
   override getBoundingObject(): THREE.Object3D {
-    return this._shapeObj;
+    if (this._shapeObj) {
+      return this._shapeObj;
+    }
+    console.warn(
+      `Could not get bounding object for ShapeObject ${this._id} in time, bounding may not occur as expected`,
+    );
+    return new THREE.Object3D();
   }
 }

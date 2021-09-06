@@ -75,7 +75,7 @@ export interface SpaceObjectOptions {
  * Minimum number of degrees per day an object must move in order for its
  * position to be updated in the visualization.
  */
-const MIN_DEG_MOVE_PER_DAY: number = 0.05;
+// const MIN_DEG_MOVE_PER_DAY: number = 0.05;
 
 /**
  * @private
@@ -154,7 +154,7 @@ export class SpaceObject implements SimulationObject {
 
   private _lastLabelUpdate: number;
 
-  private _lastPositionUpdate: number;
+  // private _lastPositionUpdate: number;
 
   private _position: Coordinate3d;
 
@@ -164,7 +164,7 @@ export class SpaceObject implements SimulationObject {
 
   private _particleIndex?: number;
 
-  private _degreesPerDay?: number;
+  // private _degreesPerDay?: number;
 
   private _orbitPath?: THREE.Object3D;
 
@@ -219,7 +219,7 @@ export class SpaceObject implements SimulationObject {
     this._label = undefined;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
-    this._lastPositionUpdate = 0;
+    // this._lastPositionUpdate = 0;
 
     this._position = rescaleArray(this._options.position || [0, 0, 0]);
     this._orbitAround = undefined;
@@ -233,9 +233,11 @@ export class SpaceObject implements SimulationObject {
 
     // Number of degrees moved per day. Used to limit the number of orbit
     // updates for very slow moving objects.
+    /*
     this._degreesPerDay = this._options.ephem
       ? this._options.ephem.get('n', 'deg')
       : undefined;
+    */
 
     this._initialized = false;
     if (autoInit && !this.init()) {
@@ -555,7 +557,7 @@ export class SpaceObject implements SimulationObject {
     if (this._object3js && shouldUpdateObjectPosition) {
       newpos = this.getPosition(jd);
       this._object3js.position.set(newpos[0], newpos[1], newpos[2]);
-      this._lastPositionUpdate = jd;
+      // this._lastPositionUpdate = jd;
     }
 
     const orbitNeedsRefreshing =

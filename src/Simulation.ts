@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+// @ts-ignore
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
@@ -6,6 +7,7 @@ import {
   EffectComposer,
   EffectPass,
   RenderPass,
+  // @ts-ignore
 } from 'postprocessing';
 
 import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
@@ -324,9 +326,9 @@ export class Simulation {
         this.scene.add(new THREE.AxesHelper(0.5));
       }
       if (this.options.debug.showStats) {
-        this.stats = new Stats();
-        this.stats.showPanel(0);
-        this.simulationElt.appendChild(this.stats.dom);
+        this.stats = new (Stats as any)();
+        this.stats!.showPanel(0);
+        this.simulationElt.appendChild(this.stats!.dom);
       }
     }
 

@@ -3,7 +3,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import type { PerspectiveCamera } from 'three';
 
 import { rescaleNumber, rescaleArray } from './Scale';
+
+import type { Coordinate3d } from './Coordinates';
 import type { SimulationContext } from './Simulation';
+import type { SpaceObject } from './SpaceObject';
 
 /**
  * A wrapper for Three.js camera and controls.
@@ -12,11 +15,11 @@ import type { SimulationContext } from './Simulation';
 export default class Camera {
   private context: SimulationContext;
 
-  private camera?: PerspectiveCamera;
+  private camera: PerspectiveCamera;
 
-  private cameraControls?: OrbitControls;
+  private cameraControls: OrbitControls;
 
-  private followMesh: THREE.Object3D;
+  private followMesh?: THREE.Object3D;
 
   /**
    * @param {Object} context The simulation context
@@ -25,16 +28,9 @@ export default class Camera {
     // TODO(ian): Accept either context or container
     this.context = context;
 
-    this.camera = null;
-    this.cameraControls = null;
-
     // Optional mesh that we are following.
-    this.followMesh = null;
+    this.followMesh = undefined;
 
-    this.init();
-  }
-
-  init() {
     const containerWidth = this.context.container.width;
     const containerHeight = this.context.container.height;
 
@@ -72,7 +68,7 @@ export default class Camera {
    * @param {Array.<Number>} position Position of the camera with respect to
    * the object.
    */
-  followObject(obj, position) {
+  followObject(obj: SpaceObject, position: Coordinate3d) {
     const followMesh = obj.get3jsObjects()[0];
 
     this.cameraControls.enablePan = false;
@@ -92,7 +88,7 @@ export default class Camera {
   stopFollowingObject() {
     if (this.followMesh) {
       this.followMesh.remove(this.camera);
-      this.followMesh = null;
+      this.followMesh = undefined;
       this.cameraControls.enablePan = true;
     }
   }
@@ -123,7 +119,7 @@ export default class Camera {
    */
   update() {
     if (this.isFollowingObject()) {
-      const newpos = this.followMesh.position.clone();
+      const newpos = this.followMesh!.position.clone();
 
       const offset = newpos.clone().sub(this.cameraControls.target);
       this.camera.position.add(offset);

@@ -7,6 +7,7 @@
     "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --watch --outfile=build/spacekit.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "types": "tsc --watch",
     "docs": "typedoc",
     "format": "prettier --write --single-quote --trailing-comma all '{src,examples,test}/**/*.{js,ts}'",
     "test": "jest"

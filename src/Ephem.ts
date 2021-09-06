@@ -99,7 +99,7 @@ export const GM: {
 };
 
 // Returns true if object is defined.
-function isDef(obj) {
+function isDef(obj: any) {
   return typeof obj !== 'undefined';
 }
 
@@ -152,7 +152,11 @@ export class Ephem {
     for (const attr in initialValues) {
       if (initialValues.hasOwnProperty(attr)) {
         const actualUnits = ANGLE_UNITS.has(attr) ? units : null;
-        this.set(attr as EphemAttribute, initialValues[attr], actualUnits);
+        this.set(
+          attr as EphemAttribute,
+          initialValues[attr as keyof EphemAttributes] as number,
+          actualUnits as 'rad' | 'deg',
+        );
       }
     }
 
@@ -202,11 +206,28 @@ export class Ephem {
    * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
    * input is ignored for values that are not angle measurements.
    */
-  get(attr: EphemAttribute, units: 'deg' | 'rad' = 'rad') {
+  getUnsafe(
+    attr: EphemAttribute,
+    units: 'deg' | 'rad' = 'rad',
+  ): number | undefined {
     if (units === 'deg') {
-      return (this.attrs[attr] * 180) / Math.PI;
+      const attrVal = this.attrs[attr];
+      if (typeof attrVal === 'undefined') {
+        return undefined;
+      }
+      return (attrVal * 180) / Math.PI;
     }
     return this.attrs[attr];
+  }
+
+  get(attr: EphemAttribute, units: 'deg' | 'rad' = 'rad'): number {
+    const retVal = this.getUnsafe(attr, units);
+    if (typeof retVal === 'undefined') {
+      throw new Error(
+        `Attempted to get ephemeris value ${attr} but it was undefined`,
+      );
+    }
+    return retVal;
   }
 
   /**
@@ -216,26 +237,26 @@ export class Ephem {
    */
   fill() {
     // Perihelion distance and semimajor axis
-    const e = this.get('e');
+    const e = this.getUnsafe('e');
     if (!isDef(e)) {
       throw new Error('Must define eccentricity "e" in an orbit');
     }
 
     // Semimajor axis and perihelion distance
-    let a = this.get('a');
-    let q = this.get('q');
+    let a = this.getUnsafe('a');
+    let q = this.getUnsafe('q');
     if (isDef(a)) {
       if (!isDef(q)) {
-        if (e >= 1.0) {
+        if (e! >= 1.0) {
           throw new Error(
             'Must provide perihelion distance "q" if eccentricity "e" is greater than 1',
           );
         }
-        q = a * (1.0 - e);
+        q = a! * (1.0 - e!);
         this.set('q', q);
       }
     } else if (isDef(q)) {
-      a = q / (1.0 - e);
+      a = q! / (1.0 - e!);
       this.set('a', a);
     } else {
       throw new Error(
@@ -244,56 +265,59 @@ export class Ephem {
     }
 
     // Longitude/Argument of Perihelion and Long. of Ascending Node
-    let w = this.get('w');
-    let wBar = this.get('wBar');
-    let om = this.get('om');
+    let w = this.getUnsafe('w');
+    let wBar = this.getUnsafe('wBar');
+    let om = this.getUnsafe('om');
     if (isDef(w) && isDef(om) && !isDef(wBar)) {
-      wBar = w + om;
+      wBar = w! + om!;
       this.set('wBar', wBar);
     } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
-      w = wBar - om;
+      w = wBar! - om!;
       this.set('w', w);
     } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
-      om = wBar - w;
+      om = wBar! - w!;
       this.set('om', om);
     }
 
     // Mean motion and period
-    const aMeters = a * METERS_IN_AU;
-    const n = this.get('n');
-    const GM = this.get('GM');
-    let period = this.get('period');
+    const aMeters = a! * METERS_IN_AU;
+    const n = this.getUnsafe('n');
+    const GM = this.getUnsafe('GM');
+    let period = this.getUnsafe('period');
 
     if (!isDef(period) && isDef(a)) {
+      if (!isDef(GM)) {
+        throw new Error('Expected ephemeris attribute GM to be set');
+      }
       period =
-        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+        (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM!)) /
         SECONDS_IN_DAY;
       this.set('period', period);
     }
 
-    if (e < 1.0) {
+    if (e! < 1.0) {
       // Only work with mean motion for elliptical orbits.
       if (isDef(period) && !isDef(n)) {
         // Set radians
-        const newN = (2.0 * Math.PI) / period;
+        const newN = (2.0 * Math.PI) / period!;
         this.set('n', newN);
       } else if (isDef(n) && !isDef(period)) {
-        this.set('period', (2.0 * Math.PI) / n);
+        this.set('period', (2.0 * Math.PI) / n!);
       }
     }
 
     // Mean longitude
-    const ma = this.get('ma');
-    let L = this.get('L');
+    const ma = this.getUnsafe('ma');
+    let L = this.getUnsafe('L');
     if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
-      L = om + w + ma;
+      L = om! + w! + ma!;
       this.set('L', L);
     }
 
     // Mean anomaly
     if (!isDef(ma)) {
       // MA = Mean longitude - Longitude of perihelion
-      this.set('ma', L - wBar);
+      this.set('ma', L! - wBar!);
     }
 
     //  TODO(ian): Handle no om

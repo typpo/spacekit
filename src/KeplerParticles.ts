@@ -26,18 +26,36 @@ type KeplerParticleOptions = BaseKeplerParticleOptions & {
   particleSize?: number;
 };
 
+interface ShaderAttributes {
+  size: THREE.BufferAttribute;
+  origin: THREE.BufferAttribute;
+  position: THREE.BufferAttribute;
+  fuzzColor: THREE.BufferAttribute;
+  a: THREE.BufferAttribute;
+  e: THREE.BufferAttribute;
+  i: THREE.BufferAttribute;
+  om: THREE.BufferAttribute;
+  ma: THREE.BufferAttribute;
+  n: THREE.BufferAttribute;
+  w: THREE.BufferAttribute;
+  wBar: THREE.BufferAttribute;
+  q: THREE.BufferAttribute;
+  M: THREE.BufferAttribute;
+  a0: THREE.BufferAttribute;
+}
+
 const DEFAULT_PARTICLE_COUNT = 4096;
 
 /**
  * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
  */
-function getM(ephem, jd) {
+function getM(ephem: Ephem, jd: number): number {
   const d = jd - ephem.get('epoch');
   return ephem.get('ma') + ephem.get('n') * d;
 }
 
 const PARABOLIC_K = 0.01720209895;
-function getA0(ephem, jd) {
+function getA0(ephem: Ephem, jd: number): number {
   const tp = ephem.get('tp');
   const e = ephem.get('e');
   const q = ephem.get('q');
@@ -65,35 +83,19 @@ export class KeplerParticles {
 
   private _particleCount: number;
 
-  private _elements?: Ephem[];
+  private _elements: Ephem[];
 
-  private _uniforms?: {
+  private _uniforms: {
     texture: { value: THREE.Texture };
   };
 
-  private _geometry?: THREE.BufferGeometry;
+  private _geometry: THREE.BufferGeometry;
 
-  private _shaderMaterial?: THREE.ShaderMaterial;
+  private _shaderMaterial: THREE.ShaderMaterial;
 
-  private _particleSystem?: THREE.Points;
+  private _particleSystem: THREE.Points;
 
-  private _attributes?: {
-    size: THREE.BufferAttribute;
-    origin: THREE.BufferAttribute;
-    position: THREE.BufferAttribute;
-    fuzzColor: THREE.BufferAttribute;
-    a: THREE.BufferAttribute;
-    e: THREE.BufferAttribute;
-    i: THREE.BufferAttribute;
-    om: THREE.BufferAttribute;
-    ma: THREE.BufferAttribute;
-    n: THREE.BufferAttribute;
-    w: THREE.BufferAttribute;
-    wBar: THREE.BufferAttribute;
-    q: THREE.BufferAttribute;
-    M: THREE.BufferAttribute;
-    a0: THREE.BufferAttribute;
-  };
+  private _attributes: ShaderAttributes;
 
   /**
    * @param {Object} options Options container
@@ -124,27 +126,10 @@ export class KeplerParticles {
     // Number of particles in the scene.
     this._particleCount = 0;
 
-    this._elements = null;
-    this._attributes = null;
-    this._uniforms = null;
-    this._geometry = null;
-    this._shaderMaterial = null;
-    this._particleSystem = null;
+    if (!this._options.textureUrl) {
+      throw new Error('ParticleSystem requires textureUrl to be set');
+    }
 
-    this.init();
-  }
-
-  /**
-   * @private
-   */
-  init() {
-    this.createParticleSystem();
-  }
-
-  /**
-   * @private
-   */
-  createParticleSystem() {
     const defaultMapTexture = getThreeJsTexture(
       this._options.textureUrl,
       this._context.options.basePath,
@@ -186,7 +171,8 @@ export class KeplerParticles {
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
     Object.keys(this._attributes).forEach((attributeName) => {
-      const attribute = this._attributes[attributeName];
+      const attribute =
+        this._attributes[attributeName as keyof ShaderAttributes];
       // attribute.setDynamic(true);
       geometry.setAttribute(attributeName, attribute);
     });
@@ -236,12 +222,14 @@ export class KeplerParticles {
     attributes.q.set([ephem.get('q')], offset);
 
     attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
-    attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
+    if (Orbit.getOrbitType(ephem) === OrbitType.PARABOLIC) {
+      attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
+    }
 
     // TODO(ian): Set the update range
     for (const attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
-        attributes[attributeKey].needsUpdate = true;
+        attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
       }
     }
     this._geometry.setDrawRange(0, this._particleCount);
@@ -267,7 +255,7 @@ export class KeplerParticles {
 
     for (const attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
-        attributes[attributeKey].needsUpdate = true;
+        attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
       }
     }
   }

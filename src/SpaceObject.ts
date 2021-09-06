@@ -588,6 +588,7 @@ export class SpaceObject implements SimulationObject {
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
       if (this._renderMethod === 'PARTICLESYSTEM') {
+        // TODO(ian): Only do this when the origin changes
         this._context.objects.particles?.setParticleOrigin(
           this._particleIndex!,
           parentPos,

@@ -225,18 +225,14 @@ export class Simulation {
 
     this.subscribedObjects = {};
 
-    // Orbit particle system must be initialized after scene is created.
-    this.particles = new KeplerParticles(
-      {
-        textureUrl:
-          this.options.particleTextureUrl ||
-          '{{assets}}/sprites/smallparticle.png',
-        jd: this.jd,
-        maxNumParticles: this.options.maxNumParticles,
-        defaultSize: this.options.particleDefaultSize,
-      },
-      this,
-    );
+    // This makes controls.lookAt and other objects treat the positive Z axis
+    // as "up" direction.
+    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
+    // Scale
+    if (this.options.unitsPerAu) {
+      setScaleFactor(this.options.unitsPerAu);
+    }
 
     // stats.js panel
     this.stats = undefined;
@@ -256,6 +252,20 @@ export class Simulation {
     this.camera = new Camera(this.getContext());
     this.composer = null;
 
+    // Orbit particle system must be initialized after scene is created and
+    // scale is set.
+    this.particles = new KeplerParticles(
+      {
+        textureUrl:
+          this.options.particleTextureUrl ||
+          '{{assets}}/sprites/smallparticle.png',
+        jd: this.jd,
+        maxNumParticles: this.options.maxNumParticles,
+        defaultSize: this.options.particleDefaultSize,
+      },
+      this,
+    );
+
     this.init();
     this.animate();
   }
@@ -264,16 +274,6 @@ export class Simulation {
    * @private
    */
   private init() {
-    // Misc
-    // This makes controls.lookAt and other objects treat the positive Z axis
-    // as "up" direction.
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
-
-    // Scale
-    if (this.options.unitsPerAu) {
-      setScaleFactor(this.options.unitsPerAu);
-    }
-
     // Camera
     this.camera
       .get3jsCamera()

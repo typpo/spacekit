@@ -40,7 +40,6 @@ export default class Camera {
       rescaleNumber(0.00001),
       rescaleNumber(2000),
     );
-    camera.up.set(0, 0, 1);
     this.camera = camera;
 
     // Controls

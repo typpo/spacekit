@@ -2,7 +2,7 @@ import type { Vector3 } from 'three';
 
 import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
 
-let scaleFactor: number = 1.0;
+let scaleFactor = 1.0;
 
 /**
  * Set the number of units per AU.

@@ -167,13 +167,14 @@ export class KeplerParticles {
       M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       a0: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
     };
+    this.attributes.M.setUsage(THREE.DynamicDrawUsage);
+    this.attributes.a0.setUsage(THREE.DynamicDrawUsage);
 
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
     Object.keys(this.attributes).forEach((attributeName) => {
       const attribute =
         this.attributes[attributeName as keyof ShaderAttributes];
-      // attribute.setDynamic(true);
       geometry.setAttribute(attributeName, attribute);
     });
 

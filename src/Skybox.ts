@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
-import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
+import type {
+  Simulation,
+  SimulationContext,
+  SimulationObject,
+} from './Simulation';
 import { getFullTextureUrl } from './util';
 
 interface SkyboxOptions {

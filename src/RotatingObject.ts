@@ -107,7 +107,9 @@ export class RotatingObject extends SpaceObject {
 
   initRotation() {
     if (!this._options.rotation) {
-      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+      throw new Error(
+        'Must specify `rotation` option when creating a RotatingObject',
+      );
     }
 
     const { rotation } = this._options;
@@ -196,7 +198,9 @@ export class RotatingObject extends SpaceObject {
    */
   startRotation() {
     if (!this._options.rotation) {
-      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+      throw new Error(
+        'Must specify `rotation` option when creating a RotatingObject',
+      );
     }
     this._options.rotation.enable = true;
   }
@@ -206,7 +210,9 @@ export class RotatingObject extends SpaceObject {
    */
   stopRotation() {
     if (!this._options.rotation) {
-      throw new Error('Must specify `rotation` option when creating a RotatingObject');
+      throw new Error(
+        'Must specify `rotation` option when creating a RotatingObject',
+      );
     }
     this._options.rotation.enable = false;
   }

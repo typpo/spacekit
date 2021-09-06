@@ -11,7 +11,11 @@ export default class Units {
     return val * 15.0;
   }
 
-  static sexagesimalToDecimalRa(raHour: number, raMin: number, raSec: number): number {
+  static sexagesimalToDecimalRa(
+    raHour: number,
+    raMin: number,
+    raSec: number,
+  ): number {
     // https://astronomy.stackexchange.com/questions/24518/convert-a-decimal-into-ra-or-dec
     return raHour * 15.0 + raMin / 4.0 + raSec / 240.0;
   }

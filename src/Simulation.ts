@@ -262,7 +262,6 @@ export class Simulation {
    * @private
    */
   private init() {
-
     // Misc
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
@@ -665,7 +664,10 @@ export class Simulation {
    * with camera.
    * @param {Number} color Color of light, default 0xFFFFFF
    */
-  createLight(pos: Coordinate3d | undefined = undefined, color: number = 0xffffff) {
+  createLight(
+    pos: Coordinate3d | undefined = undefined,
+    color: number = 0xffffff,
+  ) {
     if (this.lightPosition) {
       console.warn(
         "Spacekit doesn't support more than one light source for SphereObjects",

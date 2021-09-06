@@ -39,7 +39,9 @@ export class ShapeObject extends RotatingObject {
    */
   override init(): boolean {
     if (!this._options.shape?.shapeUrl) {
-      throw new Error('Must specify shape.shapeUrl when creating a ShapeObject');
+      throw new Error(
+        'Must specify shape.shapeUrl when creating a ShapeObject',
+      );
     }
     const manager = new THREE.LoadingManager();
     manager.onProgress = (item, loaded, total) => {

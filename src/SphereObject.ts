@@ -74,7 +74,7 @@ export class SphereObject extends RotatingObject {
 
       let material: THREE.ShaderMaterial | THREE.MeshBasicMaterial;
       if (this._simulation.isUsingLightSources()) {
-        const uniforms: Record<string, IUniform>  = {
+        const uniforms: Record<string, IUniform> = {
           sphereTexture: {
             value: undefined,
           },

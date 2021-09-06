@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "docs": "typedoc",
-    "format": "prettier --write --single-quote --trailing-comma all '{src,examples}/**/*.{js,ts}'",
+    "format": "prettier --write --single-quote --trailing-comma all '{src,examples,test}/**/*.{js,ts}'",
     "test": "jest"
   },
   "devDependencies": {

@@ -65,7 +65,11 @@ export function getDefaultBasePath() {
  * time as value to compare. Default method is a numerical comparison
  * @returns {number}
  */
-export function binarySearch(data: any[], value: any, comparer = DEFAULT_COMPARER_METHOD) {
+export function binarySearch(
+  data: any[],
+  value: any,
+  comparer = DEFAULT_COMPARER_METHOD,
+) {
   if (data === undefined) {
     throw 'data object is undefined';
   }

@@ -5,7 +5,11 @@ import Units from './Units';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullUrl } from './util';
 
-import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
+import type {
+  Simulation,
+  SimulationContext,
+  SimulationObject,
+} from './Simulation';
 
 interface StarOptions {
   minSize?: number;

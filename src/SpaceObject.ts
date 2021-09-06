@@ -10,7 +10,11 @@ import { rescaleArray, rescaleNumber } from './Scale';
 import type { Coordinate3d } from './Coordinates';
 import type { Ephem } from './Ephem';
 import type { EphemerisTable } from './EphemerisTable';
-import type { Simulation, SimulationContext, SimulationObject } from './Simulation';
+import type {
+  Simulation,
+  SimulationContext,
+  SimulationObject,
+} from './Simulation';
 
 export interface SpaceObjectOptions {
   position?: Coordinate3d;
@@ -318,7 +322,9 @@ export class SpaceObject implements SimulationObject {
 
       if (!this._renderMethod) {
         if (!this._options.ephem) {
-          throw new Error('Attempting to create a particle system, but ephemeris are not available.');
+          throw new Error(
+            'Attempting to create a particle system, but ephemeris are not available.',
+          );
         }
         // Create a particle representing this object on the GPU.
         this._particleIndex = this._context.objects.particles.addParticle(

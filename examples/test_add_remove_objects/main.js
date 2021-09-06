@@ -9,9 +9,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   unitsPerAu: 1,
   camera: {
     initialPosition: [
-      0.1739865009560048,
-      -0.12915937125168006,
-      0.10357994703146715,
+      0.1739865009560048, -0.12915937125168006, 0.10357994703146715,
     ],
   },
 });
@@ -42,7 +40,7 @@ let sphere = undefined;
 
 // Set up event listeners
 
-document.getElementById('btn-add-asteroid').onclick = function() {
+document.getElementById('btn-add-asteroid').onclick = function () {
   if (!asteroid) {
     const ephem = new Spacekit.Ephem(
       {
@@ -68,83 +66,86 @@ document.getElementById('btn-add-asteroid').onclick = function() {
   }
 };
 
-document.getElementById('btn-remove-asteroid').onclick = function() {
+document.getElementById('btn-remove-asteroid').onclick = function () {
   if (asteroid) {
     viz.removeObject(asteroid);
     asteroid = undefined;
   }
 };
 
-document.getElementById('btn-add-sun').onclick = function() {
+document.getElementById('btn-add-sun').onclick = function () {
   if (!sun) {
     sun = viz.createObject('Sun', Spacekit.SpaceObjectPresets.SUN);
   }
 };
 
-document.getElementById('btn-remove-sun').onclick = function() {
+document.getElementById('btn-remove-sun').onclick = function () {
   if (sun) {
     viz.removeObject(sun);
     sun = undefined;
   }
 };
 
-document.getElementById('btn-add-earth').onclick = function() {
+document.getElementById('btn-add-earth').onclick = function () {
   if (!earth) {
     earth = viz.createObject('Earth', Spacekit.SpaceObjectPresets.EARTH);
   }
 };
 
-document.getElementById('btn-remove-earth').onclick = function() {
+document.getElementById('btn-remove-earth').onclick = function () {
   if (earth) {
     viz.removeObject(earth);
     earth = undefined;
   }
 };
 
-document.getElementById('btn-add-skybox').onclick = function() {
+document.getElementById('btn-add-skybox').onclick = function () {
   if (!skybox) {
     skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
   }
 };
 
-document.getElementById('btn-remove-skybox').onclick = function() {
+document.getElementById('btn-remove-skybox').onclick = function () {
   if (skybox) {
     viz.removeObject(skybox);
     skybox = undefined;
   }
 };
 
-document.getElementById('btn-add-stars').onclick = function() {
+document.getElementById('btn-add-stars').onclick = function () {
   if (!stars) {
     stars = viz.createStars();
   }
 };
 
-document.getElementById('btn-remove-stars').onclick = function() {
+document.getElementById('btn-remove-stars').onclick = function () {
   if (stars) {
     viz.removeObject(stars);
     stars = undefined;
   }
 };
 
-document.getElementById('btn-add-static').onclick = function() {
+document.getElementById('btn-add-static').onclick = function () {
   if (!staticParticles) {
     staticParticles = viz.createStaticParticles(
       'Particles',
-      [[1, 1, 1], [2, 2, 2]],
+      [
+        [1, 1, 1],
+        [2, 2, 2],
+      ],
       {},
     );
   }
 };
 
-document.getElementById('btn-remove-static').onclick = function() {
+document.getElementById('btn-remove-static').onclick = function () {
   if (staticParticles) {
     viz.removeObject(staticParticles);
     staticParticles = undefined;
   }
 };
 
-document.getElementById('btn-add-sphere').onclick = function() {
+document.getElementById('btn-add-sphere').onclick = function () {
   if (!sphere) {
     sphere = viz.createSphere('fakePlanet', {
       textureUrl: '../saturn/th_saturn.png',
@@ -167,7 +168,7 @@ document.getElementById('btn-add-sphere').onclick = function() {
   }
 };
 
-document.getElementById('btn-remove-sphere').onclick = function() {
+document.getElementById('btn-remove-sphere').onclick = function () {
   if (sphere) {
     viz.removeObject(sphere);
     sphere = undefined;

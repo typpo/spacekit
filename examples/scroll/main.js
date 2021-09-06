@@ -48,30 +48,30 @@ const asteroid = viz.createObject('Asteroid Aci', {
 
 // Set up event listeners
 
-document.getElementById('btn-start').onclick = function() {
+document.getElementById('btn-start').onclick = function () {
   viz.start();
 };
-document.getElementById('btn-stop').onclick = function() {
+document.getElementById('btn-stop').onclick = function () {
   viz.stop();
 };
-document.getElementById('btn-set-time').onclick = function() {
+document.getElementById('btn-set-time').onclick = function () {
   viz.setDate(new Date(prompt('Enter a date (YYYY-mm-dd)')));
 };
 
-document.getElementById('btn-set-jd-per-second').onclick = function() {
+document.getElementById('btn-set-jd-per-second').onclick = function () {
   viz.setJdPerSecond(parseInt(prompt('Enter jd per second'), 10));
 };
 
-document.getElementById('btn-faster').onclick = function() {
+document.getElementById('btn-faster').onclick = function () {
   viz.setJdDelta(viz.getJdDelta() * 1.5);
 };
 
-document.getElementById('btn-slower').onclick = function() {
+document.getElementById('btn-slower').onclick = function () {
   viz.setJdDelta(viz.getJdDelta() * 0.5);
 };
 
 const dateElt = document.getElementById('current-date');
-viz.onTick = function() {
+viz.onTick = function () {
   const d = viz.getDate();
   dateElt.innerHTML = d.toLocaleDateString();
 };

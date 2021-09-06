@@ -27,6 +27,9 @@ viz.createObject('neptune', Spacekit.SpaceObjectPresets.NEPTUNE);
 
 // And a meteor shower!
 window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
+  if (rawEphem.e > 0.9) {
+    return;
+  }
   const ephem = new Spacekit.Ephem({
     a: rawEphem.a,
     e: rawEphem.e,

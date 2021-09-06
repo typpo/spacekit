@@ -1,3 +1,4 @@
+build
 venv
 
 ### Vim ###
@@ -127,6 +128,6 @@ build/Release
 node_modules
 
 # JetBrains
-.idea 
+.idea
 *.iml
 

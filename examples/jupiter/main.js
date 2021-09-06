@@ -4,9 +4,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   unitsPerAu: 100.0,
   camera: {
     initialPosition: [
-      0.0014980565625981512,
-      -0.030445338891231168,
-      0.03616394298897485,
+      0.0014980565625981512, -0.030445338891231168, 0.03616394298897485,
     ],
   },
 });
@@ -35,9 +33,9 @@ viz.zoomToFit(jupiter);
 // Add its moons
 const moonObjs = [];
 let jupiterSatellites = [];
-viz.loadNaturalSatellites().then(loader => {
+viz.loadNaturalSatellites().then((loader) => {
   jupiterSatellites = loader.getSatellitesForPlanet('jupiter');
-  jupiterSatellites.forEach(moon => {
+  jupiterSatellites.forEach((moon) => {
     const obj = viz.createObject(moon.name, {
       labelText: moon.name,
       ephem: moon.ephem,
@@ -53,7 +51,7 @@ const guiState = {
   Highlight: 'All',
   'Hide other orbits': false,
   'Hide labels': false,
-  'Set Date': function() {
+  'Set Date': function () {
     const input = prompt('Enter a date in YYYY-MM-DD format', '2000-01-01');
     if (input) {
       viz.setDate(new Date(input));
@@ -61,7 +59,7 @@ const guiState = {
   },
 };
 const gui = new dat.GUI();
-gui.add(guiState, 'Speed', 0, 20).onChange(val => {
+gui.add(guiState, 'Speed', 0, 20).onChange((val) => {
   viz.setJdPerSecond(val);
 });
 
@@ -80,7 +78,7 @@ const tagFilters = {
 
 function resetDisplay() {
   const showLabels = !guiState['Hide labels'];
-  moonObjs.forEach(moonObj => {
+  moonObjs.forEach((moonObj) => {
     moonObj.getOrbit().setVisibility(true);
     moonObj.getOrbit().setHexColor(0x444444);
     moonObj.setLabelVisibility(showLabels);
@@ -94,11 +92,13 @@ function updateFilterDisplay(tag) {
   }
 
   const matching = new Set(
-    jupiterSatellites.filter(moon => moon.tags.has(tag)).map(moon => moon.name),
+    jupiterSatellites
+      .filter((moon) => moon.tags.has(tag))
+      .map((moon) => moon.name),
   );
 
   const showLabels = !guiState['Hide labels'];
-  moonObjs.forEach(moonObj => {
+  moonObjs.forEach((moonObj) => {
     if (matching.has(moonObj.getId())) {
       moonObj.getOrbit().setVisibility(true);
       moonObj.getOrbit().setHexColor(0xffff00);
@@ -114,10 +114,12 @@ function updateFilterDisplay(tag) {
   });
 }
 
-gui.add(guiState, 'Highlight', Object.keys(tagFilters)).onChange(catString => {
-  const tag = tagFilters[catString];
-  updateFilterDisplay(tag);
-});
+gui
+  .add(guiState, 'Highlight', Object.keys(tagFilters))
+  .onChange((catString) => {
+    const tag = tagFilters[catString];
+    updateFilterDisplay(tag);
+  });
 gui.add(guiState, 'Hide other orbits').onChange(() => {
   updateFilterDisplay(tagFilters[guiState.Show]);
 });

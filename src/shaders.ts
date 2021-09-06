@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 import { getScaleFactor } from './Scale';
 
 /**

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import Coordinates from './Coordinates';
 import Units from './Units';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
-import { getFullUrl, getThreeJsTexture } from './util';
+import { getFullUrl } from './util';
 
 import type { Simulation, SimulationContext } from './Simulation';
 
@@ -11,8 +11,7 @@ interface StarOptions {
   minSize?: number;
 }
 
-const GALACTIC_CENTER_RA = Units.sexagesimalToDecimalRa(17, 45, 40.04);
-const GALACTIC_CENTER_DEC = Units.sexagesimalToDecimalDec(-29, 0, 28.1);
+type StarRecord = [number, number, number, number];
 
 /**
  * Maps spectral class to star color
@@ -62,7 +61,7 @@ export class Stars {
    * @param {Number} options.minSize The size of the smallest star.
    * Defaults to 0.75
    */
-  constructor(options: StarOptions, simulation) {
+  constructor(options: StarOptions, simulation: Simulation) {
     this._options = options;
     this._id = `__stars_${new Date().getTime()}`;
 
@@ -98,7 +97,7 @@ export class Stars {
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        library.forEach((star, idx) => {
+        library.forEach((star: StarRecord, idx: number) => {
           const [ra, dec, temp, mag] = star;
 
           const raRad = Units.rad(Units.hoursToDeg(ra));
@@ -129,7 +128,6 @@ export class Stars {
 
         const material = new THREE.ShaderMaterial({
           uniforms: {},
-          vertexColors: THREE.VertexColors,
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
 
@@ -149,7 +147,10 @@ export class Stars {
    * @return {THREE.Object3D[]} Star objects
    */
   get3jsObjects(): THREE.Object3D[] {
-    return [this._stars];
+    if (this._stars) {
+      return [this._stars];
+    }
+    return [];
   }
 
   /**

@@ -28,7 +28,7 @@ export class Skybox {
    * @param {String} options.basePath Base path to simulation supporting files
    * @param {Simulation} simulation Simulation object
    */
-  constructor(options: SkyboxOptions, simulation) {
+  constructor(options: SkyboxOptions, simulation: Simulation) {
     // TODO(ian): Support for actual box instead of sphere...
     this.options = options;
     this.id = `__skybox_${new Date().getTime()}`;
@@ -79,10 +79,13 @@ export class Skybox {
 
   /**
    * A list of THREE.js objects that are used to compose the skybox.
-   * @return {THREE.Object} Skybox mesh
+   * @return {THREE.Object3D[]} Skybox mesh
    */
   get3jsObjects(): THREE.Object3D[] {
-    return [this.mesh];
+    if (this.mesh) {
+      return [this.mesh];
+    }
+    return [];
   }
 
   /**

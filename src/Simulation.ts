@@ -36,7 +36,7 @@ interface DebugOptions {
 }
 
 interface SpacekitOptions {
-  basePath?: string;
+  basePath: string;
   startDate?: Date;
   jd?: number;
   jdDelta?: number;
@@ -242,7 +242,7 @@ export class Simulation {
   /**
    * @private
    */
-  init() {
+  private init() {
     this.initRenderer();
 
     // Misc
@@ -338,7 +338,7 @@ export class Simulation {
   /**
    * @private
    */
-  initRenderer() {
+  private initRenderer() {
     // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
     const renderer = new THREE.WebGL1Renderer({
       antialias: true,
@@ -648,7 +648,7 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene.add(new THREE.AmbientLight(color));
+    this.scene!.add(new THREE.AmbientLight(color));
     this.useLightSources = true;
   }
 
@@ -679,16 +679,16 @@ export class Simulation {
       // The light comes from the camera.
       // FIXME(ian): This only affects the point source.
       this.camera.get3jsCameraControls().addEventListener('change', () => {
-        this.lightPosition.copy(this.camera.get3jsCamera().position);
+        this.lightPosition!.copy(this.camera.get3jsCamera().position);
         pointLight.position.copy(this.camera.get3jsCamera().position);
       });
     }
 
-    this.scene.add(pointLight);
+    this.scene!.add(pointLight);
     this.useLightSources = true;
   }
 
-  getLightPosition(): Vector3 {
+  getLightPosition(): Vector3 | undefined {
     return this.lightPosition;
   }
 
@@ -887,9 +887,10 @@ export class Simulation {
 
   /**
    * Get the JD change per second of the visualization.
-   * @return {Number} JD per second
+   * @return {Number | undefined} JD per second, undefined if jd per second is
+   * not set.
    */
-  getJdPerSecond(): number {
+  getJdPerSecond(): number | undefined {
     if (this.jdDelta) {
       // Jd per second can vary
       return undefined;
@@ -948,17 +949,17 @@ export class Simulation {
 
   /**
    * Get the three.js scene object
-   * @return {THREE.Scene} The THREE.js scene object
+   * @return {THREE.Scene | undefined} The THREE.js scene object
    */
-  getScene(): THREE.Scene {
+  getScene(): THREE.Scene | undefined {
     return this.scene;
   }
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGL1Renderer} The THREE.js renderer
+   * @return {THREE.WebGL1Renderer | undefined} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGL1Renderer {
+  getRenderer(): THREE.WebGL1Renderer | undefined {
     return this.renderer;
   }
 

@@ -13,6 +13,7 @@ import {
   SPHERE_SHADER_FRAGMENT,
 } from './shaders';
 
+import type { IUniform } from 'three';
 import type { Simulation } from './Simulation';
 import type { SpaceObjectOptions } from './SpaceObject';
 
@@ -48,10 +49,12 @@ export class SphereObject extends RotatingObject {
     this.init();
   }
 
-  init(): boolean {
-    let map;
+  override init(): boolean {
+    let map: THREE.Texture | undefined;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
+    } else {
+      throw new Error('Must set textureUrl option for SphereObject');
     }
 
     const detailedObj = new THREE.LOD();
@@ -69,11 +72,15 @@ export class SphereObject extends RotatingObject {
       );
       const color = this._options.color || 0xbbbbbb;
 
-      let material;
+      let material: THREE.ShaderMaterial | THREE.MeshBasicMaterial;
       if (this._simulation.isUsingLightSources()) {
-        const uniforms = {
-          sphereTexture: { value: null },
-          lightPos: { value: new THREE.Vector3() },
+        const uniforms: Record<string, IUniform>  = {
+          sphereTexture: {
+            value: undefined,
+          },
+          lightPos: {
+            value: new THREE.Vector3(),
+          },
         };
         // TODO(ian): Handle if no map
         uniforms.sphereTexture.value = map;
@@ -145,12 +152,12 @@ export class SphereObject extends RotatingObject {
     }
 
     const radius = this.getScaledRadius();
-    const color = new THREE.Color(this._options.atmosphere.color || 0xffffff);
+    const color = new THREE.Color(this._options?.atmosphere?.color ?? 0xffffff);
 
     const innerSize =
-      radius * (this._options.atmosphere.innerSizeRatio || 0.025);
+      radius * (this._options?.atmosphere?.innerSizeRatio ?? 0.025);
     const outerSize =
-      radius * (this._options.atmosphere.outerSizeRatio || 0.15);
+      radius * (this._options?.atmosphere?.outerSizeRatio ?? 0.15);
 
     const detailedObj = new THREE.Object3D();
     detailedObj.add(
@@ -221,8 +228,6 @@ export class SphereObject extends RotatingObject {
     texturePath: string,
     segments: number = 128,
   ) {
-    const radius = this.getScaledRadius();
-
     const innerRadiusSize = rescaleNumber(Units.kmToAu(innerRadiusKm));
     const outerRadiusSize = rescaleNumber(Units.kmToAu(outerRadiusKm));
 

@@ -7,7 +7,7 @@ import { Orbit } from './Orbit';
 import { getFullTextureUrl } from './util';
 import { rescaleArray, rescaleNumber } from './Scale';
 
-import type { Coordinate3d, CoordinateXYZ } from './Coordinates';
+import type { Coordinate3d } from './Coordinates';
 import type { Ephem } from './Ephem';
 import type { EphemerisTable } from './EphemerisTable';
 import type { Simulation, SimulationContext } from './Simulation';
@@ -130,7 +130,7 @@ export class SpaceObject {
 
   protected _context: SimulationContext;
 
-  protected _renderMethod:
+  protected _renderMethod?:
     | 'SPRITE'
     | 'PARTICLESYSTEM'
     | 'ROTATING_OBJECT'
@@ -212,7 +212,7 @@ export class SpaceObject {
     this._simulation = simulation;
     this._context = simulation.getContext();
 
-    this._label = null;
+    this._label = undefined;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
     this._lastPositionUpdate = 0;
@@ -257,8 +257,8 @@ export class SpaceObject {
     /**
      * Caching of THREE.js objects for orbitPath
      */
-    this._orbitPath = null;
-    this._eclipticLines = null;
+    this._orbitPath = undefined;
+    this._eclipticLines = undefined;
 
     this.update(this._simulation.getJd(), true /* force */);
 
@@ -317,6 +317,12 @@ export class SpaceObject {
       }
 
       if (!this._renderMethod) {
+        if (!this._context.objects.particles) {
+          throw new Error('Attempting to create a particle system, but no particle system context has been provided.');
+        }
+        if (!this._options.ephem) {
+          throw new Error('Attempting to create a particle system, but ephemeris are not available.');
+        }
         // Create a particle representing this object on the GPU.
         this._particleIndex = this._context.objects.particles.addParticle(
           this._options.ephem,
@@ -363,6 +369,10 @@ export class SpaceObject {
    * coordinate system
    */
   private updateLabelPosition(newpos: Coordinate3d) {
+    if (!this._label) {
+      throw new Error('Attempted to update label position without a label');
+    }
+
     const label = this._label;
     const simulationElt = this._simulation.getSimulationElement();
     const pos = toScreenXY(
@@ -396,6 +406,9 @@ export class SpaceObject {
    * @return {THREE.Sprite} A sprite object
    */
   private createSprite(): THREE.Sprite {
+    if (!this._options.textureUrl) {
+      throw new Error('Cannot create sprite without a textureUrl');
+    }
     const fullTextureUrl = getFullTextureUrl(
       this._options.textureUrl,
       this._context.options.basePath,
@@ -436,6 +449,9 @@ export class SpaceObject {
     const ephem = this._useEphemTable
       ? this._options.ephemTable
       : this._options.ephem;
+    if (!ephem) {
+      throw new Error('Cannot create orbit without Ephem or EphemerisTable');
+    }
     return new Orbit(ephem, {
       orbitPathSettings: this._options.orbitPathSettings,
       color: this._options.theme ? this._options.theme.orbitColor : undefined,
@@ -540,9 +556,11 @@ export class SpaceObject {
     }
 
     const orbitNeedsRefreshing =
-      !this._orbitPath || this._orbit.needsUpdateForTime(jd);
+      !this._orbitPath || this._orbit?.needsUpdateForTime(jd);
     if (this._orbit && !this._options.hideOrbit && orbitNeedsRefreshing) {
-      this._simulation.getScene().remove(this._orbitPath);
+      if (this._orbitPath) {
+        this._simulation.getScene().remove(this._orbitPath);
+      }
       this._orbitPath = this._orbit.getOrbitShape(jd, true);
       this._simulation.getScene().add(this._orbitPath);
     }
@@ -555,7 +573,9 @@ export class SpaceObject {
       this._options.ecliptic.displayLines &&
       eclipticNeedsRefreshing
     ) {
-      this._simulation.getScene().remove(this._eclipticLines);
+      if (this._eclipticLines) {
+        this._simulation.getScene().remove(this._eclipticLines);
+      }
       this._eclipticLines = this._orbit.getLinesToEcliptic();
       this._simulation.getScene().add(this._eclipticLines);
     }
@@ -563,14 +583,14 @@ export class SpaceObject {
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
       if (this._renderMethod === 'PARTICLESYSTEM') {
-        this._context.objects.particles.setParticleOrigin(
-          this._particleIndex,
+        this._context.objects.particles?.setParticleOrigin(
+          this._particleIndex!,
           parentPos,
         );
       }
 
       if (!this._options.hideOrbit) {
-        this._orbitPath.position.set(parentPos[0], parentPos[1], parentPos[2]);
+        this._orbitPath?.position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
       if (!newpos) {
         newpos = this.getPosition(jd);
@@ -641,7 +661,7 @@ export class SpaceObject {
    * Gets the {Orbit} object for this SpaceObject.
    * @return {Orbit} Orbit object
    */
-  getOrbit(): Orbit {
+  getOrbit(): Orbit | undefined {
     return this._orbit;
   }
 
@@ -658,6 +678,10 @@ export class SpaceObject {
    * @param {boolean} val Whether to show or hide.
    */
   setLabelVisibility(val: boolean) {
+    if (!this._label) {
+      throw new Error('Attempted to set label visibility without a label');
+    }
+
     if (val) {
       this._showLabel = true;
       this._label.style.display = 'block';
@@ -695,11 +719,15 @@ export class SpaceObject {
   removalCleanup() {
     if (this._label) {
       this._simulation.getSimulationElement().removeChild(this._label);
-      this._label = null;
+      this._label = undefined;
     }
 
     if (this._particleIndex !== undefined) {
-      this._context.objects.particles.hideParticle(this._particleIndex);
+      if (this._context.objects.particles) {
+        this._context?.objects.particles.hideParticle(this._particleIndex);
+      } else {
+        throw new Error(`Could not cleanup particle with removalCleanup(). Index ${this._particleIndex}`);
+      }
     }
   }
 }

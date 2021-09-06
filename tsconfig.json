@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
+    "lib": ["es2015", "dom"],
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "lib": ["es2015", "dom"]
+    "strict": true,
+    "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "alwaysStrict": true,
+    "noEmit": true
   },
   "include": ["src/**/*"]
 }

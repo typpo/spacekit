@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const DEFAULT_COMPARER_METHOD = (a, b) => {
+const DEFAULT_COMPARER_METHOD = (a: any, b: any) => {
   return a - b;
 };
 /**
@@ -18,7 +18,7 @@ export const DEFAULT_TEXTURE_URL = '{{assets}}/sprites/fuzzyparticle.png';
  * => '/path/to/assets/images/mysprite.png'
  * ```
  */
-export function getFullUrl(template, basePath) {
+export function getFullUrl(template: string, basePath: string) {
   return template
     .replace('{{assets}}', `${basePath}/assets`)
     .replace('{{data}}', `${basePath}/data`);
@@ -34,7 +34,7 @@ export function getFullUrl(template, basePath) {
  * => '/path/to/assets/images/mysprite.png'
  * ```
  */
-export function getFullTextureUrl(template, basePath) {
+export function getFullTextureUrl(template: string, basePath: string) {
   return getFullUrl(template || DEFAULT_TEXTURE_URL, basePath);
 }
 
@@ -43,7 +43,7 @@ export function getFullTextureUrl(template, basePath) {
  * @param {String} template URL containing optional template parameters
  * @param {String} basePath Base path for simulation data and assets.
  */
-export function getThreeJsTexture(template, basePath) {
+export function getThreeJsTexture(template: string, basePath: string) {
   const fullTextureUrl = getFullTextureUrl(template, basePath);
   return new THREE.TextureLoader().load(fullTextureUrl);
 }
@@ -65,7 +65,7 @@ export function getDefaultBasePath() {
  * time as value to compare. Default method is a numerical comparison
  * @returns {number}
  */
-export function binarySearch(data, value, comparer = DEFAULT_COMPARER_METHOD) {
+export function binarySearch(data: any[], value: any, comparer = DEFAULT_COMPARER_METHOD) {
   if (data === undefined) {
     throw 'data object is undefined';
   }

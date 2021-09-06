@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 
 import type { Coordinate3d } from './Coordinates';
-import type { Simulation, SimulationContext } from './Simulation';
+import type { Simulation } from './Simulation';
 
 interface StaticParticleOptions {
   defaultColor: number;
@@ -23,10 +23,6 @@ export class StaticParticles {
 
   private simulation: Simulation;
 
-  private context: SimulationContext;
-
-  private particleCount: number;
-
   private points: Coordinate3d[];
 
   private pointObject?: THREE.Points;
@@ -38,7 +34,7 @@ export class StaticParticles {
    * @param {Object} options container
    * @param {Color} options.defaultColor color to use for all particles can be a THREE string color name or hex value
    * @param {Number} options.size the size of each particle
-   * @param {Object} contextOrSimulation Simulation context or simulation object
+   * @param {Simulation} simulation Simulation object
    */
   constructor(
     id: string,
@@ -52,10 +48,6 @@ export class StaticParticles {
 
     // User passed in Simulation
     this.simulation = simulation;
-    this.context = simulation.getContext();
-
-    // Number of particles in the scene.
-    this.particleCount = points.length;
 
     this.points = points;
     this.pointObject = undefined;
@@ -93,7 +85,6 @@ export class StaticParticles {
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
-      vertexColors: THREE.VertexColors,
       vertexShader: STAR_SHADER_VERTEX,
       fragmentShader: STAR_SHADER_FRAGMENT,
       transparent: true,
@@ -107,7 +98,10 @@ export class StaticParticles {
    * @return {THREE.Object3D} Point geometry
    */
   get3jsObjects(): THREE.Object3D[] {
-    return [this.pointObject];
+    if (this.pointObject) {
+      return [this.pointObject];
+    }
+    return [];
   }
 
   /**

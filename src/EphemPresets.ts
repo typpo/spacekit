@@ -216,10 +216,10 @@ export class NaturalSatellites {
 
   private _readyPromise?: Promise<NaturalSatellites>;
 
-  constructor(contextOrSimulation) {
+  constructor(simulation: Simulation) {
     // User passed in Simulation
-    this._simulation = contextOrSimulation;
-    this._context = contextOrSimulation.getContext();
+    this._simulation = simulation;
+    this._context = simulation.getContext();
 
     this._satellitesByPlanet = {};
     this._readyPromise = null;
@@ -325,11 +325,14 @@ export class NaturalSatellites {
    * @return {Object} List containing a list of dictionaries with information
    * on each satellite.
    */
-  getSatellitesForPlanet(planetName) {
+  getSatellitesForPlanet(planetName: string) {
     return this._satellitesByPlanet[planetName.toLowerCase()];
   }
 
-  load() {
+  load(): Promise<NaturalSatellites> {
+    if (!this._readyPromise) {
+      throw new Error('Loading NaturalSatellites before initialized');
+    }
     return this._readyPromise;
   }
 }

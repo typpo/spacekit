@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>SimulationContext | spacekit</title>
+	<title>SimulationObject | spacekit</title>
 	<meta name="description" content="Documentation for spacekit">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">spacekit</a>
 				</li>
 				<li>
-					<a href="SimulationContext.html">SimulationContext</a>
+					<a href="SimulationObject.html">SimulationObject</a>
 				</li>
 			</ul>
-			<h1>Interface SimulationContext</h1>
+			<h1>Interface SimulationObject</h1>
 		</div>
 	</div>
 </header>
@@ -69,8 +69,17 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">SimulationContext</span>
+						<span class="target">SimulationObject</span>
 					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel">
+				<h3>Implemented by</h3>
+				<ul class="tsd-hierarchy">
+					<li><a href="../classes/Skybox.html" class="tsd-signature-type" data-tsd-kind="Class">Skybox</a></li>
+					<li><a href="../classes/SpaceObject.html" class="tsd-signature-type" data-tsd-kind="Class">SpaceObject</a></li>
+					<li><a href="../classes/Stars.html" class="tsd-signature-type" data-tsd-kind="Class">Stars</a></li>
+					<li><a href="../classes/StaticParticles.html" class="tsd-signature-type" data-tsd-kind="Class">StaticParticles</a></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -78,89 +87,77 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Properties</h3>
+							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="SimulationContext.html#container" class="tsd-kind-icon">container</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="SimulationContext.html#objects" class="tsd-kind-icon">objects</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="SimulationContext.html#options" class="tsd-kind-icon">options</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="SimulationContext.html#simulation" class="tsd-kind-icon">simulation</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="SimulationObject.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="SimulationObject.html#getId" class="tsd-kind-icon">get<wbr>Id</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-interface"><a href="SimulationObject.html#update" class="tsd-kind-icon">update</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="container" class="tsd-anchor"></a>
-					<h3>container</h3>
-					<div class="tsd-signature tsd-kind-icon">container<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>height<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>width<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L72">Simulation.ts:72</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>height<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>width<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
-							</li>
-						</ul>
-					</div>
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="get3jsObjects" class="tsd-anchor"></a>
+					<h3>get3js<wbr>Objects</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get3js<wbr>Objects<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L32">Simulation.ts:32</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="objects" class="tsd-anchor"></a>
-					<h3>objects</h3>
-					<div class="tsd-signature tsd-kind-icon">objects<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>camera<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">default</span><span class="tsd-signature-symbol">; </span>composer<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>particles<span class="tsd-signature-symbol">: </span><a href="../classes/KeplerParticles.html" class="tsd-signature-type" data-tsd-kind="Class">KeplerParticles</a><span class="tsd-signature-symbol">; </span>renderer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WebGL1Renderer</span><span class="tsd-signature-symbol">; </span>scene<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Scene</span><span class="tsd-signature-symbol"> }</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L65">Simulation.ts:65</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>camera<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">default</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> composer<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>particles<span class="tsd-signature-symbol">: </span><a href="../classes/KeplerParticles.html" class="tsd-signature-type" data-tsd-kind="Class">KeplerParticles</a></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>renderer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">WebGL1Renderer</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>scene<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Scene</span></h5>
-							</li>
-						</ul>
-					</div>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="getId" class="tsd-anchor"></a>
+					<h3>get<wbr>Id</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Id<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L33">Simulation.ts:33</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="options" class="tsd-anchor"></a>
-					<h3>options</h3>
-					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">SpacekitOptions</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L64">Simulation.ts:64</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="simulation" class="tsd-anchor"></a>
-					<h3>simulation</h3>
-					<div class="tsd-signature tsd-kind-icon">simulation<span class="tsd-signature-symbol">:</span> <a href="../classes/Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L63">Simulation.ts:63</a></li>
-						</ul>
-					</aside>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+					<a name="update" class="tsd-anchor"></a>
+					<h3>update</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+						<li class="tsd-signature tsd-kind-icon">update<span class="tsd-signature-symbol">(</span>jd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, force<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/e27db30/src/Simulation.ts#L31">Simulation.ts:31</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>jd: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>force: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -216,30 +213,27 @@
 					<li class=" tsd-kind-class">
 						<a href="../classes/StaticParticles.html" class="tsd-kind-icon">Static<wbr>Particles</a>
 					</li>
+					<li class=" tsd-kind-interface">
+						<a href="SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
+					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
+						<a href="SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="SimulationContext.html#container" class="tsd-kind-icon">container</a>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="SimulationObject.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="SimulationContext.html#objects" class="tsd-kind-icon">objects</a>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="SimulationObject.html#getId" class="tsd-kind-icon">get<wbr>Id</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="SimulationContext.html#options" class="tsd-kind-icon">options</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="SimulationContext.html#simulation" class="tsd-kind-icon">simulation</a>
+							<li class=" tsd-kind-method tsd-parent-kind-interface">
+								<a href="SimulationObject.html#update" class="tsd-kind-icon">update</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface">
-						<a href="SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
-					</li>
 					<li class=" tsd-kind-interface">
 						<a href="SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
 					</li>

@@ -202,19 +202,19 @@ interface NaturalSatelliteRecord {
   'Element Type': string;
   'Sat.': string;
   tags: string;
-  a: number;
-  e: number;
-  w: number;
-  M: number;
-  i: number;
-  node: number;
-  n: number;
-  P: number;
-  Pw: number;
-  Pnode: number;
-  RA: number;
-  Dec: number | null;
-  Tilt: number | null;
+  a: number | string;
+  e: number | string;
+  w: number | string;
+  M: number | string;
+  i: number | string;
+  node: number | string;
+  n: number | string;
+  P: number | string;
+  Pw: number | string;
+  Pnode: number | string;
+  RA: number | string;
+  Dec: number | string | null;
+  Tilt: number | string | null;
   Ref: string;
 }
 
@@ -237,19 +237,13 @@ export class NaturalSatellites {
     }[]
   >;
 
-  private _readyPromise?: Promise<NaturalSatellites>;
+  private _readyPromise: Promise<NaturalSatellites>;
 
   constructor(simulation: Simulation) {
     this._simulation = simulation;
     this._context = simulation.getContext();
 
     this._satellitesByPlanet = {};
-    this._readyPromise = undefined;
-
-    this.init();
-  }
-
-  init() {
     const dataUrl = getFullUrl(
       '{{data}}/processed/natural-satellites.json',
       this._context.options.basePath,
@@ -313,7 +307,7 @@ export class NaturalSatellites {
             const ephem = new Ephem(
               {
                 GM: ephemGM,
-                epoch: moon['Epoch JD'],
+                epoch: Number(moon['Epoch JD']),
                 a: Units.kmToAu(Number(moon.a)),
                 e: Number(moon.e),
                 i: Number(moon.i),
@@ -352,9 +346,6 @@ export class NaturalSatellites {
   }
 
   load(): Promise<NaturalSatellites> {
-    if (!this._readyPromise) {
-      throw new Error('Loading NaturalSatellites before initialized');
-    }
     return this._readyPromise;
   }
 }

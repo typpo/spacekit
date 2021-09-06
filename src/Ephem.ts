@@ -201,10 +201,11 @@ export class Ephem {
   }
 
   /**
-   * Gets an ephemerides attribute.
+   * Gets an ephemerides attribute, but may return undefined if it's not set.
    * @param {String} attr The name of the attribute (e.g. 'a')
    * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
    * input is ignored for values that are not angle measurements.
+   * @return {Number} Ephemeris attribute value, or undefined
    */
   getUnsafe(
     attr: EphemAttribute,
@@ -220,6 +221,13 @@ export class Ephem {
     return this.attrs[attr];
   }
 
+  /**
+   * Gets an ephemerides attribute.
+   * @param {String} attr The name of the attribute (e.g. 'a')
+   * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
+   * input is ignored for values that are not angle measurements.
+   * @return {Number} Ephemeris attribute value
+   */
   get(attr: EphemAttribute, units: 'deg' | 'rad' = 'rad'): number {
     const retVal = this.getUnsafe(attr, units);
     if (typeof retVal === 'undefined') {
@@ -236,7 +244,7 @@ export class Ephem {
    * Infers values of some ephemerides attributes if the required information
    * is available.
    */
-  fill() {
+  private fill() {
     // Perihelion distance and semimajor axis
     const e = this.getUnsafe('e');
     if (!isDef(e)) {

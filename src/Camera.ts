@@ -34,12 +34,14 @@ export default class Camera {
     const containerWidth = this.context.container.width;
     const containerHeight = this.context.container.height;
 
-    this.camera = new THREE.PerspectiveCamera(
+    const camera = new THREE.PerspectiveCamera(
       50,
       containerWidth / containerHeight,
       rescaleNumber(0.00001),
       rescaleNumber(2000),
     );
+    camera.up.set(0, 0, 1);
+    this.camera = camera;
 
     // Controls
     // TODO(ian): Set maxDistance to prevent camera farplane cutoff.
@@ -50,10 +52,16 @@ export default class Camera {
 
     const controls = new OrbitControls(this.camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
     controls.enablePan = true;
     controls.zoomSpeed = 1.5;
-    controls.panSpeed = 20;
+    controls.panSpeed = 2;
     controls.rotateSpeed = 2;
+    controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: THREE.MOUSE.PAN,
+    };
     controls.touches = {
       ONE: THREE.TOUCH.ROTATE,
       TWO: THREE.TOUCH.DOLLY_ROTATE,

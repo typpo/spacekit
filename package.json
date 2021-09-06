@@ -1,6 +1,6 @@
 {
   "name": "spacekit",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --outfile=build/spacekit.js",

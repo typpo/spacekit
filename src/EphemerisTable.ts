@@ -1,10 +1,10 @@
 import * as SpacekitMath from './Math';
-import * as Units from './Units';
 import * as Util from './util';
+
+import Units from './Units';
 
 /**
  * A class representing an ephemeris look-up table for defining a space object.
- * @example
  */
 
 // Types

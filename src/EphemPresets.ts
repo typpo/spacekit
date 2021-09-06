@@ -1,15 +1,17 @@
+import Units from './Units';
 import { Ephem, GM } from './Ephem';
 import { getFullUrl } from './util';
-import { kmToAu } from './Units';
 
 import type { Simulation, SimulationContext } from './Simulation';
 
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
  * @example
+ * ```
  * const planet1 = viz.createObject('planet1', {
  *   ephem: EphemPresets.MERCURY,
  * });
+ * ```
  */
 export const EphemPresets: {
   MERCURY: Ephem;
@@ -290,7 +292,7 @@ export class NaturalSatellites {
               {
                 GM: ephemGM,
                 epoch: moon['Epoch JD'],
-                a: kmToAu(moon.a),
+                a: Units.kmToAu(moon.a),
                 e: parseFloat(moon.e),
                 i: parseFloat(moon.i),
                 w: parseFloat(moon.w),

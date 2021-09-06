@@ -1,18 +1,9 @@
 import * as THREE from 'three';
 
+import Coordinates from './Coordinates';
+import Units from './Units';
 import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 import { getFullUrl, getThreeJsTexture } from './util';
-import {
-  rad,
-  hoursToDeg,
-  sexagesimalToDecimalRa,
-  sexagesimalToDecimalDec,
-} from './Units';
-import {
-  sphericalToCartesian,
-  equatorialToEcliptic_Cartesian,
-  getObliquity,
-} from './Coordinates';
 
 import type { Simulation, SimulationContext } from './Simulation';
 
@@ -20,8 +11,8 @@ interface StarOptions {
   minSize?: number;
 }
 
-const GALACTIC_CENTER_RA = sexagesimalToDecimalRa(17, 45, 40.04);
-const GALACTIC_CENTER_DEC = sexagesimalToDecimalDec(-29, 0, 28.1);
+const GALACTIC_CENTER_RA = Units.sexagesimalToDecimalRa(17, 45, 40.04);
+const GALACTIC_CENTER_DEC = Units.sexagesimalToDecimalDec(-29, 0, 28.1);
 
 /**
  * Maps spectral class to star color
@@ -110,15 +101,19 @@ export class Stars {
         library.forEach((star, idx) => {
           const [ra, dec, temp, mag] = star;
 
-          const raRad = rad(hoursToDeg(ra));
-          const decRad = rad(dec);
+          const raRad = Units.rad(Units.hoursToDeg(ra));
+          const decRad = Units.rad(dec);
 
-          const cartesianSpherical = sphericalToCartesian(raRad, decRad, 1e9);
-          const pos = equatorialToEcliptic_Cartesian(
+          const cartesianSpherical = Coordinates.sphericalToCartesian(
+            raRad,
+            decRad,
+            1e9,
+          );
+          const pos = Coordinates.equatorialToEcliptic_Cartesian(
             cartesianSpherical[0],
             cartesianSpherical[1],
             cartesianSpherical[2],
-            getObliquity(), // defaults to J2000 value
+            Coordinates.getObliquity(), // defaults to J2000 value
           );
 
           positions.set(pos, idx * 3);

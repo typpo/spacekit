@@ -106,6 +106,7 @@ function isDef(obj) {
 /**
  * A class representing Kepler ephemerides.
  * @example
+ * ```
  * const NEPTUNE = new Ephem({
  *   epoch: 2458426.500000000,
  *   a: 3.009622263428050E+01,
@@ -115,6 +116,7 @@ function isDef(obj) {
  *   w: 2.586226409499831E+02,
  *   ma: 3.152804988924479E+02,
  * }, 'deg'),
+ * ```
  */
 export class Ephem {
   private attrs: EphemAttributes;

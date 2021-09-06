@@ -73,6 +73,7 @@ export interface SimulationContext {
  * Simulation.
  *
  * @example
+ * ```
  * const sim = new Spacekit.Simulation(document.getElementById('my-container'), {
  *  basePath: '../path/to/assets',
  *  startDate: Date.now(),
@@ -92,6 +93,7 @@ export interface SimulationContext {
  *    showStats: false,
  *  },
  * });
+ * ```
  */
 export class Simulation {
   public onTick?: () => void;

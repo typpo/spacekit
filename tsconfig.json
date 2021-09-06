@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "lib": ["es2015", "dom"]
+  },
+  "include": ["src/**/*"]
+}

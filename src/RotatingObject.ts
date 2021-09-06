@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
+import Units from './Units';
 import { SpaceObject } from './SpaceObject';
-import { rad } from './Units';
 import { rescaleVector } from './Scale';
 
 import type { Simulation } from './Simulation';
@@ -125,15 +125,15 @@ export class RotatingObject extends SpaceObject {
     const { rotation } = this._options;
 
     // Latitude
-    const lambda = rad(rotation.lambdaDeg);
+    const lambda = Units.rad(rotation.lambdaDeg);
 
     // Longitude
-    const beta = rad(rotation.betaDeg);
+    const beta = Units.rad(rotation.betaDeg);
 
     // Other
     const P = rotation.period;
     const YORP = rotation.yorp;
-    const phi0 = rad(rotation.phi0);
+    const phi0 = Units.rad(rotation.phi0);
     const JD = this._simulation.getJd();
     const JD0 = rotation.jd0;
 

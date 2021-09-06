@@ -46,29 +46,9 @@ function cbrt(x: number) {
 }
 
 /**
- * Get the type of orbit. Returns one of OrbitType.PARABOLIC, HYPERBOLIC,
- * ELLIPTICAL, or UNKNOWN.
- * @param {(Ephem | EphemerisTable)} Ephemeris
- * @return {OrbitType} Name of orbit type
- */
-export function getOrbitType(ephem: Ephem | EphemerisTable): OrbitType {
-  if (ephem instanceof EphemerisTable) {
-    return OrbitType.TABLE;
-  }
-
-  const e = ephem.get('e');
-  if (e > 0.9 && e < 1.2) {
-    return OrbitType.PARABOLIC;
-  }
-  if (e > 1.2) {
-    return OrbitType.HYPERBOLIC;
-  }
-  return OrbitType.ELLIPTICAL;
-}
-
-/**
  * A class that builds a visual representation of a Kepler orbit.
  * @example
+ * ```
  * const orbit = new Spacekit.Orbit({
  *   ephem: new Spacekit.Ephem({...}),
  *   options: {
@@ -76,6 +56,7 @@ export function getOrbitType(ephem: Ephem | EphemerisTable): OrbitType {
  *     eclipticLineColor: 0xCCCCCC,
  *   },
  * });
+ * ```
  */
 export class Orbit {
   private ephem: Ephem | EphemerisTable;
@@ -95,7 +76,7 @@ export class Orbit {
   private orbitType: OrbitType;
 
   /**
-   * @param {(Ephem | EphemerisTable)} ephem The ephemerides that define this orbit.
+   * @param {(Ephem | EphemerisTable)} ephem The ephemeris that define this orbit.
    * @param {Object} options
    * @param {Number} options.color The color of the orbital ellipse.
    * @param {Number} options.eclipticLineColor The color of lines drawn
@@ -171,7 +152,7 @@ export class Orbit {
      * Orbit type
      * @type {OrbitType}
      */
-    this.orbitType = getOrbitType(this.ephem);
+    this.orbitType = Orbit.getOrbitType(this.ephem);
   }
 
   /**
@@ -667,5 +648,26 @@ export class Orbit {
    */
   setVisibility(val: boolean) {
     this.orbitShape.visible = val;
+  }
+
+  /**
+   * Get the type of orbit. Returns one of OrbitType.PARABOLIC, HYPERBOLIC,
+   * ELLIPTICAL, or UNKNOWN.
+   * @param {(Ephem | EphemerisTable)} Ephemeris
+   * @return {OrbitType} Name of orbit type
+   */
+  static getOrbitType(ephem: Ephem | EphemerisTable): OrbitType {
+    if (ephem instanceof EphemerisTable) {
+      return OrbitType.TABLE;
+    }
+
+    const e = ephem.get('e');
+    if (e > 0.9 && e < 1.2) {
+      return OrbitType.PARABOLIC;
+    }
+    if (e > 1.2) {
+      return OrbitType.HYPERBOLIC;
+    }
+    return OrbitType.ELLIPTICAL;
   }
 }

@@ -4,7 +4,7 @@ import { getThreeJsTexture } from './util';
 
 import { Coordinate3d } from './Coordinates';
 import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
-import { getOrbitType, OrbitType } from './Orbit';
+import { Orbit, OrbitType } from './Orbit';
 
 import type { Ephem } from './Ephem';
 import type { Simulation, SimulationContext } from './Simulation';
@@ -293,7 +293,7 @@ export class KeplerParticles {
       const ephem = this._elements[i];
 
       let M, a0;
-      if (getOrbitType(ephem) === OrbitType.PARABOLIC) {
+      if (Orbit.getOrbitType(ephem) === OrbitType.PARABOLIC) {
         a0 = getA0(ephem, jd);
         M = 0;
       } else {

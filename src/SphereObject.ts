@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 //import { TranslucentShader } from 'three/examples/jsm/shaders/TranslucentShader.js';
 
+import Units from './Units';
 import { RotatingObject } from './RotatingObject';
 import { rescaleNumber } from './Scale';
-import { auToKm, kmToAu, rad } from './Units';
 import {
   ATMOSPHERE_SHADER_VERTEX,
   ATMOSPHERE_SHADER_FRAGMENT,
@@ -113,7 +113,7 @@ export class SphereObject extends RotatingObject {
     }
 
     if (this._options.axialTilt) {
-      this._obj.rotation.y += rad(this._options.axialTilt);
+      this._obj.rotation.y += Units.rad(this._options.axialTilt);
     }
 
     this._renderMethod = 'SPHERE';
@@ -223,8 +223,8 @@ export class SphereObject extends RotatingObject {
   ) {
     const radius = this.getScaledRadius();
 
-    const innerRadiusSize = rescaleNumber(kmToAu(innerRadiusKm));
-    const outerRadiusSize = rescaleNumber(kmToAu(outerRadiusKm));
+    const innerRadiusSize = rescaleNumber(Units.kmToAu(innerRadiusKm));
+    const outerRadiusSize = rescaleNumber(Units.kmToAu(outerRadiusKm));
 
     const geometry = new THREE.RingGeometry(
       innerRadiusSize,

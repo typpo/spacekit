@@ -99,6 +99,7 @@ function toScreenXY(
 /**
  * An object that can be added to a visualization.
  * @example
+ * ```
  * const myObject = viz.addObject('planet1', {
  *   position: [0, 0, 0],
  *   scale: [1, 1, 1],
@@ -118,6 +119,7 @@ function toScreenXY(
  *     orbitColor: 0x888888,
  *   },
  * });
+ * ```
  */
 export class SpaceObject {
   protected _id: string;
@@ -707,7 +709,9 @@ const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 /**
  * Useful presets for creating SpaceObjects.
  * @example
+ * ```
  * const myobject = viz.addObject('planet1', Spacekit.SpaceObjectPresets.MERCURY);
+ * ```
  */
 export const SpaceObjectPresets = {
   SUN: {

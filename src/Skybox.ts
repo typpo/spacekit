@@ -98,7 +98,9 @@ export class Skybox {
  * Preset skybox objects that you can use to add a skybox to your
  * visualization.
  * @example
+ * ```
  * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
+ * ```
  */
 export const SkyboxPresets: Record<string, { textureUrl: string }> = {
   ESO_GIGAGALAXY: {

@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
+    "outDir": "build/typescript",
     "lib": ["es2015", "dom"],
+    "declaration": true,
     "noUnusedLocals": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -10,7 +12,7 @@
     "noImplicitThis": true,
     "noImplicitOverride": true,
     "alwaysStrict": true,
-    "noEmit": true
+    "esModuleInterop": true
   },
   "include": ["src/**/*"]
 }

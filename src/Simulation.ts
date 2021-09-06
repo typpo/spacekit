@@ -768,26 +768,19 @@ export class Simulation {
    * @param {Number} offset Add some extra room in the viewport. Increase to be
    * further zoomed out, decrease to be closer. Default 3.0.
    */
-  zoomToFit(spaceObj: SpaceObject, offset: number = 3.0) {
-    const checkZoomFit = () => {
-      const orbit = spaceObj.getOrbit();
-      const obj = orbit ? orbit.getOrbitShape() : spaceObj.getBoundingObject();
-      if (obj) {
-        this.doZoomToFit(obj, offset);
-        return true;
-      }
-      return false;
-    };
-
-    // Wait until the object has been fully created.
-    const bePatient = () => {
-      if (!checkZoomFit()) {
-        setTimeout(() => {
-          bePatient();
-        }, 100);
-      }
-    };
-    bePatient();
+  async zoomToFit(
+    spaceObj: SpaceObject,
+    offset: number = 3.0,
+  ): Promise<boolean> {
+    const orbit = spaceObj.getOrbit();
+    const obj = orbit
+      ? orbit.getOrbitShape()
+      : await spaceObj.getBoundingObject();
+    if (obj) {
+      this.doZoomToFit(obj, offset);
+      return true;
+    }
+    return false;
   }
 
   /**

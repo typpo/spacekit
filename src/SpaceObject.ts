@@ -646,8 +646,8 @@ export class SpaceObject implements SimulationObject {
    * this will be the first THREE.js object in this class's list of objects.
    * @return {THREE.Object3D} THREE.js object
    */
-  getBoundingObject(): THREE.Object3D {
-    return this.get3jsObjects()[0];
+  async getBoundingObject(): Promise<THREE.Object3D> {
+    return Promise.resolve(this.get3jsObjects()[0]);
   }
 
   /**

@@ -555,7 +555,7 @@ export class Simulation {
       // Call for updates as time passes.
       const objId = obj.getId();
       if (this.subscribedObjects[objId]) {
-        console.warn(
+        console.error(
           `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
         );
       }

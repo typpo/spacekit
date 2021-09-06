@@ -433,7 +433,7 @@ export class Orbit {
     if (this.ephem instanceof EphemerisTable) {
       tp = jd;
     } else {
-      tp = this.ephem.get('tp');
+      tp = this.ephem.getUnsafe('tp');
     }
     // Use current date as a fallback if time of perihelion is not available.
     const centerDate = tp ? tp : julian.toJulianDay(new Date());

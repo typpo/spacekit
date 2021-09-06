@@ -213,8 +213,7 @@ export class SphereObject extends RotatingObject {
       depthWrite: false,
     });
 
-    const mesh = new THREE.Mesh(geometry, material);
-    return mesh;
+    return new THREE.Mesh(geometry, material);
   }
 
   /**

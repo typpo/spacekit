@@ -132,6 +132,7 @@ export class Stars implements SimulationObject {
 
         const material = new THREE.ShaderMaterial({
           uniforms: {},
+          vertexColors: true,
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
 

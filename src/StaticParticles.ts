@@ -85,6 +85,7 @@ export class StaticParticles implements SimulationObject {
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
+      vertexColors: true,
       vertexShader: STAR_SHADER_VERTEX,
       fragmentShader: STAR_SHADER_FRAGMENT,
       transparent: true,

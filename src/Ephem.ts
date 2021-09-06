@@ -98,9 +98,9 @@ export const GM: {
   PLUTO_CHARON: 9.7700000000000068e11,
 };
 
-// Returns true if object is defined.
-function isDef(obj: any) {
-  return typeof obj !== 'undefined';
+// Returns true if object is a number.
+function isDef(obj?: number) {
+  return typeof obj !== 'undefined' && Number.isFinite(obj);
 }
 
 /**
@@ -165,7 +165,7 @@ export class Ephem {
     }
     this.fill();
 
-    if (this.get('e') > 0.9 && typeof this.get('tp') === 'undefined') {
+    if (this.get('e') > 0.9 && typeof this.getUnsafe('tp') === 'undefined') {
       console.warn(
         'You must specify "tp" (time of perihelion) for highly eccentric orbits',
       );
@@ -223,8 +223,9 @@ export class Ephem {
   get(attr: EphemAttribute, units: 'deg' | 'rad' = 'rad'): number {
     const retVal = this.getUnsafe(attr, units);
     if (typeof retVal === 'undefined') {
+      console.info(this.attrs);
       throw new Error(
-        `Attempted to get ephemeris value ${attr} but it was undefined`,
+        `Attempted to get ephemeris value '${attr}' but it was undefined`,
       );
     }
     return retVal;
@@ -239,6 +240,7 @@ export class Ephem {
     // Perihelion distance and semimajor axis
     const e = this.getUnsafe('e');
     if (!isDef(e)) {
+      console.info(this.attrs);
       throw new Error('Must define eccentricity "e" in an orbit');
     }
 

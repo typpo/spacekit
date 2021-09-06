@@ -71,31 +71,31 @@ function getA0(ephem: Ephem, jd: number): number {
 export class KeplerParticles {
   static instanceCount: number;
 
-  private _id: string;
+  private id: string;
 
-  private _options: KeplerParticlesOptions;
+  private options: KeplerParticlesOptions;
 
-  private _simulation: Simulation;
+  private simulation: Simulation;
 
-  private _context: SimulationContext;
+  private context: SimulationContext;
 
-  private _addedToScene: boolean;
+  private addedToScene: boolean;
 
-  private _particleCount: number;
+  private particleCount: number;
 
-  private _elements: Ephem[];
+  private elements: Ephem[];
 
-  private _uniforms: {
+  private uniforms: {
     texture: { value: THREE.Texture };
   };
 
-  private _geometry: THREE.BufferGeometry;
+  private geometry: THREE.BufferGeometry;
 
-  private _shaderMaterial: THREE.ShaderMaterial;
+  private shaderMaterial: THREE.ShaderMaterial;
 
-  private _particleSystem: THREE.Points;
+  private particleSystem: THREE.Points;
 
-  private _attributes: ShaderAttributes;
+  private attributes: ShaderAttributes;
 
   /**
    * @param {Object} options Options container
@@ -111,38 +111,38 @@ export class KeplerParticles {
     options: KeplerParticlesOptions,
     contextOrSimulation: Simulation,
   ) {
-    this._options = options;
+    this.options = options;
 
-    this._id = `KeplerParticles__${KeplerParticles.instanceCount}`;
+    this.id = `KeplerParticles__${KeplerParticles.instanceCount}`;
 
-    this._simulation = contextOrSimulation;
-    this._context = contextOrSimulation.getContext();
+    this.simulation = contextOrSimulation;
+    this.context = contextOrSimulation.getContext();
 
     // Whether Points object has been added to the Simulation/Scene. This
     // happens lazily when the first data point is added in order to prevent
     // WebGL render warnings.
-    this._addedToScene = false;
+    this.addedToScene = false;
 
     // Number of particles in the scene.
-    this._particleCount = 0;
+    this.particleCount = 0;
 
-    if (!this._options.textureUrl) {
+    if (!this.options.textureUrl) {
       throw new Error('ParticleSystem requires textureUrl to be set');
     }
 
     const defaultMapTexture = getThreeJsTexture(
-      this._options.textureUrl,
-      this._context.options.basePath,
+      this.options.textureUrl,
+      this.context.options.basePath,
     );
 
-    this._uniforms = {
+    this.uniforms = {
       texture: { value: defaultMapTexture },
     };
 
     const particleCount =
-      this._options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
-    this._elements = [];
-    this._attributes = {
+      this.options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
+    this.elements = [];
+    this.attributes = {
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
       position: new THREE.BufferAttribute(
@@ -170,15 +170,15 @@ export class KeplerParticles {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setDrawRange(0, 0);
-    Object.keys(this._attributes).forEach((attributeName) => {
+    Object.keys(this.attributes).forEach((attributeName) => {
       const attribute =
-        this._attributes[attributeName as keyof ShaderAttributes];
+        this.attributes[attributeName as keyof ShaderAttributes];
       // attribute.setDynamic(true);
       geometry.setAttribute(attributeName, attribute);
     });
 
     const shader = new THREE.ShaderMaterial({
-      uniforms: this._uniforms,
+      uniforms: this.uniforms,
       vertexShader: getOrbitShaderVertex(),
       fragmentShader: getOrbitShaderFragment(),
 
@@ -187,9 +187,9 @@ export class KeplerParticles {
       transparent: true,
     });
 
-    this._shaderMaterial = shader;
-    this._geometry = geometry;
-    this._particleSystem = new THREE.Points(geometry, shader);
+    this.shaderMaterial = shader;
+    this.geometry = geometry;
+    this.particleSystem = new THREE.Points(geometry, shader);
   }
 
   /**
@@ -201,12 +201,12 @@ export class KeplerParticles {
    * @return {Number} The index of this article in the attribute list.
    */
   addParticle(ephem: Ephem, options: KeplerParticleOptions = {}): number {
-    this._elements.push(ephem);
-    const attributes = this._attributes;
-    const offset = this._particleCount++;
+    this.elements.push(ephem);
+    const attributes = this.attributes;
+    const offset = this.particleCount++;
 
     attributes.size.set(
-      [options.particleSize || this._options.defaultSize || 15],
+      [options.particleSize || this.options.defaultSize || 15],
       offset,
     );
     const color = new THREE.Color(options.color || 0xffffff);
@@ -221,9 +221,10 @@ export class KeplerParticles {
     attributes.wBar.set([ephem.get('wBar', 'rad')], offset);
     attributes.q.set([ephem.get('q')], offset);
 
-    attributes.M.set([getM(ephem, this._options.jd || 0)], offset);
     if (Orbit.getOrbitType(ephem) === OrbitType.PARABOLIC) {
-      attributes.a0.set([getA0(ephem, this._options.jd || 0)], offset);
+      attributes.a0.set([getA0(ephem, this.options.jd || 0)], offset);
+    } else {
+      attributes.M.set([getM(ephem, this.options.jd || 0)], offset);
     }
 
     // TODO(ian): Set the update range
@@ -232,13 +233,13 @@ export class KeplerParticles {
         attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
       }
     }
-    this._geometry.setDrawRange(0, this._particleCount);
+    this.geometry.setDrawRange(0, this.particleCount);
 
-    if (!this._addedToScene && this._simulation) {
+    if (!this.addedToScene && this.simulation) {
       // This happens lazily when the first data point is added in order to
       // prevent WebGL render warnings.
-      this._simulation.addObject(this);
-      this._addedToScene = true;
+      this.simulation.addObject(this);
+      this.addedToScene = true;
     }
 
     return offset;
@@ -250,7 +251,7 @@ export class KeplerParticles {
    * @param offset
    */
   hideParticle(offset: number) {
-    const attributes = this._attributes;
+    const attributes = this.attributes;
     attributes.size.set([0], offset);
 
     for (const attributeKey in attributes) {
@@ -266,8 +267,8 @@ export class KeplerParticles {
    * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.
    */
   setParticleOrigin(offset: number, newOrigin: Coordinate3d) {
-    this._attributes.origin.set(newOrigin, offset * 3);
-    this._attributes.origin.needsUpdate = true;
+    this.attributes.origin.set(newOrigin, offset * 3);
+    this.attributes.origin.needsUpdate = true;
   }
 
   /**
@@ -275,10 +276,10 @@ export class KeplerParticles {
    * @param {Number} jd JD date
    */
   update(jd: number) {
-    const Ms = [];
-    const a0s = [];
-    for (let i = 0; i < this._elements.length; i++) {
-      const ephem = this._elements[i];
+    const Ms: number[] = [];
+    const a0s: number[] = [];
+    for (let i = 0; i < this.elements.length; i++) {
+      const ephem = this.elements[i];
 
       let M, a0;
       if (Orbit.getOrbitType(ephem) === OrbitType.PARABOLIC) {
@@ -293,11 +294,11 @@ export class KeplerParticles {
       a0s.push(a0);
     }
 
-    this._attributes.M.set(Ms);
-    this._attributes.M.needsUpdate = true;
+    this.attributes.M.set(Ms);
+    this.attributes.M.needsUpdate = true;
 
-    this._attributes.a0.set(a0s);
-    this._attributes.a0.needsUpdate = true;
+    this.attributes.a0.set(a0s);
+    this.attributes.a0.needsUpdate = true;
   }
 
   /**
@@ -305,7 +306,7 @@ export class KeplerParticles {
    * @return {Array.<THREE.Object3D>} List of objects to add to THREE.js scene
    */
   get3jsObjects(): THREE.Object3D[] {
-    return [this._particleSystem];
+    return [this.particleSystem];
   }
 
   /**
@@ -313,7 +314,7 @@ export class KeplerParticles {
    * @return {String} Unique id
    */
   getId(): string {
-    return this._id;
+    return this.id;
   }
 }
 

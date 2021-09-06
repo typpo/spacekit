@@ -419,7 +419,7 @@ export class SpaceObject implements SimulationObject {
       this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
-    texture.encoding = THREE.GammaEncoding;
+    texture.encoding = THREE.LinearEncoding;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: texture,

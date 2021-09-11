@@ -1,5 +1,6 @@
 # spacekit
 [![Build Status](https://travis-ci.com/typpo/spacekit.svg?branch=master)](https://travis-ci.com/typpo/spacekit)
+[![npm](https://img.shields.io/npm/v/spacekit.js)](https://www.npmjs.com/package/spacekit.js)
 
 Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.
 
@@ -10,6 +11,27 @@ See the **[full documentation](https://typpo.github.io/spacekit/)**
 Note that this library is a work in progress and the API might change!
 
 [![spacekit examples](https://i.imgur.com/u48FCjJ.jpg)](https://typpo.github.io/spacekit/)
+
+# Usage
+
+Install via npm:
+
+```
+npm install spacekit.js
+```
+
+And then use `require` or `import`:
+
+```js
+const Spacekit = require('spacekit.js');
+// or
+import Spacekit from 'spacekit.js';
+```
+
+You can also [download a raw build](https://github.com/typpo/spacekit/tree/master/build) or use the latest build in a script tag:
+```html
+<script src="https://typpo.github.io/spacekit/build/spacekit.js"></script>
+```
 
 # Terminology and components
 
@@ -115,10 +137,6 @@ sim.createSphere('earth', {
 ```
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
-
-# How to get started
-
-To be written...
 
 # Dependencies
 

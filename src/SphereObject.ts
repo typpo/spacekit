@@ -50,11 +50,9 @@ export class SphereObject extends RotatingObject {
   }
 
   override init(): boolean {
-    let map: THREE.Texture | undefined;
+    let map: THREE.Texture | null = null;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
-    } else {
-      throw new Error('Must set textureUrl option for SphereObject');
     }
 
     const detailedObj = new THREE.LOD();
@@ -70,10 +68,10 @@ export class SphereObject extends RotatingObject {
         level.segments,
         level.segments,
       );
-      const color = this._options.color || 0xbbbbbb;
 
       let material: THREE.ShaderMaterial | THREE.MeshBasicMaterial;
       if (this._simulation.isUsingLightSources()) {
+        console.warn(`SphereObject ${this._id} requires a texture when using a light source.`);
         const uniforms: Record<string, IUniform> = {
           sphereTexture: {
             value: undefined,
@@ -92,6 +90,7 @@ export class SphereObject extends RotatingObject {
           transparent: true,
         });
       } else {
+        const color = this._options.color ?? 0xbbbbbb;
         material = new THREE.MeshBasicMaterial({
           map,
           color,

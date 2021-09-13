@@ -1,0 +1,60 @@
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #main-container {
+      width: 100%;
+      height: 100%;
+    }
+    .links {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding: 0.5em;
+      background-color: #000;
+      border-left: 1px solid #bbb;
+      border-top: 1px solid #bbb;
+      color: #fff;
+      font-size: 0.8em;
+    }
+    .links a {
+      color: #fff;
+    }
+
+    @media (max-width: 960px) {
+      .links {
+        display: none;
+      }
+    }
+  </style>
+<head>
+<body>
+<div class="links">
+  <a href="https://github.com/typpo/spacekit/tree/master/examples/galactic_center">Source</a>
+  &middot;
+  <a href="https://typpo.github.io/spacekit/">Spacekit.js homepage</a>
+</div>
+<div id="main-container">
+</div>
+
+<script src="../../build/spacekit.js"></script>
+
+<script src="dat.gui.min.js"></script>
+<script src="main.js"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-140394693-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-140394693-1');
+</script>
+</body>
+</html>

@@ -545,11 +545,27 @@ export class SpaceObject implements SimulationObject {
    * movement.
    */
   update(jd: number, force: boolean = false) {
+    let newpos;
+    if (this._label) {
+      // Labels must update, even for static objects.
+      // TODO(ian): Determine this based on orbit and camera position change.
+      const meetsLabelUpdateThreshold =
+        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+      const shouldUpdateLabelPos =
+        force || (this._showLabel && meetsLabelUpdateThreshold);
+      if (shouldUpdateLabelPos) {
+        if (!newpos) {
+          newpos = this.getPosition(jd);
+        }
+        this.updateLabelPosition(newpos);
+        this._lastLabelUpdate = +new Date();
+      }
+    }
+
     if (this.isStaticObject() && !force) {
       return;
     }
 
-    let newpos;
     let shouldUpdateObjectPosition = false;
     if (this._object3js || this._label) {
       shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
@@ -600,21 +616,6 @@ export class SpaceObject implements SimulationObject {
       }
       if (!newpos) {
         newpos = this.getPosition(jd);
-      }
-    }
-
-    // TODO(ian): Determine this based on orbit and camera position change.
-    if (this._label) {
-      const meetsLabelUpdateThreshold =
-        +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
-      const shouldUpdateLabelPos =
-        force || (this._showLabel && meetsLabelUpdateThreshold);
-      if (shouldUpdateLabelPos) {
-        if (!newpos) {
-          newpos = this.getPosition(jd);
-        }
-        this.updateLabelPosition(newpos);
-        this._lastLabelUpdate = +new Date();
       }
     }
   }

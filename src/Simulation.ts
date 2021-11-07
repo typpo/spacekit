@@ -3,10 +3,14 @@ import * as THREE from 'three';
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
+  GodRaysEffect,
   BloomEffect,
+  DepthEffect,
   EffectComposer,
   EffectPass,
   RenderPass,
+  SMAAEffect,
+  NoiseEffect,
   // @ts-ignore
 } from 'postprocessing';
 
@@ -154,6 +158,8 @@ export class Simulation {
 
   private composer?: EffectComposer;
 
+  private clock?: THREE.Clock;
+
   /**
    * @param {HTMLCanvasElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
@@ -251,7 +257,7 @@ export class Simulation {
     this.renderer = this.initRenderer();
     this.scene = new THREE.Scene();
     this.camera = new Camera(this.getContext());
-    this.composer = null;
+    this.composer = undefined;
 
     // Orbit particle system must be initialized after scene is created and
     // scale is set.
@@ -373,55 +379,24 @@ export class Simulation {
    * @private
    */
   private initPasses() {
-    //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
-    //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
-
     const camera = this.camera.get3jsCamera();
 
-    /*
-    const sunGeometry = new THREE.SphereBufferGeometry(
-      rescaleNumber(0.004),
-      16,
-    );
-    const sunMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffddaa,
-      transparent: true,
-      depthWrite: false,
-      fog: false,
-    });
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
-    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
-    sun.updateMatrix();
-    sun.updateMatrixWorld();
-
-    const godRaysEffect = new GodRaysEffect(camera, sun, {
-      color: 0xfff5f2,
-      blur: false,
-    });
-    */
-    //godRaysEffect.dithering = true;
-
-    const bloomEffect = new BloomEffect(this.scene, camera, {
-      width: 240,
-      height: 240,
-      luminanceThreshold: 0.2,
-    });
-    bloomEffect.inverted = true;
-    bloomEffect.blendMode.opacity.value = 2.3;
+    const composer = new EffectComposer(this.renderer);
 
     const renderPass = new RenderPass(this.scene, camera);
-    renderPass.renderToScreen = false;
+    composer.addPass(renderPass);
+
+    //const bloomPass = new BloomPass(3, 25, 5, 256);
+    //composer.addPass(new BloomEffect());
+    //composer.addPass(new SMAAEffect());
 
     const effectPass = new EffectPass(
       camera,
-      /*smaaEffect, godRaysEffect*/ bloomEffect,
+      new BloomEffect(),
     );
-    effectPass.renderToScreen = true;
+    //composer.addPass(effectPass);
 
-    const composer = new EffectComposer(this.renderer);
-    composer.addPass(renderPass);
-    composer.addPass(effectPass);
+    this.clock = new THREE.Clock();
     this.composer = composer;
   }
 
@@ -528,8 +503,10 @@ export class Simulation {
     this.camera.update();
 
     // Update three.js scene
-    this.renderer.render(this.scene, this.camera.get3jsCamera());
-    //this.composer.render(0.1);
+    // this.renderer.render(this.scene, this.camera.get3jsCamera());
+    if (this.composer && this.clock) {
+      this.composer.render(this.clock.getDelta());
+    }
 
     if (this.onTick) {
       this.onTick();

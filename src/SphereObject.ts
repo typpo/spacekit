@@ -133,9 +133,9 @@ export class SphereObject extends RotatingObject {
   }
 
   /**
-   * @private
+   * @protected
    */
-  private getScaledRadius(): number {
+  protected getScaledRadius(): number {
     return rescaleNumber(this._options.radius || 1);
   }
 

@@ -142,6 +142,8 @@ export class SpaceObject implements SimulationObject {
 
   protected _initialized: boolean;
 
+  protected _position: Coordinate3d;
+
   private _object3js?: THREE.Object3D;
 
   private _useEphemTable: boolean;
@@ -155,8 +157,6 @@ export class SpaceObject implements SimulationObject {
   private _lastLabelUpdate: number;
 
   // private _lastPositionUpdate: number;
-
-  private _position: Coordinate3d;
 
   private _orbitAround?: SpaceObject;
 

@@ -92,13 +92,13 @@ export declare class SpaceObject implements SimulationObject {
     protected _context: SimulationContext;
     protected _renderMethod?: 'SPRITE' | 'PARTICLESYSTEM' | 'ROTATING_OBJECT' | 'SPHERE';
     protected _initialized: boolean;
+    protected _position: Coordinate3d;
     private _object3js?;
     private _useEphemTable;
     private _isStaticObject;
     private _label?;
     private _showLabel;
     private _lastLabelUpdate;
-    private _position;
     private _orbitAround?;
     private _scale;
     private _particleIndex?;

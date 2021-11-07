@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'postprocessing';
 import type { Scene, Vector3, WebGL1Renderer } from 'three';
 import Camera from './Camera';
+import { BlackHoleObject } from './BlackHoleObject';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -108,6 +109,7 @@ export declare class Simulation {
     private scene;
     private renderer;
     private composer?;
+    private clock?;
     /**
      * @param {HTMLCanvasElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
@@ -218,6 +220,12 @@ export declare class Simulation {
      * @see SphereObject
      */
     createSphere(...args: any[]): SphereObject;
+    /**
+     * Shortcut for creating a new SphereOjbect belonging to this visualization.
+     * Takes any SphereObject arguments.
+     * @see SphereObject
+     */
+    createBlackHole(...args: any[]): BlackHoleObject;
     /**
      * Shortcut for creating a new StaticParticles object belonging to this visualization.
      * Takes any StaticParticles arguments.

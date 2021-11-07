@@ -74,6 +74,7 @@ var julian_1 = __importDefault(require("julian"));
 var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.module"));
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
+var BlackHoleObject_1 = require("./BlackHoleObject");
 var KeplerParticles_1 = require("./KeplerParticles");
 var EphemPresets_1 = require("./EphemPresets");
 var ShapeObject_1 = require("./ShapeObject");
@@ -199,7 +200,7 @@ var Simulation = /** @class */ (function () {
         this.renderer = this.initRenderer();
         this.scene = new THREE.Scene();
         this.camera = new Camera_1["default"](this.getContext());
-        this.composer = null;
+        this.composer = undefined;
         // Orbit particle system must be initialized after scene is created and
         // scale is set.
         this.particles = new KeplerParticles_1.KeplerParticles({
@@ -290,47 +291,16 @@ var Simulation = /** @class */ (function () {
      * @private
      */
     Simulation.prototype.initPasses = function () {
-        //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
-        //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
         var camera = this.camera.get3jsCamera();
-        /*
-        const sunGeometry = new THREE.SphereBufferGeometry(
-          rescaleNumber(0.004),
-          16,
-        );
-        const sunMaterial = new THREE.MeshBasicMaterial({
-          color: 0xffddaa,
-          transparent: true,
-          depthWrite: false,
-          fog: false,
-        });
-        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-        const rescaled = rescaleArray([0.1, 0.1, 0.0]);
-        sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
-        sun.updateMatrix();
-        sun.updateMatrixWorld();
-    
-        const godRaysEffect = new GodRaysEffect(camera, sun, {
-          color: 0xfff5f2,
-          blur: false,
-        });
-        */
-        //godRaysEffect.dithering = true;
-        var bloomEffect = new postprocessing_1.BloomEffect(this.scene, camera, {
-            width: 240,
-            height: 240,
-            luminanceThreshold: 0.2
-        });
-        bloomEffect.inverted = true;
-        bloomEffect.blendMode.opacity.value = 2.3;
-        var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
-        renderPass.renderToScreen = false;
-        var effectPass = new postprocessing_1.EffectPass(camera, 
-        /*smaaEffect, godRaysEffect*/ bloomEffect);
-        effectPass.renderToScreen = true;
         var composer = new postprocessing_1.EffectComposer(this.renderer);
+        var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
         composer.addPass(renderPass);
-        composer.addPass(effectPass);
+        //const bloomPass = new BloomPass(3, 25, 5, 256);
+        //composer.addPass(new BloomEffect());
+        //composer.addPass(new SMAAEffect());
+        var effectPass = new postprocessing_1.EffectPass(camera, new postprocessing_1.BloomEffect());
+        //composer.addPass(effectPass);
+        this.clock = new THREE.Clock();
         this.composer = composer;
     };
     /**
@@ -426,8 +396,10 @@ var Simulation = /** @class */ (function () {
         }
         this.camera.update();
         // Update three.js scene
-        this.renderer.render(this.scene, this.camera.get3jsCamera());
-        //this.composer.render(0.1);
+        // this.renderer.render(this.scene, this.camera.get3jsCamera());
+        if (this.composer && this.clock) {
+            this.composer.render(this.clock.getDelta());
+        }
         if (this.onTick) {
             this.onTick();
         }
@@ -513,6 +485,20 @@ var Simulation = /** @class */ (function () {
         }
         // @ts-ignore
         return new (SphereObject_1.SphereObject.bind.apply(SphereObject_1.SphereObject, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
+    };
+    /**
+     * Shortcut for creating a new SphereOjbect belonging to this visualization.
+     * Takes any SphereObject arguments.
+     * @see SphereObject
+     */
+    // @ts-ignore
+    Simulation.prototype.createBlackHole = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        // @ts-ignore
+        return new (BlackHoleObject_1.BlackHoleObject.bind.apply(BlackHoleObject_1.BlackHoleObject, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
     };
     /**
      * Shortcut for creating a new StaticParticles object belonging to this visualization.

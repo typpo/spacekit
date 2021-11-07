@@ -30,9 +30,9 @@ export declare class SphereObject extends RotatingObject {
     constructor(id: string, options: SpaceObjectOptions, simulation: Simulation);
     init(): boolean;
     /**
-     * @private
+     * @protected
      */
-    private getScaledRadius;
+    protected getScaledRadius(): number;
     /**
      * @private
      * Model the atmosphere as two layers - a thick inner layer and a diffuse

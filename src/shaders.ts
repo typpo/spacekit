@@ -377,3 +377,99 @@ export const RING_SHADER_FRAGMENT = `
     gl_FragColor = vec4(lights() * shadow(), 1.0) * color();
   }
 `;
+
+export const BLACK_HOLE_SHADER_VERTEX = `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position, 1.0);
+  }
+`;
+
+export const BLACK_HOLE_SHADER_FRAGMENT = `
+  #define PI 3.141592653589793238462643383279
+  #define ROT_Z(a) mat3(cos(a), -sin(a), 0, sin(a), cos(a), 0, 0, 0, 1)
+  #define DEG_TO_RAD (PI/180.0)
+
+  // See built-in uniforms and attributes here
+  // https://threejs.org/docs/#api/en/renderers/webgl/WebGLProgram
+  varying vec2 vUv;
+  uniform vec2 resolution;
+  uniform vec3 cameraDirection;
+  uniform vec3 cameraUp;
+  uniform vec3 cameraPosLocal;
+  uniform float eventHorizonRadius;
+
+  vec2 toSpherical(vec3 coord) {
+    vec2 uv = vec2(atan(coord.z,coord.x), asin(coord.y));
+    uv *= vec2(1.0/(2.0*PI), 1.0/PI);
+    uv += 0.5;
+    return uv;
+  }
+
+  vec2 squareFrame(vec2 screenSize) {
+    return 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;
+  }
+
+  void main() {
+    // vec2 uv = vUv;
+    vec2 uv = squareFrame(resolution);
+    uv = uv * vec2(resolution.x / resolution.y, 1.0);
+
+    vec3 forward = normalize(cameraDirection);
+    vec3 up = normalize(cameraUp);
+    vec3 nright = normalize(cross(forward, up));
+    up = cross(nright, forward);
+
+    vec3 pixelPos = cameraPosLocal + forward + nright * uv.x + up * uv.y;
+    vec3 rayDir = normalize(pixelPos - cameraPosLocal);
+
+    vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec3 point = cameraPosLocal;
+    vec3 velocity = rayDir;
+    vec3 c = cross(point, velocity);
+    float h2 = dot(c, c);
+
+    // insert effects
+    // ...
+
+    vec3 prevPoint;
+    // Distance from origin
+    float distance = length(point);
+
+    for (int i = 0; i < 700; i++) {
+      prevPoint = point;
+      point += velocity * 0.04;
+      /*
+      vec3 accel = -1.5 * h2 * point / pow(dot(point, point), 2.5);
+      velocity += accel * 0.04;
+       */
+
+      // Distance from origin
+      // TODO(ian): should be distance from object
+      distance = length(point);
+      if (distance < 0.0) {
+        break;
+      }
+      if (distance < eventHorizonRadius && length(prevPoint) > eventHorizonRadius) {
+        // Entered event horizon
+        vec4 green = vec4(0.0, 1.0, 0.0, 1.0);
+        color = green;
+        break;
+      }
+    }
+
+    if (distance > eventHorizonRadius) {
+      rayDir = normalize(point - prevPoint);
+      vec2 texCoord = toSpherical(rayDir * ROT_Z(45.0 * DEG_TO_RAD));
+      //color = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+
+    // gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+      //gl_FragColor = vec4(pixelPos, 1.0);
+    color.a = distance;
+    gl_FragColor = color;
+  }
+`;

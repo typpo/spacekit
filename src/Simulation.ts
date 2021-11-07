@@ -13,6 +13,7 @@ import {
 import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
 
 import Camera from './Camera';
+import { BlackHoleObject } from './BlackHoleObject';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -610,6 +611,17 @@ export class Simulation {
   createSphere(...args): SphereObject {
     // @ts-ignore
     return new SphereObject(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new SphereOjbect belonging to this visualization.
+   * Takes any SphereObject arguments.
+   * @see SphereObject
+   */
+  // @ts-ignore
+  createBlackHole(...args): BlackHoleObject {
+    // @ts-ignore
+    return new BlackHoleObject(...args, this);
   }
 
   /**

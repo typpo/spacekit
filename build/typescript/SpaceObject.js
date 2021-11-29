@@ -433,10 +433,23 @@ var SpaceObject = /** @class */ (function () {
     SpaceObject.prototype.update = function (jd, force) {
         var _a, _b, _c;
         if (force === void 0) { force = false; }
+        var newpos;
+        if (this._label) {
+            // Labels must update, even for static objects.
+            // TODO(ian): Determine this based on orbit and camera position change.
+            var meetsLabelUpdateThreshold = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
+            var shouldUpdateLabelPos = force || (this._showLabel && meetsLabelUpdateThreshold);
+            if (shouldUpdateLabelPos) {
+                if (!newpos) {
+                    newpos = this.getPosition(jd);
+                }
+                this.updateLabelPosition(newpos);
+                this._lastLabelUpdate = +new Date();
+            }
+        }
         if (this.isStaticObject() && !force) {
             return;
         }
-        var newpos;
         var shouldUpdateObjectPosition = false;
         if (this._object3js || this._label) {
             shouldUpdateObjectPosition = force || this.shouldUpdateObjectPosition(jd);
@@ -476,18 +489,6 @@ var SpaceObject = /** @class */ (function () {
             }
             if (!newpos) {
                 newpos = this.getPosition(jd);
-            }
-        }
-        // TODO(ian): Determine this based on orbit and camera position change.
-        if (this._label) {
-            var meetsLabelUpdateThreshold = +new Date() - this._lastLabelUpdate > LABEL_UPDATE_MS;
-            var shouldUpdateLabelPos = force || (this._showLabel && meetsLabelUpdateThreshold);
-            if (shouldUpdateLabelPos) {
-                if (!newpos) {
-                    newpos = this.getPosition(jd);
-                }
-                this.updateLabelPosition(newpos);
-                this._lastLabelUpdate = +new Date();
             }
         }
     };

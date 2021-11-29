@@ -77,12 +77,10 @@ var SphereObject = /** @class */ (function (_super) {
         return _this;
     }
     SphereObject.prototype.init = function () {
-        var map;
+        var _a;
+        var map = null;
         if (this._options.textureUrl) {
             map = new THREE.TextureLoader().load(this._options.textureUrl);
-        }
-        else {
-            throw new Error('Must set textureUrl option for SphereObject');
         }
         var detailedObj = new THREE.LOD();
         var levelsOfDetail = this._options.levelsOfDetail || [
@@ -92,9 +90,9 @@ var SphereObject = /** @class */ (function (_super) {
         for (var i = 0; i < levelsOfDetail.length; i += 1) {
             var level = levelsOfDetail[i];
             var sphereGeometry = new THREE.SphereGeometry(radius, level.segments, level.segments);
-            var color = this._options.color || 0xbbbbbb;
             var material = void 0;
             if (this._simulation.isUsingLightSources()) {
+                console.warn("SphereObject " + this._id + " requires a texture when using a light source.");
                 var uniforms = {
                     sphereTexture: {
                         value: undefined
@@ -114,6 +112,7 @@ var SphereObject = /** @class */ (function (_super) {
                 });
             }
             else {
+                var color = (_a = this._options.color) !== null && _a !== void 0 ? _a : 0xbbbbbb;
                 material = new THREE.MeshBasicMaterial({
                     map: map,
                     color: color

@@ -35,6 +35,6 @@
   "dependencies": {
     "julian": "^0.2.0",
     "postprocessing": "^6.22.5",
-    "three": "^0.132.0"
+    "three": "^0.137.0"
   }
 }

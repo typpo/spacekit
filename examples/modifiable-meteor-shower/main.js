@@ -72,6 +72,17 @@ const guiState = {
   size: particleOptions.size.value,
 };
 
+particleControl
+  .addColor(guiState, 'color')
+  .onChange((color) => changeParticleColor(color));
+
+// change particles color
+function changeParticleColor(color) {
+  for (let i = 8; i < viz.particles.particleCount; i++) {
+    viz.particles.setParticleColor(color, i);
+  }
+}
+
 // convert hex string to hex number
 function convertColorToHex(colorString) {
   const hexString = '0x' + colorString.slice(1);

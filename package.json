@@ -1,40 +1,40 @@
 {
-  "name": "spacekit.js",
-  "version": "0.1.0",
-  "license": "MIT",
-  "main": "build/spacekit.cjs.js",
-  "module": "build/spacekit.esm.js",
-  "types": "build/typescript/index.d.ts",
-  "prepublish": "yarn build",
-  "scripts": {
-    "build": "tsc && yarn esbuild:browser && yarn esbuild:esm && yarn esbuild:cjs",
-    "esbuild:browser": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --outfile=build/spacekit.js",
-    "esbuild:esm": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=esm --outfile=build/spacekit.esm.js",
-    "esbuild:cjs": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=cjs --outfile=build/spacekit.cjs.js",
-    "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --watch --outfile=build/spacekit.js",
-    "types": "tsc --watch",
-    "docs": "typedoc",
-    "format": "prettier --write --single-quote --trailing-comma all '{src,examples,test}/**/*.{js,ts}'",
-    "test": "jest"
-  },
-  "devDependencies": {
-    "@arkweid/lefthook": "^0.6.3",
-    "@babel/core": "^7.9.0",
-    "@babel/preset-env": "^7.9.5",
-    "@babel/preset-typescript": "^7.15.0",
-    "@types/node": "^16.7.10",
-    "@types/three": "^0.131.0",
-    "@typescript-eslint/parser": "^4.14.0",
-    "babel-jest": "^25.5.1",
-    "esbuild": "^0.12.25",
-    "jest": "^25.4.0",
-    "prettier": "^2.3.2",
-    "typedoc": "^0.21.9",
-    "typescript": "^4.1.3"
-  },
-  "dependencies": {
-    "julian": "^0.2.0",
-    "postprocessing": "^6.22.5",
-    "three": "^0.137.0"
-  }
+    "name": "spacekit.js",
+    "version": "0.1.0",
+    "license": "MIT",
+    "main": "build/spacekit.cjs.js",
+    "module": "build/spacekit.esm.js",
+    "types": "build/typescript/index.d.ts",
+    "prepublish": "yarn build",
+    "scripts": {
+        "build": "tsc && yarn esbuild:browser && yarn esbuild:esm && yarn esbuild:cjs",
+        "esbuild:browser": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --outfile=build/spacekit.js",
+        "esbuild:esm": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=esm --outfile=build/spacekit.esm.js",
+        "esbuild:cjs": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=cjs --outfile=build/spacekit.cjs.js",
+        "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --watch --outfile=build/spacekit.js",
+        "types": "tsc --watch",
+        "docs": "typedoc",
+        "format": "prettier --write --single-quote --trailing-comma all '{src,examples,test}/**/*.{js,ts}'",
+        "test": "jest"
+    },
+    "devDependencies": {
+        "@arkweid/lefthook": "^0.6.3",
+        "@babel/core": "^7.9.0",
+        "@babel/preset-env": "^7.9.5",
+        "@babel/preset-typescript": "^7.15.0",
+        "@types/node": "^16.7.10",
+        "@types/three": "^0.131.0",
+        "@typescript-eslint/parser": "^4.14.0",
+        "babel-jest": "^25.5.1",
+        "esbuild": "^0.12.25",
+        "jest": "^25.4.0",
+        "prettier": "^2.3.2",
+        "typedoc": "^0.21.9",
+        "typescript": "^4.1.3"
+    },
+    "dependencies": {
+        "julian": "^0.2.0",
+        "postprocessing": "^6.22.5",
+        "three": "0.135.0"
+    }
 }

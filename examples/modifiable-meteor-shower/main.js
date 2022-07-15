@@ -62,6 +62,16 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
   });
 });
 
+// create control panel
+const gui = new dat.GUI();
+const particleControl = gui.addFolder('Modify Particles');
+particleControl.open();
+
+const guiState = {
+  color: convertColorToHex(particleOptions.color),
+  size: particleOptions.size.value,
+};
+
 // convert hex string to hex number
 function convertColorToHex(colorString) {
   const hexString = '0x' + colorString.slice(1);

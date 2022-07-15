@@ -1,3 +1,14 @@
+// set particles options - `size` (must be greater than 0, if it is 0 then default size will be set) & `color` (hex format, as above)
+// `min` and `max` create a range (min - max) in which we can change the size of particles (0 <= min <= value <= max)
+const particleOptions = {
+  size: {
+    min: 0,
+    max: 50,
+    value: 10,
+  },
+  color: '#ff0000',
+};
+
 // Create the visualization and put it in our div.
 const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
@@ -42,8 +53,17 @@ window.PERSEIDS_EPHEM.forEach((rawEphem, idx) => {
 
   viz.createObject(`perseids_${idx}`, {
     hideOrbit: true,
-    particleSize: 10,
+    particleSize: particleOptions.size.value,
     textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
     ephem,
+    theme: {
+      color: convertColorToHex(particleOptions.color),
+    },
   });
 });
+
+// convert hex string to hex number
+function convertColorToHex(colorString) {
+  const hexString = '0x' + colorString.slice(1);
+  return parseInt(hexString, 16);
+}

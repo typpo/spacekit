@@ -72,14 +72,25 @@ const guiState = {
   size: particleOptions.size.value,
 };
 
+// change particles color
 particleControl
   .addColor(guiState, 'color')
   .onChange((color) => changeParticleColor(color));
 
-// change particles color
 function changeParticleColor(color) {
   for (let i = 8; i < viz.particles.particleCount; i++) {
     viz.particles.setParticleColor(color, i);
+  }
+}
+
+// change particles size
+particleControl
+  .add(guiState, 'size', particleOptions.size.min, particleOptions.size.max)
+  .onChange((size) => changeParticleSize(size));
+
+function changeParticleSize(size) {
+  for (let i = 8; i < viz.particles.particleCount; i++) {
+    viz.particles.setParticleSize(size, i);
   }
 }
 

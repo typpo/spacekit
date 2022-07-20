@@ -191,6 +191,10 @@ export class KeplerParticles {
     this.shaderMaterial = shader;
     this.geometry = geometry;
     this.particleSystem = new THREE.Points(geometry, shader);
+
+    if (this.get3jsObjects() && this.get3jsObjects()[0]) {
+      this.get3jsObjects()[0].frustumCulled = false;
+    }
   }
 
   /**

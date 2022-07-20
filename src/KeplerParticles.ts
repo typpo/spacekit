@@ -263,6 +263,39 @@ export class KeplerParticles {
   }
 
   /**
+   * Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.
+   * @param {Number} size The new size of this particle
+   * @param {Number} offset The location of this particle in the attributes * array
+   */
+  setParticleSize(size: number, offset: number) {
+    const attributes = this.attributes;
+    attributes.size.set([size], offset);
+
+    for (const attributeKey in attributes) {
+      if (attributes.hasOwnProperty(attributeKey)) {
+        attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
+      }
+    }
+  }
+
+  /**
+   * Changes the color of the particle at the given offset to the given color.
+   * @param {Number} colorValue The new color of this particle (e.g. hex number)
+   * @param {Number} offset The location of this particle in the attributes * array
+   */
+  setParticleColor(colorValue: number, offset: number) {
+    const attributes = this.attributes;
+    const { r, g, b } = new THREE.Color(colorValue);
+    attributes.fuzzColor.set([r, g, b], offset * 3);
+
+    for (const attributeKey in attributes) {
+      if (attributes.hasOwnProperty(attributeKey)) {
+        attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
+      }
+    }
+  }
+
+  /**
    * Change the `origin` attribute of a particle.
    * @param {Number} offset The location of this particle in the attributes * array.
    * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.

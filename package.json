@@ -8,10 +8,10 @@
   "prepublish": "yarn build",
   "scripts": {
     "build": "tsc && yarn esbuild:browser && yarn esbuild:esm && yarn esbuild:cjs",
-    "esbuild:browser": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --outfile=build/spacekit.js",
-    "esbuild:esm": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=esm --outfile=build/spacekit.esm.js",
-    "esbuild:cjs": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --format=cjs --outfile=build/spacekit.cjs.js",
-    "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig.json --watch --outfile=build/spacekit.js",
+    "esbuild:browser": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig-esbuild.json --outfile=build/spacekit.js",
+    "esbuild:esm": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig-esbuild.json --format=esm --outfile=build/spacekit.esm.js",
+    "esbuild:cjs": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig-esbuild.json --format=cjs --outfile=build/spacekit.cjs.js",
+    "build:watch": "esbuild src/index.ts --bundle --minify --sourcemap --target=es2015 --global-name=Spacekit --tsconfig=tsconfig-esbuild.json --watch --outfile=build/spacekit.js",
     "types": "tsc --watch",
     "docs": "typedoc",
     "format": "prettier --write --single-quote --trailing-comma all '{src,examples,test}/**/*.{js,ts}'",
@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.9.5",
     "@babel/preset-typescript": "^7.15.0",
     "@types/node": "^16.7.10",
-    "@types/three": "^0.131.0",
+    "@types/three": "^0.142.0",
     "@typescript-eslint/parser": "^4.14.0",
     "babel-jest": "^25.5.1",
     "esbuild": "^0.12.25",
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "julian": "^0.2.0",
-    "postprocessing": "^6.22.5",
-    "three": "^0.137.0"
+    "postprocessing": "^6.28.4",
+    "three": "^0.142.0"
   }
 }

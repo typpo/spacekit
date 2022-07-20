@@ -1271,10 +1271,17 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
   integrity sha512-l42BggppR6zLmpfU6fq9HEa2oGPEI8yrSPL3GITjfRInppYFahObbIQOQK3UGxEnyQpltZLaPe75046NOZQikw==
 
-"@types/three@^0.131.0":
-  version "0.131.0"
-  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.131.0.tgz#98f59887b05f71e665cf2fbdf04e0e4ceb9f89b6"
-  integrity sha512-4VCtsDi6mIId96GcGKG91e2Y6VwU2T0u/YB7vCFJh1kXik93arxn7l9tVZHo1LXOtgCJJDdC+e1fwf2Vu/4ySw==
+"@types/three@^0.142.0":
+  version "0.142.0"
+  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.142.0.tgz#32ca897afc925057174a398416777fcb141666d6"
+  integrity sha512-YNVnlqthfgqsxKuSNbT/G2r+ha/6x+aJm7kvjT+sxa4jUROw/KOPm5xzGj33sk1+Librg6NwH/wJ6LCDX33UZg==
+  dependencies:
+    "@types/webxr" "*"
+
+"@types/webxr@*":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@types/webxr/-/webxr-0.4.0.tgz#ad06c96a324293e0d5175d13dd5ded5931f90ba3"
+  integrity sha512-LQvrACV3Pj17GpkwHwXuTd733gfY+D7b9mKdrTmLdO7vo7P/o6209Qqtk63y/FCv/lspdmi0pWz6Qe/ull9kQg==
 
 "@types/yargs-parser@*":
   version "15.0.0"
@@ -3648,10 +3655,10 @@ posix-character-classes@^0.1.0:
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
   integrity sha1-AerA/jta9xoqbAL+q7jB/vfgDqs=
 
-postprocessing@^6.22.5:
-  version "6.22.5"
-  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.22.5.tgz#e1c7fdcf444c2882cb00c371002354db2d8eeb0d"
-  integrity sha512-W0iBLyusk1xUgOdkfqEbVKPcGk4KduMpjEgiTLtj3oA4wS8YhV/7/mrOlMC2zjIGCvZHb7+IUgruWsh7KnZknQ==
+postprocessing@^6.28.4:
+  version "6.28.4"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.28.4.tgz#03dc2b5c546ef26bdd963af1ea8f75c933e88e34"
+  integrity sha512-xVw7wT9H4s/f/AWS+u3FssIZ1iMY632zweCHqcNZ1ydFChCWeHcWOpEPx0dQz2DMIUlZclFW9WmwMJQxESI+cQ==
 
 prelude-ls@~1.1.2:
   version "1.1.2"
@@ -4271,10 +4278,10 @@ test-exclude@^6.0.0:
     glob "^7.1.4"
     minimatch "^3.0.4"
 
-three@^0.137.0:
-  version "0.137.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.137.0.tgz#0ebd6ba66637a332c31f234bcdd35aeec071a6e3"
-  integrity sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA==
+three@^0.142.0:
+  version "0.142.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.142.0.tgz#89e226a16221f212eb1d40f0786604b711f28aed"
+  integrity sha512-ESjPO+3geFr+ZUfVMpMnF/eVU2uJPOh0e2ZpMFqjNca1wApS9lJb7E4MjwGIczgt9iuKd8PEm6Pfgp2bJ92Xtg==
 
 throat@^5.0.0:
   version "5.0.0"

@@ -250,7 +250,7 @@ export class Simulation {
     this.renderer = this.initRenderer();
     this.scene = new THREE.Scene();
     this.camera = new Camera(this.getContext());
-    this.composer = null;
+    this.composer = undefined;
 
     // Orbit particle system must be initialized after scene is created and
     // scale is set.
@@ -401,12 +401,12 @@ export class Simulation {
     */
     //godRaysEffect.dithering = true;
 
-    const bloomEffect = new BloomEffect(this.scene, camera, {
+    const bloomEffect = new BloomEffect({
       width: 240,
       height: 240,
       luminanceThreshold: 0.2,
     });
-    bloomEffect.inverted = true;
+    //bloomEffect.inverted = true;
     bloomEffect.blendMode.opacity.value = 2.3;
 
     const renderPass = new RenderPass(this.scene, camera);

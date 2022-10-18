@@ -168,7 +168,7 @@ var NaturalSatellites = /** @class */ (function () {
                              */
                             break;
                         default:
-                            console.warn("Ephemeris type not yet implemented: " + ephemType);
+                            console.warn("Ephemeris type not yet implemented: ".concat(ephemType));
                             return;
                     }
                     var ephemGM;
@@ -183,7 +183,7 @@ var NaturalSatellites = /** @class */ (function () {
                             ephemGM = Ephem_1.GM[moon.Planet.toUpperCase()];
                     }
                     if (!ephemGM) {
-                        console.error("Could not look up GM for " + moon.Planet);
+                        console.error("Could not look up GM for ".concat(moon.Planet));
                     }
                     var ephem = new Ephem_1.Ephem({
                         GM: ephemGM,

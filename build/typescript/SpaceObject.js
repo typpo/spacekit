@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -168,7 +172,7 @@ var SpaceObject = /** @class */ (function () {
         */
         this._initialized = false;
         if (autoInit && !this.init()) {
-            console.warn("SpaceObject " + id + ": failed to initialize");
+            console.warn("SpaceObject ".concat(id, ": failed to initialize"));
         }
     }
     /**
@@ -262,10 +266,10 @@ var SpaceObject = /** @class */ (function () {
         text.className = 'spacekit__object-label';
         var _a = this._options, labelText = _a.labelText, labelUrl = _a.labelUrl;
         if (this._options.labelUrl) {
-            text.innerHTML = "<div><a target=\"_blank\" href=\"" + labelUrl + "\">" + labelText + "</a></div>";
+            text.innerHTML = "<div><a target=\"_blank\" href=\"".concat(labelUrl, "\">").concat(labelText, "</a></div>");
         }
         else {
-            text.innerHTML = "<div>" + labelText + "</div>";
+            text.innerHTML = "<div>".concat(labelText, "</div>");
         }
         text.style.fontFamily = 'Arial';
         text.style.fontSize = '12px';
@@ -298,8 +302,8 @@ var SpaceObject = /** @class */ (function () {
             loc.right + 20 < simulationElt.clientWidth &&
             loc.top - 25 > 0 &&
             loc.bottom < simulationElt.clientHeight) {
-            label.style.left = loc.left - label.clientWidth / 2 + "px";
-            label.style.top = loc.top - label.clientHeight - 8 + "px";
+            label.style.left = "".concat(loc.left - label.clientWidth / 2, "px");
+            label.style.top = "".concat(loc.top - label.clientHeight - 8, "px");
             label.style.visibility = 'visible';
         }
         else {

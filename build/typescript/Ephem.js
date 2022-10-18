@@ -118,7 +118,7 @@ var Ephem = /** @class */ (function () {
             throw new Error('Attempted to modify locked (immutable) Ephem object');
         }
         if (!EPHEM_VALID_ATTRS.has(attr)) {
-            console.warn("Invalid ephem attr: " + attr);
+            console.warn("Invalid ephem attr: ".concat(attr));
             return false;
         }
         // Store everything in radians.
@@ -161,7 +161,7 @@ var Ephem = /** @class */ (function () {
         var retVal = this.getUnsafe(attr, units);
         if (typeof retVal === 'undefined') {
             console.info(this.attrs);
-            throw new Error("Attempted to get ephemeris value '" + attr + "' but it was undefined");
+            throw new Error("Attempted to get ephemeris value '".concat(attr, "' but it was undefined"));
         }
         return retVal;
     };

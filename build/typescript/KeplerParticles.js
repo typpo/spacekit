@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -59,7 +63,7 @@ var KeplerParticles = /** @class */ (function () {
     function KeplerParticles(options, contextOrSimulation) {
         var _this = this;
         this.options = options;
-        this.id = "KeplerParticles__" + KeplerParticles.instanceCount;
+        this.id = "KeplerParticles__".concat(KeplerParticles.instanceCount);
         this.simulation = contextOrSimulation;
         this.context = contextOrSimulation.getContext();
         // Whether Points object has been added to the Simulation/Scene. This
@@ -166,6 +170,35 @@ var KeplerParticles = /** @class */ (function () {
     KeplerParticles.prototype.hideParticle = function (offset) {
         var attributes = this.attributes;
         attributes.size.set([0], offset);
+        for (var attributeKey in attributes) {
+            if (attributes.hasOwnProperty(attributeKey)) {
+                attributes[attributeKey].needsUpdate = true;
+            }
+        }
+    };
+    /**
+     * Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.
+     * @param {Number} size The new size of this particle
+     * @param {Number} offset The location of this particle in the attributes * array
+     */
+    KeplerParticles.prototype.setParticleSize = function (size, offset) {
+        var attributes = this.attributes;
+        attributes.size.set([size], offset);
+        for (var attributeKey in attributes) {
+            if (attributes.hasOwnProperty(attributeKey)) {
+                attributes[attributeKey].needsUpdate = true;
+            }
+        }
+    };
+    /**
+     * Changes the color of the particle at the given offset to the given color.
+     * @param {Number} colorValue The new color of this particle (e.g. hex number)
+     * @param {Number} offset The location of this particle in the attributes * array
+     */
+    KeplerParticles.prototype.setParticleColor = function (colorValue, offset) {
+        var attributes = this.attributes;
+        var _a = new THREE.Color(colorValue), r = _a.r, g = _a.g, b = _a.b;
+        attributes.fuzzColor.set([r, g, b], offset * 3);
         for (var attributeKey in attributes) {
             if (attributes.hasOwnProperty(attributeKey)) {
                 attributes[attributeKey].needsUpdate = true;

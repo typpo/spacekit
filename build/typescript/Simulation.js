@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -199,7 +203,7 @@ var Simulation = /** @class */ (function () {
         this.renderer = this.initRenderer();
         this.scene = new THREE.Scene();
         this.camera = new Camera_1["default"](this.getContext());
-        this.composer = null;
+        this.composer = undefined;
         // Orbit particle system must be initialized after scene is created and
         // scale is set.
         this.particles = new KeplerParticles_1.KeplerParticles({
@@ -279,7 +283,7 @@ var Simulation = /** @class */ (function () {
         console.info('Max texture resolution:', renderer.capabilities.maxTextureSize);
         var maxPrecision = renderer.capabilities.getMaxPrecision('highp');
         if (maxPrecision !== 'highp') {
-            console.warn("Shader maximum precision is \"" + maxPrecision + "\", GPU rendering may not be accurate.");
+            console.warn("Shader maximum precision is \"".concat(maxPrecision, "\", GPU rendering may not be accurate."));
         }
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(this.simulationElt.offsetWidth, this.simulationElt.offsetHeight);
@@ -316,12 +320,11 @@ var Simulation = /** @class */ (function () {
         });
         */
         //godRaysEffect.dithering = true;
-        var bloomEffect = new postprocessing_1.BloomEffect(this.scene, camera, {
+        var bloomEffect = new postprocessing_1.BloomEffect({
             width: 240,
             height: 240,
             luminanceThreshold: 0.2
         });
-        bloomEffect.inverted = true;
         bloomEffect.blendMode.opacity.value = 2.3;
         var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
         renderPass.renderToScreen = false;
@@ -452,7 +455,7 @@ var Simulation = /** @class */ (function () {
             // Call for updates as time passes.
             var objId = obj.getId();
             if (this.subscribedObjects[objId]) {
-                console.error("Object id is not unique: \"" + objId + "\". This could prevent objects from updating correctly.");
+                console.error("Object id is not unique: \"".concat(objId, "\". This could prevent objects from updating correctly."));
             }
             this.subscribedObjects[objId] = obj;
         }

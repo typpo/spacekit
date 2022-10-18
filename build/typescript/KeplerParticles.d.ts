@@ -61,6 +61,18 @@ export declare class KeplerParticles {
      */
     hideParticle(offset: number): void;
     /**
+     * Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.
+     * @param {Number} size The new size of this particle
+     * @param {Number} offset The location of this particle in the attributes * array
+     */
+    setParticleSize(size: number, offset: number): void;
+    /**
+     * Changes the color of the particle at the given offset to the given color.
+     * @param {Number} colorValue The new color of this particle (e.g. hex number)
+     * @param {Number} offset The location of this particle in the attributes * array
+     */
+    setParticleColor(colorValue: number, offset: number): void;
+    /**
      * Change the `origin` attribute of a particle.
      * @param {Number} offset The location of this particle in the attributes * array.
      * @param {Array.<Number>} newOrigin The new XYZ coordinates of the body that this particle orbits.

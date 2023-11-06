@@ -1,0 +1,52 @@
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #main-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .sim-info {
+      position:absolute;
+      right: 0;
+      background-color:#ccc;
+      padding: 1em;
+    }
+  </style>
+<head>
+<body>
+<div class="sim-info">
+  Current Date:<span id="current-date">?</span>
+  <br>
+  <button id="btn-slower">Slower</button>
+  <button id="btn-faster">Faster</button>
+  <button id="btn-start">Start</button>
+  <button id="btn-stop">Stop</button>
+  <button id="btn-set-time">Set Time</button>
+  <button id="btn-set-jd-per-second">Set Jd/s</button>
+</div>
+<div id="main-container">
+</div>
+
+<script src="../../build/spacekit.js"></script>
+
+<script src="main.js"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-140394693-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-140394693-1');
+</script>
+</body>
+</html>

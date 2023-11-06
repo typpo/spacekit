@@ -536,7 +536,10 @@ export class Orbit {
     const ecc = eph.get('e');
 
     const twoPi = Math.PI * 2;
-    const step = twoPi / 90;
+    let step = twoPi / 90;
+    if (ecc > 0.9) {
+      step = twoPi / 360;
+    }
     const pts = [];
     for (let E = 0; E < twoPi; E += step) {
       const v = 2 * Math.atan(sqrt((1 + ecc) / (1 - ecc)) * Math.tan(E / 2));
@@ -662,7 +665,7 @@ export class Orbit {
     }
 
     const e = ephem.get('e');
-    if (e > 0.9 && e < 1.2) {
+    if (e >= 0.999 && e < 1.2) {
       return OrbitType.PARABOLIC;
     }
     if (e > 1.2) {

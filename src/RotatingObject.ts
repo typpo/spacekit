@@ -63,13 +63,11 @@ export class RotatingObject extends SpaceObject {
 
     // The THREE.js object
     this._obj = new THREE.Object3D();
+    this._obj.name = `${this._id}-rot-obj`;
     this._renderMethod = 'ROTATING_OBJECT';
     super.setPositionedObject(this._obj);
 
-    this._objectIsRotatable = false;
-    if (this._options.rotation) {
-      this._objectIsRotatable = true;
-    }
+    this._objectIsRotatable = !!this._options.rotation;
 
     // Offset of axis angle
     // this._axisRotationAngleOffset = 0;
@@ -200,8 +198,7 @@ export class RotatingObject extends SpaceObject {
    */
   override get3jsObjects(): THREE.Object3D[] {
     const ret = super.get3jsObjects();
-    // Add to the front, because this is the primary object.
-    ret.unshift(this._obj);
+    // NOTE: super.setPositionedObject(this._obj) in constructor already includes this._obj in the list
     return ret;
   }
 

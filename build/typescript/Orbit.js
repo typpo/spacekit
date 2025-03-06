@@ -41,11 +41,13 @@ var sin = Math.sin, cos = Math.cos, sqrt = Math.sqrt;
 var DEFAULT_LEAD_TRAIL_YEARS = 10;
 var DEFAULT_SAMPLE_POINTS = 360;
 var DEFAULT_ECLIPTIC_LINE_SPARSITY = 1;
+var DEFAULT_DRAW_HELIOCENTRIC = false;
 var DEFAULT_ORBIT_PATH_SETTINGS = {
     leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
     trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
     numberSamplePoints: DEFAULT_SAMPLE_POINTS,
-    eclipticLineSparsity: DEFAULT_ECLIPTIC_LINE_SPARSITY
+    eclipticLineSparsity: DEFAULT_ECLIPTIC_LINE_SPARSITY,
+    drawHeliocentric: DEFAULT_DRAW_HELIOCENTRIC
 };
 /**
  * Special cube root function that assumes input is always positive.
@@ -81,7 +83,7 @@ var Orbit = /** @class */ (function () {
      * in order to illustrate depth (defaults to 0x333333).
      */
     function Orbit(ephem, options) {
-        var _a, _b, _c;
+        var _a;
         /**
          * Ephem object
          * @type {(Ephem | EphemerisTable)}
@@ -94,21 +96,7 @@ var Orbit = /** @class */ (function () {
         /**
          * configuring orbit path lead/trail data
          */
-        if (!this.options.orbitPathSettings) {
-            this.options.orbitPathSettings = JSON.parse(JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS));
-        }
-        if (!((_a = this.options.orbitPathSettings) === null || _a === void 0 ? void 0 : _a.leadDurationYears)) {
-            this.options.orbitPathSettings.leadDurationYears =
-                DEFAULT_LEAD_TRAIL_YEARS;
-        }
-        if (!((_b = this.options.orbitPathSettings) === null || _b === void 0 ? void 0 : _b.trailDurationYears)) {
-            this.options.orbitPathSettings.trailDurationYears =
-                DEFAULT_LEAD_TRAIL_YEARS;
-        }
-        if (!((_c = this.options.orbitPathSettings) === null || _c === void 0 ? void 0 : _c.numberSamplePoints)) {
-            this.options.orbitPathSettings.numberSamplePoints =
-                DEFAULT_SAMPLE_POINTS;
-        }
+        this.options.orbitPathSettings = Object.assign({}, DEFAULT_ORBIT_PATH_SETTINGS, (_a = this.options.orbitPathSettings) !== null && _a !== void 0 ? _a : {});
         /**
          * Cached orbital points.
          * @type {Array.<THREE.BufferGeometry>}
@@ -135,6 +123,13 @@ var Orbit = /** @class */ (function () {
          */
         this.orbitType = Orbit.getOrbitType(this.ephem);
     }
+    /**
+     * Is orbit heliocentric or not
+     */
+    Orbit.prototype.isHeliocentric = function () {
+        var _a, _b;
+        return (_b = (_a = this.options.orbitPathSettings) === null || _a === void 0 ? void 0 : _a.drawHeliocentric) !== null && _b !== void 0 ? _b : DEFAULT_DRAW_HELIOCENTRIC;
+    };
     /**
      * Get heliocentric position of object at a given JD.
      * @param {Number} jd Date value in JD.
@@ -330,9 +325,11 @@ var Orbit = /** @class */ (function () {
      * Calculates, caches, and returns the orbit state for this orbit around this time
      * @param {Number} jd center time of the orbit (only used for ephemeris table ephemeris)
      * @param {boolean} forceCompute forces the recomputing of the orbit on this call
+     * @param {SpaceObject} orbitAround the object to orbit around
      * @return {THREE.Line}
      */
-    Orbit.prototype.getOrbitShape = function (jd, forceCompute) {
+    Orbit.prototype.getOrbitShape = function (jd, forceCompute, orbitAround) {
+        var _a, _b, _c, _d, _e;
         if (forceCompute === void 0) { forceCompute = false; }
         if (forceCompute) {
             if (this.orbitShape) {
@@ -351,32 +348,34 @@ var Orbit = /** @class */ (function () {
             // Orbit shape is already computed.
             return this.orbitShape;
         }
-        if (this.orbitType === OrbitType.ELLIPTICAL) {
-            return this.getEllipse();
-        }
         // Decide on a time range to draw orbits.
-        // TODO(ian): Should we compute around current position, not time of perihelion?
-        var tp;
-        if (this.ephem instanceof EphemerisTable_1.EphemerisTable) {
-            tp = jd;
+        if (this.orbitType === OrbitType.TABLE && this.ephem instanceof EphemerisTable_1.EphemerisTable) {
+            this.orbitStart = this.ephem.getStartJd();
+            this.orbitStop = this.ephem.getStopJd();
+        }
+        else if (this.orbitType !== OrbitType.TABLE && !(this.ephem instanceof EphemerisTable_1.EphemerisTable)) {
+            // TODO(ian): Should we compute around current position, not time of perihelion?
+            // Use current date as a fallback if time of perihelion is not available.
+            var tp = (_a = jd !== null && jd !== void 0 ? jd : this.ephem.getUnsafe('tp')) !== null && _a !== void 0 ? _a : julian_1["default"].toJulianDay(new Date());
+            this.orbitStart = tp - this.options.orbitPathSettings.trailDurationYears * 365.25;
+            this.orbitStop = tp + this.options.orbitPathSettings.leadDurationYears * 365.25;
         }
         else {
-            tp = this.ephem.getUnsafe('tp');
+            throw new Error("if this.orbitType == OrbitType.TABLE, then this.ephem needs to be an instance of EphemerisTable and vice versa");
         }
-        // Use current date as a fallback if time of perihelion is not available.
-        var centerDate = tp ? tp : julian_1["default"].toJulianDay(new Date());
-        var startJd = centerDate - this.options.orbitPathSettings.trailDurationYears * 365.25;
-        var endJd = centerDate + this.options.orbitPathSettings.leadDurationYears * 365.25;
-        var step = (endJd - startJd) / this.options.orbitPathSettings.numberSamplePoints;
-        this.orbitStart = startJd;
-        this.orbitStop = endJd;
+        var step = (this.orbitStop - this.orbitStart) / this.options.orbitPathSettings.numberSamplePoints;
         switch (this.orbitType) {
+            case OrbitType.ELLIPTICAL:
+                if (((_b = this.options.orbitPathSettings) === null || _b === void 0 ? void 0 : _b.drawHeliocentric) && orbitAround) {
+                    return this.getEllipseAround(this.orbitStart, this.orbitStop, step, orbitAround);
+                }
+                return this.getEllipse();
             case OrbitType.HYPERBOLIC:
-                return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), startJd, endJd, step);
+                return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), this.orbitStart, this.orbitStop, step, ((_c = this.options.orbitPathSettings) === null || _c === void 0 ? void 0 : _c.drawHeliocentric) ? orbitAround : undefined);
             case OrbitType.PARABOLIC:
-                return this.getLine(this.getPositionAtTimeNearParabolic.bind(this), startJd, endJd, step);
+                return this.getLine(this.getPositionAtTimeNearParabolic.bind(this), this.orbitStart, this.orbitStop, step, ((_d = this.options.orbitPathSettings) === null || _d === void 0 ? void 0 : _d.drawHeliocentric) ? orbitAround : undefined);
             case OrbitType.TABLE:
-                return this.getTableOrbit(startJd, endJd, step);
+                return this.getTableOrbit(this.orbitStart, this.orbitStop, step, ((_e = this.options.orbitPathSettings) === null || _e === void 0 ? void 0 : _e.drawHeliocentric) ? orbitAround : undefined);
             default:
                 throw new Error('Unknown orbit shape');
         }
@@ -385,10 +384,16 @@ var Orbit = /** @class */ (function () {
      * Compute a line between a given date range.
      * @private
      */
-    Orbit.prototype.getLine = function (orbitFn, startJd, endJd, step) {
+    Orbit.prototype.getLine = function (orbitFn, startJd, endJd, step, orbitAround) {
         var points = [];
         for (var jd = startJd; jd <= endJd; jd += step) {
             var pos = orbitFn(jd);
+            if (orbitAround) {
+                var parentPos = orbitAround.getPosition(jd);
+                pos[0] += parentPos[0];
+                pos[1] += parentPos[1];
+                pos[2] += parentPos[2];
+            }
             points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
         }
         return this.generateAndCacheOrbitShape(points);
@@ -399,9 +404,10 @@ var Orbit = /** @class */ (function () {
      * @param {Number} startJd start of orbit in JDate format
      * @param {Number} stopJd end of orbit in JDate format
      * @param {Number} step step size in days
+     * @param {SpaceObject} orbitAround the object to orbit around
      * @return {THREE.Line}
      */
-    Orbit.prototype.getTableOrbit = function (startJd, stopJd, step) {
+    Orbit.prototype.getTableOrbit = function (startJd, stopJd, step, orbitAround) {
         if (this.ephem instanceof Ephem_1.Ephem) {
             throw new Error('Attempted to compute table orbit on non-table ephemeris');
         }
@@ -409,6 +415,14 @@ var Orbit = /** @class */ (function () {
         var points = rawPoints
             .map(function (values) { return (0, Scale_1.rescaleArray)(values); })
             .map(function (values) { return new THREE.Vector3(values[0], values[1], values[2]); });
+        if (orbitAround) {
+            points.forEach(function (point, idx) {
+                var parentPos = orbitAround.getPosition(startJd + idx * step);
+                point.x += parentPos[0];
+                point.y += parentPos[1];
+                point.z += parentPos[2];
+            });
+        }
         return this.generateAndCacheOrbitShape(points);
     };
     /**
@@ -418,6 +432,19 @@ var Orbit = /** @class */ (function () {
     Orbit.prototype.getEllipse = function () {
         var points = this.getEllipsePoints();
         return this.generateAndCacheOrbitShape(points);
+    };
+    /**
+     * @private
+     * @return {THREE.Line} The ellipse object around an orbit, in heliocentric frame.
+     */
+    Orbit.prototype.getEllipseAround = function (startJd, stopJd, step, orbitAround) {
+        var pts = [];
+        for (var jd = startJd; jd <= stopJd; jd += step) {
+            var parentPos = orbitAround.getPosition(jd);
+            var pos = this.getPositionAtTimeElliptical(jd, false);
+            pts.push(new THREE.Vector3(parentPos[0] + pos[0], parentPos[1] + pos[1], parentPos[2] + pos[2]));
+        }
+        return this.generateAndCacheOrbitShape(pts);
     };
     /**
      * @private
@@ -528,6 +555,7 @@ var Orbit = /** @class */ (function () {
      */
     Orbit.prototype.setVisibility = function (val) {
         this.getOrbitShape().visible = val;
+        this.getLinesToEcliptic().visible = val;
     };
     /**
      * Free up GPU resources

@@ -36,5 +36,11 @@ export declare class StaticParticles implements SimulationObject {
      */
     getId(): string;
     update(): void;
+    isVisible(): boolean;
+    setVisibility(val: boolean): void;
+    /**
+     * Free all GPU resources
+     */
+    removalCleanup(): void;
 }
 export {};

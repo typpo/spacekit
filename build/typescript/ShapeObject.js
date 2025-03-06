@@ -126,6 +126,7 @@ var ShapeObject = /** @class */ (function (_super) {
                         }
                     }
                 });
+                object.name = _this._id + "-shape-obj";
                 _this.shapeObj = object;
                 _this._obj.add(object);
                 if (_this._simulation) {

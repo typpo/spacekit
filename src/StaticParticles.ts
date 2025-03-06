@@ -4,6 +4,7 @@ import { STAR_SHADER_VERTEX, STAR_SHADER_FRAGMENT } from './shaders';
 
 import type { Coordinate3d } from './Coordinates';
 import type { Simulation, SimulationObject } from './Simulation';
+import { MeshBasicMaterial } from "three/src/materials/MeshBasicMaterial"
 
 interface StaticParticleOptions {
   defaultColor: number;
@@ -92,6 +93,7 @@ export class StaticParticles implements SimulationObject {
     });
 
     this.pointObject = new THREE.Points(geometry, material);
+    this.pointObject.name = `${this.id}-point-obj`;
   }
 
   /**
@@ -116,4 +118,24 @@ export class StaticParticles implements SimulationObject {
   update() {
     // Static particles don't update
   }
-}
+
+  isVisible() {
+    return this.pointObject?.visible ?? false;
+  }
+
+  setVisibility(val: boolean) {
+    if (this.pointObject) {
+      this.pointObject.visible = val;
+    }
+  }
+
+  /**
+   * Free all GPU resources
+   */
+  removalCleanup() {
+    if (this.pointObject) {
+      this.pointObject.geometry.dispose();
+      (this.pointObject.material as MeshBasicMaterial).dispose();
+      (this.pointObject.material as MeshBasicMaterial).map?.dispose();
+    }
+  }}

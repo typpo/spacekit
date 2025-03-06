@@ -115,6 +115,7 @@ var Stars = /** @class */ (function () {
                 transparent: true
             });
             _this._stars = new THREE.Points(geometry, material);
+            _this._stars.name = _this._id;
             if (_this._simulation) {
                 _this._simulation.addObject(_this, true /* noUpdate */);
             }
@@ -139,6 +140,26 @@ var Stars = /** @class */ (function () {
     };
     Stars.prototype.update = function () {
         // Stars don't update
+    };
+    Stars.prototype.isVisible = function () {
+        var _a, _b;
+        return (_b = (_a = this._stars) === null || _a === void 0 ? void 0 : _a.visible) !== null && _b !== void 0 ? _b : false;
+    };
+    Stars.prototype.setVisibility = function (val) {
+        if (this._stars) {
+            this._stars.visible = val;
+        }
+    };
+    /**
+     * Free all GPU resources
+     */
+    Stars.prototype.removalCleanup = function () {
+        var _a;
+        if (this._stars) {
+            this._stars.geometry.dispose();
+            this._stars.material.dispose();
+            (_a = this._stars.material.map) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
     };
     return Stars;
 }());

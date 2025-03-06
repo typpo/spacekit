@@ -23,6 +23,7 @@ export function getOrbitShaderVertex() {
     in vec3 fuzzColor;
     in vec3 origin;
     
+    in float visible;
     in float size;
 
     in float a;
@@ -153,7 +154,7 @@ export function getOrbitShaderVertex() {
 
       vec3 newpos = getPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
-      gl_PointSize = size;
+      gl_PointSize = visible > 0.5 ? size : 0.0;
       gl_Position = projectionMatrix * mvPosition;
     }
   `;
@@ -243,7 +244,7 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   in vec2 vUv;
   in vec3 vecPos;
   in vec3 vecNormal;
-  in vec3  vViewLightPos;
+  in vec3 vViewLightPos;
 
   void main() {
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);

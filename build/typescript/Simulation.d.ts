@@ -15,7 +15,9 @@ export interface SimulationObject {
     update: (jd: number, force: boolean) => void;
     get3jsObjects(): THREE.Object3D[];
     getId(): string;
-    removalCleanup?: () => void;
+    removalCleanup: () => void;
+    setVisibility: (visible: boolean) => void;
+    isVisible: () => boolean;
 }
 interface CameraOptions {
     initialPosition?: Coordinate3d;
@@ -98,6 +100,7 @@ export declare class Simulation {
     private useLightSources;
     private lightPosition?;
     private subscribedObjects;
+    private neverUpdatedObjects;
     private particles;
     private stats?;
     private fps;
@@ -206,6 +209,10 @@ export declare class Simulation {
      * @param {Object} obj Object to remove
      */
     removeObject(obj: SimulationObject): void;
+    /**
+     * Removes all objects from the visualization and free all resources.
+     */
+    removalCleanup(): void;
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
      * Takes any SpaceObject arguments.

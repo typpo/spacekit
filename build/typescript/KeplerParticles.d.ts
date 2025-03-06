@@ -61,9 +61,25 @@ export declare class KeplerParticles implements SimulationObject {
      */
     hideParticle(offset: number): void;
     /**
-     * Have all particles been hidden?
+     * Shows a previously hidden particle.
+     * @param offset
      */
-    allHidden(): boolean;
+    showParticle(offset: number): void;
+    isParticleVisible(offset: number): boolean;
+    /**
+     * Shows a previously hidden particle.
+     * @param is_visible
+     * @param offset
+     */
+    setParticleVisibility(is_visible: boolean, offset: number): void;
+    /**
+     * Is at least one particle visible?
+     */
+    isVisible(): boolean;
+    /**
+     * Hide or show all particles globally using the parent object visible property.
+     */
+    setVisibility(value: boolean): void;
     /**
      * Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.
      * @param {Number} size The new size of this particle

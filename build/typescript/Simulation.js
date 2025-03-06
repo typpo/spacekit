@@ -179,6 +179,7 @@ var Simulation = /** @class */ (function () {
         this.useLightSources = false;
         this.lightPosition = undefined;
         this.subscribedObjects = {};
+        this.neverUpdatedObjects = new Set();
         // This makes controls.lookAt and other objects treat the positive Z axis
         // as "up" direction.
         THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
@@ -338,8 +339,11 @@ var Simulation = /** @class */ (function () {
     Simulation.prototype.update = function (force) {
         if (force === void 0) { force = false; }
         for (var objId in this.subscribedObjects) {
-            if (this.subscribedObjects.hasOwnProperty(objId)) {
-                this.subscribedObjects[objId].update(this.jd, force);
+            if (this.subscribedObjects.hasOwnProperty(objId) && !this.neverUpdatedObjects.has(objId)) {
+                var obj = this.subscribedObjects[objId];
+                if (obj.isVisible()) { // dont update if not visible
+                    obj.update(this.jd, force);
+                }
             }
         }
     };
@@ -447,13 +451,14 @@ var Simulation = /** @class */ (function () {
         obj.get3jsObjects().map(function (x) {
             _this.scene.add(x);
         });
-        if (!noUpdate) {
-            // Call for updates as time passes.
-            var objId = obj.getId();
-            if (this.subscribedObjects[objId]) {
-                console.error("Object id is not unique: \"" + objId + "\". This could prevent objects from updating correctly.");
-            }
-            this.subscribedObjects[objId] = obj;
+        // Call for updates as time passes.
+        var objId = obj.getId();
+        if (this.subscribedObjects[objId]) {
+            console.error("Object id is not unique: \"" + objId + "\". This could prevent objects from updating correctly.");
+        }
+        this.subscribedObjects[objId] = obj;
+        if (noUpdate) {
+            this.neverUpdatedObjects.add(obj.getId());
         }
     };
     /**
@@ -469,6 +474,9 @@ var Simulation = /** @class */ (function () {
      */
     Simulation.prototype.removeObject = function (obj) {
         var _this = this;
+        if (!this.subscribedObjects[obj.getId()]) {
+            return; // already removed
+        }
         // TODO(ian): test this and avoid memory leaks...
         obj.get3jsObjects().map(function (x) {
             _this.scene.remove(x);
@@ -477,6 +485,23 @@ var Simulation = /** @class */ (function () {
             obj.removalCleanup();
         }
         delete this.subscribedObjects[obj.getId()];
+        this.neverUpdatedObjects["delete"](obj.getId());
+    };
+    /**
+     * Removes all objects from the visualization and free all resources.
+     */
+    Simulation.prototype.removalCleanup = function () {
+        this.renderEnabled = false;
+        for (var objId in this.subscribedObjects) {
+            if (this.subscribedObjects.hasOwnProperty(objId)) {
+                this.removeObject(this.subscribedObjects[objId]);
+            }
+        }
+        var renderer = this.getRenderer();
+        renderer.dispose();
+        renderer.domElement.remove();
+        this.scene.clear();
+        renderer.forceContextLoss();
     };
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
@@ -573,7 +598,9 @@ var Simulation = /** @class */ (function () {
      */
     Simulation.prototype.createAmbientLight = function (color) {
         if (color === void 0) { color = 0x333333; }
-        this.scene.add(new THREE.AmbientLight(color));
+        var light = new THREE.AmbientLight(color);
+        light.name = 'ambient-light';
+        this.scene.add(light);
         this.useLightSources = true;
     };
     /**
@@ -607,6 +634,7 @@ var Simulation = /** @class */ (function () {
             this.lightPosition.set(rescaled[0], rescaled[1], rescaled[2]);
             pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
         }
+        pointLight.name = 'point-light';
         this.scene.add(pointLight);
         this.useLightSources = true;
     };

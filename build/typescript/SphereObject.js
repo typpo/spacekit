@@ -44,6 +44,8 @@ var Units_1 = __importDefault(require("./Units"));
 var RotatingObject_1 = require("./RotatingObject");
 var Scale_1 = require("./Scale");
 var shaders_1 = require("./shaders");
+var SpaceObject_1 = require("./SpaceObject");
+var util_1 = require("./util");
 /**
  * Simulates a planet or other object as a perfect sphere.
  */
@@ -77,16 +79,14 @@ var SphereObject = /** @class */ (function (_super) {
         return _this;
     }
     SphereObject.prototype.init = function () {
-        var _a, _b, _c, _d;
-        if (this._options.ephem !== undefined) {
-            this.addParticle();
-        }
+        var _a, _b, _c, _d, _e, _f;
         var map = null;
         if (this._options.textureUrl) {
             map = new THREE.TextureLoader().load(this._options.textureUrl);
             map.colorSpace = THREE.SRGBColorSpace;
             this._textures.push(map);
         }
+        var color = (_c = (_a = this._options.color) !== null && _a !== void 0 ? _a : (_b = this._options.theme) === null || _b === void 0 ? void 0 : _b.color) !== null && _c !== void 0 ? _c : 0xbbbbbb;
         var detailedObj = new THREE.LOD();
         var levelsOfDetail = this._options.levelsOfDetail || [
             { radii: 0, segments: 64 },
@@ -94,47 +94,64 @@ var SphereObject = /** @class */ (function (_super) {
         var radius = this.getScaledRadius();
         for (var i = 0; i < levelsOfDetail.length; i += 1) {
             var level = levelsOfDetail[i];
-            var sphereGeometry = new THREE.SphereGeometry(radius, (_a = level.segments) !== null && _a !== void 0 ? _a : 8, (_b = level.segments) !== null && _b !== void 0 ? _b : 8);
-            this._geometries.push(sphereGeometry);
-            var material = void 0;
-            if (this._simulation.isUsingLightSources()) {
-                if (map === null) {
-                    console.warn("SphereObject " + this._id + " requires a texture when using a light source.");
-                }
-                var uniforms = {
-                    sphereTex: {
-                        value: map
-                    },
-                    lightPos: {
-                        value: new THREE.Vector3()
+            var lodObj = void 0;
+            if (level.segments > 0) {
+                var sphereGeometry = new THREE.SphereGeometry(radius, level.segments, level.segments);
+                this._geometries.push(sphereGeometry);
+                var material = void 0;
+                if (this._simulation.isUsingLightSources()) {
+                    if (map === null) {
+                        console.warn("SphereObject " + this._id + " requires a texture when using a light source.");
                     }
-                };
-                // TODO(ian): Handle if no map
-                uniforms.lightPos.value.copy(this._simulation.getLightPosition());
-                material = new THREE.ShaderMaterial({
-                    uniforms: uniforms,
-                    vertexShader: shaders_1.SPHERE_SHADER_VERTEX,
-                    fragmentShader: shaders_1.SPHERE_SHADER_FRAGMENT,
-                    transparent: true
-                });
+                    var uniforms = {
+                        sphereTex: {
+                            value: map
+                        },
+                        lightPos: {
+                            value: new THREE.Vector3()
+                        }
+                    };
+                    // TODO(ian): Handle if no map
+                    uniforms.lightPos.value.copy(this._simulation.getLightPosition());
+                    material = new THREE.ShaderMaterial({
+                        uniforms: uniforms,
+                        vertexShader: shaders_1.SPHERE_SHADER_VERTEX,
+                        fragmentShader: shaders_1.SPHERE_SHADER_FRAGMENT,
+                        transparent: true
+                    });
+                }
+                else {
+                    material = new THREE.MeshBasicMaterial({ map: map, color: color });
+                }
+                this._materials.push(material);
+                lodObj = new THREE.Mesh(sphereGeometry, material);
+                lodObj.receiveShadow = true;
+                lodObj.castShadow = true;
+                // Change the coordinate system to have Z-axis pointed up.
+                lodObj.rotation.x = Math.PI / 2;
             }
             else {
-                var color = (_c = this._options.color) !== null && _c !== void 0 ? _c : 0xbbbbbb;
-                material = new THREE.MeshBasicMaterial({
-                    map: map,
-                    color: color
+                // create a sprite instead, marking the position of the object when too far away to show otherwise
+                var textureUrl = (0, util_1.getFullTextureUrl)(SpaceObject_1.DEFAULT_PLANET_TEXTURE_URL, this._context.options.basePath);
+                var spriteMap = new THREE.TextureLoader().load(textureUrl);
+                spriteMap.colorSpace = THREE.SRGBColorSpace;
+                this._textures.push(spriteMap);
+                var spriteMaterial = new THREE.SpriteMaterial({
+                    map: spriteMap,
+                    color: color,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    sizeAttenuation: false
                 });
+                this._materials.push(spriteMaterial);
+                var s = ((_e = (_d = this._options.particleSize) !== null && _d !== void 0 ? _d : this._context.options.particleDefaultSize) !== null && _e !== void 0 ? _e : 15) / 15 * 0.02;
+                lodObj = new THREE.Sprite(spriteMaterial);
+                lodObj.scale.set(s, s, s);
             }
-            this._materials.push(material);
-            var mesh = new THREE.Mesh(sphereGeometry, material);
-            mesh.receiveShadow = true;
-            mesh.castShadow = true;
-            mesh.visible = !!level.segments; // Hide if no segments.
-            // Change the coordinate system to have Z-axis pointed up.
-            mesh.rotation.x = Math.PI / 2;
             // Show this number of segments at distance >= radii * level.radii.
-            detailedObj.addLevel(mesh, radius * level.radii);
+            detailedObj.addLevel(lodObj, radius * level.radii);
         }
+        detailedObj.name = this._id + "-detailed";
         // Add to the parent base object.
         this._obj.add(detailedObj);
         if (this._options.atmosphere && this._options.atmosphere.enable) {
@@ -143,7 +160,7 @@ var SphereObject = /** @class */ (function (_super) {
                 this._obj.add(atmosphere);
             }
         }
-        if (this._options.axialTilt && ((_d = this._options.rotation) === null || _d === void 0 ? void 0 : _d.lambdaDeg) === undefined) {
+        if (this._options.axialTilt && ((_f = this._options.rotation) === null || _f === void 0 ? void 0 : _f.lambdaDeg) === undefined) {
             this._obj.rotation.y += Units_1["default"].rad(this._options.axialTilt);
         }
         this._renderMethod = 'SPHERE';
@@ -179,6 +196,7 @@ var SphereObject = /** @class */ (function (_super) {
         var ret = new THREE.LOD();
         ret.addLevel(detailedObj, 0);
         ret.addLevel(new THREE.Object3D(), radius * 24);
+        ret.name = this._id + "-atm";
         return ret;
     };
     /**
@@ -274,6 +292,7 @@ var SphereObject = /** @class */ (function (_super) {
         var mesh = new THREE.Mesh(geometry, material);
         mesh.receiveShadow = true;
         mesh.castShadow = true;
+        mesh.name = this._id + "-ring";
         this._obj.add(mesh);
     };
     return SphereObject;

@@ -22,12 +22,11 @@ interface EphemerisTableUnits {
 
 interface EphemerisTableData {
   data: number[][];
-  // TODO(ian): Add the valid strings to typing.
-  ephemerisType: EphemType;
+  ephemerisType?: EphemType;
   distanceUnits: DistanceUnits;
   timeUnits: TimeUnits;
-  interpolationType: InterpolationType;
-  interpolationOrder: number;
+  interpolationType?: InterpolationType;
+  interpolationOrder?: number;
 }
 
 // Constants
@@ -165,6 +164,20 @@ export class EphemerisTable {
         line[6] *= distanceMultiplier * timeMultiplier;
       });
     }
+  }
+
+  /**
+   * Returns the first Julian date in the ephemeris table.
+   */
+  getStartJd(): number {
+    return this.data[0][0];
+  }
+
+  /**
+   * Returns the last Julian date in the ephemeris table.
+   */
+  getStopJd(): number {
+    return this.data[this.data.length - 1][0];
   }
 
   /**

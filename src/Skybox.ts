@@ -67,6 +67,7 @@ export class Skybox implements SimulationObject {
     });
 
     const sky = new THREE.Mesh(geometry, material);
+    sky.name = this.id;
 
     // See this thread on orientation of milky way:
     // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
@@ -105,6 +106,16 @@ export class Skybox implements SimulationObject {
 
   update() {
     // Skyboxes don't update
+  }
+
+  isVisible() {
+    return this.mesh?.visible ?? false;
+  }
+
+  setVisibility(val: boolean) {
+    if (this.mesh) {
+      this.mesh.visible = val;
+    }
   }
 
   /**

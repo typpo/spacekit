@@ -65,6 +65,7 @@ export class ShapeObject extends RotatingObject {
           }
         });
 
+        object.name = `${this._id}-shape-obj`;
         this.shapeObj = object;
         this._obj.add(object);
 

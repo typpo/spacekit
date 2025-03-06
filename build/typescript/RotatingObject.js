@@ -83,12 +83,10 @@ var RotatingObject = /** @class */ (function (_super) {
         var _this = _super.call(this, id, options, simulation, false /* autoInit */) || this;
         // The THREE.js object
         _this._obj = new THREE.Object3D();
+        _this._obj.name = _this._id + "-rot-obj";
         _this._renderMethod = 'ROTATING_OBJECT';
         _super.prototype.setPositionedObject.call(_this, _this._obj);
-        _this._objectIsRotatable = false;
-        if (_this._options.rotation) {
-            _this._objectIsRotatable = true;
-        }
+        _this._objectIsRotatable = !!_this._options.rotation;
         // Offset of axis angle
         // this._axisRotationAngleOffset = 0;
         _this._axisOfRotation = undefined;
@@ -198,8 +196,7 @@ var RotatingObject = /** @class */ (function (_super) {
      */
     RotatingObject.prototype.get3jsObjects = function () {
         var ret = _super.prototype.get3jsObjects.call(this);
-        // Add to the front, because this is the primary object.
-        ret.unshift(this._obj);
+        // NOTE: super.setPositionedObject(this._obj) in constructor already includes this._obj in the list
         return ret;
     };
     /**

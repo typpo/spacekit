@@ -55,6 +55,7 @@ var Skybox = /** @class */ (function () {
             side: THREE.BackSide
         });
         var sky = new THREE.Mesh(geometry, material);
+        sky.name = this.id;
         // See this thread on orientation of milky way:
         // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
         sky.rotation.x = 0;
@@ -86,6 +87,15 @@ var Skybox = /** @class */ (function () {
     };
     Skybox.prototype.update = function () {
         // Skyboxes don't update
+    };
+    Skybox.prototype.isVisible = function () {
+        var _a, _b;
+        return (_b = (_a = this.mesh) === null || _a === void 0 ? void 0 : _a.visible) !== null && _b !== void 0 ? _b : false;
+    };
+    Skybox.prototype.setVisibility = function (val) {
+        if (this.mesh) {
+            this.mesh.visible = val;
+        }
     };
     /**
      * Free all GPU resources

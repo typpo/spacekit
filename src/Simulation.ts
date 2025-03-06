@@ -31,7 +31,9 @@ export interface SimulationObject {
   update: (jd: number, force: boolean) => void;
   get3jsObjects(): THREE.Object3D[];
   getId(): string;
-  removalCleanup?: () => void;
+  removalCleanup: () => void;
+  setVisibility: (visible: boolean) => void;
+  isVisible: () => boolean;
 }
 
 interface CameraOptions {
@@ -132,6 +134,8 @@ export class Simulation {
 
   private subscribedObjects: Record<string, SimulationObject>;
 
+  private neverUpdatedObjects: Set<string>;
+
   private particles: KeplerParticles;
 
   private stats?: Stats;
@@ -225,6 +229,7 @@ export class Simulation {
     this.lightPosition = undefined;
 
     this.subscribedObjects = {};
+    this.neverUpdatedObjects = new Set();
 
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
@@ -429,8 +434,11 @@ export class Simulation {
    */
   private update(force = false) {
     for (const objId in this.subscribedObjects) {
-      if (this.subscribedObjects.hasOwnProperty(objId)) {
-        this.subscribedObjects[objId].update(this.jd, force);
+      if (this.subscribedObjects.hasOwnProperty(objId) && !this.neverUpdatedObjects.has(objId)) {
+        const obj = this.subscribedObjects[objId];
+        if (obj.isVisible()) {    // dont update if not visible
+          obj.update(this.jd, force);
+        }
       }
     }
   }
@@ -551,15 +559,17 @@ export class Simulation {
       this.scene.add(x);
     });
 
-    if (!noUpdate) {
-      // Call for updates as time passes.
-      const objId = obj.getId();
-      if (this.subscribedObjects[objId]) {
-        console.error(
-          `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
-        );
-      }
-      this.subscribedObjects[objId] = obj;
+    // Call for updates as time passes.
+    const objId = obj.getId();
+    if (this.subscribedObjects[objId]) {
+      console.error(
+        `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
+      );
+    }
+
+    this.subscribedObjects[objId] = obj;
+    if (noUpdate) {
+      this.neverUpdatedObjects.add(obj.getId());
     }
   }
 
@@ -576,6 +586,10 @@ export class Simulation {
    * @param {Object} obj Object to remove
    */
   removeObject(obj: SimulationObject) {
+    if (!this.subscribedObjects[obj.getId()]) {
+      return    // already removed
+    }
+
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
       this.scene.remove(x);
@@ -585,6 +599,26 @@ export class Simulation {
       obj.removalCleanup();
     }
     delete this.subscribedObjects[obj.getId()];
+    this.neverUpdatedObjects.delete(obj.getId());
+  }
+
+  /**
+   * Removes all objects from the visualization and free all resources.
+   */
+  removalCleanup() {
+    this.renderEnabled = false;
+
+    for (const objId in this.subscribedObjects) {
+      if (this.subscribedObjects.hasOwnProperty(objId)) {
+        this.removeObject(this.subscribedObjects[objId]);
+      }
+    }
+
+    const renderer = this.getRenderer();
+    renderer.dispose();
+    renderer.domElement.remove();
+    this.scene.clear();
+    renderer.forceContextLoss();
   }
 
   /**
@@ -663,7 +697,9 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene.add(new THREE.AmbientLight(color));
+    const light = new THREE.AmbientLight(color);
+    light.name = 'ambient-light';
+    this.scene.add(light);
     this.useLightSources = true;
   }
 
@@ -702,6 +738,7 @@ export class Simulation {
       pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     }
 
+    pointLight.name = 'point-light';
     this.scene.add(pointLight);
     this.useLightSources = true;
   }

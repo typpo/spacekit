@@ -145,17 +145,11 @@ export declare class SpaceObject implements SimulationObject {
      */
     init(): boolean;
     /**
-     * @protected
-     * Used by child classes to set the object that gets its position updated.
-     * @param {THREE.Object3D} obj Any THREE.js object
-     */
-    protected setPositionedObject(obj: THREE.Object3D): void;
-    /**
      * @private
      * Build the THREE.js object for this SpaceObject.
      */
     private renderObject;
-    protected addParticle(): void;
+    private addParticle;
     /**
      * @private
      * Builds the label div and adds it to the visualization
@@ -189,6 +183,13 @@ export declare class SpaceObject implements SimulationObject {
      * @return {boolean} Whether to update
      */
     private shouldUpdateObjectPosition;
+    /**
+     * @protected
+     * Used by child classes to set the object that gets its position updated.
+     * @param {THREE.Object3D} obj Any THREE.js object
+     */
+    protected setPositionedObject(obj: THREE.Object3D): void;
+    protected getScale(): [number, number, number];
     /**
      * Make this object orbit another orbit.
      * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
@@ -270,8 +271,11 @@ export declare class SpaceObject implements SimulationObject {
      * @return {boolean} True if ready
      */
     isReady(): boolean;
+    setVisibility(val: boolean): void;
+    isVisible(): boolean;
     removalCleanup(): void;
 }
+export declare const DEFAULT_PLANET_TEXTURE_URL = "{{assets}}/sprites/smallparticle.png";
 /**
  * Useful presets for creating SpaceObjects.
  * @example
@@ -283,6 +287,7 @@ export declare const SpaceObjectPresets: {
     SUN: {
         textureUrl: string;
         position: number[];
+        radius: number;
     };
     MERCURY: {
         textureUrl: string;

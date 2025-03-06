@@ -8,11 +8,11 @@ declare type DistanceUnits = 'au' | 'km';
 declare type TimeUnits = 'day' | 'sec';
 interface EphemerisTableData {
     data: number[][];
-    ephemerisType: EphemType;
+    ephemerisType?: EphemType;
     distanceUnits: DistanceUnits;
     timeUnits: TimeUnits;
-    interpolationType: InterpolationType;
-    interpolationOrder: number;
+    interpolationType?: InterpolationType;
+    interpolationOrder?: number;
 }
 /**
  * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
@@ -38,6 +38,14 @@ export declare class EphemerisTable {
      * @param {Number} ephemerisData.interpolationOrder the order of the interpolator to use (defaults to 5)
      */
     constructor(ephemerisData: EphemerisTableData);
+    /**
+     * Returns the first Julian date in the ephemeris table.
+     */
+    getStartJd(): number;
+    /**
+     * Returns the last Julian date in the ephemeris table.
+     */
+    getStopJd(): number;
     /**
      * Calculates the interpolated position for the given requested date. If the requested date is before the first
      * point it returns the first point. If the requested date is after the last point it returns the last point.

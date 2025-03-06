@@ -121,6 +121,18 @@ var EphemerisTable = /** @class */ (function () {
         }
     }
     /**
+     * Returns the first Julian date in the ephemeris table.
+     */
+    EphemerisTable.prototype.getStartJd = function () {
+        return this.data[0][0];
+    };
+    /**
+     * Returns the last Julian date in the ephemeris table.
+     */
+    EphemerisTable.prototype.getStopJd = function () {
+        return this.data[this.data.length - 1][0];
+    };
+    /**
      * Calculates the interpolated position for the given requested date. If the requested date is before the first
      * point it returns the first point. If the requested date is after the last point it returns the last point.
      * @param {Number} jd of the requested time

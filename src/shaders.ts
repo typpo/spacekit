@@ -5,11 +5,12 @@ import { getScaleFactor } from './Scale';
  */
 export function getOrbitShaderFragment() {
   return `
-    varying vec3 vColor;
-    uniform sampler2D texture;
+    uniform sampler2D tex;
+
+    in vec3 vColor;
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
+      gl_FragColor = vec4(vColor, 1.0) * texture(tex, gl_PointCoord);
     }
   `;
 }
@@ -19,45 +20,26 @@ export function getOrbitShaderFragment() {
  */
 export function getOrbitShaderVertex() {
   return `
-    attribute vec3 fuzzColor;
-    attribute vec3 origin;
-    varying vec3 vColor;
+    in vec3 fuzzColor;
+    in vec3 origin;
+    
+    in float visible;
+    in float size;
 
-    attribute float size;
-
-    attribute float a;
-    attribute float e;
-    attribute float i;
-    attribute float om;
-    attribute float wBar;
-    attribute float M;
+    in float a;
+    in float e;
+    in float i;
+    in float om;
+    in float wBar;
+    in float M;
 
     // Perihelion distance
-    attribute float q;
+    in float q;
 
     // CPU-computed term for parabolic orbits
-    attribute float a0;
+    in float a0;
 
-    // COSH Function (Hyperbolic Cosine)
-    float cosh(float val) {
-      float tmp = exp(val);
-      float cosH = (tmp + 1.0 / tmp) / 2.0;
-      return cosH;
-    }
-
-    // TANH Function (Hyperbolic Tangent)
-    float tanh(float val) {
-      float tmp = exp(val);
-      float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
-      return tanH;
-    }
-
-    // SINH Function (Hyperbolic Sine)
-    float sinh(float val) {
-      float tmp = exp(val);
-      float sinH = (tmp - 1.0 / tmp) / 2.0;
-      return sinH;
-    }
+    out vec3 vColor;
 
     // Cube root helper that assumes param is positive
     float cbrt(float x) {
@@ -172,15 +154,15 @@ export function getOrbitShaderVertex() {
 
       vec3 newpos = getPos() + origin;
       vec4 mvPosition = modelViewMatrix * vec4(newpos, 1.0);
+      gl_PointSize = visible > 0.5 ? size : 0.0;
       gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = size;
     }
   `;
 }
 
 export const STAR_SHADER_FRAGMENT = `
-    varying vec3 vColor;
-
+    in vec3 vColor;
+  
     void main() {
       float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));
       gl_FragColor = vec4(vColor, a);
@@ -188,8 +170,8 @@ export const STAR_SHADER_FRAGMENT = `
 `;
 
 export const STAR_SHADER_VERTEX = `
-    attribute float size;
-    varying vec3 vColor;
+    in float size;
+    out vec3 vColor;
 
     void main() {
         vColor = color;
@@ -200,9 +182,11 @@ export const STAR_SHADER_VERTEX = `
 `;
 
 export const GENERIC_PARTICLE_SHADER_VERTEX = `
-    attribute float size;
-    attribute vec3 customColor;
-    varying vec3 vColor;
+    in float size;
+    in vec3 customColor;
+    
+    out vec3 vColor;
+    
     void main() {
       vColor = customColor;
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -213,11 +197,13 @@ export const GENERIC_PARTICLE_SHADER_VERTEX = `
 
 export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
     uniform vec3 color;
-    uniform sampler2D texture;
-    varying vec3 vColor;
+    uniform sampler2D tex;
+    
+    in vec3 vColor;
+
     void main() {
       gl_FragColor = vec4(color * vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
+      gl_FragColor = gl_FragColor * texture(tex, gl_PointCoord);
       if (gl_FragColor.a < ALPHATEST) discard;
     }
 `;
@@ -225,12 +211,12 @@ export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
 export const ATMOSPHERE_SHADER_VERTEX = `
   uniform vec3 lightPos;
 
-  varying vec2 vUv;
-  varying vec3 vecPos;
-  varying vec3 vecNormal;
+  out vec2 vUv;
+  out vec3 vecPos;
+  out vec3 vecNormal;
   //varying vec3 vNormal;
 
-  varying vec3 vViewLightPos;
+  out vec3 vViewLightPos;
 
   void main() {
     //vNormal = normalize(normalMatrix * normal);
@@ -255,10 +241,10 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
   uniform float p;
   uniform vec3 color;
 
-  varying vec2 vUv;
-  varying vec3 vecPos;
-  varying vec3 vecNormal;
-  varying vec3  vViewLightPos;
+  in vec2 vUv;
+  in vec3 vecPos;
+  in vec3 vecNormal;
+  in vec3 vViewLightPos;
 
   void main() {
     float intensity = pow(c - dot(vecNormal, vec3(0.0, 0.0, 1.0)), p);
@@ -276,10 +262,10 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
 export const SPHERE_SHADER_VERTEX = `
   uniform vec3 lightPos;
 
-  varying vec2 vUv;
-  varying vec3 vViewPosition;
-  varying vec3 vViewLightPos;
-  varying vec3 vNormal;
+  out vec2 vUv;
+  out vec3 vNormal;
+  out vec3 vViewPosition;
+  out vec3 vViewLightPos;
 
   void main() {
     vUv = uv;
@@ -293,25 +279,25 @@ export const SPHERE_SHADER_VERTEX = `
 `;
 
 export const SPHERE_SHADER_FRAGMENT = `
-  uniform sampler2D sphereTexture;
+  uniform sampler2D sphereTex;
 
-  varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vViewPosition;
-  varying vec3 vViewLightPos;
+  in vec2 vUv;
+  in vec3 vNormal;
+  in vec3 vViewPosition;
+  in vec3 vViewLightPos;
 
   void main() {
     vec3 normal = normalize(vNormal);
     vec3 lightDir = normalize(vViewLightPos - vViewPosition);
     float lambertian = max(dot(normal, lightDir), 0.0);
-    gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);
+    gl_FragColor = texture(sphereTex, vUv) * vec4(vec3(1.0) * lambertian, 1.0);
   }
 `;
 
 export const RING_SHADER_VERTEX = `
-  varying vec3 vPos;
-  varying vec3 vWorldPosition;
-  varying vec3 vNormal;
+  out vec3 vPos;
+  out vec3 vWorldPosition;
+  out vec3 vNormal;
 
   void main() {
     vPos = position;
@@ -324,14 +310,14 @@ export const RING_SHADER_VERTEX = `
 `;
 
 export const RING_SHADER_FRAGMENT = `
-  uniform sampler2D ringTexture;
+  uniform sampler2D ringTex;
   uniform float innerRadius;
   uniform float outerRadius;
   uniform vec3 lightPos;
 
-  varying vec3 vNormal;
-  varying vec3 vPos;
-  varying vec3 vWorldPosition;
+  in vec3 vNormal;
+  in vec3 vPos;
+  in vec3 vWorldPosition;
 
   vec4 color() {
     vec2 uv = vec2(0);
@@ -340,7 +326,7 @@ export const RING_SHADER_FRAGMENT = `
       discard;
     }
 
-    vec4 pixel = texture2D(ringTexture, uv);
+    vec4 pixel = texture(ringTex, uv);
     return pixel;
   }
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import type { PerspectiveCamera } from 'three';
+import { Mesh, Object3D, PerspectiveCamera } from "three"
 
 import { EphemPresets } from './EphemPresets';
 import { Orbit } from './Orbit';
@@ -15,6 +15,7 @@ import type {
   SimulationContext,
   SimulationObject,
 } from './Simulation';
+import { Object3DJSONObject } from "three/src/core/Object3D"
 
 export interface SpaceObjectOptions {
   position?: Coordinate3d;
@@ -44,13 +45,13 @@ export interface SpaceObjectOptions {
   basePath?: string;
   rotation?: {
     enable: boolean;
-    period: number;
-    speed?: number;
-    lambdaDeg?: number;
-    betaDeg?: number;
+    period: number;      // Rotational period in days
+    speed?: number;      // Speed of rotation in degrees/rendering tick, do not set if want realistic rotation
+    lambdaDeg?: number;  // North Pole Ecliptic Longitude
+    betaDeg?: number;    // North Pole Ecliptic Latitude
     yorp?: number;
-    phi0?: number;
-    jd0?: number;
+    phi0?: number;       // Initial rotation angle
+    jd0?: number;        // JD epoch of rotational parameters
   };
   shape?: {
     shapeUrl?: string;
@@ -134,6 +135,10 @@ export class SpaceObject implements SimulationObject {
 
   protected _context: SimulationContext;
 
+  protected _materials: THREE.Material[];   // needed for cleanup
+  protected _geometries: THREE.BufferGeometry[];  // needed for cleanup
+  protected _textures: THREE.Texture[];    // needed for cleanup
+
   protected _renderMethod?:
     | 'SPRITE'
     | 'PARTICLESYSTEM'
@@ -216,6 +221,10 @@ export class SpaceObject implements SimulationObject {
     this._simulation = simulation;
     this._context = simulation.getContext();
 
+    this._materials = [];
+    this._geometries = [];
+    this._textures = [];
+
     this._label = undefined;
     this._showLabel = false;
     this._lastLabelUpdate = 0;
@@ -273,72 +282,62 @@ export class SpaceObject implements SimulationObject {
   }
 
   /**
-   * @protected
-   * Used by child classes to set the object that gets its position updated.
-   * @param {THREE.Object3D} obj Any THREE.js object
-   */
-  protected setPositionedObject(obj: THREE.Object3D) {
-    this._object3js = obj;
-  }
-
-  /**
    * @private
    * Build the THREE.js object for this SpaceObject.
    */
   private renderObject() {
-    if (this.isStaticObject()) {
-      if (!this._renderMethod) {
-        // TODO(ian): It kinda sucks to have SpaceObject care about
-        // renderMethod, which is set by children.
+    let includeIfMissing = true;
 
-        // Create a stationary sprite.
-        this._object3js = this.createSprite();
-        if (this._simulation) {
-          // Add it all to visualization.
-          this._simulation.addObject(this, false /* noUpdate */);
-        }
-        this._renderMethod = 'SPRITE';
-      }
-    } else {
+    if (!this.isStaticObject()) {
       // Create the orbit no matter what - it's used to get current position
       // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
       // ShapeObjects).
       // TODO(ian): Only do this if we need to compute orbit position on the
       // CPU or display an orbit path.
       this._orbit = this.createOrbit();
+    }
 
-      if (!this._options.hideOrbit && this._simulation) {
-        // Add it all to visualization.
-        this._simulation.addObject(this, false /* noUpdate */);
-      }
+    if (!this._renderMethod) {
+      // TODO(ian): It kinda sucks to have SpaceObject care about
+      // renderMethod, which is set by children.
 
-      if (this._useEphemTable) {
-        if (!this._renderMethod) {
+      if (this.isStaticObject()) {
+        // Create a stationary sprite.
+        this._object3js = this.createSprite();
+        this._object3js.name = `${this._id}-sprite`;
+        this._renderMethod = 'SPRITE';
+      } else {
+        if (this._useEphemTable) {
           this._object3js = this.createSprite();
-          if (this._simulation) {
-            this._simulation.addObject(this, true);
-          }
+          this._object3js.name = `${this._id}-sprite`;
           this._renderMethod = 'SPRITE';
+        } else {
+          // Create a particle representing this object on the GPU.
+          this.addParticle();
+          this._renderMethod = 'PARTICLESYSTEM';
+          includeIfMissing = false;
         }
-      }
-
-      if (!this._renderMethod) {
-        if (!this._options.ephem) {
-          throw new Error(
-            'Attempting to create a particle system, but ephemeris are not available.',
-          );
-        }
-        // Create a particle representing this object on the GPU.
-        this._particleIndex = this._context.objects.particles.addParticle(
-          this._options.ephem,
-          {
-            particleSize: this._options.particleSize,
-            color: this.getColor(),
-          },
-        );
-        this._renderMethod = 'PARTICLESYSTEM';
       }
     }
+
+    if (includeIfMissing && this._simulation.getObject(this._id) === undefined) {
+      this._simulation.addObject(this, false /* noUpdate */)
+    }
+  }
+
+  private addParticle() {
+    if (!this._options.ephem) {
+      throw new Error(
+        'Attempting to create a particle system, but ephemeris are not available.',
+      );
+    }
+    this._particleIndex = this._context.objects.particles.addParticle(
+      this._options.ephem,
+      {
+        particleSize: this._options.particleSize,
+        color: this.getColor(),
+      },
+    );
   }
 
   /**
@@ -419,17 +418,30 @@ export class SpaceObject implements SimulationObject {
       this._context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
-    texture.encoding = THREE.LinearEncoding;
-    const sprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: texture,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        color: this._options.theme ? this._options.theme.color : 0xffffff,
-      }),
-    );
-    const scale = rescaleArray(this._scale);
-    sprite.scale.set(scale[0], scale[1], scale[2]);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    this._textures.push(texture);
+
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      color: this._options.color ?? this._options.theme?.color ?? 0xffffff,
+      sizeAttenuation: this._options.radius !== undefined,
+    });
+    this._materials.push(material);
+
+    const sprite = new THREE.Sprite(material);
+
+    if (this._options.radius !== undefined) {
+      const d = this._options.radius * 2;
+      const scale = rescaleArray(this._scale);
+      sprite.scale.set(scale[0] * d, scale[1] * d, scale[2] * d);
+    }
+    else {
+      const s = (this._options.particleSize ?? this._context.options.particleDefaultSize ?? 15) / 15 * 0.02;
+      sprite.scale.set(s, s, s);
+    }
+
     const position = this.getPosition(this._simulation.getJd());
     sprite.position.set(position[0], position[1], position[2]);
 
@@ -459,10 +471,8 @@ export class SpaceObject implements SimulationObject {
     }
     return new Orbit(ephem, {
       orbitPathSettings: this._options.orbitPathSettings,
-      color: this._options.theme ? this._options.theme.orbitColor : undefined,
-      eclipticLineColor: this._options.ecliptic
-        ? this._options.ecliptic.lineColor
-        : undefined,
+      color: this._options.theme?.orbitColor,
+      eclipticLineColor: this._options.ecliptic?.lineColor,
     });
   }
 
@@ -490,11 +500,31 @@ export class SpaceObject implements SimulationObject {
   }
 
   /**
+   * @protected
+   * Used by child classes to set the object that gets its position updated.
+   * @param {THREE.Object3D} obj Any THREE.js object
+   */
+  protected setPositionedObject(obj: THREE.Object3D) {
+    this._object3js = obj;
+  }
+
+  protected getScale(): [number, number, number] {
+    return this._scale;
+  }
+
+  /**
    * Make this object orbit another orbit.
    * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
    */
   orbitAround(spaceObj: SpaceObject) {
     this._orbitAround = spaceObj;
+
+    // force orbit update
+    if (this._orbitPath) {
+      this._simulation.getScene().remove(this._orbitPath);
+    }
+    this._orbitPath = undefined;
+    this.update(this._simulation.getJd(), true /* force */);
   }
 
   /**
@@ -582,7 +612,8 @@ export class SpaceObject implements SimulationObject {
       if (this._orbitPath) {
         this._simulation.getScene().remove(this._orbitPath);
       }
-      this._orbitPath = this._orbit.getOrbitShape(jd, true);
+      this._orbitPath = this._orbit.getOrbitShape(jd, true, this._orbitAround);
+      this._orbitPath.name = `${this._id}-orbit`;
       this._simulation.getScene().add(this._orbitPath);
     }
 
@@ -598,12 +629,13 @@ export class SpaceObject implements SimulationObject {
         this._simulation.getScene().remove(this._eclipticLines);
       }
       this._eclipticLines = this._orbit.getLinesToEcliptic();
+      this._eclipticLines.name = `${this._id}-orbit-ec-lines`;
       this._simulation.getScene().add(this._eclipticLines);
     }
 
     if (this._orbitAround) {
       const parentPos = this._orbitAround.getPosition(jd);
-      if (this._renderMethod === 'PARTICLESYSTEM') {
+      if (this._particleIndex !== undefined) {
         // TODO(ian): Only do this when the origin changes
         this._context.objects.particles?.setParticleOrigin(
           this._particleIndex!,
@@ -611,11 +643,9 @@ export class SpaceObject implements SimulationObject {
         );
       }
 
-      if (!this._options.hideOrbit) {
+      if (!this._options.hideOrbit && !this._orbit?.isHeliocentric()) {
         this._orbitPath?.position.set(parentPos[0], parentPos[1], parentPos[2]);
-      }
-      if (!newpos) {
-        newpos = this.getPosition(jd);
+        this._eclipticLines?.position.set(parentPos[0], parentPos[1], parentPos[2]);
       }
     }
   }
@@ -681,6 +711,14 @@ export class SpaceObject implements SimulationObject {
   }
 
   /**
+   * Gets the label HTML Element.
+   * @return {HTMLElement | undefined} The label element.
+   */
+  getLabelElement(): HTMLElement | undefined {
+    return this._label;
+  }
+
+  /**
    * Toggle the visilibity of the label.
    * @param {boolean} val Whether to show or hide.
    */
@@ -723,6 +761,25 @@ export class SpaceObject implements SimulationObject {
     return this._initialized;
   }
 
+  setVisibility(val: boolean) {
+    this.get3jsObjects().forEach((obj) => {
+      obj.visible = val;
+    });
+    if (this._particleIndex !== undefined) {
+      this._context?.objects.particles.setParticleVisibility(val, this._particleIndex);
+    }
+    this.setLabelVisibility(val);
+  }
+
+  isVisible(): boolean {
+    let visible = this.get3jsObjects().some(obj => obj.visible);
+    if (this._particleIndex !== undefined) {
+      visible = visible || this._context?.objects.particles.isParticleVisible(this._particleIndex);
+    }
+    visible = visible || this._showLabel;
+    return visible;
+  }
+
   removalCleanup() {
     if (this._label) {
       this._simulation.getSimulationElement().removeChild(this._label);
@@ -731,11 +788,19 @@ export class SpaceObject implements SimulationObject {
 
     if (this._particleIndex !== undefined) {
       this._context?.objects.particles.hideParticle(this._particleIndex);
+      if (!this._context?.objects.particles.isVisible()) {
+        this._simulation.removeObject(this._context?.objects.particles);
+      }
     }
+
+    this._orbit?.removalCleanup();
+    this._geometries.forEach(g => { g.dispose(); });
+    this._materials.forEach(m => { m.dispose(); });
+    this._textures.forEach(t => { t.dispose(); });
   }
 }
 
-const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
+export const DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 
 /**
  * Useful presets for creating SpaceObjects.
@@ -748,6 +813,7 @@ export const SpaceObjectPresets = {
   SUN: {
     textureUrl: '{{assets}}/sprites/lensflare0.png',
     position: [0, 0, 0],
+    radius: 0.5,  // massive radius for backwards compatibility, 0.00465 AU is the real value
   },
   MERCURY: {
     textureUrl: DEFAULT_PLANET_TEXTURE_URL,

@@ -77,12 +77,12 @@ var Ephem = /** @class */ (function () {
      * @param {Number} initialValues.epoch Epoch in JD
      * @param {Number} initialValues.period Period in days
      * @param {Number} initialValues.ma Mean anomaly
-     * @param {Number} initialValues.n Mean motion
+     * @param {Number} initialValues.n Mean motion, deg or rad per day (instead of per second)
      * @param {Number} initialValues.L Mean longitude
      * @param {Number} initialValues.om Longitude of Ascending Node
      * @param {Number} initialValues.w Argument of Perihelion
      * @param {Number} initialValues.wBar Longitude of Perihelion
-     * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+     * @param {GM} initialValues.GM Standard gravitational parameter in m^3/s^2 (instead of km^3/s^2).
      * Defaults to GM.SUN.  @see {GM}
      * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
      */
@@ -101,7 +101,7 @@ var Ephem = /** @class */ (function () {
             this.attrs.GM = exports.GM.SUN;
         }
         this.fill();
-        if (this.get('e') > 0.9 && typeof this.getUnsafe('tp') === 'undefined') {
+        if (this.get('e') >= 0.999 && typeof this.getUnsafe('tp') === 'undefined') {
             console.warn('You must specify "tp" (time of perihelion) for highly eccentric orbits');
         }
         this.locked = locked;
@@ -118,7 +118,7 @@ var Ephem = /** @class */ (function () {
             throw new Error('Attempted to modify locked (immutable) Ephem object');
         }
         if (!EPHEM_VALID_ATTRS.has(attr)) {
-            console.warn("Invalid ephem attr: ".concat(attr));
+            console.warn("Invalid ephem attr: " + attr);
             return false;
         }
         // Store everything in radians.
@@ -161,7 +161,7 @@ var Ephem = /** @class */ (function () {
         var retVal = this.getUnsafe(attr, units);
         if (typeof retVal === 'undefined') {
             console.info(this.attrs);
-            throw new Error("Attempted to get ephemeris value '".concat(attr, "' but it was undefined"));
+            throw new Error("Attempted to get ephemeris value '" + attr + "' but it was undefined");
         }
         return retVal;
     };
@@ -266,7 +266,8 @@ var Ephem = /** @class */ (function () {
             i: this.getUnsafe('i'),
             om: this.getUnsafe('om'),
             ma: this.getUnsafe('ma'),
-            w: this.getUnsafe('w')
+            w: this.getUnsafe('w'),
+            period: this.getUnsafe('period')
         }, 'rad');
     };
     return Ephem;

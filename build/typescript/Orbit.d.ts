@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Ephem } from './Ephem';
 import { EphemerisTable } from './EphemerisTable';
 import type { Coordinate3d } from './Coordinates';
+import { SpaceObject } from "./SpaceObject";
 export declare enum OrbitType {
     UNKNOWN = 0,
     PARABOLIC = 1,
@@ -16,6 +17,8 @@ interface OrbitOptions {
         leadDurationYears?: number;
         trailDurationYears?: number;
         numberSamplePoints?: number;
+        eclipticLineSparsity?: number;
+        drawHeliocentric?: boolean;
     };
 }
 /**
@@ -55,6 +58,10 @@ export declare class Orbit {
      */
     constructor(ephem: Ephem | EphemerisTable, options: OrbitOptions);
     /**
+     * Is orbit heliocentric or not
+     */
+    isHeliocentric(): boolean;
+    /**
      * Get heliocentric position of object at a given JD.
      * @param {Number} jd Date value in JD.
      * @param {boolean} debug Set true for debug output.
@@ -84,9 +91,10 @@ export declare class Orbit {
      * Calculates, caches, and returns the orbit state for this orbit around this time
      * @param {Number} jd center time of the orbit (only used for ephemeris table ephemeris)
      * @param {boolean} forceCompute forces the recomputing of the orbit on this call
+     * @param {SpaceObject} orbitAround the object to orbit around
      * @return {THREE.Line}
      */
-    getOrbitShape(jd?: number, forceCompute?: boolean): THREE.Line;
+    getOrbitShape(jd?: number, forceCompute?: boolean, orbitAround?: SpaceObject): THREE.Line;
     /**
      * Compute a line between a given date range.
      * @private
@@ -98,6 +106,7 @@ export declare class Orbit {
      * @param {Number} startJd start of orbit in JDate format
      * @param {Number} stopJd end of orbit in JDate format
      * @param {Number} step step size in days
+     * @param {SpaceObject} orbitAround the object to orbit around
      * @return {THREE.Line}
      */
     private getTableOrbit;
@@ -106,6 +115,11 @@ export declare class Orbit {
      * @return {THREE.Line} The ellipse object that represents this orbit.
      */
     private getEllipse;
+    /**
+     * @private
+     * @return {THREE.Line} The ellipse object around an orbit, in heliocentric frame.
+     */
+    private getEllipseAround;
     /**
      * @private
      * @return {THREE.Vector3[]} A THREE.js geometry
@@ -145,6 +159,10 @@ export declare class Orbit {
      * @param {boolean} val Whether to show the orbital ellipse.
      */
     setVisibility(val: boolean): void;
+    /**
+     * Free up GPU resources
+     */
+    removalCleanup(): void;
     /**
      * Get the type of orbit. Returns one of OrbitType.PARABOLIC, HYPERBOLIC,
      * ELLIPTICAL, or UNKNOWN.

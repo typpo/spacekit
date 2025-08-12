@@ -16,11 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -73,7 +69,7 @@ var RotatingObject = /** @class */ (function (_super) {
      * FIXME(ian): This implementation is still WIP! Rotational parameters are not
      * used right now.
      * @param {boolean} options.rotation.enable Rotate the object
-     * @param {Number} options.rotation.speed Factor that determines speed of rotation
+     * @param {Number} options.rotation.speed Rotates the object even though no time elapsed, degs/rendering tick
      * @param {Number} options.rotation.lambdaDeg Ecliptic longitude lambda, in degrees
      * @param {Number} options.rotation.betaDeg Ecliptic longitude beta, in degrees
      * @param {Number} options.rotation.period Rotational period, in JD
@@ -87,17 +83,13 @@ var RotatingObject = /** @class */ (function (_super) {
         var _this = _super.call(this, id, options, simulation, false /* autoInit */) || this;
         // The THREE.js object
         _this._obj = new THREE.Object3D();
+        _this._obj.name = _this._id + "-rot-obj";
         _this._renderMethod = 'ROTATING_OBJECT';
         _super.prototype.setPositionedObject.call(_this, _this._obj);
-        _this._objectIsRotatable = false;
-        if (_this._options.rotation) {
-            _this._objectIsRotatable = true;
-        }
+        _this._objectIsRotatable = !!_this._options.rotation;
         // Offset of axis angle
         // this._axisRotationAngleOffset = 0;
         _this._axisOfRotation = undefined;
-        // Keep track of materials that comprise this object.
-        _this._materials = [];
         if (autoInit) {
             _this.init();
         }
@@ -110,11 +102,17 @@ var RotatingObject = /** @class */ (function (_super) {
         }
         if (this._options.debug) {
             if (this._options.debug.showAxes) {
-                getAxes().forEach(function (axis) { return _this._obj.add(axis); });
+                getAxes().forEach(function (axis) {
+                    _this._materials.push(axis.material);
+                    _this._geometries.push(axis.geometry);
+                    _this._obj.add(axis);
+                });
             }
             if (this._options.debug.showGrid) {
                 var gridHelper = new THREE.GridHelper(3, 3, 0xff0000, 0xffeeee);
                 gridHelper.geometry.rotateX(Math.PI / 2);
+                this._materials.push(gridHelper.material);
+                this._geometries.push(gridHelper.geometry);
                 this._obj.add(gridHelper);
             }
         }
@@ -133,30 +131,37 @@ var RotatingObject = /** @class */ (function (_super) {
         // Testing this asteroid:
         // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1504
         // Model 2691
-        var PI = Math.PI;
         // Cacus
         // http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&asteroid_id=1046
         // http://astro.troja.mff.cuni.cz/projects/asteroids3D/php.php?script=db_sky_projection&model_id=1863&jd=2443568.0
-        // Latitude
-        var lambda = Units_1["default"].rad(rotation.lambdaDeg || 0);
-        // Longitude
-        var beta = Units_1["default"].rad(rotation.betaDeg || 0);
-        // Other
-        var P = rotation.period;
-        var YORP = rotation.yorp || 0;
-        var phi0 = Units_1["default"].rad(rotation.phi0 || 0);
+        // North Pole Ecliptic Longitude
+        var eLon = Units_1["default"].rad(rotation.lambdaDeg || 0);
+        // North Pole Ecliptic Latitude
+        var eLat = Units_1["default"].rad(rotation.betaDeg || 0);
+        // Current simulation time in JD
         var JD = this._simulation.getJd();
-        var JD0 = rotation.jd0;
-        // Asteroid rotation
-        // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), lambda);
-        // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), beta);
-        // Adjust Z axis according to time.
-        var zAdjust = phi0 +
-            ((2 * PI) / P) * (JD - JD0) +
-            (1 / 2) * YORP * Math.pow(JD - JD0, 2);
-        this._obj.rotateY(-(PI / 2 - beta));
-        this._obj.rotateZ(-lambda);
-        this._obj.rotateZ(zAdjust);
+        // Z axis is ecliptic North, X towards the sun at March equinox, Y is 90 deg to the east from X.
+        // Assume the object's Z-axis is its rotation axis. Rotate it to point to (lambda, beta).
+        // see Fig. 1 from https://astropedia.astrogeology.usgs.gov/download/Docs/WGCCRE/WGCCRE2015reprint.pdf
+        // NOTE: the above reference seems to have a mistake as it says 90deg - a0, whereas 90deg + a0 seems to be correct.
+        var W = this._z_rotation(JD);
+        if (typeof W !== 'undefined') {
+            this._obj.rotateZ((Math.PI / 2) + eLon); // Rotate X-axis to the body equator
+            this._obj.rotateX((Math.PI / 2) - eLat); // Rotate Z-axis to the correct lat and lon
+            this._obj.rotateZ(W); // Rotate around the Z-axis to spin the body the correct amount
+        }
+    };
+    RotatingObject.prototype._z_rotation = function (jd) {
+        if (typeof this._options.rotation === 'undefined') {
+            return undefined;
+        }
+        var _a = this._options.rotation, period = _a.period, yorp = _a.yorp, phi0 = _a.phi0, jd0 = _a.jd0;
+        if (typeof jd0 === 'undefined') {
+            return undefined;
+        }
+        return (Units_1["default"].rad(phi0 || 0) +
+            ((2 * Math.PI) / period) * (jd - jd0) +
+            (1 / 2) * (yorp || 0) * Math.pow(jd - jd0, 2)) % (2 * Math.PI);
     };
     /**
      * Updates the object and its label positions for a given time.
@@ -168,16 +173,20 @@ var RotatingObject = /** @class */ (function (_super) {
             this._objectIsRotatable &&
             this._options.rotation &&
             this._options.rotation.enable) {
-            // For now, just rotate on X axis.
-            var speed = this._options.rotation.speed || 0.5;
-            this._obj.rotation.z += speed * (Math.PI / 180);
-            this._obj.rotation.z %= 360;
+            if (this._axisOfRotation) {
+                // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
+            }
+            if (this._options.rotation.speed) {
+                this._obj.rotateZ(Units_1["default"].rad(this._options.rotation.speed));
+            }
+            else {
+                // Rotate the object around the Z axis
+                var z_rot = this._z_rotation(jd);
+                if (typeof z_rot !== 'undefined') {
+                    this._obj.rotation.z = z_rot;
+                }
+            }
         }
-        if (this._axisOfRotation) {
-            // this._obj.rotateOnAxis(this._axisOfRotation, 0.01);
-        }
-        // this._obj.rotateZ(0.015)
-        // this._obj.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.01);
         // Update position
         _super.prototype.update.call(this, jd, force);
     };
@@ -187,8 +196,7 @@ var RotatingObject = /** @class */ (function (_super) {
      */
     RotatingObject.prototype.get3jsObjects = function () {
         var ret = _super.prototype.get3jsObjects.call(this);
-        // Add to the front, because this is the primary object.
-        ret.unshift(this._obj);
+        // NOTE: super.setPositionedObject(this._obj) in constructor already includes this._obj in the list
         return ret;
     };
     /**

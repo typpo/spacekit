@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // @ts-ignore
 import julian from 'julian';
-import Stats from 'three/examples/jsm/libs/stats.module';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import {
   BloomEffect,
   EffectComposer,
@@ -10,7 +10,7 @@ import {
   // @ts-ignore
 } from 'postprocessing';
 
-import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
+import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
 
 import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
@@ -31,6 +31,9 @@ export interface SimulationObject {
   update: (jd: number, force: boolean) => void;
   get3jsObjects(): THREE.Object3D[];
   getId(): string;
+  removalCleanup: () => void;
+  setVisibility: (visible: boolean) => void;
+  isVisible: () => boolean;
 }
 
 interface CameraOptions {
@@ -63,7 +66,7 @@ export interface SimulationContext {
   simulation: Simulation;
   options: SpacekitOptions;
   objects: {
-    renderer: WebGL1Renderer;
+    renderer: WebGLRenderer;
     camera: Camera;
     scene: Scene;
     particles: KeplerParticles;
@@ -131,6 +134,8 @@ export class Simulation {
 
   private subscribedObjects: Record<string, SimulationObject>;
 
+  private neverUpdatedObjects: Set<string>;
+
   private particles: KeplerParticles;
 
   private stats?: Stats;
@@ -149,7 +154,7 @@ export class Simulation {
 
   private scene: Scene;
 
-  private renderer: WebGL1Renderer;
+  private renderer: WebGLRenderer;
 
   private composer?: EffectComposer;
 
@@ -224,10 +229,11 @@ export class Simulation {
     this.lightPosition = undefined;
 
     this.subscribedObjects = {};
+    this.neverUpdatedObjects = new Set();
 
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+    THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
 
     // Scale
     if (this.options.unitsPerAu) {
@@ -339,9 +345,9 @@ export class Simulation {
   /**
    * @private
    */
-  private initRenderer(): THREE.WebGL1Renderer {
+  private initRenderer(): THREE.WebGLRenderer {
     // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
-    const renderer = new THREE.WebGL1Renderer({
+    const renderer = new THREE.WebGLRenderer({
       antialias: true,
       //logarithmicDepthBuffer: true,
     });
@@ -428,8 +434,11 @@ export class Simulation {
    */
   private update(force = false) {
     for (const objId in this.subscribedObjects) {
-      if (this.subscribedObjects.hasOwnProperty(objId)) {
-        this.subscribedObjects[objId].update(this.jd, force);
+      if (this.subscribedObjects.hasOwnProperty(objId) && !this.neverUpdatedObjects.has(objId)) {
+        const obj = this.subscribedObjects[objId];
+        if (obj.isVisible()) {    // dont update if not visible
+          obj.update(this.jd, force);
+        }
       }
     }
   }
@@ -550,23 +559,37 @@ export class Simulation {
       this.scene.add(x);
     });
 
-    if (!noUpdate) {
-      // Call for updates as time passes.
-      const objId = obj.getId();
-      if (this.subscribedObjects[objId]) {
-        console.error(
-          `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
-        );
-      }
-      this.subscribedObjects[objId] = obj;
+    // Call for updates as time passes.
+    const objId = obj.getId();
+    if (this.subscribedObjects[objId]) {
+      console.error(
+        `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
+      );
     }
+
+    this.subscribedObjects[objId] = obj;
+    if (noUpdate) {
+      this.neverUpdatedObjects.add(obj.getId());
+    }
+  }
+
+  /**
+   * Get an object previously added to the simulation.
+   * @return {Object} The SimulationObject.
+   */
+  getObject(id: string): SimulationObject | undefined {
+    return this.subscribedObjects[id];
   }
 
   /**
    * Removes an object from the visualization.
    * @param {Object} obj Object to remove
    */
-  removeObject(obj: SpaceObject) {
+  removeObject(obj: SimulationObject) {
+    if (!this.subscribedObjects[obj.getId()]) {
+      return    // already removed
+    }
+
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
       this.scene.remove(x);
@@ -576,6 +599,26 @@ export class Simulation {
       obj.removalCleanup();
     }
     delete this.subscribedObjects[obj.getId()];
+    this.neverUpdatedObjects.delete(obj.getId());
+  }
+
+  /**
+   * Removes all objects from the visualization and free all resources.
+   */
+  removalCleanup() {
+    this.renderEnabled = false;
+
+    for (const objId in this.subscribedObjects) {
+      if (this.subscribedObjects.hasOwnProperty(objId)) {
+        this.removeObject(this.subscribedObjects[objId]);
+      }
+    }
+
+    const renderer = this.getRenderer();
+    renderer.dispose();
+    renderer.domElement.remove();
+    this.scene.clear();
+    renderer.forceContextLoss();
   }
 
   /**
@@ -654,7 +697,9 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene.add(new THREE.AmbientLight(color));
+    const light = new THREE.AmbientLight(color);
+    light.name = 'ambient-light';
+    this.scene.add(light);
     this.useLightSources = true;
   }
 
@@ -693,6 +738,7 @@ export class Simulation {
       pointLight.position.set(rescaled[0], rescaled[1], rescaled[2]);
     }
 
+    pointLight.name = 'point-light';
     this.scene.add(pointLight);
     this.useLightSources = true;
   }
@@ -959,9 +1005,9 @@ export class Simulation {
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGL1Renderer} The THREE.js renderer
+   * @return {THREE.WebGLRenderer} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGL1Renderer {
+  getRenderer(): THREE.WebGLRenderer {
     return this.renderer;
   }
 

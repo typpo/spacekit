@@ -25,7 +25,8 @@ exports.EphemPresets = {
         i: 7.003891682749818,
         om: 4.830774804443502e1,
         w: 2.917940253442659e1,
-        ma: 2.56190975209273e2
+        ma: 2.56190975209273e2,
+        period: 87.969257
     }, 'deg', true /* locked */),
     VENUS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -34,7 +35,8 @@ exports.EphemPresets = {
         i: 3.394567787211735,
         om: 7.662534150657346e1,
         w: 5.474567447560867e1,
-        ma: 2.756687596099721e2
+        ma: 2.756687596099721e2,
+        period: 224.70079922
     }, 'deg', true /* locked */),
     EARTH: new Ephem_1.Ephem({
         // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
@@ -54,11 +56,11 @@ exports.EphemPresets = {
         i: -0.00001531,
         om: 0.0,
         wBar: 102.93768193,
-        L: 100.46457166
+        L: 100.46457166,
+        period: 365.256363004
     }, 'deg', true /* locked */),
     MOON: new Ephem_1.Ephem({
-        // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-        GM: 0.3986e6,
+        GM: Ephem_1.GM.EARTH_MOON,
         // Geocentric
         // https://ssd.jpl.nasa.gov/horizons.cgi#results
         epoch: 2458621.5,
@@ -67,7 +69,8 @@ exports.EphemPresets = {
         i: 5.102060246928811,
         om: 1.085916732144811e2,
         w: 6.180561793729225e1,
-        ma: 5.053270083636792e1
+        ma: 5.053270083636792e1,
+        period: 27.321582
     }, 'deg', true /* locked */),
     MARS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -76,7 +79,8 @@ exports.EphemPresets = {
         i: 1.848141099825311,
         om: 4.950420572080223e1,
         w: 2.866965847685386e2,
-        ma: 2.538237617924876e1
+        ma: 2.538237617924876e1,
+        period: 686.98
     }, 'deg', true /* locked */),
     JUPITER: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -85,7 +89,8 @@ exports.EphemPresets = {
         i: 1.303560894624275,
         om: 1.005203828847816e2,
         w: 2.73736301845404e2,
-        ma: 2.31939544389401e2
+        ma: 2.31939544389401e2,
+        period: 4332.589
     }, 'deg', true /* locked */),
     SATURN: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -94,7 +99,8 @@ exports.EphemPresets = {
         i: 2.482782449972317,
         om: 1.136154964073247e2,
         w: 3.394422648650336e2,
-        ma: 1.870970898012944e2
+        ma: 1.870970898012944e2,
+        period: 10755.698
     }, 'deg', true /* locked */),
     URANUS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -103,7 +109,8 @@ exports.EphemPresets = {
         i: 7.697511134483724e-1,
         om: 7.414239045667875e1,
         w: 9.942704504702185e1,
-        ma: 2.202603033874267e2
+        ma: 2.202603033874267e2,
+        period: 30685.4
     }, 'deg', true /* locked */),
     NEPTUNE: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -112,7 +119,8 @@ exports.EphemPresets = {
         i: 1.774569249829094,
         om: 1.318695882492132e2,
         w: 2.586226409499831e2,
-        ma: 3.152804988924479e2
+        ma: 3.152804988924479e2,
+        period: 60189
     }, 'deg', true /* locked */),
     PLUTO: new Ephem_1.Ephem({
         epoch: 2454000.5,
@@ -168,7 +176,7 @@ var NaturalSatellites = /** @class */ (function () {
                              */
                             break;
                         default:
-                            console.warn("Ephemeris type not yet implemented: ".concat(ephemType));
+                            console.warn("Ephemeris type not yet implemented: " + ephemType);
                             return;
                     }
                     var ephemGM;
@@ -183,7 +191,7 @@ var NaturalSatellites = /** @class */ (function () {
                             ephemGM = Ephem_1.GM[moon.Planet.toUpperCase()];
                     }
                     if (!ephemGM) {
-                        console.error("Could not look up GM for ".concat(moon.Planet));
+                        console.error("Could not look up GM for " + moon.Planet);
                     }
                     var ephem = new Ephem_1.Ephem({
                         GM: ephemGM,

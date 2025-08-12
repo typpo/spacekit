@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -80,7 +76,7 @@ var Stars = /** @class */ (function () {
      */
     function Stars(options, simulation) {
         this._options = options;
-        this._id = "__stars_".concat(new Date().getTime());
+        this._id = "__stars_" + new Date().getTime();
         this._simulation = simulation;
         this._context = simulation.getContext();
         this._stars = undefined;
@@ -119,6 +115,7 @@ var Stars = /** @class */ (function () {
                 transparent: true
             });
             _this._stars = new THREE.Points(geometry, material);
+            _this._stars.name = _this._id;
             if (_this._simulation) {
                 _this._simulation.addObject(_this, true /* noUpdate */);
             }
@@ -143,6 +140,26 @@ var Stars = /** @class */ (function () {
     };
     Stars.prototype.update = function () {
         // Stars don't update
+    };
+    Stars.prototype.isVisible = function () {
+        var _a, _b;
+        return (_b = (_a = this._stars) === null || _a === void 0 ? void 0 : _a.visible) !== null && _b !== void 0 ? _b : false;
+    };
+    Stars.prototype.setVisibility = function (val) {
+        if (this._stars) {
+            this._stars.visible = val;
+        }
+    };
+    /**
+     * Free all GPU resources
+     */
+    Stars.prototype.removalCleanup = function () {
+        var _a;
+        if (this._stars) {
+            this._stars.geometry.dispose();
+            this._stars.material.dispose();
+            (_a = this._stars.material.map) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
     };
     return Stars;
 }());

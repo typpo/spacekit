@@ -6,6 +6,8 @@ import type {
   SimulationObject,
 } from './Simulation';
 import { getFullTextureUrl } from './util';
+import { Material } from "three"
+import { MeshBasicMaterial } from "three/src/materials/MeshBasicMaterial"
 
 interface SkyboxOptions {
   textureUrl: string;
@@ -50,13 +52,14 @@ export class Skybox implements SimulationObject {
    * @private
    */
   private init() {
-    const geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
+    const geometry = new THREE.SphereGeometry(1e10, 32, 32);
 
     const fullTextureUrl = getFullTextureUrl(
       this.options.textureUrl,
       this.context.options.basePath,
     );
     const texture = new THREE.TextureLoader().load(fullTextureUrl);
+    texture.colorSpace = THREE.SRGBColorSpace;
 
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -64,6 +67,7 @@ export class Skybox implements SimulationObject {
     });
 
     const sky = new THREE.Mesh(geometry, material);
+    sky.name = this.id;
 
     // See this thread on orientation of milky way:
     // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
@@ -102,6 +106,27 @@ export class Skybox implements SimulationObject {
 
   update() {
     // Skyboxes don't update
+  }
+
+  isVisible() {
+    return this.mesh?.visible ?? false;
+  }
+
+  setVisibility(val: boolean) {
+    if (this.mesh) {
+      this.mesh.visible = val;
+    }
+  }
+
+  /**
+   * Free all GPU resources
+   */
+  removalCleanup() {
+    if (this.mesh) {
+      this.mesh.geometry.dispose();
+      (this.mesh.material as MeshBasicMaterial).dispose();
+      (this.mesh.material as MeshBasicMaterial).map?.dispose();
+    }
   }
 }
 

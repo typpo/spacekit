@@ -10,7 +10,7 @@ export declare class SphereObject extends RotatingObject {
      * @param {String} options.bumpMapUrl Path to bump map (optional)
      * @param {String} options.specularMapUrl Path to specular map (optional)
      * @param {Number} options.color Hex color of the sphere
-     * @param {Number} options.axialTilt Axial tilt in degrees
+     * @param {Number} options.axialTilt Axial tilt in degrees (rotation options will override this)
      * @param {Number} options.radius Radius of sphere. Defaults to 1
      * @param {Object} options.levelsOfDetail List of {threshold: x, segments:
      * y}, where `threshold` is radii distance and `segments` is the number

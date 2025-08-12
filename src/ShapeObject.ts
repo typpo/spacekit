@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 
 import { RotatingObject } from './RotatingObject';
 
@@ -45,7 +45,7 @@ export class ShapeObject extends RotatingObject {
       const loader = new OBJLoader(manager);
       // TODO(ian): Make shapeurl follow assetpath logic.
       loader.load(options.shape!.shapeUrl!, (object) => {
-        object.traverse((child) => {
+        object.traverse((child: unknown) => {
           if (child instanceof THREE.Mesh) {
             const material = new THREE.MeshStandardMaterial({
               color: this._options.shape!.color || 0xcccccc,
@@ -57,10 +57,15 @@ export class ShapeObject extends RotatingObject {
             child.geometry.computeVertexNormals();
             child.geometry.computeBoundingBox();
            */
+            this._geometries.push(child.geometry);
             this._materials.push(material);
+            if (material.map) {
+              this._textures.push(material.map as THREE.Texture);
+            }
           }
         });
 
+        object.name = `${this._id}-shape-obj`;
         this.shapeObj = object;
         this._obj.add(object);
 

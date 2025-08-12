@@ -132,12 +132,12 @@ export class Ephem {
    * @param {Number} initialValues.epoch Epoch in JD
    * @param {Number} initialValues.period Period in days
    * @param {Number} initialValues.ma Mean anomaly
-   * @param {Number} initialValues.n Mean motion
+   * @param {Number} initialValues.n Mean motion, deg or rad per day (instead of per second)
    * @param {Number} initialValues.L Mean longitude
    * @param {Number} initialValues.om Longitude of Ascending Node
    * @param {Number} initialValues.w Argument of Perihelion
    * @param {Number} initialValues.wBar Longitude of Perihelion
-   * @param {GM} initialValues.GM Standard gravitational parameter in km^3/s^2.
+   * @param {GM} initialValues.GM Standard gravitational parameter in m^3/s^2 (instead of km^3/s^2).
    * Defaults to GM.SUN.  @see {GM}
    * @param {'deg'|'rad'} units The unit of angles in the list of initial values.
    */
@@ -351,6 +351,7 @@ export class Ephem {
         om: this.getUnsafe('om'),
         ma: this.getUnsafe('ma'),
         w: this.getUnsafe('w'),
+        period: this.getUnsafe('period'),  // save period, if given, more accurate than calculating it from GM & a
       },
       'rad',
     );

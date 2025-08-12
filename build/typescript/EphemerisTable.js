@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -81,32 +77,32 @@ var EphemerisTable = /** @class */ (function () {
         this.data = JSON.parse(JSON.stringify(ephemerisData.data));
         if (ephemerisData.distanceUnits) {
             if (!DISTANCE_UNITS.has(ephemerisData.distanceUnits)) {
-                throw new Error("Unknown distance units: ".concat(ephemerisData.distanceUnits));
+                throw new Error("Unknown distance units: " + ephemerisData.distanceUnits);
             }
             this.units.distance = ephemerisData.distanceUnits;
         }
         if (ephemerisData.timeUnits) {
             if (!TIME_UNITS.has(ephemerisData.timeUnits)) {
-                throw new Error("Unknown time units: ".concat(ephemerisData.timeUnits));
+                throw new Error("Unknown time units: " + ephemerisData.timeUnits);
             }
             this.units.time = ephemerisData.timeUnits;
         }
         if (ephemerisData.ephemerisType) {
             if (!EPHEM_TYPES.has(ephemerisData.ephemerisType)) {
-                throw new Error("Unknown ephemeris type: ".concat(ephemerisData.ephemerisType));
+                throw new Error("Unknown ephemeris type: " + ephemerisData.ephemerisType);
             }
             this.ephemType = ephemerisData.ephemerisType;
         }
         if (ephemerisData.interpolationType) {
             if (!INTERPOLATION_TYPES.has(ephemerisData.interpolationType)) {
-                throw new Error("Unknown interpolation type: ".concat(ephemerisData.interpolationType));
+                throw new Error("Unknown interpolation type: " + ephemerisData.interpolationType);
             }
             this.interpolationType = ephemerisData.interpolationType;
         }
         if (ephemerisData.interpolationOrder !== undefined) {
             if (ephemerisData.interpolationOrder < 1 ||
                 ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER) {
-                throw new Error("Interpolation order must be >0 and <".concat(MAX_INTERPOLATION_ORDER, ": ").concat(ephemerisData.interpolationOrder));
+                throw new Error("Interpolation order must be >0 and <" + MAX_INTERPOLATION_ORDER + ": " + ephemerisData.interpolationOrder);
             }
             this.interpolationOrder = ephemerisData.interpolationOrder;
         }
@@ -124,6 +120,18 @@ var EphemerisTable = /** @class */ (function () {
             });
         }
     }
+    /**
+     * Returns the first Julian date in the ephemeris table.
+     */
+    EphemerisTable.prototype.getStartJd = function () {
+        return this.data[0][0];
+    };
+    /**
+     * Returns the last Julian date in the ephemeris table.
+     */
+    EphemerisTable.prototype.getStopJd = function () {
+        return this.data[this.data.length - 1][0];
+    };
     /**
      * Calculates the interpolated position for the given requested date. If the requested date is before the first
      * point it returns the first point. If the requested date is after the last point it returns the last point.

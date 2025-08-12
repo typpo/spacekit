@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -39,7 +35,7 @@ var Skybox = /** @class */ (function () {
     function Skybox(options, simulation) {
         // TODO(ian): Support for actual box instead of sphere...
         this.options = options;
-        this.id = "__skybox_".concat(new Date().getTime());
+        this.id = "__skybox_" + new Date().getTime();
         // User passed in Simulation
         this.simulation = simulation;
         this.context = simulation.getContext();
@@ -50,14 +46,16 @@ var Skybox = /** @class */ (function () {
      * @private
      */
     Skybox.prototype.init = function () {
-        var geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
+        var geometry = new THREE.SphereGeometry(1e10, 32, 32);
         var fullTextureUrl = (0, util_1.getFullTextureUrl)(this.options.textureUrl, this.context.options.basePath);
         var texture = new THREE.TextureLoader().load(fullTextureUrl);
+        texture.colorSpace = THREE.SRGBColorSpace;
         var material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.BackSide
         });
         var sky = new THREE.Mesh(geometry, material);
+        sky.name = this.id;
         // See this thread on orientation of milky way:
         // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
         sky.rotation.x = 0;
@@ -89,6 +87,26 @@ var Skybox = /** @class */ (function () {
     };
     Skybox.prototype.update = function () {
         // Skyboxes don't update
+    };
+    Skybox.prototype.isVisible = function () {
+        var _a, _b;
+        return (_b = (_a = this.mesh) === null || _a === void 0 ? void 0 : _a.visible) !== null && _b !== void 0 ? _b : false;
+    };
+    Skybox.prototype.setVisibility = function (val) {
+        if (this.mesh) {
+            this.mesh.visible = val;
+        }
+    };
+    /**
+     * Free all GPU resources
+     */
+    Skybox.prototype.removalCleanup = function () {
+        var _a;
+        if (this.mesh) {
+            this.mesh.geometry.dispose();
+            this.mesh.material.dispose();
+            (_a = this.mesh.material.map) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
     };
     return Skybox;
 }());

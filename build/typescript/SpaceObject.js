@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -59,7 +55,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.SpaceObjectPresets = exports.SpaceObject = void 0;
+exports.SpaceObjectPresets = exports.DEFAULT_PLANET_TEXTURE_URL = exports.SpaceObject = void 0;
 var THREE = __importStar(require("three"));
 var EphemPresets_1 = require("./EphemPresets");
 var Orbit_1 = require("./Orbit");
@@ -152,6 +148,9 @@ var SpaceObject = /** @class */ (function () {
         this._isStaticObject = !this._options.ephem && !this._useEphemTable;
         this._simulation = simulation;
         this._context = simulation.getContext();
+        this._materials = [];
+        this._geometries = [];
+        this._textures = [];
         this._label = undefined;
         this._showLabel = false;
         this._lastLabelUpdate = 0;
@@ -172,7 +171,7 @@ var SpaceObject = /** @class */ (function () {
         */
         this._initialized = false;
         if (autoInit && !this.init()) {
-            console.warn("SpaceObject ".concat(id, ": failed to initialize"));
+            console.warn("SpaceObject " + id + ": failed to initialize");
         }
     }
     /**
@@ -198,63 +197,54 @@ var SpaceObject = /** @class */ (function () {
         return true;
     };
     /**
-     * @protected
-     * Used by child classes to set the object that gets its position updated.
-     * @param {THREE.Object3D} obj Any THREE.js object
-     */
-    SpaceObject.prototype.setPositionedObject = function (obj) {
-        this._object3js = obj;
-    };
-    /**
      * @private
      * Build the THREE.js object for this SpaceObject.
      */
     SpaceObject.prototype.renderObject = function () {
-        if (this.isStaticObject()) {
-            if (!this._renderMethod) {
-                // TODO(ian): It kinda sucks to have SpaceObject care about
-                // renderMethod, which is set by children.
-                // Create a stationary sprite.
-                this._object3js = this.createSprite();
-                if (this._simulation) {
-                    // Add it all to visualization.
-                    this._simulation.addObject(this, false /* noUpdate */);
-                }
-                this._renderMethod = 'SPRITE';
-            }
-        }
-        else {
+        var includeIfMissing = true;
+        if (!this.isStaticObject()) {
             // Create the orbit no matter what - it's used to get current position
             // for CPU-positioned objects (e.g. child RotatingObjects, SphereObjects,
             // ShapeObjects).
             // TODO(ian): Only do this if we need to compute orbit position on the
             // CPU or display an orbit path.
             this._orbit = this.createOrbit();
-            if (!this._options.hideOrbit && this._simulation) {
-                // Add it all to visualization.
-                this._simulation.addObject(this, false /* noUpdate */);
+        }
+        if (!this._renderMethod) {
+            // TODO(ian): It kinda sucks to have SpaceObject care about
+            // renderMethod, which is set by children.
+            if (this.isStaticObject()) {
+                // Create a stationary sprite.
+                this._object3js = this.createSprite();
+                this._object3js.name = this._id + "-sprite";
+                this._renderMethod = 'SPRITE';
             }
-            if (this._useEphemTable) {
-                if (!this._renderMethod) {
+            else {
+                if (this._useEphemTable) {
                     this._object3js = this.createSprite();
-                    if (this._simulation) {
-                        this._simulation.addObject(this, true);
-                    }
+                    this._object3js.name = this._id + "-sprite";
                     this._renderMethod = 'SPRITE';
                 }
-            }
-            if (!this._renderMethod) {
-                if (!this._options.ephem) {
-                    throw new Error('Attempting to create a particle system, but ephemeris are not available.');
+                else {
+                    // Create a particle representing this object on the GPU.
+                    this.addParticle();
+                    this._renderMethod = 'PARTICLESYSTEM';
+                    includeIfMissing = false;
                 }
-                // Create a particle representing this object on the GPU.
-                this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
-                    particleSize: this._options.particleSize,
-                    color: this.getColor()
-                });
-                this._renderMethod = 'PARTICLESYSTEM';
             }
         }
+        if (includeIfMissing && this._simulation.getObject(this._id) === undefined) {
+            this._simulation.addObject(this, false /* noUpdate */);
+        }
+    };
+    SpaceObject.prototype.addParticle = function () {
+        if (!this._options.ephem) {
+            throw new Error('Attempting to create a particle system, but ephemeris are not available.');
+        }
+        this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
+            particleSize: this._options.particleSize,
+            color: this.getColor()
+        });
     };
     /**
      * @private
@@ -266,10 +256,10 @@ var SpaceObject = /** @class */ (function () {
         text.className = 'spacekit__object-label';
         var _a = this._options, labelText = _a.labelText, labelUrl = _a.labelUrl;
         if (this._options.labelUrl) {
-            text.innerHTML = "<div><a target=\"_blank\" href=\"".concat(labelUrl, "\">").concat(labelText, "</a></div>");
+            text.innerHTML = "<div><a target=\"_blank\" href=\"" + labelUrl + "\">" + labelText + "</a></div>";
         }
         else {
-            text.innerHTML = "<div>".concat(labelText, "</div>");
+            text.innerHTML = "<div>" + labelText + "</div>";
         }
         text.style.fontFamily = 'Arial';
         text.style.fontSize = '12px';
@@ -302,8 +292,8 @@ var SpaceObject = /** @class */ (function () {
             loc.right + 20 < simulationElt.clientWidth &&
             loc.top - 25 > 0 &&
             loc.bottom < simulationElt.clientHeight) {
-            label.style.left = "".concat(loc.left - label.clientWidth / 2, "px");
-            label.style.top = "".concat(loc.top - label.clientHeight - 8, "px");
+            label.style.left = loc.left - label.clientWidth / 2 + "px";
+            label.style.top = loc.top - label.clientHeight - 8 + "px";
             label.style.visibility = 'visible';
         }
         else {
@@ -316,20 +306,32 @@ var SpaceObject = /** @class */ (function () {
      * @return {THREE.Sprite} A sprite object
      */
     SpaceObject.prototype.createSprite = function () {
+        var _a, _b, _c, _d, _e;
         if (!this._options.textureUrl) {
             throw new Error('Cannot create sprite without a textureUrl');
         }
         var fullTextureUrl = (0, util_1.getFullTextureUrl)(this._options.textureUrl, this._context.options.basePath);
         var texture = new THREE.TextureLoader().load(fullTextureUrl);
-        texture.encoding = THREE.LinearEncoding;
-        var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        texture.colorSpace = THREE.SRGBColorSpace;
+        this._textures.push(texture);
+        var material = new THREE.SpriteMaterial({
             map: texture,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
-            color: this._options.theme ? this._options.theme.color : 0xffffff
-        }));
-        var scale = (0, Scale_1.rescaleArray)(this._scale);
-        sprite.scale.set(scale[0], scale[1], scale[2]);
+            color: (_c = (_a = this._options.color) !== null && _a !== void 0 ? _a : (_b = this._options.theme) === null || _b === void 0 ? void 0 : _b.color) !== null && _c !== void 0 ? _c : 0xffffff,
+            sizeAttenuation: this._options.radius !== undefined
+        });
+        this._materials.push(material);
+        var sprite = new THREE.Sprite(material);
+        if (this._options.radius !== undefined) {
+            var d = this._options.radius * 2;
+            var scale = (0, Scale_1.rescaleArray)(this._scale);
+            sprite.scale.set(scale[0] * d, scale[1] * d, scale[2] * d);
+        }
+        else {
+            var s = ((_e = (_d = this._options.particleSize) !== null && _d !== void 0 ? _d : this._context.options.particleDefaultSize) !== null && _e !== void 0 ? _e : 15) / 15 * 0.02;
+            sprite.scale.set(s, s, s);
+        }
         var position = this.getPosition(this._simulation.getJd());
         sprite.position.set(position[0], position[1], position[2]);
         if (this.isStaticObject()) {
@@ -344,6 +346,7 @@ var SpaceObject = /** @class */ (function () {
      * @return {Orbit} An orbit object
      */
     SpaceObject.prototype.createOrbit = function () {
+        var _a, _b;
         if (this._orbit) {
             return this._orbit;
         }
@@ -355,10 +358,8 @@ var SpaceObject = /** @class */ (function () {
         }
         return new Orbit_1.Orbit(ephem, {
             orbitPathSettings: this._options.orbitPathSettings,
-            color: this._options.theme ? this._options.theme.orbitColor : undefined,
-            eclipticLineColor: this._options.ecliptic
-                ? this._options.ecliptic.lineColor
-                : undefined
+            color: (_a = this._options.theme) === null || _a === void 0 ? void 0 : _a.orbitColor,
+            eclipticLineColor: (_b = this._options.ecliptic) === null || _b === void 0 ? void 0 : _b.lineColor
         });
     };
     /**
@@ -384,11 +385,28 @@ var SpaceObject = /** @class */ (function () {
         */
     };
     /**
+     * @protected
+     * Used by child classes to set the object that gets its position updated.
+     * @param {THREE.Object3D} obj Any THREE.js object
+     */
+    SpaceObject.prototype.setPositionedObject = function (obj) {
+        this._object3js = obj;
+    };
+    SpaceObject.prototype.getScale = function () {
+        return this._scale;
+    };
+    /**
      * Make this object orbit another orbit.
      * @param {Object} spaceObj The SpaceObject that will serve as the origin of this object's orbit.
      */
     SpaceObject.prototype.orbitAround = function (spaceObj) {
         this._orbitAround = spaceObj;
+        // force orbit update
+        if (this._orbitPath) {
+            this._simulation.getScene().remove(this._orbitPath);
+        }
+        this._orbitPath = undefined;
+        this.update(this._simulation.getJd(), true /* force */);
     };
     /**
      * Updates the position of this object. Applicable only if this object is a
@@ -435,7 +453,7 @@ var SpaceObject = /** @class */ (function () {
      * movement.
      */
     SpaceObject.prototype.update = function (jd, force) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         if (force === void 0) { force = false; }
         var newpos;
         if (this._label) {
@@ -468,7 +486,8 @@ var SpaceObject = /** @class */ (function () {
             if (this._orbitPath) {
                 this._simulation.getScene().remove(this._orbitPath);
             }
-            this._orbitPath = this._orbit.getOrbitShape(jd, true);
+            this._orbitPath = this._orbit.getOrbitShape(jd, true, this._orbitAround);
+            this._orbitPath.name = this._id + "-orbit";
             this._simulation.getScene().add(this._orbitPath);
         }
         var eclipticNeedsRefreshing = !this._eclipticLines || orbitNeedsRefreshing;
@@ -480,19 +499,18 @@ var SpaceObject = /** @class */ (function () {
                 this._simulation.getScene().remove(this._eclipticLines);
             }
             this._eclipticLines = this._orbit.getLinesToEcliptic();
+            this._eclipticLines.name = this._id + "-orbit-ec-lines";
             this._simulation.getScene().add(this._eclipticLines);
         }
         if (this._orbitAround) {
             var parentPos = this._orbitAround.getPosition(jd);
-            if (this._renderMethod === 'PARTICLESYSTEM') {
+            if (this._particleIndex !== undefined) {
                 // TODO(ian): Only do this when the origin changes
                 (_b = this._context.objects.particles) === null || _b === void 0 ? void 0 : _b.setParticleOrigin(this._particleIndex, parentPos);
             }
-            if (!this._options.hideOrbit) {
-                (_c = this._orbitPath) === null || _c === void 0 ? void 0 : _c.position.set(parentPos[0], parentPos[1], parentPos[2]);
-            }
-            if (!newpos) {
-                newpos = this.getPosition(jd);
+            if (!this._options.hideOrbit && !((_c = this._orbit) === null || _c === void 0 ? void 0 : _c.isHeliocentric())) {
+                (_d = this._orbitPath) === null || _d === void 0 ? void 0 : _d.position.set(parentPos[0], parentPos[1], parentPos[2]);
+                (_e = this._eclipticLines) === null || _e === void 0 ? void 0 : _e.position.set(parentPos[0], parentPos[1], parentPos[2]);
             }
         }
     };
@@ -555,6 +573,13 @@ var SpaceObject = /** @class */ (function () {
         return this._showLabel;
     };
     /**
+     * Gets the label HTML Element.
+     * @return {HTMLElement | undefined} The label element.
+     */
+    SpaceObject.prototype.getLabelElement = function () {
+        return this._label;
+    };
+    /**
      * Toggle the visilibity of the label.
      * @param {boolean} val Whether to show or hide.
      */
@@ -593,20 +618,46 @@ var SpaceObject = /** @class */ (function () {
     SpaceObject.prototype.isReady = function () {
         return this._initialized;
     };
-    SpaceObject.prototype.removalCleanup = function () {
+    SpaceObject.prototype.setVisibility = function (val) {
         var _a;
+        this.get3jsObjects().forEach(function (obj) {
+            obj.visible = val;
+        });
+        if (this._particleIndex !== undefined) {
+            (_a = this._context) === null || _a === void 0 ? void 0 : _a.objects.particles.setParticleVisibility(val, this._particleIndex);
+        }
+        this.setLabelVisibility(val);
+    };
+    SpaceObject.prototype.isVisible = function () {
+        var _a;
+        var visible = this.get3jsObjects().some(function (obj) { return obj.visible; });
+        if (this._particleIndex !== undefined) {
+            visible = visible || ((_a = this._context) === null || _a === void 0 ? void 0 : _a.objects.particles.isParticleVisible(this._particleIndex));
+        }
+        visible = visible || this._showLabel;
+        return visible;
+    };
+    SpaceObject.prototype.removalCleanup = function () {
+        var _a, _b, _c, _d;
         if (this._label) {
             this._simulation.getSimulationElement().removeChild(this._label);
             this._label = undefined;
         }
         if (this._particleIndex !== undefined) {
             (_a = this._context) === null || _a === void 0 ? void 0 : _a.objects.particles.hideParticle(this._particleIndex);
+            if (!((_b = this._context) === null || _b === void 0 ? void 0 : _b.objects.particles.isVisible())) {
+                this._simulation.removeObject((_c = this._context) === null || _c === void 0 ? void 0 : _c.objects.particles);
+            }
         }
+        (_d = this._orbit) === null || _d === void 0 ? void 0 : _d.removalCleanup();
+        this._geometries.forEach(function (g) { g.dispose(); });
+        this._materials.forEach(function (m) { m.dispose(); });
+        this._textures.forEach(function (t) { t.dispose(); });
     };
     return SpaceObject;
 }());
 exports.SpaceObject = SpaceObject;
-var DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
+exports.DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 /**
  * Useful presets for creating SpaceObjects.
  * @example
@@ -617,31 +668,32 @@ var DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 exports.SpaceObjectPresets = {
     SUN: {
         textureUrl: '{{assets}}/sprites/lensflare0.png',
-        position: [0, 0, 0]
+        position: [0, 0, 0],
+        radius: 0.5
     },
     MERCURY: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0x913cee
         },
         ephem: EphemPresets_1.EphemPresets.MERCURY
     },
     VENUS: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0xff7733
         },
         ephem: EphemPresets_1.EphemPresets.VENUS
     },
     EARTH: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0x009acd
         },
         ephem: EphemPresets_1.EphemPresets.EARTH
     },
     MOON: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0xffd700
         },
@@ -650,42 +702,42 @@ exports.SpaceObjectPresets = {
         particleSize: 6
     },
     MARS: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0xa63a3a
         },
         ephem: EphemPresets_1.EphemPresets.MARS
     },
     JUPITER: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0xffb90f
         },
         ephem: EphemPresets_1.EphemPresets.JUPITER
     },
     SATURN: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0x336633
         },
         ephem: EphemPresets_1.EphemPresets.SATURN
     },
     URANUS: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0x0099ff
         },
         ephem: EphemPresets_1.EphemPresets.URANUS
     },
     NEPTUNE: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0x3333ff
         },
         ephem: EphemPresets_1.EphemPresets.NEPTUNE
     },
     PLUTO: {
-        textureUrl: DEFAULT_PLANET_TEXTURE_URL,
+        textureUrl: exports.DEFAULT_PLANET_TEXTURE_URL,
         theme: {
             color: 0xccc0b0
         },

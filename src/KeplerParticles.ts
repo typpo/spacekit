@@ -7,7 +7,8 @@ import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
 import { Orbit, OrbitType } from './Orbit';
 
 import type { Ephem } from './Ephem';
-import type { Simulation, SimulationContext } from './Simulation';
+import { Simulation, SimulationContext, SimulationObject } from "./Simulation"
+import { Box3, Vector3, Sphere } from "three"
 
 interface BaseKeplerParticleOptions {
   color?: number;
@@ -27,6 +28,7 @@ type KeplerParticleOptions = BaseKeplerParticleOptions & {
 };
 
 interface ShaderAttributes {
+  visible: THREE.BufferAttribute;
   size: THREE.BufferAttribute;
   origin: THREE.BufferAttribute;
   position: THREE.BufferAttribute;
@@ -68,7 +70,7 @@ function getA0(ephem: Ephem, jd: number): number {
  * Primarily used by Simulation to render all non-static objects.
  * @see Simulation
  */
-export class KeplerParticles {
+export class KeplerParticles implements SimulationObject {
   static instanceCount: number;
 
   private id: string;
@@ -86,7 +88,7 @@ export class KeplerParticles {
   private elements: Ephem[];
 
   private uniforms: {
-    texture: { value: THREE.Texture };
+    tex: { value: THREE.Texture };
   };
 
   private geometry: THREE.BufferGeometry;
@@ -114,6 +116,7 @@ export class KeplerParticles {
     this.options = options;
 
     this.id = `KeplerParticles__${KeplerParticles.instanceCount}`;
+    KeplerParticles.instanceCount++;
 
     this.simulation = contextOrSimulation;
     this.context = contextOrSimulation.getContext();
@@ -136,13 +139,14 @@ export class KeplerParticles {
     );
 
     this.uniforms = {
-      texture: { value: defaultMapTexture },
+      tex: { value: defaultMapTexture },
     };
 
     const particleCount =
       this.options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
     this.elements = [];
     this.attributes = {
+      visible: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
       origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
       position: new THREE.BufferAttribute(
@@ -178,6 +182,9 @@ export class KeplerParticles {
       geometry.setAttribute(attributeName, attribute);
     });
 
+    // needs to be set, otherwise Three will hide the particles when the origin is not in the camera view
+    geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), Infinity);
+
     const shader = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
       vertexShader: getOrbitShaderVertex(),
@@ -191,6 +198,7 @@ export class KeplerParticles {
     this.shaderMaterial = shader;
     this.geometry = geometry;
     this.particleSystem = new THREE.Points(geometry, shader);
+    this.particleSystem.name = this.id;
   }
 
   /**
@@ -205,6 +213,8 @@ export class KeplerParticles {
     this.elements.push(ephem);
     const attributes = this.attributes;
     const offset = this.particleCount++;
+
+    attributes.visible.set([1.0], offset);
 
     attributes.size.set(
       [options.particleSize || this.options.defaultSize || 15],
@@ -252,14 +262,51 @@ export class KeplerParticles {
    * @param offset
    */
   hideParticle(offset: number) {
+    this.setParticleVisibility(false, offset);
+  }
+
+  /**
+   * Shows a previously hidden particle.
+   * @param offset
+   */
+  showParticle(offset: number) {
+    this.setParticleVisibility(true, offset);
+  }
+
+  isParticleVisible(offset: number) {
+    return offset>= 0 && offset < this.particleCount && this.attributes.visible.array[offset] > 0.5;
+  }
+
+  /**
+   * Shows a previously hidden particle.
+   * @param is_visible
+   * @param offset
+   */
+  setParticleVisibility(is_visible: boolean, offset: number) {
     const attributes = this.attributes;
-    attributes.size.set([0], offset);
+    attributes.visible.set([is_visible ? 1.0 : 0.0], offset);
 
     for (const attributeKey in attributes) {
       if (attributes.hasOwnProperty(attributeKey)) {
         attributes[attributeKey as keyof ShaderAttributes].needsUpdate = true;
       }
     }
+  }
+
+  /**
+   * Is at least one particle visible?
+   */
+  isVisible() {
+    return this.particleCount > 0
+      && this.particleSystem.visible
+      && this.attributes.visible.array.slice(0, this.particleCount).some((visible) => visible > 0.5);
+  }
+
+  /**
+   * Hide or show all particles globally using the parent object visible property.
+   */
+  setVisibility(value: boolean) {
+    this.particleSystem.visible = value;
   }
 
   /**
@@ -312,6 +359,8 @@ export class KeplerParticles {
   update(jd: number) {
     const Ms: number[] = [];
     const a0s: number[] = [];
+    let max_r = 0;
+
     for (let i = 0; i < this.elements.length; i++) {
       const ephem = this.elements[i];
 
@@ -326,6 +375,7 @@ export class KeplerParticles {
 
       Ms.push(M);
       a0s.push(a0);
+      max_r = Math.max(max_r, ephem.get('q') * (1 + ephem.get('e')));
     }
 
     this.attributes.M.set(Ms);
@@ -349,6 +399,15 @@ export class KeplerParticles {
    */
   getId(): string {
     return this.id;
+  }
+
+  /**
+   * Free all GPU resources
+   */
+  removalCleanup() {
+    this.geometry.dispose();
+    this.shaderMaterial.dispose();
+    this.uniforms.tex.value.dispose();
   }
 }
 

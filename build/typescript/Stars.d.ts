@@ -30,5 +30,11 @@ export declare class Stars implements SimulationObject {
      */
     getId(): string;
     update(): void;
+    isVisible(): boolean;
+    setVisibility(val: boolean): void;
+    /**
+     * Free all GPU resources
+     */
+    removalCleanup(): void;
 }
 export {};

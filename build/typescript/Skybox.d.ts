@@ -35,6 +35,12 @@ export declare class Skybox implements SimulationObject {
      */
     getId(): string;
     update(): void;
+    isVisible(): boolean;
+    setVisibility(val: boolean): void;
+    /**
+     * Free all GPU resources
+     */
+    removalCleanup(): void;
 }
 /**
  * Preset skybox objects that you can use to add a skybox to your

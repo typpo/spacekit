@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -28,6 +24,7 @@ var THREE = __importStar(require("three"));
 var util_1 = require("./util");
 var shaders_1 = require("./shaders");
 var Orbit_1 = require("./Orbit");
+var three_1 = require("three");
 var DEFAULT_PARTICLE_COUNT = 4096;
 /**
  * Compute mean anomaly at date.  Used for elliptical and hyperbolic orbits.
@@ -63,7 +60,8 @@ var KeplerParticles = /** @class */ (function () {
     function KeplerParticles(options, contextOrSimulation) {
         var _this = this;
         this.options = options;
-        this.id = "KeplerParticles__".concat(KeplerParticles.instanceCount);
+        this.id = "KeplerParticles__" + KeplerParticles.instanceCount;
+        KeplerParticles.instanceCount++;
         this.simulation = contextOrSimulation;
         this.context = contextOrSimulation.getContext();
         // Whether Points object has been added to the Simulation/Scene. This
@@ -77,11 +75,12 @@ var KeplerParticles = /** @class */ (function () {
         }
         var defaultMapTexture = (0, util_1.getThreeJsTexture)(this.options.textureUrl, this.context.options.basePath);
         this.uniforms = {
-            texture: { value: defaultMapTexture }
+            tex: { value: defaultMapTexture }
         };
         var particleCount = this.options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
         this.elements = [];
         this.attributes = {
+            visible: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
             size: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
             origin: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
             position: new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3),
@@ -106,6 +105,8 @@ var KeplerParticles = /** @class */ (function () {
             var attribute = _this.attributes[attributeName];
             geometry.setAttribute(attributeName, attribute);
         });
+        // needs to be set, otherwise Three will hide the particles when the origin is not in the camera view
+        geometry.boundingSphere = new three_1.Sphere(new three_1.Vector3(0, 0, 0), Infinity);
         var shader = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: (0, shaders_1.getOrbitShaderVertex)(),
@@ -117,6 +118,7 @@ var KeplerParticles = /** @class */ (function () {
         this.shaderMaterial = shader;
         this.geometry = geometry;
         this.particleSystem = new THREE.Points(geometry, shader);
+        this.particleSystem.name = this.id;
     }
     /**
      * Add a particle to this particle system.
@@ -131,6 +133,7 @@ var KeplerParticles = /** @class */ (function () {
         this.elements.push(ephem);
         var attributes = this.attributes;
         var offset = this.particleCount++;
+        attributes.visible.set([1.0], offset);
         attributes.size.set([options.particleSize || this.options.defaultSize || 15], offset);
         var color = new THREE.Color(options.color || 0xffffff);
         attributes.fuzzColor.set([color.r, color.g, color.b], offset * 3);
@@ -168,13 +171,45 @@ var KeplerParticles = /** @class */ (function () {
      * @param offset
      */
     KeplerParticles.prototype.hideParticle = function (offset) {
+        this.setParticleVisibility(false, offset);
+    };
+    /**
+     * Shows a previously hidden particle.
+     * @param offset
+     */
+    KeplerParticles.prototype.showParticle = function (offset) {
+        this.setParticleVisibility(true, offset);
+    };
+    KeplerParticles.prototype.isParticleVisible = function (offset) {
+        return offset >= 0 && offset < this.particleCount && this.attributes.visible.array[offset] > 0.5;
+    };
+    /**
+     * Shows a previously hidden particle.
+     * @param is_visible
+     * @param offset
+     */
+    KeplerParticles.prototype.setParticleVisibility = function (is_visible, offset) {
         var attributes = this.attributes;
-        attributes.size.set([0], offset);
+        attributes.visible.set([is_visible ? 1.0 : 0.0], offset);
         for (var attributeKey in attributes) {
             if (attributes.hasOwnProperty(attributeKey)) {
                 attributes[attributeKey].needsUpdate = true;
             }
         }
+    };
+    /**
+     * Is at least one particle visible?
+     */
+    KeplerParticles.prototype.isVisible = function () {
+        return this.particleCount > 0
+            && this.particleSystem.visible
+            && this.attributes.visible.array.slice(0, this.particleCount).some(function (visible) { return visible > 0.5; });
+    };
+    /**
+     * Hide or show all particles globally using the parent object visible property.
+     */
+    KeplerParticles.prototype.setVisibility = function (value) {
+        this.particleSystem.visible = value;
     };
     /**
      * Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.
@@ -221,6 +256,7 @@ var KeplerParticles = /** @class */ (function () {
     KeplerParticles.prototype.update = function (jd) {
         var Ms = [];
         var a0s = [];
+        var max_r = 0;
         for (var i = 0; i < this.elements.length; i++) {
             var ephem = this.elements[i];
             var M = void 0, a0 = void 0;
@@ -234,6 +270,7 @@ var KeplerParticles = /** @class */ (function () {
             }
             Ms.push(M);
             a0s.push(a0);
+            max_r = Math.max(max_r, ephem.get('q') * (1 + ephem.get('e')));
         }
         this.attributes.M.set(Ms);
         this.attributes.M.needsUpdate = true;
@@ -253,6 +290,14 @@ var KeplerParticles = /** @class */ (function () {
      */
     KeplerParticles.prototype.getId = function () {
         return this.id;
+    };
+    /**
+     * Free all GPU resources
+     */
+    KeplerParticles.prototype.removalCleanup = function () {
+        this.geometry.dispose();
+        this.shaderMaterial.dispose();
+        this.uniforms.tex.value.dispose();
     };
     return KeplerParticles;
 }());

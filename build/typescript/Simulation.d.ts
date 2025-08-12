@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'postprocessing';
-import type { Scene, Vector3, WebGL1Renderer } from 'three';
+import type { Scene, Vector3, WebGLRenderer } from 'three';
 import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
@@ -15,6 +15,9 @@ export interface SimulationObject {
     update: (jd: number, force: boolean) => void;
     get3jsObjects(): THREE.Object3D[];
     getId(): string;
+    removalCleanup: () => void;
+    setVisibility: (visible: boolean) => void;
+    isVisible: () => boolean;
 }
 interface CameraOptions {
     initialPosition?: Coordinate3d;
@@ -43,7 +46,7 @@ export interface SimulationContext {
     simulation: Simulation;
     options: SpacekitOptions;
     objects: {
-        renderer: WebGL1Renderer;
+        renderer: WebGLRenderer;
         camera: Camera;
         scene: Scene;
         particles: KeplerParticles;
@@ -97,6 +100,7 @@ export declare class Simulation {
     private useLightSources;
     private lightPosition?;
     private subscribedObjects;
+    private neverUpdatedObjects;
     private particles;
     private stats?;
     private fps;
@@ -196,10 +200,19 @@ export declare class Simulation {
      */
     addObject(obj: SimulationObject, noUpdate?: boolean): void;
     /**
+     * Get an object previously added to the simulation.
+     * @return {Object} The SimulationObject.
+     */
+    getObject(id: string): SimulationObject | undefined;
+    /**
      * Removes an object from the visualization.
      * @param {Object} obj Object to remove
      */
-    removeObject(obj: SpaceObject): void;
+    removeObject(obj: SimulationObject): void;
+    /**
+     * Removes all objects from the visualization and free all resources.
+     */
+    removalCleanup(): void;
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
      * Takes any SpaceObject arguments.
@@ -355,9 +368,9 @@ export declare class Simulation {
     getScene(): THREE.Scene;
     /**
      * Get the three.js renderer
-     * @return {THREE.WebGL1Renderer} The THREE.js renderer
+     * @return {THREE.WebGLRenderer} The THREE.js renderer
      */
-    getRenderer(): THREE.WebGL1Renderer;
+    getRenderer(): THREE.WebGLRenderer;
     /**
      * Enable or disable camera drift.
      * @param {boolean} driftOn True if you want the camera to float around a bit

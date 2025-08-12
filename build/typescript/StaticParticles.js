@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -80,6 +76,7 @@ var StaticParticles = /** @class */ (function () {
             transparent: true
         });
         this.pointObject = new THREE.Points(geometry, material);
+        this.pointObject.name = this.id + "-point-obj";
     };
     /**
      * A list of THREE.js objects that are used to compose the particle system.
@@ -100,6 +97,26 @@ var StaticParticles = /** @class */ (function () {
     };
     StaticParticles.prototype.update = function () {
         // Static particles don't update
+    };
+    StaticParticles.prototype.isVisible = function () {
+        var _a, _b;
+        return (_b = (_a = this.pointObject) === null || _a === void 0 ? void 0 : _a.visible) !== null && _b !== void 0 ? _b : false;
+    };
+    StaticParticles.prototype.setVisibility = function (val) {
+        if (this.pointObject) {
+            this.pointObject.visible = val;
+        }
+    };
+    /**
+     * Free all GPU resources
+     */
+    StaticParticles.prototype.removalCleanup = function () {
+        var _a;
+        if (this.pointObject) {
+            this.pointObject.geometry.dispose();
+            this.pointObject.material.dispose();
+            (_a = this.pointObject.material.map) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
     };
     return StaticParticles;
 }());

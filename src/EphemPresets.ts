@@ -35,6 +35,7 @@ export const EphemPresets: {
       om: 4.830774804443502e1,
       w: 2.917940253442659e1,
       ma: 2.56190975209273e2,
+      period: 87.969257,
     },
     'deg',
     true /* locked */,
@@ -48,6 +49,7 @@ export const EphemPresets: {
       om: 7.662534150657346e1,
       w: 5.474567447560867e1,
       ma: 2.756687596099721e2,
+      period: 224.70079922,
     },
     'deg',
     true /* locked */,
@@ -73,6 +75,7 @@ export const EphemPresets: {
       om: 0.0,
       wBar: 102.93768193,
       L: 100.46457166,
+      period: 365.256363004,
 
       /*
       epoch: 2458426.500000000,
@@ -89,28 +92,18 @@ export const EphemPresets: {
   ),
   MOON: new Ephem(
     {
-      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-      GM: 0.3986e6,
+      GM: GM.EARTH_MOON,
 
       // Geocentric
       // https://ssd.jpl.nasa.gov/horizons.cgi#results
       epoch: 2458621.5,
-      a: 2.582517063772124e-3,
-      e: 4.582543645168888e-2,
-      i: 5.102060246928811,
-      om: 1.085916732144811e2,
-      w: 6.180561793729225e1,
-      ma: 5.053270083636792e1,
-      /*
-     * heliocentric
-    epoch: 2458621.500000000,
-    a: 1.078855621785179E+00,
-    e: 6.333300212090676E-02,
-    i: 7.211217382317713E-02,
-    om: 6.722057157026397E+01,
-    w: 1.503642883585293E+02,
-    ma: 1.666758688084831E+01,
-   */
+      a: 2.582517063772124e-3,    // A, km => AU, Semi-major axis
+      e: 4.582543645168888e-2,    // EC, Eccentricity
+      i: 5.102060246928811,       // IN, Inclination deg
+      om: 1.085916732144811e2,    // OM, Longitude of Ascending Node, deg
+      w: 6.180561793729225e1,     // W, Argument of Perifocus, deg
+      ma: 5.053270083636792e1,    // MA, Mean Anomaly, deg
+      period: 27.321582,           // P, Period in days
     },
     'deg',
     true /* locked */,
@@ -124,6 +117,7 @@ export const EphemPresets: {
       om: 4.950420572080223e1,
       w: 2.866965847685386e2,
       ma: 2.538237617924876e1,
+      period: 686.98,
     },
     'deg',
     true /* locked */,
@@ -137,6 +131,7 @@ export const EphemPresets: {
       om: 1.005203828847816e2,
       w: 2.73736301845404e2,
       ma: 2.31939544389401e2,
+      period: 4332.589,
     },
     'deg',
     true /* locked */,
@@ -150,6 +145,7 @@ export const EphemPresets: {
       om: 1.136154964073247e2,
       w: 3.394422648650336e2,
       ma: 1.870970898012944e2,
+      period: 10755.698,
     },
     'deg',
     true /* locked */,
@@ -163,6 +159,7 @@ export const EphemPresets: {
       om: 7.414239045667875e1,
       w: 9.942704504702185e1,
       ma: 2.202603033874267e2,
+      period: 30685.4,
     },
     'deg',
     true /* locked */,
@@ -176,6 +173,7 @@ export const EphemPresets: {
       om: 1.318695882492132e2,
       w: 2.586226409499831e2,
       ma: 3.152804988924479e2,
+      period: 60189,
     },
     'deg',
     true /* locked */,

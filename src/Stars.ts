@@ -10,6 +10,7 @@ import type {
   SimulationContext,
   SimulationObject,
 } from './Simulation';
+import { MeshBasicMaterial } from "three/src/materials/MeshBasicMaterial"
 
 interface StarOptions {
   minSize?: number;
@@ -140,6 +141,7 @@ export class Stars implements SimulationObject {
         });
 
         this._stars = new THREE.Points(geometry, material);
+        this._stars.name = this._id
 
         if (this._simulation) {
           this._simulation.addObject(this, true /* noUpdate */);
@@ -168,5 +170,26 @@ export class Stars implements SimulationObject {
 
   update() {
     // Stars don't update
+  }
+
+  isVisible() {
+    return this._stars?.visible ?? false;
+  }
+
+  setVisibility(val: boolean) {
+    if (this._stars) {
+      this._stars.visible = val;
+    }
+  }
+
+  /**
+   * Free all GPU resources
+   */
+  removalCleanup() {
+    if (this._stars) {
+      this._stars.geometry.dispose();
+      (this._stars.material as MeshBasicMaterial).dispose();
+      (this._stars.material as MeshBasicMaterial).map?.dispose();
+    }
   }
 }

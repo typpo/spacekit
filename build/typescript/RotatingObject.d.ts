@@ -8,12 +8,12 @@ import type { SpaceObjectOptions } from './SpaceObject';
  */
 export declare class RotatingObject extends SpaceObject {
     protected _obj: THREE.Object3D;
-    protected _materials: THREE.Material[];
     private _objectIsRotatable;
     private _axisOfRotation?;
     constructor(id: string, options: SpaceObjectOptions, simulation: Simulation, autoInit?: boolean);
     init(): boolean;
     initRotation(): void;
+    _z_rotation(jd: number): number | undefined;
     /**
      * Updates the object and its label positions for a given time.
      * @param {Number} jd JD date

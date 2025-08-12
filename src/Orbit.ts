@@ -9,6 +9,7 @@ import { rescaleArray, rescaleXYZ } from './Scale';
 import type { Coordinate3d } from './Coordinates';
 
 import type { LineBasicMaterial } from 'three';
+import { SpaceObject } from "./SpaceObject"
 
 export enum OrbitType {
   UNKNOWN = 0,
@@ -25,6 +26,8 @@ interface OrbitOptions {
     leadDurationYears?: number;
     trailDurationYears?: number;
     numberSamplePoints?: number;
+    eclipticLineSparsity?: number;
+    drawHeliocentric?: boolean;
   };
 }
 
@@ -32,10 +35,14 @@ const { sin, cos, sqrt } = Math;
 
 const DEFAULT_LEAD_TRAIL_YEARS = 10;
 const DEFAULT_SAMPLE_POINTS = 360;
+const DEFAULT_ECLIPTIC_LINE_SPARSITY = 1;
+const DEFAULT_DRAW_HELIOCENTRIC = false;
 const DEFAULT_ORBIT_PATH_SETTINGS = {
   leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
   numberSamplePoints: DEFAULT_SAMPLE_POINTS,
+  eclipticLineSparsity: DEFAULT_ECLIPTIC_LINE_SPARSITY,
+  drawHeliocentric: DEFAULT_DRAW_HELIOCENTRIC,
 };
 
 /**
@@ -103,26 +110,7 @@ export class Orbit {
     /**
      * configuring orbit path lead/trail data
      */
-    if (!this.options.orbitPathSettings) {
-      this.options.orbitPathSettings = JSON.parse(
-        JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS),
-      );
-    }
-
-    if (!this.options.orbitPathSettings?.leadDurationYears) {
-      this.options.orbitPathSettings!.leadDurationYears =
-        DEFAULT_LEAD_TRAIL_YEARS;
-    }
-
-    if (!this.options.orbitPathSettings?.trailDurationYears) {
-      this.options.orbitPathSettings!.trailDurationYears =
-        DEFAULT_LEAD_TRAIL_YEARS;
-    }
-
-    if (!this.options.orbitPathSettings?.numberSamplePoints) {
-      this.options.orbitPathSettings!.numberSamplePoints =
-        DEFAULT_SAMPLE_POINTS;
-    }
+    this.options.orbitPathSettings = Object.assign({}, DEFAULT_ORBIT_PATH_SETTINGS, this.options.orbitPathSettings ?? {});
 
     /**
      * Cached orbital points.
@@ -153,6 +141,13 @@ export class Orbit {
      * @type {OrbitType}
      */
     this.orbitType = Orbit.getOrbitType(this.ephem);
+  }
+
+  /**
+   * Is orbit heliocentric or not
+   */
+  isHeliocentric(): boolean {
+    return this.options.orbitPathSettings?.drawHeliocentric ?? DEFAULT_DRAW_HELIOCENTRIC;
   }
 
   /**
@@ -399,9 +394,10 @@ export class Orbit {
    * Calculates, caches, and returns the orbit state for this orbit around this time
    * @param {Number} jd center time of the orbit (only used for ephemeris table ephemeris)
    * @param {boolean} forceCompute forces the recomputing of the orbit on this call
+   * @param {SpaceObject} orbitAround the object to orbit around
    * @return {THREE.Line}
    */
-  getOrbitShape(jd?: number, forceCompute = false): THREE.Line {
+  getOrbitShape(jd?: number, forceCompute: boolean = false, orbitAround?: SpaceObject): THREE.Line {
     if (forceCompute) {
       if (this.orbitShape) {
         this.orbitShape.geometry.dispose();
@@ -423,47 +419,49 @@ export class Orbit {
       return this.orbitShape;
     }
 
-    if (this.orbitType === OrbitType.ELLIPTICAL) {
-      return this.getEllipse();
-    }
-
     // Decide on a time range to draw orbits.
-    // TODO(ian): Should we compute around current position, not time of perihelion?
-    let tp;
-    if (this.ephem instanceof EphemerisTable) {
-      tp = jd;
-    } else {
-      tp = this.ephem.getUnsafe('tp');
+    if (this.orbitType === OrbitType.TABLE && this.ephem instanceof EphemerisTable) {
+      this.orbitStart = this.ephem.getStartJd();
+      this.orbitStop = this.ephem.getStopJd();
     }
-    // Use current date as a fallback if time of perihelion is not available.
-    const centerDate = tp ? tp : julian.toJulianDay(new Date());
-    const startJd =
-      centerDate - this.options.orbitPathSettings!.trailDurationYears! * 365.25;
-    const endJd =
-      centerDate + this.options.orbitPathSettings!.leadDurationYears! * 365.25;
-    const step =
-      (endJd - startJd) / this.options.orbitPathSettings!.numberSamplePoints!;
+    else if (this.orbitType !== OrbitType.TABLE && !(this.ephem instanceof EphemerisTable)) {
+      // TODO(ian): Should we compute around current position, not time of perihelion?
+      // Use current date as a fallback if time of perihelion is not available.
+      const tp = jd ?? this.ephem.getUnsafe('tp') ?? julian.toJulianDay(new Date());
+      this.orbitStart = tp - this.options.orbitPathSettings!.trailDurationYears! * 365.25;
+      this.orbitStop = tp + this.options.orbitPathSettings!.leadDurationYears! * 365.25;
+    }
+    else {
+      throw new Error("if this.orbitType == OrbitType.TABLE, then this.ephem needs to be an instance of EphemerisTable and vice versa");
+    }
 
-    this.orbitStart = startJd;
-    this.orbitStop = endJd;
+    const step = (this.orbitStop - this.orbitStart) / this.options.orbitPathSettings!.numberSamplePoints!;
 
     switch (this.orbitType) {
+      case OrbitType.ELLIPTICAL:
+        if (this.options.orbitPathSettings?.drawHeliocentric && orbitAround) {
+          return this.getEllipseAround(this.orbitStart, this.orbitStop, step, orbitAround);
+        }
+        return this.getEllipse();
       case OrbitType.HYPERBOLIC:
         return this.getLine(
           this.getPositionAtTimeHyperbolic.bind(this),
-          startJd,
-          endJd,
+          this.orbitStart,
+          this.orbitStop,
           step,
+          this.options.orbitPathSettings?.drawHeliocentric ? orbitAround : undefined,
         );
       case OrbitType.PARABOLIC:
         return this.getLine(
           this.getPositionAtTimeNearParabolic.bind(this),
-          startJd,
-          endJd,
+          this.orbitStart,
+          this.orbitStop,
           step,
+          this.options.orbitPathSettings?.drawHeliocentric ? orbitAround : undefined,
         );
       case OrbitType.TABLE:
-        return this.getTableOrbit(startJd, endJd, step);
+        return this.getTableOrbit(this.orbitStart, this.orbitStop, step,
+          this.options.orbitPathSettings?.drawHeliocentric ? orbitAround : undefined);
       default:
         throw new Error('Unknown orbit shape');
     }
@@ -478,10 +476,17 @@ export class Orbit {
     startJd: number,
     endJd: number,
     step: number,
+    orbitAround?: SpaceObject,
   ) {
     const points: THREE.Vector3[] = [];
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
+      if (orbitAround) {
+        const parentPos = orbitAround.getPosition(jd);
+        pos[0] += parentPos[0];
+        pos[1] += parentPos[1];
+        pos[2] += parentPos[2];
+      }
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
     return this.generateAndCacheOrbitShape(points);
@@ -493,12 +498,14 @@ export class Orbit {
    * @param {Number} startJd start of orbit in JDate format
    * @param {Number} stopJd end of orbit in JDate format
    * @param {Number} step step size in days
+   * @param {SpaceObject} orbitAround the object to orbit around
    * @return {THREE.Line}
    */
   private getTableOrbit(
     startJd: number,
     stopJd: number,
     step: number,
+    orbitAround?: SpaceObject,
   ): THREE.Line {
     if (this.ephem instanceof Ephem) {
       throw new Error(
@@ -510,6 +517,15 @@ export class Orbit {
       .map((values) => rescaleArray(values))
       .map((values) => new THREE.Vector3(values[0], values[1], values[2]));
 
+    if (orbitAround) {
+      points.forEach((point, idx) => {
+        const parentPos = orbitAround.getPosition(startJd + idx * step);
+        point.x += parentPos[0];
+        point.y += parentPos[1];
+        point.z += parentPos[2];
+      });
+    }
+
     return this.generateAndCacheOrbitShape(points);
   }
 
@@ -520,6 +536,20 @@ export class Orbit {
   private getEllipse() {
     const points = this.getEllipsePoints();
     return this.generateAndCacheOrbitShape(points);
+  }
+
+  /**
+   * @private
+   * @return {THREE.Line} The ellipse object around an orbit, in heliocentric frame.
+   */
+  private getEllipseAround(startJd: number, stopJd: number, step: number, orbitAround: SpaceObject) {
+    const pts = [];
+    for (let jd = startJd; jd <= stopJd; jd += step) {
+      const parentPos = orbitAround.getPosition(jd);
+      const pos = this.getPositionAtTimeElliptical(jd, false);
+      pts.push(new THREE.Vector3(parentPos[0] + pos[0], parentPos[1] + pos[1], parentPos[2] + pos[2]));
+    }
+    return this.generateAndCacheOrbitShape(pts);
   }
 
   /**
@@ -536,10 +566,8 @@ export class Orbit {
     const ecc = eph.get('e');
 
     const twoPi = Math.PI * 2;
-    let step = twoPi / 90;
-    if (ecc > 0.9) {
-      step = twoPi / 360;
-    }
+    const step = twoPi / this.options.orbitPathSettings!.numberSamplePoints!;
+
     const pts = [];
     for (let E = 0; E < twoPi; E += step) {
       const v = 2 * Math.atan(sqrt((1 + ecc) / (1 - ecc)) * Math.tan(E / 2));
@@ -565,6 +593,13 @@ export class Orbit {
   private generateAndCacheOrbitShape(
     pointVectors: THREE.Vector3[],
   ): THREE.Line {
+
+    if (this.orbitShape) {
+      // clean up before creating new resources
+      this.orbitShape.geometry.dispose();
+      (this.orbitShape.material as LineBasicMaterial).dispose();
+    }
+
     this.orbitPoints = pointVectors;
     this.orbitShape = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pointVectors),
@@ -599,7 +634,8 @@ export class Orbit {
       // Drop last point because it's a repeat of the first point.
       if (
         idx === points.length - 1 &&
-        this.orbitType === OrbitType.ELLIPTICAL
+        this.orbitType === OrbitType.ELLIPTICAL ||
+        (idx % (this.options.orbitPathSettings?.eclipticLineSparsity ?? 1) != 0)
       ) {
         return;
       }
@@ -651,6 +687,21 @@ export class Orbit {
    */
   setVisibility(val: boolean) {
     this.getOrbitShape().visible = val;
+    this.getLinesToEcliptic().visible = val;
+  }
+
+  /**
+   * Free up GPU resources
+   */
+  removalCleanup() {
+    if (this.orbitShape) {
+      this.orbitShape.geometry.dispose();
+      (this.orbitShape.material as LineBasicMaterial).dispose();
+    }
+    if (this.eclipticDropLines) {
+      this.eclipticDropLines.geometry.dispose();
+      (this.eclipticDropLines.material as LineBasicMaterial).dispose();
+    }
   }
 
   /**

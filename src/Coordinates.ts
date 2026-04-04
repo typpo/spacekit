@@ -71,9 +71,9 @@ export default class Coordinates {
 
     const nutation =
       (-17.2 / 3600) * Math.sin(omega) -
-      (-1.32 / 3600) * Math.sin(2 * Lsun) -
+      (1.32 / 3600) * Math.sin(2 * Lsun) -
       (0.23 / 3600) * Math.sin(2 * Lmoon) +
-      Units.deg((0.21 / 3600) * Math.sin(2 * omega));
+      (0.21 / 3600) * Math.sin(2 * omega);
 
     const obliquity_zero =
       23 +

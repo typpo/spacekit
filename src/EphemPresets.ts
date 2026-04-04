@@ -90,7 +90,7 @@ export const EphemPresets: {
   MOON: new Ephem(
     {
       // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-      GM: 0.3986e6,
+      GM: GM.EARTH_MOON,
 
       // Geocentric
       // https://ssd.jpl.nasa.gov/horizons.cgi#results
@@ -259,28 +259,17 @@ export class NaturalSatellites {
               this._satellitesByPlanet[planetName] = [];
             }
 
-            let ephemType;
-            switch (moon['Element Type']) {
+            const ephemType = moon['Element Type'];
+            switch (ephemType) {
               case 'Ecliptic':
                 // Don't have to do anything
                 break;
               case 'Equatorial':
-                // TODO(ian): Convert equatorial coords
-                ephemType = 'equatorial';
-                /*
-                throw new Error(
-                  `Ephemeris type not yet implemented: ${ephemType}`,
-                );
-                 */
-                break;
               case 'Laplace':
-                // TODO(ian): Convert laplace coords
-                ephemType = 'equatorial';
-                /*
-                throw new Error(
-                  `Ephemeris type not yet implemented: ${ephemType}`,
+                // TODO(ian): Convert equatorial/Laplace coords to ecliptic
+                console.warn(
+                  `Satellite "${moon['Sat.']}": ${ephemType} elements are not yet converted to ecliptic; orbit will be approximate`,
                 );
-                 */
                 break;
               default:
                 console.warn(

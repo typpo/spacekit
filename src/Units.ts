@@ -24,10 +24,9 @@ export default class Units {
     decDeg: number,
     decMin: number,
     decSec: number,
-    isObserverBelowEquator: boolean = false,
   ): number {
-    const posneg = isObserverBelowEquator ? -1 : 1;
-    return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
+    const sign = decDeg < 0 ? -1 : 1;
+    return decDeg + sign * (decMin / 60.0 + decSec / 3600.0);
   }
 
   static valToSexagesimalRa(val: number): [number, number, number] {
@@ -37,16 +36,14 @@ export default class Units {
     return [raHour, raMin, raSec];
   }
 
-  static decimalToSexagesimalDec(
-    val: number,
-    isObserverBelowEquator: boolean = false,
-  ) {
-    const posneg = isObserverBelowEquator ? -1 : 1;
+  static decimalToSexagesimalDec(val: number) {
+    const sign = val < 0 ? -1 : 1;
+    const absVal = Math.abs(val);
 
     const decDeg = Math.trunc(val);
-    const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
+    const decMin = Math.trunc((absVal - Math.abs(decDeg)) * 60.0);
     const decSec =
-      (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+      (absVal - Math.abs(decDeg) - decMin / 60.0) * 3600.0;
     return [decDeg, decMin, decSec];
   }
 

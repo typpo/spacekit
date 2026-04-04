@@ -1,5 +1,13 @@
 language: node_js
 node_js:
   - 14
-cache: yarn
-
+before_install:
+  - npm install -g pnpm@7.33.5
+  - pnpm config set store-dir ~/.pnpm-store
+install:
+  - pnpm install --frozen-lockfile
+script:
+  - pnpm test
+cache:
+  directories:
+    - $HOME/.pnpm-store

@@ -1,5 +1,6 @@
 import Units from './Units';
 import { Ephem, GM } from './Ephem';
+import Coordinates, { Coordinate3d } from './Coordinates';
 import { getFullUrl } from './util';
 
 import type { Simulation, SimulationContext } from './Simulation';
@@ -218,6 +219,228 @@ interface NaturalSatelliteRecord {
   Ref: string;
 }
 
+type ReferencePlanePole = {
+  ra: number;
+  dec: number;
+};
+
+const NATURAL_SATELLITE_EQUATORIAL_POLES: Record<
+  string,
+  ReferencePlanePole
+> = {
+  // J2000 pole orientations from NAIF PCK pck00011.tpc.
+  Pluto: {
+    ra: 132.993,
+    dec: -6.163,
+  },
+  Uranus: {
+    ra: 257.311,
+    dec: -15.175,
+  },
+};
+
+const J2000_OBLIQUITY = Coordinates.getObliquity();
+const REFERENCE_PLANE_Z_AXIS: Coordinate3d = [0, 0, 1];
+const VECTOR_EPSILON = 1e-12;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function normalizeDegrees(angleDeg: number) {
+  const normalized = angleDeg % 360;
+  return normalized < 0 ? normalized + 360 : normalized;
+}
+
+function dotProduct(a: Coordinate3d, b: Coordinate3d): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function crossProduct(a: Coordinate3d, b: Coordinate3d): Coordinate3d {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function magnitude(vector: Coordinate3d): number {
+  return Math.sqrt(dotProduct(vector, vector));
+}
+
+function normalizeVector(vector: Coordinate3d): Coordinate3d {
+  const vectorMagnitude = magnitude(vector);
+  if (vectorMagnitude < VECTOR_EPSILON) {
+    throw new Error('Cannot normalize zero-length vector');
+  }
+
+  return vector.map((value) => value / vectorMagnitude) as Coordinate3d;
+}
+
+function transformToReferenceFrame(
+  vector: Coordinate3d,
+  basis: [Coordinate3d, Coordinate3d, Coordinate3d],
+): Coordinate3d {
+  return [
+    basis[0][0] * vector[0] +
+      basis[1][0] * vector[1] +
+      basis[2][0] * vector[2],
+    basis[0][1] * vector[0] +
+      basis[1][1] * vector[1] +
+      basis[2][1] * vector[2],
+    basis[0][2] * vector[0] +
+      basis[1][2] * vector[1] +
+      basis[2][2] * vector[2],
+  ];
+}
+
+function equatorialToEcliptic(vector: Coordinate3d): Coordinate3d {
+  return Coordinates.equatorialToEcliptic_Cartesian(
+    vector[0],
+    vector[1],
+    vector[2],
+    J2000_OBLIQUITY,
+  );
+}
+
+function getReferencePlanePole(
+  moon: NaturalSatelliteRecord,
+): ReferencePlanePole | undefined {
+  switch (moon['Element Type']) {
+    case 'Laplace': {
+      const ra = Number(moon.RA);
+      const dec = Number(moon.Dec);
+      if (Number.isFinite(ra) && Number.isFinite(dec)) {
+        return { ra, dec };
+      }
+      return undefined;
+    }
+    case 'Equatorial':
+      return NATURAL_SATELLITE_EQUATORIAL_POLES[moon.Planet];
+    default:
+      return undefined;
+  }
+}
+
+function getReferencePlaneBasis(
+  pole: ReferencePlanePole,
+): [Coordinate3d, Coordinate3d, Coordinate3d] {
+  const zAxis = normalizeVector(
+    Coordinates.sphericalToCartesian(
+      Units.rad(pole.ra),
+      Units.rad(pole.dec),
+      1,
+    ),
+  );
+
+  let xAxis = crossProduct(REFERENCE_PLANE_Z_AXIS, zAxis);
+  if (magnitude(xAxis) < VECTOR_EPSILON) {
+    xAxis = [1, 0, 0];
+  }
+  xAxis = normalizeVector(xAxis);
+
+  const yAxis = normalizeVector(crossProduct(zAxis, xAxis));
+  return [xAxis, yAxis, zAxis];
+}
+
+function getPeriapsisDirection(
+  inclinationDeg: number,
+  nodeDeg: number,
+  periapsisDeg: number,
+): Coordinate3d {
+  const inclination = Units.rad(inclinationDeg);
+  const node = Units.rad(nodeDeg);
+  const periapsis = Units.rad(periapsisDeg);
+
+  return [
+    Math.cos(node) * Math.cos(periapsis) -
+      Math.sin(node) * Math.sin(periapsis) * Math.cos(inclination),
+    Math.sin(node) * Math.cos(periapsis) +
+      Math.cos(node) * Math.sin(periapsis) * Math.cos(inclination),
+    Math.sin(periapsis) * Math.sin(inclination),
+  ];
+}
+
+function getOrbitalPole(
+  inclinationDeg: number,
+  nodeDeg: number,
+): Coordinate3d {
+  const inclination = Units.rad(inclinationDeg);
+  const node = Units.rad(nodeDeg);
+
+  return [
+    Math.sin(node) * Math.sin(inclination),
+    -Math.cos(node) * Math.sin(inclination),
+    Math.cos(inclination),
+  ];
+}
+
+function convertReferencePlaneAnglesToEcliptic(
+  moon: NaturalSatelliteRecord,
+): { i: number; om: number; w: number } {
+  if (moon['Element Type'] === 'Ecliptic') {
+    return {
+      i: Number(moon.i),
+      om: Number(moon.node),
+      w: Number(moon.w),
+    };
+  }
+
+  const pole = getReferencePlanePole(moon);
+  if (!pole) {
+    throw new Error(
+      `Missing reference plane pole for ${moon.Planet} ${moon['Sat.']} (${moon['Element Type']})`,
+    );
+  }
+
+  const referenceBasis = getReferencePlaneBasis(pole);
+  const periapsisDirection = getPeriapsisDirection(
+    Number(moon.i),
+    Number(moon.node),
+    Number(moon.w),
+  );
+  const orbitalPole = getOrbitalPole(Number(moon.i), Number(moon.node));
+
+  const eclipticPeriapsis = normalizeVector(
+    equatorialToEcliptic(
+      transformToReferenceFrame(periapsisDirection, referenceBasis),
+    ),
+  );
+  const eclipticPole = normalizeVector(
+    equatorialToEcliptic(
+      transformToReferenceFrame(orbitalPole, referenceBasis),
+    ),
+  );
+
+  const inclination = Math.acos(clamp(eclipticPole[2], -1, 1));
+  const nodeVector: Coordinate3d = [-eclipticPole[1], eclipticPole[0], 0];
+  const nodeMagnitude = magnitude(nodeVector);
+
+  let node = 0;
+  let periapsis = 0;
+
+  if (nodeMagnitude < VECTOR_EPSILON) {
+    periapsis = Math.atan2(eclipticPeriapsis[1], eclipticPeriapsis[0]);
+  } else {
+    const ascendingNode = normalizeVector(nodeVector);
+    const transverseAxis = normalizeVector(
+      crossProduct(eclipticPole, ascendingNode),
+    );
+
+    node = Math.atan2(ascendingNode[1], ascendingNode[0]);
+    periapsis = Math.atan2(
+      dotProduct(eclipticPeriapsis, transverseAxis),
+      dotProduct(eclipticPeriapsis, ascendingNode),
+    );
+  }
+
+  return {
+    i: Units.deg(inclination),
+    om: normalizeDegrees(Units.deg(node)),
+    w: normalizeDegrees(Units.deg(periapsis)),
+  };
+}
+
 /**
  * A class for fetching orbital elements of natural satellites in our solar
  * system.
@@ -259,35 +482,19 @@ export class NaturalSatellites {
               this._satellitesByPlanet[planetName] = [];
             }
 
-            let ephemType;
             switch (moon['Element Type']) {
               case 'Ecliptic':
-                // Don't have to do anything
-                break;
               case 'Equatorial':
-                // TODO(ian): Convert equatorial coords
-                ephemType = 'equatorial';
-                /*
-                throw new Error(
-                  `Ephemeris type not yet implemented: ${ephemType}`,
-                );
-                 */
-                break;
               case 'Laplace':
-                // TODO(ian): Convert laplace coords
-                ephemType = 'equatorial';
-                /*
-                throw new Error(
-                  `Ephemeris type not yet implemented: ${ephemType}`,
-                );
-                 */
                 break;
               default:
                 console.warn(
-                  `Ephemeris type not yet implemented: ${ephemType}`,
+                  `Ephemeris type not yet implemented: ${moon['Element Type']}`,
                 );
                 return;
             }
+
+            const eclipticAngles = convertReferencePlaneAnglesToEcliptic(moon);
 
             let ephemGM;
             switch (moon.Planet) {
@@ -310,9 +517,9 @@ export class NaturalSatellites {
                 epoch: Number(moon['Epoch JD']),
                 a: Units.kmToAu(Number(moon.a)),
                 e: Number(moon.e),
-                i: Number(moon.i),
-                w: Number(moon.w),
-                om: Number(moon.node),
+                i: eclipticAngles.i,
+                w: eclipticAngles.w,
+                om: eclipticAngles.om,
                 ma: Number(moon.M),
               },
               'deg',

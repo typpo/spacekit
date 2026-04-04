@@ -14,6 +14,14 @@ describe('Angular Conversions', () => {
   ])('Converts %f rad to %f deg', (rad, deg) => {
     expect(Units.deg(rad)).toBeCloseTo(deg, 12);
   });
+
+  test('Converts southern sexagesimal declination to decimal', () => {
+    expect(Units.sexagesimalToDecimalDec(-30, 30, 0)).toBeCloseTo(-30.5, 12);
+  });
+
+  test('Converts negative decimal declination to sexagesimal without negative minutes or seconds', () => {
+    expect(Units.decimalToSexagesimalDec(-30.5)).toEqual([-30, 30, 0]);
+  });
 });
 
 describe('Length conversions', () => {

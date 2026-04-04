@@ -292,7 +292,7 @@ export class Orbit {
     }
     const F = F0;
 
-    const v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+    const v = 2 * Math.atan(sqrt((e + 1) / (e - 1)) * Math.tanh(F / 2));
     const r = (a * (1 - e * e)) / (1 + e * cos(v));
 
     return this.vectorToHeliocentric(v, r);

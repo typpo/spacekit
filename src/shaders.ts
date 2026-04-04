@@ -107,7 +107,7 @@ export function getOrbitShaderVertex() {
       }
       float F = F0;
 
-      float v = 2.0 * atan(sqrt((e + 1.0) / (e - 1.0))) * tanh(F / 2.0);
+      float v = 2.0 * atan(sqrt((e + 1.0) / (e - 1.0)) * tanh(F / 2.0));
       float r = ${getScaleFactor().toFixed(
         1,
       )} * (a * (1.0 - e * e)) / (1.0 + e * cos(v));

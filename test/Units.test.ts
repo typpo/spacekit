@@ -25,3 +25,13 @@ describe('Length conversions', () => {
     expect(Units.auToKm(1)).toBeCloseTo(149597870.7, 11);
   });
 });
+
+describe('Declination conversions', () => {
+  test('Converts southern sexagesimal declination to decimal degrees', () => {
+    expect(Units.sexagesimalToDecimalDec(-12, 30, 0)).toBeCloseTo(-12.5, 12);
+  });
+
+  test('Converts southern decimal declination to sexagesimal components', () => {
+    expect(Units.decimalToSexagesimalDec(-12.5)).toEqual([-12, 30, 0]);
+  });
+});

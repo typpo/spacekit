@@ -26,8 +26,10 @@ export default class Units {
     decSec: number,
     isObserverBelowEquator: boolean = false,
   ): number {
-    const posneg = isObserverBelowEquator ? -1 : 1;
-    return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
+    const sign = decDeg < 0 || Object.is(decDeg, -0) ? -1 : 1;
+    const magnitude =
+      Math.abs(decDeg) + decMin / 60.0 + decSec / 3600.0;
+    return sign * magnitude;
   }
 
   static valToSexagesimalRa(val: number): [number, number, number] {
@@ -41,12 +43,11 @@ export default class Units {
     val: number,
     isObserverBelowEquator: boolean = false,
   ) {
-    const posneg = isObserverBelowEquator ? -1 : 1;
-
-    const decDeg = Math.trunc(val);
-    const decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-    const decSec =
-      (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+    const sign = val < 0 || Object.is(val, -0) ? -1 : 1;
+    const absVal = Math.abs(val);
+    const decDeg = sign * Math.trunc(absVal);
+    const decMin = Math.trunc((absVal - Math.trunc(absVal)) * 60.0);
+    const decSec = ((absVal - Math.trunc(absVal)) * 60.0 - decMin) * 60.0;
     return [decDeg, decMin, decSec];
   }
 

@@ -90,7 +90,7 @@ export const EphemPresets: {
   MOON: new Ephem(
     {
       // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-      GM: 0.3986e6,
+      GM: 0.3986e15,
 
       // Geocentric
       // https://ssd.jpl.nasa.gov/horizons.cgi#results

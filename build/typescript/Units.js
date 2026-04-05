@@ -18,8 +18,9 @@ var Units = /** @class */ (function () {
     };
     Units.sexagesimalToDecimalDec = function (decDeg, decMin, decSec, isObserverBelowEquator) {
         if (isObserverBelowEquator === void 0) { isObserverBelowEquator = false; }
-        var posneg = isObserverBelowEquator ? -1 : 1;
-        return decDeg + decMin / 60.0 + (posneg * decSec) / 3600.0;
+        var sign = decDeg < 0 || Object.is(decDeg, -0) ? -1 : 1;
+        var magnitude = Math.abs(decDeg) + decMin / 60.0 + decSec / 3600.0;
+        return sign * magnitude;
     };
     Units.valToSexagesimalRa = function (val) {
         var raHour = Math.trunc(val / 15.0);
@@ -29,10 +30,11 @@ var Units = /** @class */ (function () {
     };
     Units.decimalToSexagesimalDec = function (val, isObserverBelowEquator) {
         if (isObserverBelowEquator === void 0) { isObserverBelowEquator = false; }
-        var posneg = isObserverBelowEquator ? -1 : 1;
-        var decDeg = Math.trunc(val);
-        var decMin = Math.trunc((val - posneg * decDeg) * 60.0 * posneg);
-        var decSec = (val - posneg * decDeg - (posneg * decMin) / 60.0) * 3600.0 * posneg;
+        var sign = val < 0 || Object.is(val, -0) ? -1 : 1;
+        var absVal = Math.abs(val);
+        var decDeg = sign * Math.trunc(absVal);
+        var decMin = Math.trunc((absVal - Math.trunc(absVal)) * 60.0);
+        var decSec = ((absVal - Math.trunc(absVal)) * 60.0 - decMin) * 60.0;
         return [decDeg, decMin, decSec];
     };
     Units.kmToAu = function (km) {

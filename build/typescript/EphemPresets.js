@@ -6,6 +6,7 @@ exports.__esModule = true;
 exports.NaturalSatellites = exports.EphemPresets = void 0;
 var Units_1 = __importDefault(require("./Units"));
 var Ephem_1 = require("./Ephem");
+var Coordinates_1 = __importDefault(require("./Coordinates"));
 var util_1 = require("./util");
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
@@ -58,7 +59,7 @@ exports.EphemPresets = {
     }, 'deg', true /* locked */),
     MOON: new Ephem_1.Ephem({
         // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-        GM: 0.3986e6,
+        GM: 0.3986e15,
         // Geocentric
         // https://ssd.jpl.nasa.gov/horizons.cgi#results
         epoch: 2458621.5,
@@ -124,6 +125,147 @@ exports.EphemPresets = {
         ma: 25.2471897122
     }, 'deg', true /* locked */)
 };
+var NATURAL_SATELLITE_EQUATORIAL_POLES = {
+    // J2000 pole orientations from NAIF PCK pck00011.tpc.
+    Pluto: {
+        ra: 132.993,
+        dec: -6.163
+    },
+    Uranus: {
+        ra: 257.311,
+        dec: -15.175
+    }
+};
+var J2000_OBLIQUITY = Coordinates_1["default"].getObliquity();
+var REFERENCE_PLANE_Z_AXIS = [0, 0, 1];
+var VECTOR_EPSILON = 1e-12;
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+function normalizeDegrees(angleDeg) {
+    var normalized = angleDeg % 360;
+    return normalized < 0 ? normalized + 360 : normalized;
+}
+function dotProduct(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+function crossProduct(a, b) {
+    return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ];
+}
+function magnitude(vector) {
+    return Math.sqrt(dotProduct(vector, vector));
+}
+function normalizeVector(vector) {
+    var vectorMagnitude = magnitude(vector);
+    if (vectorMagnitude < VECTOR_EPSILON) {
+        throw new Error('Cannot normalize zero-length vector');
+    }
+    return vector.map(function (value) { return value / vectorMagnitude; });
+}
+function transformToReferenceFrame(vector, basis) {
+    return [
+        basis[0][0] * vector[0] +
+            basis[1][0] * vector[1] +
+            basis[2][0] * vector[2],
+        basis[0][1] * vector[0] +
+            basis[1][1] * vector[1] +
+            basis[2][1] * vector[2],
+        basis[0][2] * vector[0] +
+            basis[1][2] * vector[1] +
+            basis[2][2] * vector[2],
+    ];
+}
+function equatorialToEcliptic(vector) {
+    return Coordinates_1["default"].equatorialToEcliptic_Cartesian(vector[0], vector[1], vector[2], J2000_OBLIQUITY);
+}
+function getReferencePlanePole(moon) {
+    switch (moon['Element Type']) {
+        case 'Laplace': {
+            var ra = Number(moon.RA);
+            var dec = Number(moon.Dec);
+            if (Number.isFinite(ra) && Number.isFinite(dec)) {
+                return { ra: ra, dec: dec };
+            }
+            return undefined;
+        }
+        case 'Equatorial':
+            return NATURAL_SATELLITE_EQUATORIAL_POLES[moon.Planet];
+        default:
+            return undefined;
+    }
+}
+function getReferencePlaneBasis(pole) {
+    var zAxis = normalizeVector(Coordinates_1["default"].sphericalToCartesian(Units_1["default"].rad(pole.ra), Units_1["default"].rad(pole.dec), 1));
+    var xAxis = crossProduct(REFERENCE_PLANE_Z_AXIS, zAxis);
+    if (magnitude(xAxis) < VECTOR_EPSILON) {
+        xAxis = [1, 0, 0];
+    }
+    xAxis = normalizeVector(xAxis);
+    var yAxis = normalizeVector(crossProduct(zAxis, xAxis));
+    return [xAxis, yAxis, zAxis];
+}
+function getPeriapsisDirection(inclinationDeg, nodeDeg, periapsisDeg) {
+    var inclination = Units_1["default"].rad(inclinationDeg);
+    var node = Units_1["default"].rad(nodeDeg);
+    var periapsis = Units_1["default"].rad(periapsisDeg);
+    return [
+        Math.cos(node) * Math.cos(periapsis) -
+            Math.sin(node) * Math.sin(periapsis) * Math.cos(inclination),
+        Math.sin(node) * Math.cos(periapsis) +
+            Math.cos(node) * Math.sin(periapsis) * Math.cos(inclination),
+        Math.sin(periapsis) * Math.sin(inclination),
+    ];
+}
+function getOrbitalPole(inclinationDeg, nodeDeg) {
+    var inclination = Units_1["default"].rad(inclinationDeg);
+    var node = Units_1["default"].rad(nodeDeg);
+    return [
+        Math.sin(node) * Math.sin(inclination),
+        -Math.cos(node) * Math.sin(inclination),
+        Math.cos(inclination),
+    ];
+}
+function convertReferencePlaneAnglesToEcliptic(moon) {
+    if (moon['Element Type'] === 'Ecliptic') {
+        return {
+            i: Number(moon.i),
+            om: Number(moon.node),
+            w: Number(moon.w)
+        };
+    }
+    var pole = getReferencePlanePole(moon);
+    if (!pole) {
+        throw new Error("Missing reference plane pole for ".concat(moon.Planet, " ").concat(moon['Sat.'], " (").concat(moon['Element Type'], ")"));
+    }
+    var referenceBasis = getReferencePlaneBasis(pole);
+    var periapsisDirection = getPeriapsisDirection(Number(moon.i), Number(moon.node), Number(moon.w));
+    var orbitalPole = getOrbitalPole(Number(moon.i), Number(moon.node));
+    var eclipticPeriapsis = normalizeVector(equatorialToEcliptic(transformToReferenceFrame(periapsisDirection, referenceBasis)));
+    var eclipticPole = normalizeVector(equatorialToEcliptic(transformToReferenceFrame(orbitalPole, referenceBasis)));
+    var inclination = Math.acos(clamp(eclipticPole[2], -1, 1));
+    var nodeVector = [-eclipticPole[1], eclipticPole[0], 0];
+    var nodeMagnitude = magnitude(nodeVector);
+    var node = 0;
+    var periapsis = 0;
+    if (nodeMagnitude < VECTOR_EPSILON) {
+        periapsis = Math.atan2(eclipticPeriapsis[1], eclipticPeriapsis[0]);
+    }
+    else {
+        var ascendingNode = normalizeVector(nodeVector);
+        var transverseAxis = normalizeVector(crossProduct(eclipticPole, ascendingNode));
+        node = Math.atan2(ascendingNode[1], ascendingNode[0]);
+        periapsis = Math.atan2(dotProduct(eclipticPeriapsis, transverseAxis), dotProduct(eclipticPeriapsis, ascendingNode));
+    }
+    return {
+        i: Units_1["default"].deg(inclination),
+        om: normalizeDegrees(Units_1["default"].deg(node)),
+        w: normalizeDegrees(Units_1["default"].deg(periapsis))
+    };
+}
 /**
  * A class for fetching orbital elements of natural satellites in our solar
  * system.
@@ -144,33 +286,16 @@ var NaturalSatellites = /** @class */ (function () {
                     if (!_this._satellitesByPlanet[planetName]) {
                         _this._satellitesByPlanet[planetName] = [];
                     }
-                    var ephemType;
                     switch (moon['Element Type']) {
                         case 'Ecliptic':
-                            // Don't have to do anything
-                            break;
                         case 'Equatorial':
-                            // TODO(ian): Convert equatorial coords
-                            ephemType = 'equatorial';
-                            /*
-                            throw new Error(
-                              `Ephemeris type not yet implemented: ${ephemType}`,
-                            );
-                             */
-                            break;
                         case 'Laplace':
-                            // TODO(ian): Convert laplace coords
-                            ephemType = 'equatorial';
-                            /*
-                            throw new Error(
-                              `Ephemeris type not yet implemented: ${ephemType}`,
-                            );
-                             */
                             break;
                         default:
-                            console.warn("Ephemeris type not yet implemented: ".concat(ephemType));
+                            console.warn("Ephemeris type not yet implemented: ".concat(moon['Element Type']));
                             return;
                     }
+                    var eclipticAngles = convertReferencePlaneAnglesToEcliptic(moon);
                     var ephemGM;
                     switch (moon.Planet) {
                         case 'Earth':
@@ -190,9 +315,9 @@ var NaturalSatellites = /** @class */ (function () {
                         epoch: Number(moon['Epoch JD']),
                         a: Units_1["default"].kmToAu(Number(moon.a)),
                         e: Number(moon.e),
-                        i: Number(moon.i),
-                        w: Number(moon.w),
-                        om: Number(moon.node),
+                        i: eclipticAngles.i,
+                        w: eclipticAngles.w,
+                        om: eclipticAngles.om,
                         ma: Number(moon.M)
                     }, 'deg', true /* locked */);
                     _this._satellitesByPlanet[planetName].push({

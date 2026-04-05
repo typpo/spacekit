@@ -101,7 +101,7 @@ var Ephem = /** @class */ (function () {
             this.attrs.GM = exports.GM.SUN;
         }
         this.fill();
-        if (this.get('e') > 0.9 && typeof this.getUnsafe('tp') === 'undefined') {
+        if (this.get('e') >= 0.999 && typeof this.getUnsafe('tp') === 'undefined') {
             console.warn('You must specify "tp" (time of perihelion) for highly eccentric orbits');
         }
         this.locked = locked;

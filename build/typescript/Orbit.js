@@ -243,7 +243,7 @@ var Orbit = /** @class */ (function () {
             }
         }
         var F = F0;
-        var v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+        var v = 2 * Math.atan(sqrt((e + 1) / (e - 1)) * Math.tanh(F / 2));
         var r = (a * (1 - e * e)) / (1 + e * cos(v));
         return this.vectorToHeliocentric(v, r);
     };
@@ -434,6 +434,9 @@ var Orbit = /** @class */ (function () {
         var ecc = eph.get('e');
         var twoPi = Math.PI * 2;
         var step = twoPi / 90;
+        if (ecc > 0.9) {
+            step = twoPi / 360;
+        }
         var pts = [];
         for (var E = 0; E < twoPi; E += step) {
             var v = 2 * Math.atan(sqrt((1 + ecc) / (1 - ecc)) * Math.tan(E / 2));
@@ -535,7 +538,7 @@ var Orbit = /** @class */ (function () {
             return OrbitType.TABLE;
         }
         var e = ephem.get('e');
-        if (e > 0.9 && e < 1.2) {
+        if (e >= 0.999 && e < 1.2) {
             return OrbitType.PARABOLIC;
         }
         if (e > 1.2) {

@@ -46,9 +46,9 @@ var Coordinates = /** @class */ (function () {
         var Lsun = Units_1["default"].rad(280.4665 + 36000.7698 * t);
         var Lmoon = Units_1["default"].rad(218.3165 + 481267.8813 * t);
         var nutation = (-17.2 / 3600) * Math.sin(omega) -
-            (-1.32 / 3600) * Math.sin(2 * Lsun) -
+            (1.32 / 3600) * Math.sin(2 * Lsun) -
             (0.23 / 3600) * Math.sin(2 * Lmoon) +
-            Units_1["default"].deg((0.21 / 3600) * Math.sin(2 * omega));
+            (0.21 / 3600) * Math.sin(2 * omega);
         var obliquity_zero = 23 +
             26.0 / 60 +
             21.448 / 3600 -

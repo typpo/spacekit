@@ -65,11 +65,15 @@ export class Skybox implements SimulationObject {
 
     const sky = new THREE.Mesh(geometry, material);
 
-    // See this thread on orientation of milky way:
-    // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
-    sky.rotation.x = 0;
-    sky.rotation.y = (-1 / 12) * Math.PI;
-    sky.rotation.z = (8 / 5) * Math.PI;
+    // Rotate the skybox from galactic coordinates to ecliptic coordinates.
+    // These Euler angles (XYZ order) are derived from the IAU J2000 galactic
+    // pole (RA=192.8595°, Dec=27.1284°) and galactic center (RA=266.405°,
+    // Dec=-28.936°), transformed through equatorial-to-ecliptic conversion.
+    // The scale.set(-1,1,1) below mirrors the X-axis so that the texture
+    // reads correctly from inside the sphere; these angles account for that.
+    sky.rotation.x = 0.5230;
+    sky.rotation.y = -0.0966;
+    sky.rotation.z = 1.5156;
 
     // We're on the inside of the skybox, so invert it to correct it.
     sky.scale.set(-1, 1, 1);

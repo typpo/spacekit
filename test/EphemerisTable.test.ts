@@ -306,6 +306,19 @@ describe('Ephemeris Table getPosition', () => {
     );
     compare(position, ephem[ephem.length - 1]);
   });
+
+  test('Near the end of the table keeps the full interpolation window', () => {
+    const polynomial = (x: number) => x ** 5 - 3 * x ** 4 + 2 * x ** 3 - x + 7;
+    const polyTable = new EphemerisTable({
+      data: Array.from({ length: 10 }, (_, x) => [x, polynomial(x), 0, 0, 0, 0, 0]),
+    });
+
+    const position = polyTable.getPositionAtTime(8.5);
+
+    expect(position[0]).toBeCloseTo(polynomial(8.5), 12);
+    expect(position[1]).toBeCloseTo(0, 12);
+    expect(position[2]).toBeCloseTo(0, 12);
+  });
 });
 
 describe('Ephemeris Table getPositions', () => {

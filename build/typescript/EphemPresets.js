@@ -59,7 +59,7 @@ exports.EphemPresets = {
     }, 'deg', true /* locked */),
     MOON: new Ephem_1.Ephem({
         // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-        GM: Ephem_1.GM.EARTH_MOON,
+        GM: 0.3986e15,
         // Geocentric
         // https://ssd.jpl.nasa.gov/horizons.cgi#results
         epoch: 2458621.5,

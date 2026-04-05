@@ -64,7 +64,7 @@ export default class Coordinates {
   } {
     const t = (jd - J2000) / 36525;
     const omega = Units.rad(
-      125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000,
+      125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t * t) / 450000,
     );
     const Lsun = Units.rad(280.4665 + 36000.7698 * t);
     const Lmoon = Units.rad(218.3165 + 481267.8813 * t);

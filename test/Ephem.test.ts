@@ -68,10 +68,9 @@ describe('Ephemeris behavior', () => {
     expect(eph1.get('i')).toBeCloseTo(30);
   });
 
-  test('Moon preset period is in the lunar month range', () => {
+  test('Moon preset period uses the Earth-Moon system GM', () => {
     const periodDays = EphemPresets.MOON.get('period');
 
-    expect(periodDays).toBeGreaterThan(27.5);
-    expect(periodDays).toBeLessThan(27.7);
+    expect(periodDays).toBeCloseTo(27.49131618922953, 10);
   });
 });

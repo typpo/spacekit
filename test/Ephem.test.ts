@@ -73,4 +73,25 @@ describe('Ephemeris behavior', () => {
 
     expect(periodDays).toBeCloseTo(27.49131618922953, 10);
   });
+
+  test('Hyperbolic orbits do not synthesize a NaN period', () => {
+    const eph = new Ephem(
+      {
+        epoch: 2458080.5,
+        a: -1.27234500742808,
+        e: 1.201133796102373,
+        q: 0.2559115812959116,
+        n: 0.6867469493413392,
+        i: 122.7417062847286,
+        om: 24.59690955523242,
+        w: 241.8105360304898,
+        ma: 51.1576197938249,
+        tp: 2458006.01,
+      },
+      'deg',
+    );
+
+    expect(eph.getUnsafe('period')).toBeUndefined();
+    expect(eph.get('n', 'deg')).toBeCloseTo(0.6867469493413392, 12);
+  });
 });

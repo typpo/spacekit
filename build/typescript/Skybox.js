@@ -32,6 +32,9 @@ var CoordinateTransforms_1 = require("./CoordinateTransforms");
 var Units_1 = __importDefault(require("./Units"));
 var util_1 = require("./util");
 function getAstronomicalProjectionTransform() {
+    // THREE sphere geometry uses +Y as the pole and centers the equirectangular
+    // texture on +X. Astronomical all-sky maps use north at +Z, so rotate from
+    // THREE's sphere/UV convention into the map convention first.
     return new THREE.Matrix4()
         .makeRotationX(Math.PI / 2)
         .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
@@ -44,6 +47,8 @@ function getSkyboxOrientationTransform(options, obliquity) {
     if (options.mirrorLongitude) {
         nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
     }
+    // Applied right-to-left: THREE sphere convention -> source image native
+    // frame -> galactic sky frame -> simulation ecliptic frame.
     return (0, CoordinateTransforms_1.getGalacticToEclipticTransform)(obliquity)
         .multiply(nativeTextureAdjustment)
         .multiply(getAstronomicalProjectionTransform());

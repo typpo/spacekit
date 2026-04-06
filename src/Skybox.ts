@@ -28,6 +28,9 @@ export interface SkyboxOptions {
 }
 
 function getAstronomicalProjectionTransform(): THREE.Matrix4 {
+  // THREE sphere geometry uses +Y as the pole and centers the equirectangular
+  // texture on +X. Astronomical all-sky maps use north at +Z, so rotate from
+  // THREE's sphere/UV convention into the map convention first.
   return new THREE.Matrix4()
     .makeRotationX(Math.PI / 2)
     .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
@@ -49,6 +52,8 @@ export function getSkyboxOrientationTransform(
     nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
   }
 
+  // Applied right-to-left: THREE sphere convention -> source image native
+  // frame -> galactic sky frame -> simulation ecliptic frame.
   return getGalacticToEclipticTransform(obliquity)
     .multiply(nativeTextureAdjustment)
     .multiply(getAstronomicalProjectionTransform());

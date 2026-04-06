@@ -61,6 +61,8 @@ function makeMatrix4From3x3(matrix) {
 function getEquatorialToEclipticTransform(obliquity) {
     return new THREE.Matrix4().set(1, 0, 0, 0, 0, Math.cos(obliquity), Math.sin(obliquity), 0, 0, -Math.sin(obliquity), Math.cos(obliquity), 0, 0, 0, 0, 1);
 }
+// The published constant is equatorial -> galactic. We need the inverse
+// rotation here, and for an orthonormal rotation matrix that is the transpose.
 var GALACTIC_TO_EQUATORIAL_MATRIX = transpose3(EQUATORIAL_TO_GALACTIC_MATRIX);
 function transformGalacticToEcliptic(vector, obliquity) {
     if (obliquity === void 0) { obliquity = Coordinates_1["default"].getObliquity(); }

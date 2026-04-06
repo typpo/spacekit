@@ -78,9 +78,9 @@ function getEquatorialToEclipticTransform(obliquity: number): THREE.Matrix4 {
   );
 }
 
-const GALACTIC_TO_EQUATORIAL_MATRIX = transpose3(
-  EQUATORIAL_TO_GALACTIC_MATRIX,
-);
+// The published constant is equatorial -> galactic. We need the inverse
+// rotation here, and for an orthonormal rotation matrix that is the transpose.
+const GALACTIC_TO_EQUATORIAL_MATRIX = transpose3(EQUATORIAL_TO_GALACTIC_MATRIX);
 
 export function transformGalacticToEcliptic(
   vector: Coordinate3d,

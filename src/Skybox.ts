@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import Coordinates from './Coordinates';
+import { getGalacticToEclipticTransform } from './CoordinateTransforms';
 import Units from './Units';
 
 import type {
@@ -27,78 +27,15 @@ export interface SkyboxOptions {
   opacity?: number;
 }
 
-const EQUATORIAL_TO_GALACTIC_MATRIX = [
-  [-0.0548755604, -0.8734370902, -0.4838350155],
-  [0.4941094279, -0.44482963, 0.7469822445],
-  [-0.867666149, -0.1980763734, 0.4559837762],
-];
-
-function transpose3(matrix: number[][]): number[][] {
-  return matrix[0].map((_, colIdx) => matrix.map((row) => row[colIdx]));
-}
-
-function makeMatrix4From3x3(matrix: number[][]): THREE.Matrix4 {
-  return new THREE.Matrix4().set(
-    matrix[0][0],
-    matrix[0][1],
-    matrix[0][2],
-    0,
-    matrix[1][0],
-    matrix[1][1],
-    matrix[1][2],
-    0,
-    matrix[2][0],
-    matrix[2][1],
-    matrix[2][2],
-    0,
-    0,
-    0,
-    0,
-    1,
-  );
-}
-
 function getAstronomicalProjectionTransform(): THREE.Matrix4 {
   return new THREE.Matrix4()
     .makeRotationX(Math.PI / 2)
     .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
 }
 
-function getEquatorialToEclipticTransform(obliquity: number): THREE.Matrix4 {
-  return new THREE.Matrix4().set(
-    1,
-    0,
-    0,
-    0,
-    0,
-    Math.cos(obliquity),
-    Math.sin(obliquity),
-    0,
-    0,
-    -Math.sin(obliquity),
-    Math.cos(obliquity),
-    0,
-    0,
-    0,
-    0,
-    1,
-  );
-}
-
-function getGalacticToEclipticTransform(
-  obliquity: number,
-): THREE.Matrix4 {
-  const galacticToEquatorial = makeMatrix4From3x3(
-    transpose3(EQUATORIAL_TO_GALACTIC_MATRIX),
-  );
-  return getEquatorialToEclipticTransform(obliquity).multiply(
-    galacticToEquatorial,
-  );
-}
-
 export function getSkyboxOrientationTransform(
   options: Pick<SkyboxOptions, 'longitudeOffsetDeg' | 'mirrorLongitude'>,
-  obliquity: number = Coordinates.getObliquity(),
+  obliquity?: number,
 ): THREE.Matrix4 {
   const nativeTextureAdjustment = new THREE.Matrix4();
 

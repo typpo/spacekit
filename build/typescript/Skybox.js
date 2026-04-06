@@ -28,34 +28,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 exports.__esModule = true;
 exports.SkyboxPresets = exports.Skybox = exports.getSkyboxOrientationTransform = void 0;
 var THREE = __importStar(require("three"));
-var Coordinates_1 = __importDefault(require("./Coordinates"));
+var CoordinateTransforms_1 = require("./CoordinateTransforms");
 var Units_1 = __importDefault(require("./Units"));
 var util_1 = require("./util");
-var EQUATORIAL_TO_GALACTIC_MATRIX = [
-    [-0.0548755604, -0.8734370902, -0.4838350155],
-    [0.4941094279, -0.44482963, 0.7469822445],
-    [-0.867666149, -0.1980763734, 0.4559837762],
-];
-function transpose3(matrix) {
-    return matrix[0].map(function (_, colIdx) { return matrix.map(function (row) { return row[colIdx]; }); });
-}
-function makeMatrix4From3x3(matrix) {
-    return new THREE.Matrix4().set(matrix[0][0], matrix[0][1], matrix[0][2], 0, matrix[1][0], matrix[1][1], matrix[1][2], 0, matrix[2][0], matrix[2][1], matrix[2][2], 0, 0, 0, 0, 1);
-}
 function getAstronomicalProjectionTransform() {
     return new THREE.Matrix4()
         .makeRotationX(Math.PI / 2)
         .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
 }
-function getEquatorialToEclipticTransform(obliquity) {
-    return new THREE.Matrix4().set(1, 0, 0, 0, 0, Math.cos(obliquity), Math.sin(obliquity), 0, 0, -Math.sin(obliquity), Math.cos(obliquity), 0, 0, 0, 0, 1);
-}
-function getGalacticToEclipticTransform(obliquity) {
-    var galacticToEquatorial = makeMatrix4From3x3(transpose3(EQUATORIAL_TO_GALACTIC_MATRIX));
-    return getEquatorialToEclipticTransform(obliquity).multiply(galacticToEquatorial);
-}
 function getSkyboxOrientationTransform(options, obliquity) {
-    if (obliquity === void 0) { obliquity = Coordinates_1["default"].getObliquity(); }
     var nativeTextureAdjustment = new THREE.Matrix4();
     if (options.longitudeOffsetDeg) {
         nativeTextureAdjustment.multiply(new THREE.Matrix4().makeRotationZ(Units_1["default"].rad(options.longitudeOffsetDeg)));
@@ -63,7 +44,7 @@ function getSkyboxOrientationTransform(options, obliquity) {
     if (options.mirrorLongitude) {
         nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
     }
-    return getGalacticToEclipticTransform(obliquity)
+    return (0, CoordinateTransforms_1.getGalacticToEclipticTransform)(obliquity)
         .multiply(nativeTextureAdjustment)
         .multiply(getAstronomicalProjectionTransform());
 }

@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 
+import { getGalacticToEclipticTransform } from './CoordinateTransforms';
+import Units from './Units';
+
 import type {
   Simulation,
   SimulationContext,
@@ -7,9 +10,53 @@ import type {
 } from './Simulation';
 import { getFullTextureUrl } from './util';
 
-interface SkyboxOptions {
+export interface SkyboxOptions {
   textureUrl: string;
-  basePath: string;
+  basePath?: string;
+  /**
+   * Native seam offset of the source equirectangular map, in degrees.
+   * Use 180 when the image is centered on longitude 0 instead of placing
+   * longitude 0 at the left edge.
+   */
+  longitudeOffsetDeg?: number;
+  /**
+   * Astronomical all-sky maps commonly increase longitude toward the left.
+   * Set this when the source image uses that handedness.
+   */
+  mirrorLongitude?: boolean;
+  opacity?: number;
+}
+
+function getAstronomicalProjectionTransform(): THREE.Matrix4 {
+  // THREE sphere geometry uses +Y as the pole and centers the equirectangular
+  // texture on +X. Astronomical all-sky maps use north at +Z, so rotate from
+  // THREE's sphere/UV convention into the map convention first.
+  return new THREE.Matrix4()
+    .makeRotationX(Math.PI / 2)
+    .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
+}
+
+export function getSkyboxOrientationTransform(
+  options: Pick<SkyboxOptions, 'longitudeOffsetDeg' | 'mirrorLongitude'>,
+  obliquity?: number,
+): THREE.Matrix4 {
+  const nativeTextureAdjustment = new THREE.Matrix4();
+
+  if (options.longitudeOffsetDeg) {
+    nativeTextureAdjustment.multiply(
+      new THREE.Matrix4().makeRotationZ(Units.rad(options.longitudeOffsetDeg)),
+    );
+  }
+
+  if (options.mirrorLongitude) {
+    nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
+  }
+
+  // Applied right-to-left: THREE sphere convention -> source image native
+  // frame -> galactic sky frame -> simulation ecliptic frame.
+  return getGalacticToEclipticTransform(obliquity)
+    .multiply(nativeTextureAdjustment)
+    .multiply(getAstronomicalProjectionTransform());
 }
 
 /**
@@ -61,18 +108,12 @@ export class Skybox implements SimulationObject {
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.BackSide,
+      transparent: (this.options.opacity || 1) < 1,
+      opacity: this.options.opacity || 1,
     });
 
     const sky = new THREE.Mesh(geometry, material);
-
-    // See this thread on orientation of milky way:
-    // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
-    sky.rotation.x = 0;
-    sky.rotation.y = (-1 / 12) * Math.PI;
-    sky.rotation.z = (8 / 5) * Math.PI;
-
-    // We're on the inside of the skybox, so invert it to correct it.
-    sky.scale.set(-1, 1, 1);
+    sky.applyMatrix4(getSkyboxOrientationTransform(this.options));
 
     this.mesh = sky;
 
@@ -113,15 +154,27 @@ export class Skybox implements SimulationObject {
  * const skybox = viz.createSkybox(Spacekit.SkyboxPresets.NASA_TYCHO);
  * ```
  */
-export const SkyboxPresets: Record<string, { textureUrl: string }> = {
+export const SkyboxPresets: Record<string, SkyboxOptions> = {
   ESO_GIGAGALAXY: {
+    // Source: ESO eso0932a, a galaxy-centric Milky Way panorama with the
+    // galactic plane horizontal and the bulge centered in the image.
     textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+    longitudeOffsetDeg: 180,
+    mirrorLongitude: true,
   },
   ESO_LITE: {
+    // Derived from the same ESO galaxy-centric panorama convention as
+    // ESO_GIGAGALAXY.
     textureUrl: '{{assets}}/skybox/eso_lite.png',
+    longitudeOffsetDeg: 180,
+    mirrorLongitude: true,
   },
   NASA_TYCHO: {
-    // from https://svs.gsfc.nasa.gov/3895
+    // Source: NASA SVS 3895 /vis/.../starmap_g8k.jpg, the galactic-coordinate
+    // Deep Star Maps product. The bundled nasa_tycho.jpg matches that file
+    // byte-for-byte.
     textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
+    longitudeOffsetDeg: 180,
+    mirrorLongitude: true,
   },
 };

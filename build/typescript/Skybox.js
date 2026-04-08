@@ -22,10 +22,38 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 exports.__esModule = true;
-exports.SkyboxPresets = exports.Skybox = void 0;
+exports.SkyboxPresets = exports.Skybox = exports.getSkyboxOrientationTransform = void 0;
 var THREE = __importStar(require("three"));
+var CoordinateTransforms_1 = require("./CoordinateTransforms");
+var Units_1 = __importDefault(require("./Units"));
 var util_1 = require("./util");
+function getAstronomicalProjectionTransform() {
+    // THREE sphere geometry uses +Y as the pole and centers the equirectangular
+    // texture on +X. Astronomical all-sky maps use north at +Z, so rotate from
+    // THREE's sphere/UV convention into the map convention first.
+    return new THREE.Matrix4()
+        .makeRotationX(Math.PI / 2)
+        .multiply(new THREE.Matrix4().makeRotationY(Math.PI));
+}
+function getSkyboxOrientationTransform(options, obliquity) {
+    var nativeTextureAdjustment = new THREE.Matrix4();
+    if (options.longitudeOffsetDeg) {
+        nativeTextureAdjustment.multiply(new THREE.Matrix4().makeRotationZ(Units_1["default"].rad(options.longitudeOffsetDeg)));
+    }
+    if (options.mirrorLongitude) {
+        nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
+    }
+    // Applied right-to-left: THREE sphere convention -> source image native
+    // frame -> galactic sky frame -> simulation ecliptic frame.
+    return (0, CoordinateTransforms_1.getGalacticToEclipticTransform)(obliquity)
+        .multiply(nativeTextureAdjustment)
+        .multiply(getAstronomicalProjectionTransform());
+}
+exports.getSkyboxOrientationTransform = getSkyboxOrientationTransform;
 /**
  * A class that adds a skybox (technically a skysphere) to a visualization.
  */
@@ -55,16 +83,12 @@ var Skybox = /** @class */ (function () {
         var texture = new THREE.TextureLoader().load(fullTextureUrl);
         var material = new THREE.MeshBasicMaterial({
             map: texture,
-            side: THREE.BackSide
+            side: THREE.BackSide,
+            transparent: (this.options.opacity || 1) < 1,
+            opacity: this.options.opacity || 1
         });
         var sky = new THREE.Mesh(geometry, material);
-        // See this thread on orientation of milky way:
-        // https://www.physicsforums.com/threads/orientation-of-the-earth-sun-and-solar-system-in-the-milky-way.888643/
-        sky.rotation.x = 0;
-        sky.rotation.y = (-1 / 12) * Math.PI;
-        sky.rotation.z = (8 / 5) * Math.PI;
-        // We're on the inside of the skybox, so invert it to correct it.
-        sky.scale.set(-1, 1, 1);
+        sky.applyMatrix4(getSkyboxOrientationTransform(this.options));
         this.mesh = sky;
         if (this.simulation) {
             this.simulation.addObject(this, true /* noUpdate */);
@@ -103,13 +127,25 @@ exports.Skybox = Skybox;
  */
 exports.SkyboxPresets = {
     ESO_GIGAGALAXY: {
-        textureUrl: '{{assets}}/skybox/eso_milkyway.jpg'
+        // Source: ESO eso0932a, a galaxy-centric Milky Way panorama with the
+        // galactic plane horizontal and the bulge centered in the image.
+        textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
+        longitudeOffsetDeg: 180,
+        mirrorLongitude: true
     },
     ESO_LITE: {
-        textureUrl: '{{assets}}/skybox/eso_lite.png'
+        // Derived from the same ESO galaxy-centric panorama convention as
+        // ESO_GIGAGALAXY.
+        textureUrl: '{{assets}}/skybox/eso_lite.png',
+        longitudeOffsetDeg: 180,
+        mirrorLongitude: true
     },
     NASA_TYCHO: {
-        // from https://svs.gsfc.nasa.gov/3895
-        textureUrl: '{{assets}}/skybox/nasa_tycho.jpg'
+        // Source: NASA SVS 3895 /vis/.../starmap_g8k.jpg, the galactic-coordinate
+        // Deep Star Maps product. The bundled nasa_tycho.jpg matches that file
+        // byte-for-byte.
+        textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
+        longitudeOffsetDeg: 180,
+        mirrorLongitude: true
     }
 };

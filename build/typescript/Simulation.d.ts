@@ -25,6 +25,25 @@ interface DebugOptions {
     showGrid?: boolean;
     showStats?: boolean;
 }
+export interface InteractionOptions {
+    enableClick?: boolean;
+    enableHover?: boolean;
+    pickRadiusPx?: number;
+    particlePickRadiusPx?: number;
+}
+export declare type PickSource = 'raycast' | 'screen-proximity';
+export declare type PickKind = 'object';
+export interface PickResult {
+    object: SpaceObject;
+    source: PickSource;
+    kind: PickKind;
+    point?: Coordinate3d;
+    screen: {
+        x: number;
+        y: number;
+    };
+    distancePx: number;
+}
 interface SpacekitOptions {
     basePath: string;
     startDate?: Date;
@@ -97,6 +116,7 @@ export declare class Simulation {
     private useLightSources;
     private lightPosition?;
     private subscribedObjects;
+    private objectRegistry;
     private particles;
     private stats?;
     private fps;
@@ -108,6 +128,14 @@ export declare class Simulation {
     private scene;
     private renderer;
     private composer?;
+    onObjectClick?: (result: PickResult, ev: MouseEvent) => void;
+    onObjectHover?: (result: PickResult | undefined, ev: PointerEvent) => void;
+    private interactionOptions;
+    private hoveredObject?;
+    private selectedObject?;
+    private interactionListenersInstalled;
+    private raycaster;
+    private pointerNdc;
     /**
      * @param {HTMLCanvasElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
@@ -163,6 +191,31 @@ export declare class Simulation {
      * @private
      */
     private initPasses;
+    /**
+     * @private
+     * Installs DOM event handlers for object interaction.
+     */
+    private installInteractionListeners;
+    /**
+     * @private
+     * Gets the pointer position relative to the renderer's canvas.
+     */
+    private getCanvasRelativePosition;
+    /**
+     * @private
+     * Handles click selection on the renderer canvas.
+     */
+    private handleCanvasClick;
+    /**
+     * @private
+     * Handles hover interactions on the renderer canvas.
+     */
+    private handleCanvasPointerMove;
+    /**
+     * @private
+     * Clears hover state when the pointer leaves the renderer canvas.
+     */
+    private handleCanvasPointerLeave;
     /**
      * @private
      */
@@ -261,6 +314,39 @@ export declare class Simulation {
      * @see {NaturalSatellites}
      */
     loadNaturalSatellites(): Promise<NaturalSatellites>;
+    /**
+     * Configures interaction handlers for the simulation canvas.
+     * @param {Object} options Interaction options
+     */
+    configureInteraction(options?: InteractionOptions): void;
+    /**
+     * Gets the current list of registered space objects in the visualization.
+     * @return {SpaceObject[]} Space objects currently managed by the simulation
+     */
+    getObjects(): SpaceObject[];
+    /**
+     * Gets a registered space object by id.
+     * @param {String} id Space object id
+     * @return {SpaceObject | undefined} Matching object, if any
+     */
+    getObjectById(id: string): SpaceObject | undefined;
+    /**
+     * Attempts to pick a space object at the given screen coordinates.
+     * @param {Number} clientX Pointer x position in client coordinates
+     * @param {Number} clientY Pointer y position in client coordinates
+     * @return {PickResult | undefined} Picked object details
+     */
+    pick(clientX: number, clientY: number): PickResult | undefined;
+    /**
+     * Sets the selected space object, or clears selection if target is omitted.
+     * @param {SpaceObject | String | undefined} target SpaceObject or id
+     */
+    selectObject(target?: SpaceObject | string): void;
+    /**
+     * Gets the currently selected space object.
+     * @return {SpaceObject | undefined} Selected object, if any
+     */
+    getSelectedObject(): SpaceObject | undefined;
     /**
      * Installs a scroll handler that only renders the visualization while it is
      * in the user's viewport.

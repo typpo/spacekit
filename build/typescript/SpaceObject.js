@@ -518,6 +518,14 @@ var SpaceObject = /** @class */ (function () {
         return ret;
     };
     /**
+     * Gets the primary THREE.js object that visually represents this object.
+     * This excludes helper objects such as orbit lines.
+     * @return {THREE.Object3D | undefined} Primary THREE.js object
+     */
+    SpaceObject.prototype.getPrimaryObject3js = function () {
+        return this._object3js;
+    };
+    /**
      * Specifies the object that is used to compute the bounding box. By default,
      * this will be the first THREE.js object in this class's list of objects.
      * @return {THREE.Object3D} THREE.js object
@@ -546,6 +554,33 @@ var SpaceObject = /** @class */ (function () {
      */
     SpaceObject.prototype.getOrbit = function () {
         return this._orbit;
+    };
+    /**
+     * Determines whether this object should be considered for interaction.
+     * @return {boolean} True if this object is interactive
+     */
+    SpaceObject.prototype.isInteractive = function () {
+        return this._options.interactive !== false;
+    };
+    /**
+     * Gets the screen-space position of this object at a given time.
+     * @param {Number} jd JD date. Defaults to the simulation's current date.
+     * @return {{x: number, y: number}} Screen position in pixels relative to the visualization
+     */
+    SpaceObject.prototype.getScreenPosition = function (jd) {
+        if (jd === void 0) { jd = this._simulation.getJd(); }
+        var simulationElt = this._simulation.getSimulationElement();
+        return toScreenXY(this.getPosition(jd), this._simulation.getViewer().get3jsCamera(), simulationElt);
+    };
+    /**
+     * Gets the screen-space pick radius for this object.
+     * @param {Number} defaultPickRadius Default radius in pixels
+     * @return {number} Pick radius in pixels
+     */
+    SpaceObject.prototype.getPickRadius = function (defaultPickRadius) {
+        return typeof this._options.pickRadiusPx === 'number'
+            ? this._options.pickRadiusPx
+            : defaultPickRadius;
     };
     /**
      * Gets label visilibity status.

@@ -193,6 +193,10 @@ export class RotatingObject extends SpaceObject {
     return ret;
   }
 
+  override getPrimaryObject3js(): THREE.Object3D | undefined {
+    return this._obj;
+  }
+
   /**
    * Begin rotating this object.
    */

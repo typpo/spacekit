@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interaction Showcase | spacekit.js</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel-bg: rgba(7, 15, 30, 0.82);
+      --panel-border: rgba(148, 163, 184, 0.28);
+      --panel-shadow: 0 20px 40px rgba(2, 6, 23, 0.35);
+      --text-main: #e5edf9;
+      --text-muted: #8fa7c4;
+      --accent: #ffd166;
+      --accent-soft: rgba(255, 209, 102, 0.18);
+      --hover: #6ad7ff;
+      --button-bg: rgba(14, 28, 56, 0.9);
+      --button-border: rgba(106, 215, 255, 0.24);
+      --button-disabled: rgba(81, 97, 123, 0.5);
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(22, 50, 110, 0.35), transparent 35%),
+        radial-gradient(circle at 80% 15%, rgba(73, 30, 121, 0.22), transparent 28%),
+        linear-gradient(180deg, #04070f 0%, #030611 100%);
+      color: var(--text-main);
+    }
+
+    body {
+      position: relative;
+    }
+
+    #main-container {
+      position: absolute;
+      inset: 0;
+    }
+
+    .spacekit__object-label {
+      pointer-events: none;
+      border-radius: 999px;
+      padding: 4px 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel {
+      position: absolute;
+      z-index: 2;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--panel-shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    #summary {
+      top: 16px;
+      left: 16px;
+      width: min(360px, calc(100vw - 32px));
+      border-radius: 20px;
+      padding: 18px 18px 16px;
+    }
+
+    #browser {
+      top: 16px;
+      right: 16px;
+      width: min(300px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      overflow: hidden;
+      border-radius: 20px;
+      padding: 18px 18px 16px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--hover);
+    }
+
+    .headline {
+      margin-top: 10px;
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 700;
+    }
+
+    .subhead {
+      margin-top: 10px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .summary-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .summary-card {
+      border-radius: 14px;
+      background: rgba(13, 25, 48, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      padding: 12px;
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .summary-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .summary-value.small {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--button-border);
+      border-radius: 999px;
+      background: var(--button-bg);
+      color: var(--text-main);
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(255, 209, 102, 0.4);
+      background: rgba(17, 37, 72, 0.96);
+    }
+
+    button:disabled {
+      cursor: default;
+      color: rgba(229, 237, 249, 0.45);
+      border-color: rgba(81, 97, 123, 0.18);
+      background: rgba(11, 21, 40, 0.78);
+    }
+
+    .microcopy {
+      margin-top: 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    #browser h2 {
+      font-size: 14px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    #object-list {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .object-button {
+      width: 100%;
+      text-align: left;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .object-button.selected {
+      border-color: rgba(255, 209, 102, 0.45);
+      background: linear-gradient(180deg, rgba(61, 52, 30, 0.92), rgba(29, 23, 12, 0.92));
+    }
+
+    .object-button.hovered:not(.selected) {
+      border-color: rgba(106, 215, 255, 0.35);
+      background: rgba(16, 43, 76, 0.92);
+    }
+
+    .object-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .object-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      #summary,
+      #browser {
+        width: calc(100vw - 32px);
+      }
+
+      #browser {
+        top: auto;
+        bottom: 16px;
+        max-height: 42vh;
+      }
+
+      #object-list {
+        max-height: calc(42vh - 82px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="main-container"></div>
+
+  <aside id="summary" class="panel">
+    <h1>Interaction API</h1>
+    <p class="headline">Hover, pick, select, and inspect objects.</p>
+    <p class="subhead">
+      Click an object in the scene or choose it from the list to inspect it,
+      center the camera, fit its orbit, or start tracking it.
+    </p>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <span class="summary-label">Hovered</span>
+        <span id="hovered-value" class="summary-value">None</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Selected</span>
+        <span id="selected-value" class="summary-value">None</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Last Pick Source</span>
+        <span id="pick-source-value" class="summary-value">None</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Tracking</span>
+        <span id="tracking-value" class="summary-value">Off</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Selected Position</span>
+        <span id="position-value" class="summary-value small">-</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Simulation Time</span>
+        <span id="time-value" class="summary-value small">-</span>
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button id="center-selected" type="button">Center selected</button>
+      <button id="fit-selected" type="button">Fit orbit</button>
+      <button id="track-selected" type="button">Track selected</button>
+      <button id="clear-selection" type="button">Clear selection</button>
+    </div>
+
+    <p class="microcopy">
+      Use the controls to move between broad system views and close inspection
+      of the selected body.
+    </p>
+  </aside>
+
+  <aside id="browser" class="panel">
+    <h2>Object Browser</h2>
+    <div id="object-list"></div>
+  </aside>
+
+  <script src="../../build/spacekit.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

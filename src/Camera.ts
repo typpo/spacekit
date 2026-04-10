@@ -19,7 +19,7 @@ export default class Camera {
 
   private cameraControls: OrbitControls;
 
-  private followMesh?: THREE.Object3D;
+  private followTarget?: SpaceObject;
 
   /**
    * @param {Object} context The simulation context
@@ -28,8 +28,8 @@ export default class Camera {
     // TODO(ian): Accept either context or container
     this.context = context;
 
-    // Optional mesh that we are following.
-    this.followMesh = undefined;
+    // Optional object that we are following.
+    this.followTarget = undefined;
 
     const containerWidth = this.context.container.width;
     const containerHeight = this.context.container.height;
@@ -69,15 +69,12 @@ export default class Camera {
   }
 
   /**
-   * Move the camera to follow a SpaceObject as it moves. Currently only works
-   * for non-particlesystems.
+   * Move the camera to follow a SpaceObject as it moves.
    * @param {SpaceObject} obj SpaceObject to follow.
    * @param {Array.<Number>} position Position of the camera with respect to
    * the object.
    */
   followObject(obj: SpaceObject, position: Coordinate3d) {
-    const followMesh = obj.get3jsObjects()[0];
-
     this.cameraControls.enablePan = false;
 
     const rescaled = rescaleArray(position);
@@ -86,16 +83,15 @@ export default class Camera {
     );
 
     this.cameraControls.update();
-    this.followMesh = followMesh;
+    this.followTarget = obj;
   }
 
   /**
    * Stop the camera from following the object.
    */
   stopFollowingObject() {
-    if (this.followMesh) {
-      this.followMesh.remove(this.camera);
-      this.followMesh = undefined;
+    if (this.followTarget) {
+      this.followTarget = undefined;
       this.cameraControls.enablePan = true;
     }
   }
@@ -104,7 +100,7 @@ export default class Camera {
    * @returns {boolean} True if camera is following object.
    */
   isFollowingObject(): boolean {
-    return !!this.followMesh;
+    return !!this.followTarget;
   }
 
   /**
@@ -126,7 +122,10 @@ export default class Camera {
    */
   update() {
     if (this.isFollowingObject()) {
-      const newpos = this.followMesh!.position.clone();
+      const [x, y, z] = this.followTarget!.getPosition(
+        this.context.simulation.getJd(),
+      );
+      const newpos = new THREE.Vector3(x, y, z);
 
       const offset = newpos.clone().sub(this.cameraControls.target);
       this.camera.position.add(offset);

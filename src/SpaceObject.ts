@@ -20,6 +20,8 @@ export interface SpaceObjectOptions {
   position?: Coordinate3d;
   scale?: [number, number, number];
   particleSize?: number;
+  interactive?: boolean;
+  pickRadiusPx?: number;
   labelText?: string;
   labelUrl?: string;
   hideOrbit?: boolean;
@@ -644,6 +646,15 @@ export class SpaceObject implements SimulationObject {
   }
 
   /**
+   * Gets the primary THREE.js object that visually represents this object.
+   * This excludes helper objects such as orbit lines.
+   * @return {THREE.Object3D | undefined} Primary THREE.js object
+   */
+  getPrimaryObject3js(): THREE.Object3D | undefined {
+    return this._object3js;
+  }
+
+  /**
    * Specifies the object that is used to compute the bounding box. By default,
    * this will be the first THREE.js object in this class's list of objects.
    * @return {THREE.Object3D} THREE.js object
@@ -670,6 +681,41 @@ export class SpaceObject implements SimulationObject {
    */
   getOrbit(): Orbit | undefined {
     return this._orbit;
+  }
+
+  /**
+   * Determines whether this object should be considered for interaction.
+   * @return {boolean} True if this object is interactive
+   */
+  isInteractive(): boolean {
+    return this._options.interactive !== false;
+  }
+
+  /**
+   * Gets the screen-space position of this object at a given time.
+   * @param {Number} jd JD date. Defaults to the simulation's current date.
+   * @return {{x: number, y: number}} Screen position in pixels relative to the visualization
+   */
+  getScreenPosition(
+    jd: number = this._simulation.getJd(),
+  ): { x: number; y: number } {
+    const simulationElt = this._simulation.getSimulationElement();
+    return toScreenXY(
+      this.getPosition(jd),
+      this._simulation.getViewer().get3jsCamera(),
+      simulationElt,
+    );
+  }
+
+  /**
+   * Gets the screen-space pick radius for this object.
+   * @param {Number} defaultPickRadius Default radius in pixels
+   * @return {number} Pick radius in pixels
+   */
+  getPickRadius(defaultPickRadius: number): number {
+    return typeof this._options.pickRadiusPx === 'number'
+      ? this._options.pickRadiusPx
+      : defaultPickRadius;
   }
 
   /**

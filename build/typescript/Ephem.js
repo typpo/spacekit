@@ -217,16 +217,16 @@ var Ephem = /** @class */ (function () {
         var n = this.getUnsafe('n');
         var GM = this.getUnsafe('GM');
         var period = this.getUnsafe('period');
-        if (!isDef(period) && isDef(a)) {
-            if (!isDef(GM)) {
-                throw new Error('Expected ephemeris attribute GM to be set');
-            }
-            period =
-                (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
-                    SECONDS_IN_DAY;
-            this.set('period', period);
-        }
         if (e < 1.0) {
+            if (!isDef(period) && isDef(a)) {
+                if (!isDef(GM)) {
+                    throw new Error('Expected ephemeris attribute GM to be set');
+                }
+                period =
+                    (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+                        SECONDS_IN_DAY;
+                this.set('period', period);
+            }
             // Only work with mean motion for elliptical orbits.
             if (isDef(period) && !isDef(n)) {
                 // Set radians

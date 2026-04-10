@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -79,6 +90,7 @@ var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.modu
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
 var KeplerParticles_1 = require("./KeplerParticles");
+var Interaction_1 = require("./Interaction");
 var EphemPresets_1 = require("./EphemPresets");
 var ShapeObject_1 = require("./ShapeObject");
 var Skybox_1 = require("./Skybox");
@@ -183,6 +195,7 @@ var Simulation = /** @class */ (function () {
         this.useLightSources = false;
         this.lightPosition = undefined;
         this.subscribedObjects = {};
+        this.objectRegistry = {};
         // This makes controls.lookAt and other objects treat the positive Z axis
         // as "up" direction.
         THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
@@ -200,6 +213,22 @@ var Simulation = /** @class */ (function () {
         this.renderEnabled = true;
         this.initialRenderComplete = false;
         this.animate = this.animate.bind(this);
+        this.handleCanvasClick = this.handleCanvasClick.bind(this);
+        this.handleCanvasPointerMove = this.handleCanvasPointerMove.bind(this);
+        this.handleCanvasPointerLeave = this.handleCanvasPointerLeave.bind(this);
+        this.onObjectClick = undefined;
+        this.onObjectHover = undefined;
+        this.interactionOptions = {
+            enableClick: false,
+            enableHover: false,
+            pickRadiusPx: 12,
+            particlePickRadiusPx: 20
+        };
+        this.hoveredObject = undefined;
+        this.selectedObject = undefined;
+        this.interactionListenersInstalled = false;
+        this.raycaster = new THREE.Raycaster();
+        this.pointerNdc = new THREE.Vector2();
         this.renderer = this.initRenderer();
         this.scene = new THREE.Scene();
         this.camera = new Camera_1["default"](this.getContext());
@@ -338,6 +367,87 @@ var Simulation = /** @class */ (function () {
     };
     /**
      * @private
+     * Installs DOM event handlers for object interaction.
+     */
+    Simulation.prototype.installInteractionListeners = function () {
+        if (this.interactionListenersInstalled) {
+            return;
+        }
+        var canvas = this.renderer.domElement;
+        canvas.addEventListener('click', this.handleCanvasClick);
+        canvas.addEventListener('pointermove', this.handleCanvasPointerMove);
+        canvas.addEventListener('pointerleave', this.handleCanvasPointerLeave);
+        this.interactionListenersInstalled = true;
+    };
+    /**
+     * @private
+     * Gets the pointer position relative to the renderer's canvas.
+     */
+    Simulation.prototype.getCanvasRelativePosition = function (clientX, clientY) {
+        var rect = this.renderer.domElement.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) {
+            return undefined;
+        }
+        return {
+            rect: rect,
+            screen: {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            }
+        };
+    };
+    /**
+     * @private
+     * Handles click selection on the renderer canvas.
+     */
+    Simulation.prototype.handleCanvasClick = function (ev) {
+        if (!this.interactionOptions.enableClick) {
+            return;
+        }
+        var pickResult = this.pick(ev.clientX, ev.clientY);
+        this.selectObject(pickResult === null || pickResult === void 0 ? void 0 : pickResult.object);
+        if (pickResult && this.onObjectClick) {
+            this.onObjectClick(pickResult, ev);
+        }
+    };
+    /**
+     * @private
+     * Handles hover interactions on the renderer canvas.
+     */
+    Simulation.prototype.handleCanvasPointerMove = function (ev) {
+        if (!this.interactionOptions.enableClick && !this.interactionOptions.enableHover) {
+            return;
+        }
+        var pickResult = this.pick(ev.clientX, ev.clientY);
+        this.renderer.domElement.style.cursor = pickResult ? 'pointer' : '';
+        if (!this.interactionOptions.enableHover) {
+            return;
+        }
+        var nextHoveredObject = pickResult === null || pickResult === void 0 ? void 0 : pickResult.object;
+        if (nextHoveredObject === this.hoveredObject) {
+            return;
+        }
+        this.hoveredObject = nextHoveredObject;
+        if (this.onObjectHover) {
+            this.onObjectHover(pickResult, ev);
+        }
+    };
+    /**
+     * @private
+     * Clears hover state when the pointer leaves the renderer canvas.
+     */
+    Simulation.prototype.handleCanvasPointerLeave = function (ev) {
+        this.renderer.domElement.style.cursor = '';
+        if (!this.interactionOptions.enableHover || !this.hoveredObject) {
+            return;
+        }
+        this.hoveredObject = undefined;
+        if (this.onObjectHover) {
+            this.onObjectHover(undefined, ev);
+        }
+    };
+    /**
+     * @private
      */
     Simulation.prototype.update = function (force) {
         if (force === void 0) { force = false; }
@@ -451,6 +561,13 @@ var Simulation = /** @class */ (function () {
         obj.get3jsObjects().map(function (x) {
             _this.scene.add(x);
         });
+        if (obj instanceof SpaceObject_1.SpaceObject) {
+            var objId = obj.getId();
+            if (this.objectRegistry[objId] && this.objectRegistry[objId] !== obj) {
+                console.error("Object id is not unique: \"".concat(objId, "\". This could prevent objects from updating correctly."));
+            }
+            this.objectRegistry[objId] = obj;
+        }
         if (!noUpdate) {
             // Call for updates as time passes.
             var objId = obj.getId();
@@ -474,6 +591,13 @@ var Simulation = /** @class */ (function () {
             obj.removalCleanup();
         }
         delete this.subscribedObjects[obj.getId()];
+        delete this.objectRegistry[obj.getId()];
+        if (this.selectedObject === obj) {
+            this.selectedObject = undefined;
+        }
+        if (this.hoveredObject === obj) {
+            this.hoveredObject = undefined;
+        }
     };
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
@@ -623,6 +747,125 @@ var Simulation = /** @class */ (function () {
      */
     Simulation.prototype.loadNaturalSatellites = function () {
         return new EphemPresets_1.NaturalSatellites(this).load();
+    };
+    /**
+     * Configures interaction handlers for the simulation canvas.
+     * @param {Object} options Interaction options
+     */
+    Simulation.prototype.configureInteraction = function (options) {
+        if (options === void 0) { options = {}; }
+        this.interactionOptions = __assign(__assign({}, this.interactionOptions), options);
+        if (this.interactionOptions.enableClick ||
+            this.interactionOptions.enableHover) {
+            this.installInteractionListeners();
+        }
+    };
+    /**
+     * Gets the current list of registered space objects in the visualization.
+     * @return {SpaceObject[]} Space objects currently managed by the simulation
+     */
+    Simulation.prototype.getObjects = function () {
+        var _this = this;
+        return Object.keys(this.objectRegistry).map(function (objId) { return _this.objectRegistry[objId]; });
+    };
+    /**
+     * Gets a registered space object by id.
+     * @param {String} id Space object id
+     * @return {SpaceObject | undefined} Matching object, if any
+     */
+    Simulation.prototype.getObjectById = function (id) {
+        return this.objectRegistry[id];
+    };
+    /**
+     * Attempts to pick a space object at the given screen coordinates.
+     * @param {Number} clientX Pointer x position in client coordinates
+     * @param {Number} clientY Pointer y position in client coordinates
+     * @return {PickResult | undefined} Picked object details
+     */
+    Simulation.prototype.pick = function (clientX, clientY) {
+        var _this = this;
+        var pointerInfo = this.getCanvasRelativePosition(clientX, clientY);
+        if (!pointerInfo) {
+            return undefined;
+        }
+        var interactiveObjects = this.getObjects().filter(function (obj) {
+            return obj.isInteractive();
+        });
+        if (!interactiveObjects.length) {
+            return undefined;
+        }
+        var rect = pointerInfo.rect, screen = pointerInfo.screen;
+        var normalizedPointer = (0, Interaction_1.getNormalizedPointer)(screen, rect.width, rect.height);
+        this.pointerNdc.set(normalizedPointer.x, normalizedPointer.y);
+        this.raycaster.setFromCamera(this.pointerNdc, this.camera.get3jsCamera());
+        var raycastTargets = [];
+        var objectsByUuid = new Map();
+        interactiveObjects.forEach(function (obj) {
+            var primaryObject = obj.getPrimaryObject3js();
+            if (!primaryObject) {
+                return;
+            }
+            raycastTargets.push(primaryObject);
+            objectsByUuid.set(primaryObject.uuid, obj);
+        });
+        var intersections = this.raycaster.intersectObjects(raycastTargets, true);
+        for (var _i = 0, intersections_1 = intersections; _i < intersections_1.length; _i++) {
+            var intersection = intersections_1[_i];
+            var matchedObject = (0, Interaction_1.findParentPickMatch)(intersection.object, objectsByUuid);
+            if (matchedObject) {
+                return {
+                    object: matchedObject,
+                    source: 'raycast',
+                    kind: 'object',
+                    point: [intersection.point.x, intersection.point.y, intersection.point.z],
+                    screen: screen,
+                    distancePx: 0
+                };
+            }
+        }
+        var proximityCandidates = interactiveObjects.map(function (obj) {
+            var hasPrimaryObject = !!obj.getPrimaryObject3js();
+            var defaultPickRadius = hasPrimaryObject
+                ? _this.interactionOptions.pickRadiusPx
+                : _this.interactionOptions.particlePickRadiusPx;
+            return {
+                object: obj,
+                point: obj.getPosition(_this.jd),
+                radiusPx: obj.getPickRadius(defaultPickRadius),
+                screen: obj.getScreenPosition(_this.jd)
+            };
+        });
+        var closestCandidate = (0, Interaction_1.findClosestPickCandidate)(screen, proximityCandidates);
+        if (!closestCandidate) {
+            return undefined;
+        }
+        return {
+            object: closestCandidate.candidate.object,
+            source: 'screen-proximity',
+            kind: 'object',
+            point: closestCandidate.candidate.point,
+            screen: closestCandidate.candidate.screen,
+            distancePx: closestCandidate.distancePx
+        };
+    };
+    /**
+     * Sets the selected space object, or clears selection if target is omitted.
+     * @param {SpaceObject | String | undefined} target SpaceObject or id
+     */
+    Simulation.prototype.selectObject = function (target) {
+        if (typeof target === 'undefined') {
+            this.selectedObject = undefined;
+            return;
+        }
+        this.selectedObject =
+            typeof target === 'string' ? this.getObjectById(target) : target;
+    };
+    /**
+     * Gets the currently selected space object.
+     * @return {SpaceObject | undefined} Selected object, if any
+     */
+    Simulation.prototype.getSelectedObject = function () {
+        return this.selectedObject;
     };
     /**
      * Installs a scroll handler that only renders the visualization while it is

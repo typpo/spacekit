@@ -37,8 +37,8 @@ var Camera = /** @class */ (function () {
     function Camera(context) {
         // TODO(ian): Accept either context or container
         this.context = context;
-        // Optional mesh that we are following.
-        this.followMesh = undefined;
+        // Optional object that we are following.
+        this.followTarget = undefined;
         var containerWidth = this.context.container.width;
         var containerHeight = this.context.container.height;
         var camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, (0, Scale_1.rescaleNumber)(0.00001), (0, Scale_1.rescaleNumber)(2000));
@@ -67,27 +67,24 @@ var Camera = /** @class */ (function () {
         this.cameraControls = controls;
     }
     /**
-     * Move the camera to follow a SpaceObject as it moves. Currently only works
-     * for non-particlesystems.
+     * Move the camera to follow a SpaceObject as it moves.
      * @param {SpaceObject} obj SpaceObject to follow.
      * @param {Array.<Number>} position Position of the camera with respect to
      * the object.
      */
     Camera.prototype.followObject = function (obj, position) {
-        var followMesh = obj.get3jsObjects()[0];
         this.cameraControls.enablePan = false;
         var rescaled = (0, Scale_1.rescaleArray)(position);
         this.camera.position.add(new THREE.Vector3(rescaled[0], rescaled[1], rescaled[2]));
         this.cameraControls.update();
-        this.followMesh = followMesh;
+        this.followTarget = obj;
     };
     /**
      * Stop the camera from following the object.
      */
     Camera.prototype.stopFollowingObject = function () {
-        if (this.followMesh) {
-            this.followMesh.remove(this.camera);
-            this.followMesh = undefined;
+        if (this.followTarget) {
+            this.followTarget = undefined;
             this.cameraControls.enablePan = true;
         }
     };
@@ -95,7 +92,7 @@ var Camera = /** @class */ (function () {
      * @returns {boolean} True if camera is following object.
      */
     Camera.prototype.isFollowingObject = function () {
-        return !!this.followMesh;
+        return !!this.followTarget;
     };
     /**
      * @returns {THREE.PerspectiveCamera} The THREE.js camera object.
@@ -114,7 +111,8 @@ var Camera = /** @class */ (function () {
      */
     Camera.prototype.update = function () {
         if (this.isFollowingObject()) {
-            var newpos = this.followMesh.position.clone();
+            var _a = this.followTarget.getPosition(this.context.simulation.getJd()), x = _a[0], y = _a[1], z = _a[2];
+            var newpos = new THREE.Vector3(x, y, z);
             var offset = newpos.clone().sub(this.cameraControls.target);
             this.camera.position.add(offset);
             this.cameraControls.target.set(newpos.x, newpos.y, newpos.z);

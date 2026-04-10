@@ -206,8 +206,11 @@ var EphemerisTable = /** @class */ (function () {
         var stopIndex = startIndex + Number(this.interpolationOrder);
         if (stopIndex >= this.data.length) {
             stopIndex = this.data.length - 1;
-            if (this.data.length > halfSampleSize) {
-                startIndex = stopIndex - halfSampleSize;
+            if (this.data.length > this.interpolationOrder) {
+                startIndex = stopIndex - this.interpolationOrder;
+            }
+            else {
+                startIndex = 0;
             }
         }
         return { startIndex: startIndex, stopIndex: stopIndex };

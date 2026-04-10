@@ -14,6 +14,11 @@ import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
 
 import Camera from './Camera';
 import { KeplerParticles } from './KeplerParticles';
+import {
+  findClosestPickCandidate,
+  findParentPickMatch,
+  getNormalizedPointer,
+} from './Interaction';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
 import { Skybox } from './Skybox';
@@ -42,6 +47,28 @@ interface DebugOptions {
   showAxes?: boolean;
   showGrid?: boolean;
   showStats?: boolean;
+}
+
+export interface InteractionOptions {
+  enableClick?: boolean;
+  enableHover?: boolean;
+  pickRadiusPx?: number;
+  particlePickRadiusPx?: number;
+}
+
+export type PickSource = 'raycast' | 'screen-proximity';
+export type PickKind = 'object';
+
+export interface PickResult {
+  object: SpaceObject;
+  source: PickSource;
+  kind: PickKind;
+  point?: Coordinate3d;
+  screen: {
+    x: number;
+    y: number;
+  };
+  distancePx: number;
 }
 
 interface SpacekitOptions {
@@ -131,6 +158,8 @@ export class Simulation {
 
   private subscribedObjects: Record<string, SimulationObject>;
 
+  private objectRegistry: Record<string, SpaceObject>;
+
   private particles: KeplerParticles;
 
   private stats?: Stats;
@@ -152,6 +181,25 @@ export class Simulation {
   private renderer: WebGL1Renderer;
 
   private composer?: EffectComposer;
+
+  public onObjectClick?: (result: PickResult, ev: MouseEvent) => void;
+
+  public onObjectHover?: (
+    result: PickResult | undefined,
+    ev: PointerEvent,
+  ) => void;
+
+  private interactionOptions: Required<InteractionOptions>;
+
+  private hoveredObject?: SpaceObject;
+
+  private selectedObject?: SpaceObject;
+
+  private interactionListenersInstalled: boolean;
+
+  private raycaster: THREE.Raycaster;
+
+  private pointerNdc: THREE.Vector2;
 
   /**
    * @param {HTMLCanvasElement} simulationElt The container for this simulation.
@@ -224,6 +272,7 @@ export class Simulation {
     this.lightPosition = undefined;
 
     this.subscribedObjects = {};
+    this.objectRegistry = {};
 
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
@@ -246,6 +295,23 @@ export class Simulation {
     this.renderEnabled = true;
     this.initialRenderComplete = false;
     this.animate = this.animate.bind(this);
+    this.handleCanvasClick = this.handleCanvasClick.bind(this);
+    this.handleCanvasPointerMove = this.handleCanvasPointerMove.bind(this);
+    this.handleCanvasPointerLeave = this.handleCanvasPointerLeave.bind(this);
+
+    this.onObjectClick = undefined;
+    this.onObjectHover = undefined;
+    this.interactionOptions = {
+      enableClick: false,
+      enableHover: false,
+      pickRadiusPx: 12,
+      particlePickRadiusPx: 20,
+    };
+    this.hoveredObject = undefined;
+    this.selectedObject = undefined;
+    this.interactionListenersInstalled = false;
+    this.raycaster = new THREE.Raycaster();
+    this.pointerNdc = new THREE.Vector2();
 
     this.renderer = this.initRenderer();
     this.scene = new THREE.Scene();
@@ -425,6 +491,101 @@ export class Simulation {
 
   /**
    * @private
+   * Installs DOM event handlers for object interaction.
+   */
+  private installInteractionListeners() {
+    if (this.interactionListenersInstalled) {
+      return;
+    }
+
+    const canvas = this.renderer.domElement;
+    canvas.addEventListener('click', this.handleCanvasClick);
+    canvas.addEventListener('pointermove', this.handleCanvasPointerMove);
+    canvas.addEventListener('pointerleave', this.handleCanvasPointerLeave);
+    this.interactionListenersInstalled = true;
+  }
+
+  /**
+   * @private
+   * Gets the pointer position relative to the renderer's canvas.
+   */
+  private getCanvasRelativePosition(clientX: number, clientY: number) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      return undefined;
+    }
+
+    return {
+      rect,
+      screen: {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      },
+    };
+  }
+
+  /**
+   * @private
+   * Handles click selection on the renderer canvas.
+   */
+  private handleCanvasClick(ev: MouseEvent) {
+    if (!this.interactionOptions.enableClick) {
+      return;
+    }
+
+    const pickResult = this.pick(ev.clientX, ev.clientY);
+    this.selectObject(pickResult?.object);
+    if (pickResult && this.onObjectClick) {
+      this.onObjectClick(pickResult, ev);
+    }
+  }
+
+  /**
+   * @private
+   * Handles hover interactions on the renderer canvas.
+   */
+  private handleCanvasPointerMove(ev: PointerEvent) {
+    if (!this.interactionOptions.enableClick && !this.interactionOptions.enableHover) {
+      return;
+    }
+
+    const pickResult = this.pick(ev.clientX, ev.clientY);
+    this.renderer.domElement.style.cursor = pickResult ? 'pointer' : '';
+
+    if (!this.interactionOptions.enableHover) {
+      return;
+    }
+
+    const nextHoveredObject = pickResult?.object;
+    if (nextHoveredObject === this.hoveredObject) {
+      return;
+    }
+
+    this.hoveredObject = nextHoveredObject;
+    if (this.onObjectHover) {
+      this.onObjectHover(pickResult, ev);
+    }
+  }
+
+  /**
+   * @private
+   * Clears hover state when the pointer leaves the renderer canvas.
+   */
+  private handleCanvasPointerLeave(ev: PointerEvent) {
+    this.renderer.domElement.style.cursor = '';
+
+    if (!this.interactionOptions.enableHover || !this.hoveredObject) {
+      return;
+    }
+
+    this.hoveredObject = undefined;
+    if (this.onObjectHover) {
+      this.onObjectHover(undefined, ev);
+    }
+  }
+
+  /**
+   * @private
    */
   private update(force = false) {
     for (const objId in this.subscribedObjects) {
@@ -550,6 +711,16 @@ export class Simulation {
       this.scene.add(x);
     });
 
+    if (obj instanceof SpaceObject) {
+      const objId = obj.getId();
+      if (this.objectRegistry[objId] && this.objectRegistry[objId] !== obj) {
+        console.error(
+          `Object id is not unique: "${objId}". This could prevent objects from updating correctly.`,
+        );
+      }
+      this.objectRegistry[objId] = obj;
+    }
+
     if (!noUpdate) {
       // Call for updates as time passes.
       const objId = obj.getId();
@@ -576,6 +747,14 @@ export class Simulation {
       obj.removalCleanup();
     }
     delete this.subscribedObjects[obj.getId()];
+    delete this.objectRegistry[obj.getId()];
+
+    if (this.selectedObject === obj) {
+      this.selectedObject = undefined;
+    }
+    if (this.hoveredObject === obj) {
+      this.hoveredObject = undefined;
+    }
   }
 
   /**
@@ -715,6 +894,147 @@ export class Simulation {
    */
   loadNaturalSatellites(): Promise<NaturalSatellites> {
     return new NaturalSatellites(this).load();
+  }
+
+  /**
+   * Configures interaction handlers for the simulation canvas.
+   * @param {Object} options Interaction options
+   */
+  configureInteraction(options: InteractionOptions = {}) {
+    this.interactionOptions = {
+      ...this.interactionOptions,
+      ...options,
+    };
+
+    if (
+      this.interactionOptions.enableClick ||
+      this.interactionOptions.enableHover
+    ) {
+      this.installInteractionListeners();
+    }
+  }
+
+  /**
+   * Gets the current list of registered space objects in the visualization.
+   * @return {SpaceObject[]} Space objects currently managed by the simulation
+   */
+  getObjects(): SpaceObject[] {
+    return Object.keys(this.objectRegistry).map((objId) => this.objectRegistry[objId]);
+  }
+
+  /**
+   * Gets a registered space object by id.
+   * @param {String} id Space object id
+   * @return {SpaceObject | undefined} Matching object, if any
+   */
+  getObjectById(id: string): SpaceObject | undefined {
+    return this.objectRegistry[id];
+  }
+
+  /**
+   * Attempts to pick a space object at the given screen coordinates.
+   * @param {Number} clientX Pointer x position in client coordinates
+   * @param {Number} clientY Pointer y position in client coordinates
+   * @return {PickResult | undefined} Picked object details
+   */
+  pick(clientX: number, clientY: number): PickResult | undefined {
+    const pointerInfo = this.getCanvasRelativePosition(clientX, clientY);
+    if (!pointerInfo) {
+      return undefined;
+    }
+
+    const interactiveObjects = this.getObjects().filter((obj) =>
+      obj.isInteractive(),
+    );
+    if (!interactiveObjects.length) {
+      return undefined;
+    }
+
+    const { rect, screen } = pointerInfo;
+    const normalizedPointer = getNormalizedPointer(screen, rect.width, rect.height);
+    this.pointerNdc.set(normalizedPointer.x, normalizedPointer.y);
+    this.raycaster.setFromCamera(this.pointerNdc, this.camera.get3jsCamera());
+
+    const raycastTargets: THREE.Object3D[] = [];
+    const objectsByUuid = new Map<string, SpaceObject>();
+    interactiveObjects.forEach((obj) => {
+      const primaryObject = obj.getPrimaryObject3js();
+      if (!primaryObject) {
+        return;
+      }
+
+      raycastTargets.push(primaryObject);
+      objectsByUuid.set(primaryObject.uuid, obj);
+    });
+
+    const intersections = this.raycaster.intersectObjects(raycastTargets, true);
+    for (const intersection of intersections) {
+      const matchedObject = findParentPickMatch(
+        intersection.object,
+        objectsByUuid,
+      );
+      if (matchedObject) {
+        return {
+          object: matchedObject,
+          source: 'raycast',
+          kind: 'object',
+          point: [intersection.point.x, intersection.point.y, intersection.point.z],
+          screen,
+          distancePx: 0,
+        };
+      }
+    }
+
+    const proximityCandidates = interactiveObjects.map((obj) => {
+      const hasPrimaryObject = !!obj.getPrimaryObject3js();
+      const defaultPickRadius = hasPrimaryObject
+        ? this.interactionOptions.pickRadiusPx
+        : this.interactionOptions.particlePickRadiusPx;
+      return {
+        object: obj,
+        point: obj.getPosition(this.jd),
+        radiusPx: obj.getPickRadius(defaultPickRadius),
+        screen: obj.getScreenPosition(this.jd),
+      };
+    });
+    const closestCandidate = findClosestPickCandidate(
+      screen,
+      proximityCandidates,
+    );
+    if (!closestCandidate) {
+      return undefined;
+    }
+
+    return {
+      object: closestCandidate.candidate.object,
+      source: 'screen-proximity',
+      kind: 'object',
+      point: closestCandidate.candidate.point,
+      screen: closestCandidate.candidate.screen,
+      distancePx: closestCandidate.distancePx,
+    };
+  }
+
+  /**
+   * Sets the selected space object, or clears selection if target is omitted.
+   * @param {SpaceObject | String | undefined} target SpaceObject or id
+   */
+  selectObject(target?: SpaceObject | string) {
+    if (typeof target === 'undefined') {
+      this.selectedObject = undefined;
+      return;
+    }
+
+    this.selectedObject =
+      typeof target === 'string' ? this.getObjectById(target) : target;
+  }
+
+  /**
+   * Gets the currently selected space object.
+   * @return {SpaceObject | undefined} Selected object, if any
+   */
+  getSelectedObject(): SpaceObject | undefined {
+    return this.selectedObject;
   }
 
   /**

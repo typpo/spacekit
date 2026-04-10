@@ -191,6 +191,9 @@ var RotatingObject = /** @class */ (function (_super) {
         ret.unshift(this._obj);
         return ret;
     };
+    RotatingObject.prototype.getPrimaryObject3js = function () {
+        return this._obj;
+    };
     /**
      * Begin rotating this object.
      */

@@ -11,14 +11,13 @@ export default class Camera {
     private context;
     private camera;
     private cameraControls;
-    private followMesh?;
+    private followTarget?;
     /**
      * @param {Object} context The simulation context
      */
     constructor(context: SimulationContext);
     /**
-     * Move the camera to follow a SpaceObject as it moves. Currently only works
-     * for non-particlesystems.
+     * Move the camera to follow a SpaceObject as it moves.
      * @param {SpaceObject} obj SpaceObject to follow.
      * @param {Array.<Number>} position Position of the camera with respect to
      * the object.

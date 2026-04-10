@@ -24,6 +24,7 @@ export declare class RotatingObject extends SpaceObject {
      * @return {Array.<THREE.Object>} A list of THREE.js objects
      */
     get3jsObjects(): THREE.Object3D[];
+    getPrimaryObject3js(): THREE.Object3D | undefined;
     /**
      * Begin rotating this object.
      */

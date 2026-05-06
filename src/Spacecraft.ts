@@ -262,15 +262,18 @@ export class Spacecraft {
     this.config = config;
   }
 
-  get name(): string {
+  // Note: getters would be cleaner but Spacekit's tsconfig targets ES3 by
+  // default (no `target` field), which forbids class accessors. Methods
+  // are functionally equivalent.
+  name(): string {
     return this.config.name ?? 'Unnamed Vessel';
   }
 
-  get drive(): DriveSpec {
+  drive(): DriveSpec {
     return this.config.drive;
   }
 
-  get dryMassTonnes(): number {
+  dryMassTonnes(): number {
     return this.config.mass.dryMassTonnes;
   }
 
@@ -278,7 +281,7 @@ export class Spacecraft {
    * Load propellant required for the given Δv budget. Mutates `this.config.mass`.
    */
   loadPropellantForDeltaV(deltaVMs: number): PropellantResult {
-    const result = propellantForDeltaV(this.dryMassTonnes, deltaVMs, this.drive);
+    const result = propellantForDeltaV(this.dryMassTonnes(), deltaVMs, this.drive());
     this.config.mass.propellantMassTonnes = result.propellantMassTonnes;
     return result;
   }
@@ -287,8 +290,8 @@ export class Spacecraft {
    * Δv this ship can deliver with currently-loaded propellant.
    */
   currentDeltaVCapacityMs(): number {
-    const wet = this.dryMassTonnes + this.config.mass.propellantMassTonnes;
-    return deltaVForWetMass(this.dryMassTonnes, wet, this.drive);
+    const wet = this.dryMassTonnes() + this.config.mass.propellantMassTonnes;
+    return deltaVForWetMass(this.dryMassTonnes(), wet, this.drive());
   }
 
   /**
@@ -296,15 +299,15 @@ export class Spacecraft {
    */
   stateAfterDeltaV(deltaVSpentMs: number): SpacecraftLiveState {
     const wetMass =
-      this.dryMassTonnes + this.config.mass.propellantMassTonnes;
+      this.dryMassTonnes() + this.config.mass.propellantMassTonnes;
     return spacecraftStateAfterDeltaV(
       wetMass,
       this.config.mass.propellantMassTonnes,
-      this.drive,
+      this.drive(),
       deltaVSpentMs,
     );
   }
 }
 
 // Internal exports for testing.
-export const __test = { C };
+export const __spacecraftTest = { C };

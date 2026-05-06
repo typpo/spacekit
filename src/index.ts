@@ -18,6 +18,7 @@ export * from './Units';
 // Voyage extensions: high-thrust mission planning and brachistochrone trajectories.
 export * from './Brachistochrone';
 export * from './Spacecraft';
+export * from './MissionPlanner';
 
 import * as _THREE from 'three';
 export const THREE = _THREE;

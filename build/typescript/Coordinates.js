@@ -42,7 +42,7 @@ var Coordinates = /** @class */ (function () {
     Coordinates.getNutationAndObliquity = function (jd) {
         if (jd === void 0) { jd = J2000; }
         var t = (jd - J2000) / 36525;
-        var omega = Units_1["default"].rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t + t) / 450000);
+        var omega = Units_1["default"].rad(125.04452 - 1934.136261 * t + 0.0020708 * t * t + (t * t * t) / 450000);
         var Lsun = Units_1["default"].rad(280.4665 + 36000.7698 * t);
         var Lmoon = Units_1["default"].rad(218.3165 + 481267.8813 * t);
         var nutation = (-17.2 / 3600) * Math.sin(omega) -

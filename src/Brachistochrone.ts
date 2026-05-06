@@ -167,10 +167,10 @@ function bodyVelocityAuPerDay(
   ephem: Ephem,
   jd: number,
 ): Coordinate3d {
-  const orbit = new Orbit(ephem);
+  const orbit = new Orbit(ephem, {});
   const dt = 0.5; // days
-  const pPlus = orbit.getPositionAtTime(jd + dt) as Coordinate3d;
-  const pMinus = orbit.getPositionAtTime(jd - dt) as Coordinate3d;
+  const pPlus = orbit.getPositionAtTime(jd + dt, false) as Coordinate3d;
+  const pMinus = orbit.getPositionAtTime(jd - dt, false) as Coordinate3d;
   return [
     (pPlus[0] - pMinus[0]) / (2 * dt),
     (pPlus[1] - pMinus[1]) / (2 * dt),
@@ -274,13 +274,13 @@ export function solveBrachistochrone(
 
   const accelMs2 = accelG * G0;
 
-  const originOrbit = new Orbit(originEphem);
-  const targetOrbit = new Orbit(targetEphem);
+  const originOrbit = new Orbit(originEphem, {});
+  const targetOrbit = new Orbit(targetEphem, {});
 
-  const r0 = originOrbit.getPositionAtTime(departureJd) as Coordinate3d;
+  const r0 = originOrbit.getPositionAtTime(departureJd, false) as Coordinate3d;
 
   let arrivalJd = departureJd + initialFlightDaysGuess;
-  let r1: Coordinate3d = targetOrbit.getPositionAtTime(arrivalJd) as Coordinate3d;
+  let r1: Coordinate3d = targetOrbit.getPositionAtTime(arrivalJd, false) as Coordinate3d;
   let flightTimeS = 0;
   let distanceM = 0;
   let iterationsRun = 0;
@@ -289,7 +289,7 @@ export function solveBrachistochrone(
 
   for (let iter = 0; iter < iterations; iter++) {
     iterationsRun = iter + 1;
-    r1 = targetOrbit.getPositionAtTime(arrivalJd) as Coordinate3d;
+    r1 = targetOrbit.getPositionAtTime(arrivalJd, false) as Coordinate3d;
     const dAu = vecMag(vecSub(r1, r0));
     distanceM = dAu * AU_M;
     flightTimeS = 2 * Math.sqrt(distanceM / accelMs2);
@@ -301,7 +301,7 @@ export function solveBrachistochrone(
   // Always do a final recompute against the committed arrivalJd so that
   // r1, distanceM, and flightTimeS are mutually consistent — required when
   // the iteration budget is exhausted before convergence.
-  r1 = targetOrbit.getPositionAtTime(arrivalJd) as Coordinate3d;
+  r1 = targetOrbit.getPositionAtTime(arrivalJd, false) as Coordinate3d;
   {
     const dAuFinal = vecMag(vecSub(r1, r0));
     distanceM = dAuFinal * AU_M;
@@ -418,7 +418,7 @@ export function brachistochroneStateAtFraction(
 }
 
 // Internal exports for testing.
-export const __test = {
+export const __brachistochroneTest = {
   AU_M,
   DAY_S,
   G0,

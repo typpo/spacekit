@@ -14,5 +14,8 @@ export * from './StaticParticles';
 export * from './KeplerParticles';
 export * from './Stars';
 export * from './Units';
+export * from './Brachistochrone';
+export * from './Spacecraft';
+export * from './MissionPlanner';
 import * as _THREE from 'three';
 export declare const THREE: typeof _THREE;

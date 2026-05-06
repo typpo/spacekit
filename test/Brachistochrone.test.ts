@@ -2,10 +2,10 @@ import { EphemPresets } from '../src/EphemPresets';
 import {
   solveBrachistochrone,
   brachistochroneStateAtFraction,
-  __test,
+  __brachistochroneTest,
 } from '../src/Brachistochrone';
 
-const { AU_M, G0, vecMag, vecSub } = __test;
+const { AU_M, G0, vecMag, vecSub } = __brachistochroneTest;
 
 // Departure JD ≈ 2026-05-06. Use a hardcoded JD so tests are deterministic
 // regardless of system clock.

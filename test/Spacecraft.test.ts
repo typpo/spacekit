@@ -101,9 +101,9 @@ describe('Spacecraft class', () => {
       drive: DRIVE_PB11_REFERENCE,
       mass: { dryMassTonnes: 1000, propellantMassTonnes: 0 },
     });
-    expect(ship.name).toBe('Reference Vessel');
-    expect(ship.dryMassTonnes).toBe(1000);
-    expect(ship.drive).toBe(DRIVE_PB11_REFERENCE);
+    expect(ship.name()).toBe('Reference Vessel');
+    expect(ship.dryMassTonnes()).toBe(1000);
+    expect(ship.drive()).toBe(DRIVE_PB11_REFERENCE);
   });
 
   test('default name when omitted', () => {
@@ -111,7 +111,7 @@ describe('Spacecraft class', () => {
       drive: DRIVE_PB11_REFERENCE,
       mass: { dryMassTonnes: 100, propellantMassTonnes: 0 },
     });
-    expect(ship.name).toBe('Unnamed Vessel');
+    expect(ship.name()).toBe('Unnamed Vessel');
   });
 
   test('loadPropellantForDeltaV mutates mass and returns result', () => {
@@ -176,7 +176,7 @@ describe('spacecraftStateAfterDeltaV', () => {
     expect(s.propellantFractionRemaining).toBeCloseTo(1, 6);
     expect(s.deltaVRemainingMs).toBeCloseTo(dvBudget, 0);
     expect(s.currentWetMassTonnes).toBeCloseTo(
-      ship.dryMassTonnes + ship.config.mass.propellantMassTonnes,
+      ship.dryMassTonnes() + ship.config.mass.propellantMassTonnes,
       6,
     );
   });
@@ -186,7 +186,7 @@ describe('spacecraftStateAfterDeltaV', () => {
     expect(s.remainingPropellantTonnes).toBeLessThan(0.5); // floating-point slop
     expect(s.propellantFractionRemaining).toBeLessThan(0.001);
     expect(s.deltaVRemainingMs).toBeCloseTo(0, 0);
-    expect(s.currentWetMassTonnes).toBeCloseTo(ship.dryMassTonnes, 0);
+    expect(s.currentWetMassTonnes).toBeCloseTo(ship.dryMassTonnes(), 0);
   });
 
   test('at Δv=half budget, propellant remaining is between 0 and full and follows exp law', () => {
@@ -211,7 +211,7 @@ describe('spacecraftStateAfterDeltaV', () => {
   test('rejects negative or absurd Δv', () => {
     expect(() => ship.stateAfterDeltaV(-1)).toThrow();
     expect(() =>
-      ship.stateAfterDeltaV(ship.drive.exhaustVelocityMs * 100),
+      ship.stateAfterDeltaV(ship.drive().exhaustVelocityMs * 100),
     ).toThrow();
   });
 });

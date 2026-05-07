@@ -43,5 +43,9 @@ __exportStar(require("./StaticParticles"), exports);
 __exportStar(require("./KeplerParticles"), exports);
 __exportStar(require("./Stars"), exports);
 __exportStar(require("./Units"), exports);
+// Voyage extensions: high-thrust mission planning and brachistochrone trajectories.
+__exportStar(require("./Brachistochrone"), exports);
+__exportStar(require("./Spacecraft"), exports);
+__exportStar(require("./MissionPlanner"), exports);
 var _THREE = __importStar(require("three"));
 exports.THREE = _THREE;

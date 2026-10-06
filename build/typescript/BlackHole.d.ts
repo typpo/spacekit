@@ -32,7 +32,8 @@ export interface BlackHoleOptions {
         outerRadius?: number;
         /**
          * Luminosity of the disk as a fraction of the Eddington luminosity, which
-         * sets its temperature. Defaults to 0.1.
+         * sets its temperature and thickness. Defaults to 0.02, a moderately
+         * accreting thin disk.
          */
         eddingtonRatio?: number;
         /**

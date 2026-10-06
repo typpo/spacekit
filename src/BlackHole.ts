@@ -52,7 +52,8 @@ export interface BlackHoleOptions {
     outerRadius?: number;
     /**
      * Luminosity of the disk as a fraction of the Eddington luminosity, which
-     * sets its temperature. Defaults to 0.1.
+     * sets its temperature and thickness. Defaults to 0.02, a moderately
+     * accreting thin disk.
      */
     eddingtonRatio?: number;
     /**
@@ -249,7 +250,7 @@ export class BlackHole implements SimulationObject {
     const disk = this.options.accretionDisk || {};
     const peakTemperature =
       disk.peakTemperature ||
-      diskPeakTemperature(this.getMass(), disk.eddingtonRatio ?? 0.1);
+      diskPeakTemperature(this.getMass(), disk.eddingtonRatio ?? 0.02);
     const outerRadius = disk.outerRadius || 15;
     if (outerRadius >= this.lensRadius) {
       console.warn(
@@ -276,7 +277,7 @@ export class BlackHole implements SimulationObject {
         diskTurbulence: { value: disk.turbulence ?? 0.6 },
         diskThicknessScale: {
           value:
-            diskThicknessScale(disk.eddingtonRatio ?? 0.1) *
+            diskThicknessScale(disk.eddingtonRatio ?? 0.02) *
             (disk.thickness ?? 1),
         },
         // Vertical optical depth through the disk midplane. Large enough

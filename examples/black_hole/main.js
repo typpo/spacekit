@@ -26,7 +26,7 @@ const blackHole = viz.createBlackHole('sgra', {
     // The disk temperature follows from the mass and accretion rate, which
     // makes a realistic disk blue-white hot. Set `peakTemperature: 5000`
     // (in Kelvin) instead for an Interstellar-style orange glow.
-    eddingtonRatio: 0.1,
+    eddingtonRatio: 0.02,
   },
 });
 

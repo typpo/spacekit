@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskObservedIntensity = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
+exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskObservedIntensity = exports.gaussianSlabColumn = exports.erf = exports.diskThicknessScale = exports.diskHalfThickness = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
 var Units_1 = __importDefault(require("./Units"));
 /** Speed of light, km/s */
 exports.SPEED_OF_LIGHT_KM_S = 299792.458;
@@ -214,6 +214,63 @@ function diskRedshiftFactor(r, lambda) {
 }
 exports.diskRedshiftFactor = diskRedshiftFactor;
 /**
+ * Half-thickness of a radiation-pressure supported thin disk (Shakura &
+ * Sunyaev 1973), in rs. In the inner disk, where radiation pressure
+ * dominates, H = (3 kappa Mdot / (8 pi c)) (1 - sqrt(r_in / r)), which in
+ * terms of the Eddington ratio is (3/4) (L / L_Edd) / eta rs times the same
+ * radial factor. It is independent of the black hole mass.
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @return {Number} Half-thickness in rs
+ */
+function diskHalfThickness(r, eddingtonRatio) {
+    if (r <= exports.ISCO_RADIUS) {
+        return 0;
+    }
+    return diskThicknessScale(eddingtonRatio) * (1 - Math.sqrt(exports.ISCO_RADIUS / r));
+}
+exports.diskHalfThickness = diskHalfThickness;
+/**
+ * Coefficient of the radial factor in `diskHalfThickness`, in rs.
+ */
+function diskThicknessScale(eddingtonRatio) {
+    return (0.75 * eddingtonRatio) / exports.DISK_RADIATIVE_EFFICIENCY;
+}
+exports.diskThicknessScale = diskThicknessScale;
+/**
+ * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
+ * in the shader.
+ */
+function erf(x) {
+    var sign = x < 0 ? -1 : 1;
+    var ax = Math.abs(x);
+    var t = 1 / (1 + 0.3275911 * ax);
+    var y = 1 -
+        ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) *
+            t +
+            0.254829592) *
+            t *
+            Math.exp(-ax * ax);
+    return sign * y;
+}
+exports.erf = erf;
+/**
+ * Column density along a straight segment of length `length` through a
+ * Gaussian slab exp(-z^2 / (2 sigma^2)), where the height changes linearly
+ * from z0 to z1. Integrated exactly, so a thin slab is never stepped over.
+ */
+function gaussianSlabColumn(z0, z1, sigma, length) {
+    var dz = z1 - z0;
+    if (Math.abs(dz) < 1e-4 * sigma) {
+        var zm = 0.5 * (z0 + z1);
+        return length * Math.exp((-zm * zm) / (2 * sigma * sigma));
+    }
+    var k = Math.SQRT2 * sigma;
+    return ((length / dz) * Math.sqrt(Math.PI / 2) * sigma * (erf(z1 / k) - erf(z0 / k)));
+}
+exports.gaussianSlabColumn = gaussianSlabColumn;
+/**
  * Bolometric intensity of the disk seen by a distant observer, relative to
  * the hottest point of the disk as seen in its rest frame. Since I_nu / nu^3
  * is invariant along a ray, a blackbody at T is observed as a blackbody at
@@ -281,7 +338,7 @@ exports.planck = planck;
  * Number of samples and range used to integrate a spectrum over the visible
  * band. Keep in sync with the black hole fragment shader.
  */
-exports.SPECTRUM_SAMPLES = 32;
+exports.SPECTRUM_SAMPLES = 16;
 exports.SPECTRUM_MIN_NM = 380;
 exports.SPECTRUM_MAX_NM = 780;
 /**
@@ -343,7 +400,7 @@ exports.blackbodyLuminance = blackbodyLuminance;
 exports.GEODESIC_STEP_FACTOR = 0.06;
 exports.GEODESIC_MIN_STEP = 0.005;
 exports.GEODESIC_MAX_STEP = 2.0;
-exports.GEODESIC_MAX_STEPS = 400;
+exports.GEODESIC_MAX_STEPS = 600;
 /**
  * Accelerate the ray along the Schwarzschild orbit equation. In rs units the
  * null geodesic d^2u/dphi^2 + u = 3 M u^2 is equivalent to the "force law"

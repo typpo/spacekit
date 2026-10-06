@@ -4,6 +4,7 @@ import {
   GM_SUN_KM3_S2,
   ISCO_RADIUS,
   diskPeakTemperature,
+  diskThicknessScale,
   novikovThorneFluxPeak,
   schwarzschildRadiusAu,
 } from './BlackHolePhysics';
@@ -67,6 +68,12 @@ export interface BlackHoleOptions {
      * Keplerian differential rotation. Defaults to 0.6.
      */
     turbulence?: number;
+    /**
+     * Multiplier on the physical disk thickness. The half-thickness follows
+     * the radiation-pressure supported Shakura-Sunyaev solution, about
+     * 0.75 (L / L_Edd) / 0.057 rs away from the inner edge. Defaults to 1.
+     */
+    thickness?: number;
     /**
      * Real-world seconds for gas at the inner edge of the disk to complete an
      * orbit. Outer gas moves slower, following Kepler's third law. The true
@@ -267,6 +274,14 @@ export class BlackHole implements SimulationObject {
         diskFluxMax: { value: novikovThorneFluxPeak(outerRadius).flux },
         diskExposure: { value: disk.exposure ?? 0.8 },
         diskTurbulence: { value: disk.turbulence ?? 0.6 },
+        diskThicknessScale: {
+          value:
+            diskThicknessScale(disk.eddingtonRatio ?? 0.1) *
+            (disk.thickness ?? 1),
+        },
+        // Vertical optical depth through the disk midplane. Large enough
+        // that the photosphere sits about two Gaussian widths up.
+        diskOpticalDepth: { value: 50 },
         diskTime: { value: 0 },
       },
       vertexShader: BLACK_HOLE_SHADER_VERTEX,

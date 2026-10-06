@@ -109,7 +109,7 @@ var BlackHole = /** @class */ (function () {
      * @private
      */
     BlackHole.prototype.createMaterial = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         var disk = this.options.accretionDisk || {};
         var peakTemperature = disk.peakTemperature ||
             (0, BlackHolePhysics_1.diskPeakTemperature)(this.getMass(), (_a = disk.eddingtonRatio) !== null && _a !== void 0 ? _a : 0.1);
@@ -134,6 +134,13 @@ var BlackHole = /** @class */ (function () {
                 diskFluxMax: { value: (0, BlackHolePhysics_1.novikovThorneFluxPeak)(outerRadius).flux },
                 diskExposure: { value: (_c = disk.exposure) !== null && _c !== void 0 ? _c : 0.8 },
                 diskTurbulence: { value: (_d = disk.turbulence) !== null && _d !== void 0 ? _d : 0.6 },
+                diskThicknessScale: {
+                    value: (0, BlackHolePhysics_1.diskThicknessScale)((_e = disk.eddingtonRatio) !== null && _e !== void 0 ? _e : 0.1) *
+                        ((_f = disk.thickness) !== null && _f !== void 0 ? _f : 1)
+                },
+                // Vertical optical depth through the disk midplane. Large enough
+                // that the photosphere sits about two Gaussian widths up.
+                diskOpticalDepth: { value: 50 },
                 diskTime: { value: 0 }
             },
             vertexShader: shaders_1.BLACK_HOLE_SHADER_VERTEX,

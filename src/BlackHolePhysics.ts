@@ -229,6 +229,71 @@ export function diskRedshiftFactor(r: number, lambda: number): number {
 }
 
 /**
+ * Half-thickness of a radiation-pressure supported thin disk (Shakura &
+ * Sunyaev 1973), in rs. In the inner disk, where radiation pressure
+ * dominates, H = (3 kappa Mdot / (8 pi c)) (1 - sqrt(r_in / r)), which in
+ * terms of the Eddington ratio is (3/4) (L / L_Edd) / eta rs times the same
+ * radial factor. It is independent of the black hole mass.
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @return {Number} Half-thickness in rs
+ */
+export function diskHalfThickness(r: number, eddingtonRatio: number): number {
+  if (r <= ISCO_RADIUS) {
+    return 0;
+  }
+  return diskThicknessScale(eddingtonRatio) * (1 - Math.sqrt(ISCO_RADIUS / r));
+}
+
+/**
+ * Coefficient of the radial factor in `diskHalfThickness`, in rs.
+ */
+export function diskThicknessScale(eddingtonRatio: number): number {
+  return (0.75 * eddingtonRatio) / DISK_RADIATIVE_EFFICIENCY;
+}
+
+/**
+ * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
+ * in the shader.
+ */
+export function erf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * ax);
+  const y =
+    1 -
+    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) *
+      t +
+      0.254829592) *
+      t *
+      Math.exp(-ax * ax);
+  return sign * y;
+}
+
+/**
+ * Column density along a straight segment of length `length` through a
+ * Gaussian slab exp(-z^2 / (2 sigma^2)), where the height changes linearly
+ * from z0 to z1. Integrated exactly, so a thin slab is never stepped over.
+ */
+export function gaussianSlabColumn(
+  z0: number,
+  z1: number,
+  sigma: number,
+  length: number,
+): number {
+  const dz = z1 - z0;
+  if (Math.abs(dz) < 1e-4 * sigma) {
+    const zm = 0.5 * (z0 + z1);
+    return length * Math.exp((-zm * zm) / (2 * sigma * sigma));
+  }
+  const k = Math.SQRT2 * sigma;
+  return (
+    (length / dz) * Math.sqrt(Math.PI / 2) * sigma * (erf(z1 / k) - erf(z0 / k))
+  );
+}
+
+/**
  * Bolometric intensity of the disk seen by a distant observer, relative to
  * the hottest point of the disk as seen in its rest frame. Since I_nu / nu^3
  * is invariant along a ray, a blackbody at T is observed as a blackbody at
@@ -299,7 +364,7 @@ export function planck(nm: number, temperature: number): number {
  * Number of samples and range used to integrate a spectrum over the visible
  * band. Keep in sync with the black hole fragment shader.
  */
-export const SPECTRUM_SAMPLES = 32;
+export const SPECTRUM_SAMPLES = 16;
 export const SPECTRUM_MIN_NM = 380;
 export const SPECTRUM_MAX_NM = 780;
 
@@ -376,7 +441,7 @@ export interface GeodesicTraceResult {
 export const GEODESIC_STEP_FACTOR = 0.06;
 export const GEODESIC_MIN_STEP = 0.005;
 export const GEODESIC_MAX_STEP = 2.0;
-export const GEODESIC_MAX_STEPS = 400;
+export const GEODESIC_MAX_STEPS = 600;
 
 /**
  * Accelerate the ray along the Schwarzschild orbit equation. In rs units the

@@ -115,6 +115,33 @@ export declare function impactParameter(pos: number[], dir: number[]): number;
  */
 export declare function diskRedshiftFactor(r: number, lambda: number): number;
 /**
+ * Half-thickness of a radiation-pressure supported thin disk (Shakura &
+ * Sunyaev 1973), in rs. In the inner disk, where radiation pressure
+ * dominates, H = (3 kappa Mdot / (8 pi c)) (1 - sqrt(r_in / r)), which in
+ * terms of the Eddington ratio is (3/4) (L / L_Edd) / eta rs times the same
+ * radial factor. It is independent of the black hole mass.
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @return {Number} Half-thickness in rs
+ */
+export declare function diskHalfThickness(r: number, eddingtonRatio: number): number;
+/**
+ * Coefficient of the radial factor in `diskHalfThickness`, in rs.
+ */
+export declare function diskThicknessScale(eddingtonRatio: number): number;
+/**
+ * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
+ * in the shader.
+ */
+export declare function erf(x: number): number;
+/**
+ * Column density along a straight segment of length `length` through a
+ * Gaussian slab exp(-z^2 / (2 sigma^2)), where the height changes linearly
+ * from z0 to z1. Integrated exactly, so a thin slab is never stepped over.
+ */
+export declare function gaussianSlabColumn(z0: number, z1: number, sigma: number, length: number): number;
+/**
  * Bolometric intensity of the disk seen by a distant observer, relative to
  * the hottest point of the disk as seen in its rest frame. Since I_nu / nu^3
  * is invariant along a ray, a blackbody at T is observed as a blackbody at
@@ -146,7 +173,7 @@ export declare function planck(nm: number, temperature: number): number;
  * Number of samples and range used to integrate a spectrum over the visible
  * band. Keep in sync with the black hole fragment shader.
  */
-export declare const SPECTRUM_SAMPLES = 32;
+export declare const SPECTRUM_SAMPLES = 16;
 export declare const SPECTRUM_MIN_NM = 380;
 export declare const SPECTRUM_MAX_NM = 780;
 /**
@@ -190,7 +217,7 @@ export interface GeodesicTraceResult {
 export declare const GEODESIC_STEP_FACTOR = 0.06;
 export declare const GEODESIC_MIN_STEP = 0.005;
 export declare const GEODESIC_MAX_STEP = 2;
-export declare const GEODESIC_MAX_STEPS = 400;
+export declare const GEODESIC_MAX_STEPS = 600;
 /**
  * Advances a ray by one fourth-order Runge-Kutta step.
  */

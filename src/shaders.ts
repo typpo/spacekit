@@ -396,8 +396,8 @@ export const BLACK_HOLE_SHADER_VERTEX = `
  * mirrors src/BlackHolePhysics.ts, which is unit tested.
  */
 export const BLACK_HOLE_SHADER_FRAGMENT = `
-  #define MAX_STEPS 400
-  #define SPECTRUM_SAMPLES 32
+  #define MAX_STEPS 600
+  #define SPECTRUM_SAMPLES 16
 
   const float STEP_FACTOR = 0.06;
   const float MIN_STEP = 0.005;
@@ -423,6 +423,8 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
   uniform float diskExposure;
   uniform float diskTurbulence;
   uniform float diskTime;
+  uniform float diskThicknessScale;
+  uniform float diskOpticalDepth;
 
   varying vec3 vViewPosition;
 
@@ -565,7 +567,7 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
   // angular momentum per unit energy lambda about the disk axis. Returned
   // with luminance equal to the bolometric intensity, relative to the
   // hottest part of the disk.
-  vec3 diskEmission(float r, float phi, float lambda) {
+  vec3 diskEmission(float r, float lambda) {
     float flux = novikovThorneFlux(r) / diskFluxMax;
     float emitted = diskPeakTemperature * pow(max(flux, 0.0), 0.25);
     // Gravitational redshift + time dilation + Doppler shift.
@@ -581,7 +583,34 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
     float intensity = g2 * g2 * flux;
     vec3 xyz = blackbodyXyz(observed);
     vec3 chroma = max(xyzToLinearSrgb(xyz / xyz.y), 0.0);
-    return chroma * intensity * diskExposure * diskTurbulenceFactor(r, phi);
+    return chroma * intensity * diskExposure;
+  }
+
+  // Abramowitz & Stegun 7.1.26.
+  float erf(float x) {
+    float ax = abs(x);
+    float t = 1.0 / (1.0 + 0.3275911 * ax);
+    float y = 1.0 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t
+      - 0.284496736) * t + 0.254829592) * t * exp(-ax * ax);
+    return sign(x) * y;
+  }
+
+  // Exact column density of a Gaussian slab exp(-z^2 / 2 sigma^2) along a
+  // straight segment whose height goes linearly from z0 to z1.
+  float gaussianSlabColumn(float z0, float z1, float sigma, float len) {
+    float dz = z1 - z0;
+    if (abs(dz) < 1e-4 * sigma) {
+      float zm = 0.5 * (z0 + z1);
+      return len * exp(-zm * zm / (2.0 * sigma * sigma));
+    }
+    float k = 1.4142136 * sigma;
+    return len / dz * 1.2533141 * sigma * (erf(z1 / k) - erf(z0 / k));
+  }
+
+  // Gaussian width of the disk gas at cylindrical radius rc. The disk
+  // half-thickness (photosphere height) H is about two widths.
+  float diskSigma(float rc) {
+    return max(0.5 * diskThicknessScale * (1.0 - sqrt(diskInnerRadius / rc)), 1e-3);
   }
 
   // Filmic tone curve (Narkowicz's fit of ACES).
@@ -631,19 +660,37 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
         escaped = true;
         break;
       }
+      float dt = clamp(STEP_FACTOR * r, MIN_STEP, MAX_STEP);
+      float rc = length(p.xy);
+      if (diskEnabled && rc > 0.8 * diskInnerRadius && rc < 1.1 * diskOuterRadius &&
+          abs(p.z) < 3.0 * diskThicknessScale + dt) {
+        // Take short steps near the disk so the gas is sampled finely.
+        dt = min(dt, max(0.08, 0.5 * abs(p.z)));
+      }
       vec3 prev = p;
-      geodesicStep(p, v, h2, clamp(STEP_FACTOR * r, MIN_STEP, MAX_STEP));
+      geodesicStep(p, v, h2, dt);
 
-      if (diskEnabled && prev.z * p.z <= 0.0 && prev.z != p.z) {
-        vec3 hit = mix(prev, p, prev.z / (prev.z - p.z));
-        float rHit = length(hit.xy);
-        if (rHit >= diskInnerRadius && rHit <= diskOuterRadius) {
-          // Optically thick disk, feathered at its outer edge.
-          float alpha = 1.0 - smoothstep(0.7 * diskOuterRadius, diskOuterRadius, rHit);
-          color += transmittance * alpha * diskEmission(rHit, atan(hit.y, hit.x), lambda);
-          transmittance *= 1.0 - alpha;
-          if (transmittance < 0.004) {
-            break;
+      if (diskEnabled) {
+        vec3 mid = 0.5 * (prev + p);
+        float rMid = length(mid.xy);
+        if (rMid > diskInnerRadius && rMid < diskOuterRadius) {
+          float sigma = diskSigma(rMid);
+          if (prev.z * p.z <= 0.0 || min(abs(prev.z), abs(p.z)) < 6.0 * sigma) {
+            float column = gaussianSlabColumn(prev.z, p.z, sigma, length(p - prev));
+            float turbulence = diskTurbulenceFactor(rMid, atan(mid.y, mid.x));
+            float outerFade = 1.0 - smoothstep(0.7 * diskOuterRadius, diskOuterRadius, rMid);
+            // Normalized so the full vertical optical depth is diskOpticalDepth.
+            float dtau = diskOpticalDepth / (2.5066283 * sigma) * column *
+              outerFade * mix(1.0, turbulence, 0.5);
+            if (dtau > 1e-4) {
+              // Radiative transfer with a local blackbody source function.
+              float absorbed = 1.0 - exp(-dtau);
+              color += transmittance * absorbed * turbulence * diskEmission(rMid, lambda);
+              transmittance *= 1.0 - absorbed;
+              if (transmittance < 0.004) {
+                break;
+              }
+            }
           }
         }
       }

@@ -2,7 +2,10 @@ import {
   CRITICAL_IMPACT_PARAMETER,
   blackbodyColor,
   blackbodyLuminance,
+  diskHalfThickness,
   diskObservedIntensity,
+  erf,
+  gaussianSlabColumn,
   diskPeakTemperature,
   diskRedshiftFactor,
   diskTemperatureRatio,
@@ -187,6 +190,50 @@ describe('observed disk intensity', () => {
     expect(diskObservedIntensity(30, 0)).toBeLessThan(
       0.05 * diskObservedIntensity(5, 0),
     );
+  });
+});
+
+describe('disk thickness', () => {
+  test('is a few percent of the radius at 10% Eddington', () => {
+    const h = diskHalfThickness(10, 0.1);
+    expect(h).toBeGreaterThan(0.3);
+    expect(h / 10).toBeLessThan(0.1);
+    expect(diskHalfThickness(3, 0.1)).toBe(0);
+  });
+
+  test('scales with the accretion rate', () => {
+    expect(diskHalfThickness(8, 0.2) / diskHalfThickness(8, 0.1)).toBeCloseTo(
+      2,
+      10,
+    );
+  });
+
+  test('erf approximation is accurate', () => {
+    expect(erf(0)).toBeCloseTo(0, 6);
+    expect(erf(0.5)).toBeCloseTo(0.5204999, 6);
+    expect(erf(-1.5)).toBeCloseTo(-0.9661051, 6);
+  });
+
+  test('slab column matches numerical integration, even for thin slabs', () => {
+    const numeric = (z0: number, z1: number, sigma: number, len: number) => {
+      const n = 100000;
+      let sum = 0;
+      for (let i = 0; i < n; i++) {
+        const z = z0 + ((i + 0.5) / n) * (z1 - z0);
+        sum += Math.exp((-z * z) / (2 * sigma * sigma)) * (len / n);
+      }
+      return sum;
+    };
+    for (const [z0, z1, sigma, len] of [
+      [-2, 3, 0.5, 4],
+      [1, -1, 0.01, 0.5],
+      [0.2, 0.2, 0.3, 1],
+    ]) {
+      expect(gaussianSlabColumn(z0, z1, sigma, len)).toBeCloseTo(
+        numeric(z0, z1, sigma, len),
+        5,
+      );
+    }
   });
 });
 

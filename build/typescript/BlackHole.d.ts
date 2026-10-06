@@ -49,6 +49,12 @@ export interface BlackHoleOptions {
          */
         turbulence?: number;
         /**
+         * Multiplier on the physical disk thickness. The half-thickness follows
+         * the radiation-pressure supported Shakura-Sunyaev solution, about
+         * 0.75 (L / L_Edd) / 0.057 rs away from the inner edge. Defaults to 1.
+         */
+        thickness?: number;
+        /**
          * Real-world seconds for gas at the inner edge of the disk to complete an
          * orbit. Outer gas moves slower, following Kepler's third law. The true
          * period is minutes to hours for supermassive black holes and

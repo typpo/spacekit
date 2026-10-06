@@ -23,9 +23,9 @@ const blackHole = viz.createBlackHole('sgra', {
     // In Schwarzschild radii. The disk starts at the innermost stable
     // circular orbit, 3 rs.
     outerRadius: 15,
-    // The disk temperature follows from the mass and accretion rate. Set
-    // `peakTemperature` (in Kelvin) instead for a cooler, Interstellar-style
-    // orange glow.
+    // The disk temperature follows from the mass and accretion rate, which
+    // makes a realistic disk blue-white hot. Set `peakTemperature: 5000`
+    // (in Kelvin) instead for an Interstellar-style orange glow.
     eddingtonRatio: 0.1,
   },
 });

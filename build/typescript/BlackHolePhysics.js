@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
+exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskObservedIntensity = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
 var Units_1 = __importDefault(require("./Units"));
 /** Speed of light, km/s */
 exports.SPEED_OF_LIGHT_KM_S = 299792.458;
@@ -213,6 +213,21 @@ function diskRedshiftFactor(r, lambda) {
     return Math.sqrt(1 - 1.5 / r) / (1 - orbitalAngularVelocity(r) * lambda);
 }
 exports.diskRedshiftFactor = diskRedshiftFactor;
+/**
+ * Bolometric intensity of the disk seen by a distant observer, relative to
+ * the hottest point of the disk as seen in its rest frame. Since I_nu / nu^3
+ * is invariant along a ray, a blackbody at T is observed as a blackbody at
+ * g * T, and the bolometric intensity (~ T^4) scales as g^4.
+ *
+ * @param {Number} r Emission radius in rs
+ * @param {Number} lambda Photon L_z / E in rs (see `diskRedshiftFactor`)
+ * @return {Number} Relative observed intensity
+ */
+function diskObservedIntensity(r, lambda) {
+    var g = diskRedshiftFactor(r, lambda);
+    return Math.pow(g, 4) * (novikovThorneFlux(r) / novikovThorneFluxPeak().flux);
+}
+exports.diskObservedIntensity = diskObservedIntensity;
 /**
  * Remaining weak-field light deflection, in radians, for a ray at `pos`
  * moving in direction `dir` (both in rs) as it travels to infinity. Used to

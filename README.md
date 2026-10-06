@@ -138,7 +138,7 @@ sim.createSphere('earth', {
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
 
-`BlackHole`: a non-rotating (Schwarzschild) black hole.  Light is ray traced along exact null geodesics on the GPU, so the black hole casts a shadow, shows a photon ring, and gravitationally lenses everything behind it (stars, skybox, and other objects) into arcs and Einstein rings.  An optional thin accretion disk follows the relativistic Novikov-Thorne temperature profile, and its light is shifted by gravitational redshift and Doppler beaming.
+`BlackHole`: a non-rotating (Schwarzschild) black hole.  Light is ray traced along exact null geodesics on the GPU, so the black hole casts a shadow, shows a photon ring, and gravitationally lenses everything behind it (stars, skybox, and other objects) into arcs and Einstein rings.  An optional thin accretion disk follows the relativistic Novikov-Thorne temperature profile, and its light is shifted by gravitational redshift and Doppler beaming (the approaching side is brighter and bluer).  The disk gas has turbulent structure carried around by Keplerian rotation (`turbulence: 0` for a perfectly smooth disk).
 ```javascript
 const blackHole = sim.createBlackHole('sgra', {
   position: [0, 0, 0],   // AU
@@ -155,6 +155,8 @@ sim.createObject('star', {
   ephem: new Spacekit.Ephem({ a: 20, e: 0.3, i: 80, om: 0, w: 0, ma: 0, epoch: 0, GM: blackHole.getGM() }, 'deg'),
 });
 ```
+
+Realistic thin disks are very hot (about 150,000 K for Sagittarius A* at 10% of the Eddington limit), so they glow blue-white.  For the warm orange look popularized by Interstellar, set `accretionDisk.peakTemperature` to around 4000-6000 K.
 
 Use `schwarzschildRadius` (in AU) instead of `mass` to exaggerate the size of a small black hole.  Light is traced exactly within `lensRadius` (default 60 Schwarzschild radii); outside of it, the deflection is eased to zero so the lens blends into the rest of the scene.
 

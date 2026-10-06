@@ -40,8 +40,22 @@ export interface BlackHoleOptions {
          * Overrides the temperature derived from the mass and `eddingtonRatio`.
          */
         peakTemperature?: number;
-        /** Brightness multiplier applied before tone mapping. Defaults to 0.6. */
+        /** Brightness multiplier applied before tone mapping. Defaults to 0.8. */
         exposure?: number;
+        /**
+         * Strength of turbulent structure in the disk gas, from 0 (a perfectly
+         * smooth Novikov-Thorne disk) to 1. The pattern is carried around by
+         * Keplerian differential rotation. Defaults to 0.6.
+         */
+        turbulence?: number;
+        /**
+         * Real-world seconds for gas at the inner edge of the disk to complete an
+         * orbit. Outer gas moves slower, following Kepler's third law. The true
+         * period is minutes to hours for supermassive black holes and
+         * milliseconds for stellar ones, so this is a visual time scale.
+         * Defaults to 8.
+         */
+        rotationPeriod?: number;
     };
     environmentMap?: {
         /**
@@ -95,6 +109,8 @@ export declare class BlackHole implements SimulationObject {
     private cubeCamera;
     private frameCount;
     private needsEnvironmentRefresh;
+    private lastFrameTime;
+    private lastJd;
     /**
      * @param {String} id Unique id of this object
      * @param {BlackHoleOptions} options Options

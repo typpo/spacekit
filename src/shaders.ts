@@ -420,8 +420,9 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
   uniform float diskOuterRadius;
   uniform float diskPeakTemperature;
   uniform float diskFluxMax;
-  uniform float diskLuminanceRef;
   uniform float diskExposure;
+  uniform float diskTurbulence;
+  uniform float diskTime;
 
   varying vec3 vViewPosition;
 
@@ -510,21 +511,82 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
       0.0557 * xyz.x - 0.2040 * xyz.y + 1.0570 * xyz.z);
   }
 
+  float hash(vec3 p) {
+    p = fract(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+  }
+
+  float valueNoise(vec3 x) {
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(mix(hash(i), hash(i + vec3(1.0, 0.0, 0.0)), f.x),
+          mix(hash(i + vec3(0.0, 1.0, 0.0)), hash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+      mix(mix(hash(i + vec3(0.0, 0.0, 1.0)), hash(i + vec3(1.0, 0.0, 1.0)), f.x),
+          mix(hash(i + vec3(0.0, 1.0, 1.0)), hash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y),
+      f.z);
+  }
+
+  float fbm(vec3 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 5; i++) {
+      value += amplitude * valueNoise(p);
+      p = p * 2.03 + vec3(17.1, 3.7, 9.2);
+      amplitude *= 0.5;
+    }
+    return value / 0.96875;
+  }
+
+  // Turbulent density variations in the disk gas, carried around by
+  // differential (Keplerian) rotation. Two layers that restart in turn are
+  // cross-faded so the pattern never winds up into infinitely tight spirals.
+  float diskTurbulenceFactor(float r, float phi) {
+    if (diskTurbulence <= 0.0) {
+      return 1.0;
+    }
+    // Angular velocity relative to the inner edge: Omega ~ r^(-3/2).
+    float relativeOmega = pow(ISCO_RADIUS / r, 1.5);
+    float density = 0.0;
+    for (int k = 0; k < 2; k++) {
+      float phase = fract(diskTime + 0.5 * float(k));
+      float weight = 1.0 - abs(2.0 * phase - 1.0);
+      float angle = phi - 6.2831853 * relativeOmega * (phase + float(k) * 0.37);
+      // Stretched along the orbit, like gas sheared by differential rotation.
+      vec3 q = vec3(1.2 * cos(angle), 1.2 * sin(angle), 7.0 * log(r) + 11.3 * float(k));
+      density += weight * fbm(q * 2.0);
+    }
+    return mix(1.0, 3.2 * density * density, diskTurbulence);
+  }
+
   // Light from the disk at radius r reaching the camera, for a photon with
-  // angular momentum per unit energy lambda about the disk axis.
-  vec3 diskEmission(float r, float lambda) {
+  // angular momentum per unit energy lambda about the disk axis. Returned
+  // with luminance equal to the bolometric intensity, relative to the
+  // hottest part of the disk.
+  vec3 diskEmission(float r, float phi, float lambda) {
     float flux = novikovThorneFlux(r) / diskFluxMax;
     float emitted = diskPeakTemperature * pow(max(flux, 0.0), 0.25);
     // Gravitational redshift + time dilation + Doppler shift.
     float omega = sqrt(0.5 / (r * r * r));
     float g = sqrt(1.0 - 1.5 / r) / (1.0 - omega * lambda);
-    // A blackbody at T, shifted by g, is observed as a blackbody at g * T.
+    // A blackbody at T, shifted by g, is observed as a blackbody at g * T,
+    // so its bolometric intensity (~ T^4) is boosted by g^4.
     float observed = g * emitted;
     if (observed < 300.0) {
       return vec3(0.0);
     }
-    vec3 rgb = max(xyzToLinearSrgb(blackbodyXyz(observed)), 0.0);
-    return rgb / diskLuminanceRef * diskExposure;
+    float g2 = g * g;
+    float intensity = g2 * g2 * flux;
+    vec3 xyz = blackbodyXyz(observed);
+    vec3 chroma = max(xyzToLinearSrgb(xyz / xyz.y), 0.0);
+    return chroma * intensity * diskExposure * diskTurbulenceFactor(r, phi);
+  }
+
+  // Filmic tone curve (Narkowicz's fit of ACES).
+  vec3 toneMap(vec3 x) {
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
   }
 
   void main() {
@@ -577,8 +639,8 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
         float rHit = length(hit.xy);
         if (rHit >= diskInnerRadius && rHit <= diskOuterRadius) {
           // Optically thick disk, feathered at its outer edge.
-          float alpha = 1.0 - smoothstep(0.85 * diskOuterRadius, diskOuterRadius, rHit);
-          color += transmittance * alpha * diskEmission(rHit, lambda);
+          float alpha = 1.0 - smoothstep(0.7 * diskOuterRadius, diskOuterRadius, rHit);
+          color += transmittance * alpha * diskEmission(rHit, atan(hit.y, hit.x), lambda);
           transmittance *= 1.0 - alpha;
           if (transmittance < 0.004) {
             break;
@@ -588,7 +650,7 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
     }
 
     // Tone map and gamma encode the emitted light.
-    color = pow(vec3(1.0) - exp(-color), vec3(1.0 / 2.2));
+    color = pow(toneMap(color), vec3(1.0 / 2.2));
 
     if (escaped) {
       vec3 outDir = normalize(v);

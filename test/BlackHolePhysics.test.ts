@@ -2,6 +2,7 @@ import {
   CRITICAL_IMPACT_PARAMETER,
   blackbodyColor,
   blackbodyLuminance,
+  diskObservedIntensity,
   diskPeakTemperature,
   diskRedshiftFactor,
   diskTemperatureRatio,
@@ -169,6 +170,23 @@ describe('accretion disk', () => {
     // Photon emitted along the orbital velocity: lambda = +b.
     expect(diskRedshiftFactor(r, 5)).toBeGreaterThan(1);
     expect(diskRedshiftFactor(r, -5)).toBeLessThan(diskRedshiftFactor(r, 0));
+  });
+});
+
+describe('observed disk intensity', () => {
+  test('Doppler beaming makes the approaching side much brighter', () => {
+    const r = 6;
+    // Edge-on photons emitted along (+) or against (-) the orbital motion.
+    const b = r / Math.sqrt(1 - 1 / r);
+    const ratio = diskObservedIntensity(r, b) / diskObservedIntensity(r, -b);
+    // g^4 with v ~ 0.35c at 6 rs gives more than an order of magnitude.
+    expect(ratio).toBeGreaterThan(10);
+  });
+
+  test('falls off steeply with radius', () => {
+    expect(diskObservedIntensity(30, 0)).toBeLessThan(
+      0.05 * diskObservedIntensity(5, 0),
+    );
   });
 });
 

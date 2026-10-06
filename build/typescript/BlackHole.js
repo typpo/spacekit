@@ -67,6 +67,8 @@ var BlackHole = /** @class */ (function () {
         this.schwarzschildRadiusScene = (0, Scale_1.rescaleNumber)(this.getSchwarzschildRadius());
         this.frameCount = 0;
         this.needsEnvironmentRefresh = true;
+        this.lastFrameTime = Date.now();
+        this.lastJd = simulation.getJd();
         var normal = new THREE.Vector3()
             .fromArray(this.options.diskNormal || [0, 0, 1])
             .normalize();
@@ -107,7 +109,7 @@ var BlackHole = /** @class */ (function () {
      * @private
      */
     BlackHole.prototype.createMaterial = function () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         var disk = this.options.accretionDisk || {};
         var peakTemperature = disk.peakTemperature ||
             (0, BlackHolePhysics_1.diskPeakTemperature)(this.getMass(), (_a = disk.eddingtonRatio) !== null && _a !== void 0 ? _a : 0.1);
@@ -130,8 +132,9 @@ var BlackHole = /** @class */ (function () {
                 diskOuterRadius: { value: outerRadius },
                 diskPeakTemperature: { value: peakTemperature },
                 diskFluxMax: { value: (0, BlackHolePhysics_1.novikovThorneFluxPeak)(outerRadius).flux },
-                diskLuminanceRef: { value: (0, BlackHolePhysics_1.blackbodyLuminance)(peakTemperature) },
-                diskExposure: { value: (_c = disk.exposure) !== null && _c !== void 0 ? _c : 0.6 }
+                diskExposure: { value: (_c = disk.exposure) !== null && _c !== void 0 ? _c : 0.8 },
+                diskTurbulence: { value: (_d = disk.turbulence) !== null && _d !== void 0 ? _d : 0.6 },
+                diskTime: { value: 0 }
             },
             vertexShader: shaders_1.BLACK_HOLE_SHADER_VERTEX,
             fragmentShader: shaders_1.BLACK_HOLE_SHADER_FRAGMENT,
@@ -159,8 +162,20 @@ var BlackHole = /** @class */ (function () {
      * Called by the simulation right before each frame is drawn.
      */
     BlackHole.prototype.beforeRender = function () {
-        var _a, _b;
-        var interval = (_b = (_a = this.options.environmentMap) === null || _a === void 0 ? void 0 : _a.updateInterval) !== null && _b !== void 0 ? _b : 1;
+        var _a, _b, _c;
+        // Advance disk rotation while the simulation is running.
+        var now = Date.now();
+        var jd = this.simulation.getJd();
+        if (jd !== this.lastJd) {
+            var period = ((_a = this.options.accretionDisk) === null || _a === void 0 ? void 0 : _a.rotationPeriod) || 8;
+            this.material.uniforms.diskTime.value =
+                (this.material.uniforms.diskTime.value +
+                    (now - this.lastFrameTime) / 1000 / period) %
+                    1000;
+            this.lastJd = jd;
+        }
+        this.lastFrameTime = now;
+        var interval = (_c = (_b = this.options.environmentMap) === null || _b === void 0 ? void 0 : _b.updateInterval) !== null && _c !== void 0 ? _c : 1;
         this.frameCount++;
         if (this.needsEnvironmentRefresh ||
             (interval > 0 && this.frameCount % interval === 0)) {

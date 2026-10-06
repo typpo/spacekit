@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import {
   GM_SUN_KM3_S2,
   ISCO_RADIUS,
-  blackbodyLuminance,
   diskPeakTemperature,
   novikovThorneFluxPeak,
   schwarzschildRadiusAu,
@@ -60,8 +59,22 @@ export interface BlackHoleOptions {
      * Overrides the temperature derived from the mass and `eddingtonRatio`.
      */
     peakTemperature?: number;
-    /** Brightness multiplier applied before tone mapping. Defaults to 0.6. */
+    /** Brightness multiplier applied before tone mapping. Defaults to 0.8. */
     exposure?: number;
+    /**
+     * Strength of turbulent structure in the disk gas, from 0 (a perfectly
+     * smooth Novikov-Thorne disk) to 1. The pattern is carried around by
+     * Keplerian differential rotation. Defaults to 0.6.
+     */
+    turbulence?: number;
+    /**
+     * Real-world seconds for gas at the inner edge of the disk to complete an
+     * orbit. Outer gas moves slower, following Kepler's third law. The true
+     * period is minutes to hours for supermassive black holes and
+     * milliseconds for stellar ones, so this is a visual time scale.
+     * Defaults to 8.
+     */
+    rotationPeriod?: number;
   };
   environmentMap?: {
     /**
@@ -131,6 +144,10 @@ export class BlackHole implements SimulationObject {
 
   private needsEnvironmentRefresh: boolean;
 
+  private lastFrameTime: number;
+
+  private lastJd: number;
+
   /**
    * @param {String} id Unique id of this object
    * @param {BlackHoleOptions} options Options
@@ -149,6 +166,8 @@ export class BlackHole implements SimulationObject {
     );
     this.frameCount = 0;
     this.needsEnvironmentRefresh = true;
+    this.lastFrameTime = Date.now();
+    this.lastJd = simulation.getJd();
 
     const normal = new THREE.Vector3()
       .fromArray(this.options.diskNormal || [0, 0, 1])
@@ -246,8 +265,9 @@ export class BlackHole implements SimulationObject {
         diskOuterRadius: { value: outerRadius },
         diskPeakTemperature: { value: peakTemperature },
         diskFluxMax: { value: novikovThorneFluxPeak(outerRadius).flux },
-        diskLuminanceRef: { value: blackbodyLuminance(peakTemperature) },
-        diskExposure: { value: disk.exposure ?? 0.6 },
+        diskExposure: { value: disk.exposure ?? 0.8 },
+        diskTurbulence: { value: disk.turbulence ?? 0.6 },
+        diskTime: { value: 0 },
       },
       vertexShader: BLACK_HOLE_SHADER_VERTEX,
       fragmentShader: BLACK_HOLE_SHADER_FRAGMENT,
@@ -285,6 +305,19 @@ export class BlackHole implements SimulationObject {
    * Called by the simulation right before each frame is drawn.
    */
   beforeRender() {
+    // Advance disk rotation while the simulation is running.
+    const now = Date.now();
+    const jd = this.simulation.getJd();
+    if (jd !== this.lastJd) {
+      const period = this.options.accretionDisk?.rotationPeriod || 8;
+      this.material.uniforms.diskTime.value =
+        (this.material.uniforms.diskTime.value +
+          (now - this.lastFrameTime) / 1000 / period) %
+        1000;
+      this.lastJd = jd;
+    }
+    this.lastFrameTime = now;
+
     const interval = this.options.environmentMap?.updateInterval ?? 1;
     this.frameCount++;
     if (

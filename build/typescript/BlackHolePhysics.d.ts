@@ -115,6 +115,17 @@ export declare function impactParameter(pos: number[], dir: number[]): number;
  */
 export declare function diskRedshiftFactor(r: number, lambda: number): number;
 /**
+ * Bolometric intensity of the disk seen by a distant observer, relative to
+ * the hottest point of the disk as seen in its rest frame. Since I_nu / nu^3
+ * is invariant along a ray, a blackbody at T is observed as a blackbody at
+ * g * T, and the bolometric intensity (~ T^4) scales as g^4.
+ *
+ * @param {Number} r Emission radius in rs
+ * @param {Number} lambda Photon L_z / E in rs (see `diskRedshiftFactor`)
+ * @return {Number} Relative observed intensity
+ */
+export declare function diskObservedIntensity(r: number, lambda: number): number;
+/**
  * Remaining weak-field light deflection, in radians, for a ray at `pos`
  * moving in direction `dir` (both in rs) as it travels to infinity. Used to
  * extend rays that leave the region where geodesics are integrated.

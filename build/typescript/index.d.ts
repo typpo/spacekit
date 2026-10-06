@@ -1,3 +1,5 @@
+export * from './BlackHole';
+export * from './BlackHolePhysics';
 export * from './Camera';
 export * from './Coordinates';
 export * from './Ephem';

@@ -138,6 +138,26 @@ sim.createSphere('earth', {
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
 
+`BlackHole`: a non-rotating (Schwarzschild) black hole.  Light is ray traced along exact null geodesics on the GPU, so the black hole casts a shadow, shows a photon ring, and gravitationally lenses everything behind it (stars, skybox, and other objects) into arcs and Einstein rings.  An optional thin accretion disk follows the relativistic Novikov-Thorne temperature profile, and its light is shifted by gravitational redshift and Doppler beaming.
+```javascript
+const blackHole = sim.createBlackHole('sgra', {
+  position: [0, 0, 0],   // AU
+  mass: 4.3e6,           // solar masses; sets the Schwarzschild radius
+  diskNormal: [0, -0.1, 1],
+  accretionDisk: {
+    outerRadius: 15,     // in Schwarzschild radii
+    eddingtonRatio: 0.1, // sets the disk temperature (or pass peakTemperature in K)
+  },
+});
+
+// Objects can orbit the black hole.
+sim.createObject('star', {
+  ephem: new Spacekit.Ephem({ a: 20, e: 0.3, i: 80, om: 0, w: 0, ma: 0, epoch: 0, GM: blackHole.getGM() }, 'deg'),
+});
+```
+
+Use `schwarzschildRadius` (in AU) instead of `mass` to exaggerate the size of a small black hole.  Light is traced exactly within `lensRadius` (default 60 Schwarzschild radii); outside of it, the deflection is eased to zero so the lens blends into the rest of the scene.
+
 # Dependencies
 
 Spacekit relies on some image and data assets that are not included in the Javascript file.

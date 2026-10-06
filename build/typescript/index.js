@@ -27,6 +27,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 exports.__esModule = true;
 exports.THREE = void 0;
+__exportStar(require("./BlackHole"), exports);
+__exportStar(require("./BlackHolePhysics"), exports);
 __exportStar(require("./Camera"), exports);
 __exportStar(require("./Coordinates"), exports);
 __exportStar(require("./Ephem"), exports);

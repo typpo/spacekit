@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'postprocessing';
 import type { Scene, Vector3, WebGL1Renderer } from 'three';
 import Camera from './Camera';
+import { BlackHole } from './BlackHole';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -13,6 +14,8 @@ import { Stars } from './Stars';
 import type { Coordinate3d } from './Coordinates';
 export interface SimulationObject {
     update: (jd: number, force: boolean) => void;
+    /** Optional hook that runs before each frame is drawn. */
+    beforeRender?: () => void;
     get3jsObjects(): THREE.Object3D[];
     getId(): string;
 }
@@ -199,7 +202,9 @@ export declare class Simulation {
      * Removes an object from the visualization.
      * @param {Object} obj Object to remove
      */
-    removeObject(obj: SpaceObject): void;
+    removeObject(obj: SimulationObject & {
+        removalCleanup?: () => void;
+    }): void;
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
      * Takes any SpaceObject arguments.
@@ -230,6 +235,12 @@ export declare class Simulation {
      * @see Skybox
      */
     createSkybox(...args: any[]): Skybox;
+    /**
+     * Shortcut for creating a new BlackHole belonging to this visualization.
+     * Takes any BlackHole arguments.
+     * @see BlackHole
+     */
+    createBlackHole(...args: any[]): BlackHole;
     /**
      * Shortcut for creating a new Stars object belonging to this visualization.
      * Takes any Stars arguments.

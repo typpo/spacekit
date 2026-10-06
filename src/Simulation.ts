@@ -13,6 +13,7 @@ import {
 import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
 
 import Camera from './Camera';
+import { BlackHole } from './BlackHole';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -29,6 +30,8 @@ import type { Coordinate3d } from './Coordinates';
 // TODO(ian): Make this an interface.
 export interface SimulationObject {
   update: (jd: number, force: boolean) => void;
+  /** Optional hook that runs before each frame is drawn. */
+  beforeRender?: () => void;
   get3jsObjects(): THREE.Object3D[];
   getId(): string;
 }
@@ -525,6 +528,13 @@ export class Simulation {
     }
     this.camera.update();
 
+    for (const objId in this.subscribedObjects) {
+      const obj = this.subscribedObjects[objId];
+      if (obj.beforeRender) {
+        obj.beforeRender();
+      }
+    }
+
     // Update three.js scene
     this.renderer.render(this.scene, this.camera.get3jsCamera());
     //this.composer.render(0.1);
@@ -566,7 +576,7 @@ export class Simulation {
    * Removes an object from the visualization.
    * @param {Object} obj Object to remove
    */
-  removeObject(obj: SpaceObject) {
+  removeObject(obj: SimulationObject & { removalCleanup?: () => void }) {
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
       this.scene.remove(x);
@@ -631,6 +641,17 @@ export class Simulation {
   createSkybox(...args): Skybox {
     // @ts-ignore
     return new Skybox(...args, this);
+  }
+
+  /**
+   * Shortcut for creating a new BlackHole belonging to this visualization.
+   * Takes any BlackHole arguments.
+   * @see BlackHole
+   */
+  // @ts-ignore
+  createBlackHole(...args): BlackHole {
+    // @ts-ignore
+    return new BlackHole(...args, this);
   }
 
   /**

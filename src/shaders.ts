@@ -377,3 +377,238 @@ export const RING_SHADER_FRAGMENT = `
     gl_FragColor = vec4(lights() * shadow(), 1.0) * color();
   }
 `;
+
+export const BLACK_HOLE_SHADER_VERTEX = `
+  varying vec3 vViewPosition;
+
+  void main() {
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = mvPosition.xyz;
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+/**
+ * Ray traces light around a Schwarzschild black hole.
+ *
+ * All lengths are in units of the Schwarzschild radius, in a frame centered
+ * on the black hole whose z axis is the accretion disk normal. The physics
+ * mirrors src/BlackHolePhysics.ts, which is unit tested.
+ */
+export const BLACK_HOLE_SHADER_FRAGMENT = `
+  #define MAX_STEPS 400
+  #define SPECTRUM_SAMPLES 32
+
+  const float STEP_FACTOR = 0.06;
+  const float MIN_STEP = 0.005;
+  const float MAX_STEP = 2.0;
+  const float SPECTRUM_MIN_NM = 380.0;
+  const float SPECTRUM_MAX_NM = 780.0;
+  const float C2_NM_K = 1.438777e7;
+  const float SQRT3 = 1.7320508;
+  const float ISCO_RADIUS = 3.0;
+
+  uniform samplerCube envMap;
+  uniform vec3 cameraLocal;
+  uniform mat3 viewToLocal;
+  uniform mat3 localToWorld;
+  uniform float lensRadius;
+  uniform float lensFalloffStart;
+
+  uniform bool diskEnabled;
+  uniform float diskInnerRadius;
+  uniform float diskOuterRadius;
+  uniform float diskPeakTemperature;
+  uniform float diskFluxMax;
+  uniform float diskLuminanceRef;
+  uniform float diskExposure;
+
+  varying vec3 vViewPosition;
+
+  // Remaining first-order deflection of a ray to infinity, given its distance
+  // along the ray past closest approach and its impact parameter.
+  float residualDeflection(float along, float b) {
+    if (b <= 0.0) {
+      return 0.0;
+    }
+    float s = along / sqrt(b * b + along * along);
+    return (1.0 - 1.5 * s + 0.5 * s * s * s) / b;
+  }
+
+  vec3 bendTowardCenter(vec3 pos, vec3 dir, float angle) {
+    vec3 perp = pos - dot(pos, dir) * dir;
+    float len = length(perp);
+    if (len <= 0.0) {
+      return dir;
+    }
+    return cos(angle) * dir - sin(angle) * perp / len;
+  }
+
+  vec3 geodesicAcceleration(vec3 p, float h2) {
+    float r2 = dot(p, p);
+    return -1.5 * h2 * p / (r2 * r2 * sqrt(r2));
+  }
+
+  void geodesicStep(inout vec3 p, inout vec3 v, float h2, float dt) {
+    vec3 k1v = geodesicAcceleration(p, h2);
+    vec3 k1p = v;
+    vec3 k2v = geodesicAcceleration(p + 0.5 * dt * k1p, h2);
+    vec3 k2p = v + 0.5 * dt * k1v;
+    vec3 k3v = geodesicAcceleration(p + 0.5 * dt * k2p, h2);
+    vec3 k3p = v + 0.5 * dt * k2v;
+    vec3 k4v = geodesicAcceleration(p + dt * k3p, h2);
+    vec3 k4p = v + dt * k3v;
+    p += dt / 6.0 * (k1p + 2.0 * k2p + 2.0 * k3p + k4p);
+    v += dt / 6.0 * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
+  }
+
+  // Novikov-Thorne flux for a Schwarzschild black hole (units of rs).
+  float novikovThorneFlux(float r) {
+    if (r <= ISCO_RADIUS) {
+      return 0.0;
+    }
+    float x = sqrt(2.0 * r);
+    float xms = sqrt(2.0 * ISCO_RADIUS);
+    float integral = x - xms - 0.5 * SQRT3 * (
+      log((x - SQRT3) / (x + SQRT3)) - log((xms - SQRT3) / (xms + SQRT3)));
+    return 1.5 * integral / (pow(x, 5.0) * (x * x - 3.0));
+  }
+
+  float lobe(float x, float mu, float s1, float s2) {
+    float t = (x - mu) / (x < mu ? s1 : s2);
+    return exp(-0.5 * t * t);
+  }
+
+  vec3 cieXyz(float nm) {
+    return vec3(
+      1.056 * lobe(nm, 599.8, 37.9, 31.0) +
+        0.362 * lobe(nm, 442.0, 16.0, 26.7) -
+        0.065 * lobe(nm, 501.1, 20.4, 26.2),
+      0.821 * lobe(nm, 568.8, 46.9, 40.5) +
+        0.286 * lobe(nm, 530.9, 16.3, 31.1),
+      1.217 * lobe(nm, 437.0, 11.8, 36.0) +
+        0.681 * lobe(nm, 459.0, 26.0, 13.8));
+  }
+
+  vec3 blackbodyXyz(float temperature) {
+    vec3 xyz = vec3(0.0);
+    float dnm = (SPECTRUM_MAX_NM - SPECTRUM_MIN_NM) / float(SPECTRUM_SAMPLES);
+    for (int i = 0; i < SPECTRUM_SAMPLES; i++) {
+      float nm = SPECTRUM_MIN_NM + (float(i) + 0.5) * dnm;
+      float um = nm / 1000.0;
+      float x = min(C2_NM_K / (nm * temperature), 80.0);
+      float b = 1.0 / (um * um * um * um * um * (exp(x) - 1.0));
+      xyz += b * cieXyz(nm) * dnm;
+    }
+    return xyz;
+  }
+
+  vec3 xyzToLinearSrgb(vec3 xyz) {
+    return vec3(
+      3.2406 * xyz.x - 1.5372 * xyz.y - 0.4986 * xyz.z,
+      -0.9689 * xyz.x + 1.8758 * xyz.y + 0.0415 * xyz.z,
+      0.0557 * xyz.x - 0.2040 * xyz.y + 1.0570 * xyz.z);
+  }
+
+  // Light from the disk at radius r reaching the camera, for a photon with
+  // angular momentum per unit energy lambda about the disk axis.
+  vec3 diskEmission(float r, float lambda) {
+    float flux = novikovThorneFlux(r) / diskFluxMax;
+    float emitted = diskPeakTemperature * pow(max(flux, 0.0), 0.25);
+    // Gravitational redshift + time dilation + Doppler shift.
+    float omega = sqrt(0.5 / (r * r * r));
+    float g = sqrt(1.0 - 1.5 / r) / (1.0 - omega * lambda);
+    // A blackbody at T, shifted by g, is observed as a blackbody at g * T.
+    float observed = g * emitted;
+    if (observed < 300.0) {
+      return vec3(0.0);
+    }
+    vec3 rgb = max(xyzToLinearSrgb(blackbodyXyz(observed)), 0.0);
+    return rgb / diskLuminanceRef * diskExposure;
+  }
+
+  void main() {
+    vec3 dir = normalize(viewToLocal * normalize(vViewPosition));
+    vec3 unlensedDir = dir;
+    vec3 p = cameraLocal;
+
+    if (length(cameraLocal) > lensRadius) {
+      // Start the ray where it enters the lensing region, bent by the
+      // gravity it felt on the way from the camera.
+      float along = dot(cameraLocal, dir);
+      vec3 closest = cameraLocal - along * dir;
+      float b2 = dot(closest, closest);
+      if (along > 0.0 || b2 >= lensRadius * lensRadius) {
+        gl_FragColor = vec4(textureCube(envMap, localToWorld * dir).rgb, 1.0);
+        return;
+      }
+      float b = sqrt(b2);
+      p = closest - sqrt(lensRadius * lensRadius - b2) * dir;
+      float bend = residualDeflection(along, b) - residualDeflection(dot(p, dir), b);
+      dir = bendTowardCenter(p, dir, bend);
+    }
+
+    vec3 v = dir;
+    vec3 angularMomentum = cross(p, v);
+    float h2 = dot(angularMomentum, angularMomentum);
+    float invB2 = 1.0 / max(h2, 1e-12) - 1.0 / pow(length(p), 3.0);
+    float impactParameter = invB2 > 0.0 ? inversesqrt(invB2) : 0.0;
+    // L_z / E of the photon travelling toward the camera (direction -v).
+    float lambda = -impactParameter * angularMomentum.z / sqrt(max(h2, 1e-12));
+
+    vec3 color = vec3(0.0);
+    float transmittance = 1.0;
+    bool escaped = false;
+
+    for (int i = 0; i < MAX_STEPS; i++) {
+      float r = length(p);
+      if (r < 1.0) {
+        break;
+      }
+      if (r > lensRadius && dot(p, v) > 0.0) {
+        escaped = true;
+        break;
+      }
+      vec3 prev = p;
+      geodesicStep(p, v, h2, clamp(STEP_FACTOR * r, MIN_STEP, MAX_STEP));
+
+      if (diskEnabled && prev.z * p.z <= 0.0 && prev.z != p.z) {
+        vec3 hit = mix(prev, p, prev.z / (prev.z - p.z));
+        float rHit = length(hit.xy);
+        if (rHit >= diskInnerRadius && rHit <= diskOuterRadius) {
+          // Optically thick disk, feathered at its outer edge.
+          float alpha = 1.0 - smoothstep(0.85 * diskOuterRadius, diskOuterRadius, rHit);
+          color += transmittance * alpha * diskEmission(rHit, lambda);
+          transmittance *= 1.0 - alpha;
+          if (transmittance < 0.004) {
+            break;
+          }
+        }
+      }
+    }
+
+    // Tone map and gamma encode the emitted light.
+    color = pow(vec3(1.0) - exp(-color), vec3(1.0 / 2.2));
+
+    if (escaped) {
+      vec3 outDir = normalize(v);
+      float along = dot(p, outDir);
+      outDir = bendTowardCenter(p, outDir,
+        residualDeflection(along, length(p - along * outDir)));
+
+      // Only the inner part of the lensing region is exact. Ease the
+      // deflection to zero at its edge so it joins the unlensed scene.
+      float weight = 1.0 - smoothstep(lensFalloffStart * lensRadius, lensRadius, impactParameter);
+      if (weight < 1.0) {
+        float angle = acos(clamp(dot(unlensedDir, outDir), -1.0, 1.0));
+        if (angle > 1e-6) {
+          outDir = (sin((1.0 - weight) * angle) * unlensedDir +
+            sin(weight * angle) * outDir) / sin(angle);
+        }
+      }
+      color += transmittance * textureCube(envMap, localToWorld * outDir, -1.0).rgb;
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;

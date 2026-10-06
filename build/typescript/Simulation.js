@@ -78,6 +78,7 @@ var julian_1 = __importDefault(require("julian"));
 var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.module"));
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
+var BlackHole_1 = require("./BlackHole");
 var KeplerParticles_1 = require("./KeplerParticles");
 var EphemPresets_1 = require("./EphemPresets");
 var ShapeObject_1 = require("./ShapeObject");
@@ -428,6 +429,12 @@ var Simulation = /** @class */ (function () {
             this.doCameraDrift();
         }
         this.camera.update();
+        for (var objId in this.subscribedObjects) {
+            var obj = this.subscribedObjects[objId];
+            if (obj.beforeRender) {
+                obj.beforeRender();
+            }
+        }
         // Update three.js scene
         this.renderer.render(this.scene, this.camera.get3jsCamera());
         //this.composer.render(0.1);
@@ -544,6 +551,20 @@ var Simulation = /** @class */ (function () {
         }
         // @ts-ignore
         return new (Skybox_1.Skybox.bind.apply(Skybox_1.Skybox, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
+    };
+    /**
+     * Shortcut for creating a new BlackHole belonging to this visualization.
+     * Takes any BlackHole arguments.
+     * @see BlackHole
+     */
+    // @ts-ignore
+    Simulation.prototype.createBlackHole = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        // @ts-ignore
+        return new (BlackHole_1.BlackHole.bind.apply(BlackHole_1.BlackHole, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
     };
     /**
      * Shortcut for creating a new Stars object belonging to this visualization.

@@ -3,6 +3,7 @@ import {
   blackbodyColor,
   blackbodyLuminance,
   diskHalfThickness,
+  diskHalfThicknessProfile,
   diskObservedIntensity,
   erf,
   gaussianSlabColumn,
@@ -16,6 +17,7 @@ import {
   residualDeflection,
   schwarzschildRadiusAu,
   schwarzschildRadiusKm,
+  shakuraSunyaevStructure,
   traceGeodesic,
 } from '../src/BlackHolePhysics';
 
@@ -205,6 +207,37 @@ describe('disk thickness', () => {
     expect(diskHalfThickness(8, 0.2) / diskHalfThickness(8, 0.1)).toBeCloseTo(
       2,
       10,
+    );
+  });
+
+  test('structure solver reproduces the radiation-pressure dominated limit', () => {
+    // Close in, radiation pressure dominates and H = 3 kappa Mdot f / 8 pi c.
+    const s = shakuraSunyaevStructure(8, 4.3e6, 0.1)!;
+    expect(s.radiationPressureFraction).toBeGreaterThan(0.99);
+    expect(s.halfThickness / diskHalfThickness(8, 0.1)).toBeCloseTo(1, 2);
+  });
+
+  test('outer disk is gas-pressure supported and flares', () => {
+    const inner = shakuraSunyaevStructure(10, 4.3e6, 0.02)!;
+    const outer = shakuraSunyaevStructure(1000, 4.3e6, 0.02)!;
+    expect(outer.radiationPressureFraction).toBeLessThan(0.2);
+    // H keeps growing with radius instead of saturating.
+    expect(outer.halfThickness).toBeGreaterThan(10 * inner.halfThickness);
+    const h500 = shakuraSunyaevStructure(500, 4.3e6, 0.02)!.halfThickness;
+    // Shakura-Sunyaev gas-pressure regions have H ~ r^(21/20) to r^(9/8).
+    const slope = Math.log(outer.halfThickness / h500) / Math.log(2);
+    expect(slope).toBeGreaterThan(1);
+    expect(slope).toBeLessThan(1.15);
+  });
+
+  test('thickness profile is zero at the ISCO and spans the disk', () => {
+    const profile = diskHalfThicknessProfile(40, 4.3e6, 0.02);
+    expect(profile.heights[0]).toBeLessThan(0.01);
+    expect(Math.exp(profile.logMax)).toBeCloseTo(40, 6);
+    const last = profile.heights[profile.heights.length - 1];
+    expect(last).toBeCloseTo(
+      shakuraSunyaevStructure(40, 4.3e6, 0.02)!.halfThickness,
+      6,
     );
   });
 

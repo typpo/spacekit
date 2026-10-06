@@ -4,7 +4,7 @@ import {
   GM_SUN_KM3_S2,
   ISCO_RADIUS,
   diskPeakTemperature,
-  diskThicknessScale,
+  diskHalfThicknessProfile,
   novikovThorneFluxPeak,
   schwarzschildRadiusAu,
 } from './BlackHolePhysics';
@@ -33,7 +33,8 @@ export interface BlackHoleOptions {
   schwarzschildRadius?: number;
   /**
    * Radius, in Schwarzschild radii, of the region in which light rays are
-   * traced exactly. Defaults to 60.
+   * traced exactly. Defaults to 60, or 1.5 times the disk's outer radius if
+   * that is larger.
    */
   lensRadius?: number;
   /**
@@ -48,7 +49,10 @@ export interface BlackHoleOptions {
     enable?: boolean;
     /** Inner radius of the disk in rs. Defaults to the ISCO, 3 rs. */
     innerRadius?: number;
-    /** Outer radius of the disk in rs. Defaults to 15. */
+    /**
+     * Outer radius of the disk in rs. The disk fades out over the outer 30%.
+     * Defaults to 40.
+     */
     outerRadius?: number;
     /**
      * Luminosity of the disk as a fraction of the Eddington luminosity, which
@@ -70,11 +74,15 @@ export interface BlackHoleOptions {
      */
     turbulence?: number;
     /**
-     * Multiplier on the physical disk thickness. The half-thickness follows
-     * the radiation-pressure supported Shakura-Sunyaev solution, about
-     * 0.75 (L / L_Edd) / 0.057 rs away from the inner edge. Defaults to 1.
+     * Multiplier on the physical disk thickness, which is found by solving
+     * the Shakura-Sunyaev disk equations with gas and radiation pressure.
+     * The inner disk is radiation-pressure supported and nearly constant in
+     * height; further out gas pressure takes over and the disk flares.
+     * Defaults to 1.
      */
     thickness?: number;
+    /** Shakura-Sunyaev viscosity parameter. Defaults to 0.1. */
+    viscosityAlpha?: number;
     /**
      * Real-world seconds for gas at the inner edge of the disk to complete an
      * orbit. Outer gas moves slower, following Kepler's third law. The true
@@ -168,7 +176,9 @@ export class BlackHole implements SimulationObject {
     this.context = simulation.getContext();
 
     this.position = new THREE.Vector3();
-    this.lensRadius = this.options.lensRadius || 60;
+    this.lensRadius =
+      this.options.lensRadius ||
+      Math.max(60, 1.5 * (this.options.accretionDisk?.outerRadius || 40));
     this.schwarzschildRadiusScene = rescaleNumber(
       this.getSchwarzschildRadius(),
     );
@@ -251,7 +261,27 @@ export class BlackHole implements SimulationObject {
     const peakTemperature =
       disk.peakTemperature ||
       diskPeakTemperature(this.getMass(), disk.eddingtonRatio ?? 0.02);
-    const outerRadius = disk.outerRadius || 15;
+    const outerRadius = disk.outerRadius || 40;
+    const profile = diskHalfThicknessProfile(
+      outerRadius,
+      this.getMass(),
+      disk.eddingtonRatio ?? 0.02,
+      disk.viscosityAlpha ?? 0.1,
+    );
+    const heightData = new Float32Array(profile.heights.length * 4);
+    profile.heights.forEach((h, i) => {
+      heightData[i * 4] = h;
+    });
+    const heightTable = new THREE.DataTexture(
+      heightData,
+      profile.heights.length,
+      1,
+      THREE.RGBAFormat,
+      THREE.FloatType,
+    );
+    heightTable.magFilter = THREE.NearestFilter;
+    heightTable.minFilter = THREE.NearestFilter;
+    heightTable.needsUpdate = true;
     if (outerRadius >= this.lensRadius) {
       console.warn(
         'Black hole accretion disk extends past lensRadius and will be clipped.',
@@ -275,11 +305,12 @@ export class BlackHole implements SimulationObject {
         diskFluxMax: { value: novikovThorneFluxPeak(outerRadius).flux },
         diskExposure: { value: disk.exposure ?? 0.8 },
         diskTurbulence: { value: disk.turbulence ?? 0.6 },
-        diskThicknessScale: {
-          value:
-            diskThicknessScale(disk.eddingtonRatio ?? 0.02) *
-            (disk.thickness ?? 1),
-        },
+        diskHeightTable: { value: heightTable },
+        diskHeightTableSize: { value: profile.heights.length },
+        diskHeightLogMin: { value: profile.logMin },
+        diskHeightLogMax: { value: profile.logMax },
+        diskMaxHalfThickness: { value: Math.max(...profile.heights) },
+        diskThickness: { value: disk.thickness ?? 1 },
         // Vertical optical depth through the disk midplane. Large enough
         // that the photosphere sits about two Gaussian widths up.
         diskOpticalDepth: { value: 50 },
@@ -430,6 +461,7 @@ export class BlackHole implements SimulationObject {
    */
   removalCleanup() {
     this.mesh.geometry.dispose();
+    this.material.uniforms.diskHeightTable.value.dispose();
     this.material.dispose();
     this.cubeRenderTarget.dispose();
   }

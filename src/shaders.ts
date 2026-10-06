@@ -423,7 +423,14 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
   uniform float diskExposure;
   uniform float diskTurbulence;
   uniform float diskTime;
-  uniform float diskThicknessScale;
+  // Disk half-thickness H(r) from the Shakura-Sunyaev structure equations,
+  // tabulated evenly in log r.
+  uniform sampler2D diskHeightTable;
+  uniform float diskHeightTableSize;
+  uniform float diskHeightLogMin;
+  uniform float diskHeightLogMax;
+  uniform float diskMaxHalfThickness;
+  uniform float diskThickness;
   uniform float diskOpticalDepth;
 
   varying vec3 vViewPosition;
@@ -608,9 +615,17 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
   }
 
   // Gaussian width of the disk gas at cylindrical radius rc. The disk
-  // half-thickness (photosphere height) H is about two widths.
+  // half-thickness (photosphere height) H is about two widths. The table is
+  // read with nearest filtering and interpolated here, since linear
+  // filtering of float textures is not universally supported.
   float diskSigma(float rc) {
-    return max(0.5 * diskThicknessScale * (1.0 - sqrt(diskInnerRadius / rc)), 1e-3);
+    float x = clamp((log(rc) - diskHeightLogMin) / (diskHeightLogMax - diskHeightLogMin), 0.0, 1.0)
+      * (diskHeightTableSize - 1.0);
+    float i0 = floor(x);
+    float i1 = min(i0 + 1.0, diskHeightTableSize - 1.0);
+    float h0 = texture2D(diskHeightTable, vec2((i0 + 0.5) / diskHeightTableSize, 0.5)).r;
+    float h1 = texture2D(diskHeightTable, vec2((i1 + 0.5) / diskHeightTableSize, 0.5)).r;
+    return max(0.5 * diskThickness * mix(h0, h1, x - i0), 1e-3);
   }
 
   // Filmic tone curve (Narkowicz's fit of ACES).
@@ -663,9 +678,12 @@ export const BLACK_HOLE_SHADER_FRAGMENT = `
       float dt = clamp(STEP_FACTOR * r, MIN_STEP, MAX_STEP);
       float rc = length(p.xy);
       if (diskEnabled && rc > 0.8 * diskInnerRadius && rc < 1.1 * diskOuterRadius &&
-          abs(p.z) < 3.0 * diskThicknessScale + dt) {
-        // Take short steps near the disk so the gas is sampled finely.
-        dt = min(dt, max(0.08, 0.5 * abs(p.z)));
+          abs(p.z) < 3.0 * diskThickness * diskMaxHalfThickness + dt) {
+        // Take short steps near the disk so turbulence and the radial
+        // structure are sampled finely. The vertical column through each step
+        // is integrated exactly, so steps need not resolve the thickness.
+        float clearance = abs(p.z) - 3.0 * diskSigma(rc);
+        dt = min(dt, max(0.25, 0.5 * clearance));
       }
       vec3 prev = p;
       geodesicStep(p, v, h2, dt);

@@ -254,6 +254,167 @@ export function diskThicknessScale(eddingtonRatio: number): number {
 }
 
 /**
+ * Vertically averaged structure of a Shakura-Sunyaev disk at one radius.
+ */
+export interface DiskStructure {
+  /** Half-thickness (scale height) H, in rs. */
+  halfThickness: number;
+  /** Midplane temperature, K. */
+  midplaneTemperature: number;
+  /** Surface density, g / cm^2. */
+  surfaceDensity: number;
+  /** Fraction of the midplane pressure supplied by radiation. */
+  radiationPressureFraction: number;
+}
+
+// CGS constants for the disk structure solver. The gas is ionized hydrogen,
+// consistent with the Eddington luminosity used for the accretion rate.
+const CGS_G = 6.6743e-8;
+const CGS_C = 2.99792458e10;
+const CGS_K = 1.380649e-16;
+const CGS_PROTON_MASS = 1.67262192e-24;
+const CGS_SIGMA = 5.670374419e-5;
+const CGS_SOLAR_MASS = 1.98847e33;
+const MEAN_MOLECULAR_WEIGHT = 0.5;
+const ELECTRON_SCATTERING_OPACITY = 0.4;
+// Kramers free-free opacity coefficient used by Shakura & Sunyaev (1973).
+const FREE_FREE_OPACITY = 6.4e22;
+
+/**
+ * Solves the Shakura-Sunyaev (1973) alpha-disk equations at radius r:
+ * angular momentum transport (nu Sigma = Mdot f / 3 pi, nu = alpha c_s H),
+ * vertical hydrostatic balance (H = c_s / Omega), gas plus radiation
+ * pressure, radiative diffusion (4 sigma T^4 / 3 tau = F) and electron
+ * scattering plus free-free opacity.
+ *
+ * Solving the full equations rather than using the asymptotic fits lets the
+ * disk move smoothly between the radiation-pressure dominated inner region,
+ * where H is constant, and the gas-pressure dominated outer regions, where
+ * the disk flares (H ~ r^(21/20) to r^(9/8)).
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} massSolar Black hole mass in solar masses
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @param {Number} alpha Shakura-Sunyaev viscosity parameter
+ * @return {DiskStructure} Structure, or undefined inside the ISCO
+ */
+export function shakuraSunyaevStructure(
+  r: number,
+  massSolar: number,
+  eddingtonRatio: number,
+  alpha = 0.1,
+): DiskStructure | undefined {
+  if (r <= ISCO_RADIUS || eddingtonRatio <= 0) {
+    return undefined;
+  }
+  const mass = massSolar * CGS_SOLAR_MASS;
+  const rsCm = (2 * CGS_G * mass) / (CGS_C * CGS_C);
+  const radius = r * rsCm;
+  const omega = Math.sqrt((CGS_G * mass) / (radius * radius * radius));
+  const f = 1 - Math.sqrt(ISCO_RADIUS / r);
+  const eddington =
+    (4 * Math.PI * CGS_G * mass * CGS_C) / ELECTRON_SCATTERING_OPACITY;
+  const accretionRate =
+    (eddingtonRatio * eddington) / (DISK_RADIATIVE_EFFICIENCY * CGS_C * CGS_C);
+  const flux =
+    (3 * CGS_G * mass * accretionRate * f) /
+    (8 * Math.PI * radius * radius * radius);
+
+  // Everything follows from H: viscosity, surface density, density, and the
+  // midplane temperature that carries the flux out by radiative diffusion.
+  const solveAt = (h: number) => {
+    const surfaceDensity =
+      (accretionRate * f) / (3 * Math.PI * alpha * h * h * omega);
+    const density = surfaceDensity / (2 * h);
+    const residual = (t: number) =>
+      Math.pow(t, 4) -
+      (3 *
+        (ELECTRON_SCATTERING_OPACITY +
+          FREE_FREE_OPACITY * density * Math.pow(t, -3.5)) *
+        surfaceDensity *
+        flux) /
+        (8 * CGS_SIGMA);
+    let lo = 1;
+    let hi = 1e10;
+    for (let i = 0; i < 100; i++) {
+      const mid = Math.sqrt(lo * hi);
+      if (residual(mid) > 0) {
+        hi = mid;
+      } else {
+        lo = mid;
+      }
+    }
+    const temperature = Math.sqrt(lo * hi);
+    const gasPressure =
+      (density * CGS_K * temperature) /
+      (MEAN_MOLECULAR_WEIGHT * CGS_PROTON_MASS);
+    const radiationPressure =
+      ((4 * CGS_SIGMA) / (3 * CGS_C)) * Math.pow(temperature, 4);
+    return {
+      surfaceDensity,
+      temperature,
+      gasPressure,
+      radiationPressure,
+      // Pressure needed for hydrostatic balance minus pressure available.
+      imbalance:
+        density * h * h * omega * omega - gasPressure - radiationPressure,
+    };
+  };
+
+  let lo = 1e-8 * radius;
+  let hi = 10 * radius;
+  for (let i = 0; i < 100; i++) {
+    const mid = Math.sqrt(lo * hi);
+    if (solveAt(mid).imbalance > 0) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  const h = Math.sqrt(lo * hi);
+  const solution = solveAt(h);
+  return {
+    halfThickness: h / rsCm,
+    midplaneTemperature: solution.temperature,
+    surfaceDensity: solution.surfaceDensity,
+    radiationPressureFraction:
+      solution.radiationPressure /
+      (solution.radiationPressure + solution.gasPressure),
+  };
+}
+
+/**
+ * Disk half-thickness from `shakuraSunyaevStructure`, sampled at radii
+ * spaced evenly in log r between the ISCO and `outerRadius`.
+ *
+ * @return {{logMin: number, logMax: number, heights: number[]}} Natural log
+ * of the first and last radius, and H (in rs) at each sample
+ */
+export function diskHalfThicknessProfile(
+  outerRadius: number,
+  massSolar: number,
+  eddingtonRatio: number,
+  alpha = 0.1,
+  samples = 128,
+): { logMin: number; logMax: number; heights: number[] } {
+  // Start just outside the ISCO, where the thickness goes to zero.
+  const logMin = Math.log(ISCO_RADIUS * 1.0001);
+  const logMax = Math.log(Math.max(outerRadius, ISCO_RADIUS * 1.01));
+  const heights: number[] = [];
+  for (let i = 0; i < samples; i++) {
+    const r = Math.exp(logMin + ((logMax - logMin) * i) / (samples - 1));
+    const structure = shakuraSunyaevStructure(
+      r,
+      massSolar,
+      eddingtonRatio,
+      alpha,
+    );
+    heights.push(structure ? structure.halfThickness : 0);
+  }
+  return { logMin, logMax, heights };
+}
+
+/**
  * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
  * in the shader.
  */

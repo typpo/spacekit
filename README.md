@@ -138,14 +138,14 @@ sim.createSphere('earth', {
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
 
-`BlackHole`: a non-rotating (Schwarzschild) black hole.  Light is ray traced along exact null geodesics on the GPU, so the black hole casts a shadow, shows a photon ring, and gravitationally lenses everything behind it (stars, skybox, and other objects) into arcs and Einstein rings.  An optional thin accretion disk follows the relativistic Novikov-Thorne temperature profile, and its light is shifted by gravitational redshift and Doppler beaming (the approaching side is brighter and bluer).  The disk has the finite thickness of a radiation-pressure supported Shakura-Sunyaev disk (about 1% of the radius at 2% Eddington), and light is integrated through its gas. The disk gas has turbulent structure carried around by Keplerian rotation (`turbulence: 0` for a perfectly smooth disk).
+`BlackHole`: a non-rotating (Schwarzschild) black hole.  Light is ray traced along exact null geodesics on the GPU, so the black hole casts a shadow, shows a photon ring, and gravitationally lenses everything behind it (stars, skybox, and other objects) into arcs and Einstein rings.  An optional thin accretion disk follows the relativistic Novikov-Thorne temperature profile, and its light is shifted by gravitational redshift and Doppler beaming (the approaching side is brighter and bluer).  The disk's thickness comes from solving the Shakura-Sunyaev disk equations with gas and radiation pressure: the radiation-supported inner disk is nearly constant in height, and further out gas pressure takes over and the disk flares. Light is integrated through the disk gas. The disk gas has turbulent structure carried around by Keplerian rotation (`turbulence: 0` for a perfectly smooth disk).
 ```javascript
 const blackHole = sim.createBlackHole('sgra', {
   position: [0, 0, 0],   // AU
   mass: 4.3e6,           // solar masses; sets the Schwarzschild radius
   diskNormal: [0, -0.1, 1],
   accretionDisk: {
-    outerRadius: 15,     // in Schwarzschild radii
+    outerRadius: 40,     // in Schwarzschild radii
     eddingtonRatio: 0.02, // sets disk temperature and thickness (or pass peakTemperature in K)
   },
 });

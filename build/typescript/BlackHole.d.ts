@@ -13,7 +13,8 @@ export interface BlackHoleOptions {
     schwarzschildRadius?: number;
     /**
      * Radius, in Schwarzschild radii, of the region in which light rays are
-     * traced exactly. Defaults to 60.
+     * traced exactly. Defaults to 60, or 1.5 times the disk's outer radius if
+     * that is larger.
      */
     lensRadius?: number;
     /**
@@ -28,7 +29,10 @@ export interface BlackHoleOptions {
         enable?: boolean;
         /** Inner radius of the disk in rs. Defaults to the ISCO, 3 rs. */
         innerRadius?: number;
-        /** Outer radius of the disk in rs. Defaults to 15. */
+        /**
+         * Outer radius of the disk in rs. The disk fades out over the outer 30%.
+         * Defaults to 40.
+         */
         outerRadius?: number;
         /**
          * Luminosity of the disk as a fraction of the Eddington luminosity, which
@@ -50,11 +54,15 @@ export interface BlackHoleOptions {
          */
         turbulence?: number;
         /**
-         * Multiplier on the physical disk thickness. The half-thickness follows
-         * the radiation-pressure supported Shakura-Sunyaev solution, about
-         * 0.75 (L / L_Edd) / 0.057 rs away from the inner edge. Defaults to 1.
+         * Multiplier on the physical disk thickness, which is found by solving
+         * the Shakura-Sunyaev disk equations with gas and radiation pressure.
+         * The inner disk is radiation-pressure supported and nearly constant in
+         * height; further out gas pressure takes over and the disk flares.
+         * Defaults to 1.
          */
         thickness?: number;
+        /** Shakura-Sunyaev viscosity parameter. Defaults to 0.1. */
+        viscosityAlpha?: number;
         /**
          * Real-world seconds for gas at the inner edge of the disk to complete an
          * orbit. Outer gas moves slower, following Kepler's third law. The true

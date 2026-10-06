@@ -58,12 +58,15 @@ var BlackHole = /** @class */ (function () {
      */
     function BlackHole(id, options, simulation) {
         var _this = this;
+        var _a;
         this.id = id;
         this.options = options || {};
         this.simulation = simulation;
         this.context = simulation.getContext();
         this.position = new THREE.Vector3();
-        this.lensRadius = this.options.lensRadius || 60;
+        this.lensRadius =
+            this.options.lensRadius ||
+                Math.max(60, 1.5 * (((_a = this.options.accretionDisk) === null || _a === void 0 ? void 0 : _a.outerRadius) || 40));
         this.schwarzschildRadiusScene = (0, Scale_1.rescaleNumber)(this.getSchwarzschildRadius());
         this.frameCount = 0;
         this.needsEnvironmentRefresh = true;
@@ -109,11 +112,20 @@ var BlackHole = /** @class */ (function () {
      * @private
      */
     BlackHole.prototype.createMaterial = function () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         var disk = this.options.accretionDisk || {};
         var peakTemperature = disk.peakTemperature ||
             (0, BlackHolePhysics_1.diskPeakTemperature)(this.getMass(), (_a = disk.eddingtonRatio) !== null && _a !== void 0 ? _a : 0.02);
-        var outerRadius = disk.outerRadius || 15;
+        var outerRadius = disk.outerRadius || 40;
+        var profile = (0, BlackHolePhysics_1.diskHalfThicknessProfile)(outerRadius, this.getMass(), (_b = disk.eddingtonRatio) !== null && _b !== void 0 ? _b : 0.02, (_c = disk.viscosityAlpha) !== null && _c !== void 0 ? _c : 0.1);
+        var heightData = new Float32Array(profile.heights.length * 4);
+        profile.heights.forEach(function (h, i) {
+            heightData[i * 4] = h;
+        });
+        var heightTable = new THREE.DataTexture(heightData, profile.heights.length, 1, THREE.RGBAFormat, THREE.FloatType);
+        heightTable.magFilter = THREE.NearestFilter;
+        heightTable.minFilter = THREE.NearestFilter;
+        heightTable.needsUpdate = true;
         if (outerRadius >= this.lensRadius) {
             console.warn('Black hole accretion disk extends past lensRadius and will be clipped.');
         }
@@ -126,18 +138,20 @@ var BlackHole = /** @class */ (function () {
                     value: new THREE.Matrix3().setFromMatrix4(this.localFrame)
                 },
                 lensRadius: { value: this.lensRadius },
-                lensFalloffStart: { value: (_b = this.options.lensFalloffStart) !== null && _b !== void 0 ? _b : 0.5 },
+                lensFalloffStart: { value: (_d = this.options.lensFalloffStart) !== null && _d !== void 0 ? _d : 0.5 },
                 diskEnabled: { value: disk.enable !== false },
                 diskInnerRadius: { value: disk.innerRadius || BlackHolePhysics_1.ISCO_RADIUS },
                 diskOuterRadius: { value: outerRadius },
                 diskPeakTemperature: { value: peakTemperature },
                 diskFluxMax: { value: (0, BlackHolePhysics_1.novikovThorneFluxPeak)(outerRadius).flux },
-                diskExposure: { value: (_c = disk.exposure) !== null && _c !== void 0 ? _c : 0.8 },
-                diskTurbulence: { value: (_d = disk.turbulence) !== null && _d !== void 0 ? _d : 0.6 },
-                diskThicknessScale: {
-                    value: (0, BlackHolePhysics_1.diskThicknessScale)((_e = disk.eddingtonRatio) !== null && _e !== void 0 ? _e : 0.02) *
-                        ((_f = disk.thickness) !== null && _f !== void 0 ? _f : 1)
-                },
+                diskExposure: { value: (_e = disk.exposure) !== null && _e !== void 0 ? _e : 0.8 },
+                diskTurbulence: { value: (_f = disk.turbulence) !== null && _f !== void 0 ? _f : 0.6 },
+                diskHeightTable: { value: heightTable },
+                diskHeightTableSize: { value: profile.heights.length },
+                diskHeightLogMin: { value: profile.logMin },
+                diskHeightLogMax: { value: profile.logMax },
+                diskMaxHalfThickness: { value: Math.max.apply(Math, profile.heights) },
+                diskThickness: { value: (_g = disk.thickness) !== null && _g !== void 0 ? _g : 1 },
                 // Vertical optical depth through the disk midplane. Large enough
                 // that the photosphere sits about two Gaussian widths up.
                 diskOpticalDepth: { value: 50 },
@@ -264,6 +278,7 @@ var BlackHole = /** @class */ (function () {
      */
     BlackHole.prototype.removalCleanup = function () {
         this.mesh.geometry.dispose();
+        this.material.uniforms.diskHeightTable.value.dispose();
         this.material.dispose();
         this.cubeRenderTarget.dispose();
     };

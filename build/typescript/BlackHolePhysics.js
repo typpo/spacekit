@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskObservedIntensity = exports.gaussianSlabColumn = exports.erf = exports.diskThicknessScale = exports.diskHalfThickness = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
+exports.bendTowardCenter = exports.boundaryEntry = exports.traceGeodesic = exports.geodesicStepSize = exports.geodesicStep = exports.GEODESIC_MAX_STEPS = exports.GEODESIC_MAX_STEP = exports.GEODESIC_MIN_STEP = exports.GEODESIC_STEP_FACTOR = exports.blackbodyLuminance = exports.blackbodyColor = exports.xyzToLinearSrgb = exports.blackbodyXyz = exports.SPECTRUM_MAX_NM = exports.SPECTRUM_MIN_NM = exports.SPECTRUM_SAMPLES = exports.planck = exports.residualDeflection = exports.diskObservedIntensity = exports.gaussianSlabColumn = exports.erf = exports.diskHalfThicknessProfile = exports.shakuraSunyaevStructure = exports.diskThicknessScale = exports.diskHalfThickness = exports.diskRedshiftFactor = exports.impactParameter = exports.diskTemperatureRatio = exports.diskPeakTemperature = exports.DISK_RADIATIVE_EFFICIENCY = exports.novikovThorneFluxPeak = exports.novikovThorneFluxNumeric = exports.novikovThorneFlux = exports.orbitalAngularVelocity = exports.schwarzschildRadiusAu = exports.schwarzschildRadiusKm = exports.CRITICAL_IMPACT_PARAMETER = exports.ISCO_RADIUS = exports.PHOTON_SPHERE_RADIUS = exports.EVENT_HORIZON_RADIUS = exports.GM_SUN_KM3_S2 = exports.SPEED_OF_LIGHT_KM_S = void 0;
 var Units_1 = __importDefault(require("./Units"));
 /** Speed of light, km/s */
 exports.SPEED_OF_LIGHT_KM_S = 299792.458;
@@ -238,6 +238,132 @@ function diskThicknessScale(eddingtonRatio) {
     return (0.75 * eddingtonRatio) / exports.DISK_RADIATIVE_EFFICIENCY;
 }
 exports.diskThicknessScale = diskThicknessScale;
+// CGS constants for the disk structure solver. The gas is ionized hydrogen,
+// consistent with the Eddington luminosity used for the accretion rate.
+var CGS_G = 6.6743e-8;
+var CGS_C = 2.99792458e10;
+var CGS_K = 1.380649e-16;
+var CGS_PROTON_MASS = 1.67262192e-24;
+var CGS_SIGMA = 5.670374419e-5;
+var CGS_SOLAR_MASS = 1.98847e33;
+var MEAN_MOLECULAR_WEIGHT = 0.5;
+var ELECTRON_SCATTERING_OPACITY = 0.4;
+// Kramers free-free opacity coefficient used by Shakura & Sunyaev (1973).
+var FREE_FREE_OPACITY = 6.4e22;
+/**
+ * Solves the Shakura-Sunyaev (1973) alpha-disk equations at radius r:
+ * angular momentum transport (nu Sigma = Mdot f / 3 pi, nu = alpha c_s H),
+ * vertical hydrostatic balance (H = c_s / Omega), gas plus radiation
+ * pressure, radiative diffusion (4 sigma T^4 / 3 tau = F) and electron
+ * scattering plus free-free opacity.
+ *
+ * Solving the full equations rather than using the asymptotic fits lets the
+ * disk move smoothly between the radiation-pressure dominated inner region,
+ * where H is constant, and the gas-pressure dominated outer regions, where
+ * the disk flares (H ~ r^(21/20) to r^(9/8)).
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} massSolar Black hole mass in solar masses
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @param {Number} alpha Shakura-Sunyaev viscosity parameter
+ * @return {DiskStructure} Structure, or undefined inside the ISCO
+ */
+function shakuraSunyaevStructure(r, massSolar, eddingtonRatio, alpha) {
+    if (alpha === void 0) { alpha = 0.1; }
+    if (r <= exports.ISCO_RADIUS || eddingtonRatio <= 0) {
+        return undefined;
+    }
+    var mass = massSolar * CGS_SOLAR_MASS;
+    var rsCm = (2 * CGS_G * mass) / (CGS_C * CGS_C);
+    var radius = r * rsCm;
+    var omega = Math.sqrt((CGS_G * mass) / (radius * radius * radius));
+    var f = 1 - Math.sqrt(exports.ISCO_RADIUS / r);
+    var eddington = (4 * Math.PI * CGS_G * mass * CGS_C) / ELECTRON_SCATTERING_OPACITY;
+    var accretionRate = (eddingtonRatio * eddington) / (exports.DISK_RADIATIVE_EFFICIENCY * CGS_C * CGS_C);
+    var flux = (3 * CGS_G * mass * accretionRate * f) /
+        (8 * Math.PI * radius * radius * radius);
+    // Everything follows from H: viscosity, surface density, density, and the
+    // midplane temperature that carries the flux out by radiative diffusion.
+    var solveAt = function (h) {
+        var surfaceDensity = (accretionRate * f) / (3 * Math.PI * alpha * h * h * omega);
+        var density = surfaceDensity / (2 * h);
+        var residual = function (t) {
+            return Math.pow(t, 4) -
+                (3 *
+                    (ELECTRON_SCATTERING_OPACITY +
+                        FREE_FREE_OPACITY * density * Math.pow(t, -3.5)) *
+                    surfaceDensity *
+                    flux) /
+                    (8 * CGS_SIGMA);
+        };
+        var lo = 1;
+        var hi = 1e10;
+        for (var i = 0; i < 100; i++) {
+            var mid = Math.sqrt(lo * hi);
+            if (residual(mid) > 0) {
+                hi = mid;
+            }
+            else {
+                lo = mid;
+            }
+        }
+        var temperature = Math.sqrt(lo * hi);
+        var gasPressure = (density * CGS_K * temperature) /
+            (MEAN_MOLECULAR_WEIGHT * CGS_PROTON_MASS);
+        var radiationPressure = ((4 * CGS_SIGMA) / (3 * CGS_C)) * Math.pow(temperature, 4);
+        return {
+            surfaceDensity: surfaceDensity,
+            temperature: temperature,
+            gasPressure: gasPressure,
+            radiationPressure: radiationPressure,
+            // Pressure needed for hydrostatic balance minus pressure available.
+            imbalance: density * h * h * omega * omega - gasPressure - radiationPressure
+        };
+    };
+    var lo = 1e-8 * radius;
+    var hi = 10 * radius;
+    for (var i = 0; i < 100; i++) {
+        var mid = Math.sqrt(lo * hi);
+        if (solveAt(mid).imbalance > 0) {
+            hi = mid;
+        }
+        else {
+            lo = mid;
+        }
+    }
+    var h = Math.sqrt(lo * hi);
+    var solution = solveAt(h);
+    return {
+        halfThickness: h / rsCm,
+        midplaneTemperature: solution.temperature,
+        surfaceDensity: solution.surfaceDensity,
+        radiationPressureFraction: solution.radiationPressure /
+            (solution.radiationPressure + solution.gasPressure)
+    };
+}
+exports.shakuraSunyaevStructure = shakuraSunyaevStructure;
+/**
+ * Disk half-thickness from `shakuraSunyaevStructure`, sampled at radii
+ * spaced evenly in log r between the ISCO and `outerRadius`.
+ *
+ * @return {{logMin: number, logMax: number, heights: number[]}} Natural log
+ * of the first and last radius, and H (in rs) at each sample
+ */
+function diskHalfThicknessProfile(outerRadius, massSolar, eddingtonRatio, alpha, samples) {
+    if (alpha === void 0) { alpha = 0.1; }
+    if (samples === void 0) { samples = 128; }
+    // Start just outside the ISCO, where the thickness goes to zero.
+    var logMin = Math.log(exports.ISCO_RADIUS * 1.0001);
+    var logMax = Math.log(Math.max(outerRadius, exports.ISCO_RADIUS * 1.01));
+    var heights = [];
+    for (var i = 0; i < samples; i++) {
+        var r = Math.exp(logMin + ((logMax - logMin) * i) / (samples - 1));
+        var structure = shakuraSunyaevStructure(r, massSolar, eddingtonRatio, alpha);
+        heights.push(structure ? structure.halfThickness : 0);
+    }
+    return { logMin: logMin, logMax: logMax, heights: heights };
+}
+exports.diskHalfThicknessProfile = diskHalfThicknessProfile;
 /**
  * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
  * in the shader.

@@ -131,6 +131,50 @@ export declare function diskHalfThickness(r: number, eddingtonRatio: number): nu
  */
 export declare function diskThicknessScale(eddingtonRatio: number): number;
 /**
+ * Vertically averaged structure of a Shakura-Sunyaev disk at one radius.
+ */
+export interface DiskStructure {
+    /** Half-thickness (scale height) H, in rs. */
+    halfThickness: number;
+    /** Midplane temperature, K. */
+    midplaneTemperature: number;
+    /** Surface density, g / cm^2. */
+    surfaceDensity: number;
+    /** Fraction of the midplane pressure supplied by radiation. */
+    radiationPressureFraction: number;
+}
+/**
+ * Solves the Shakura-Sunyaev (1973) alpha-disk equations at radius r:
+ * angular momentum transport (nu Sigma = Mdot f / 3 pi, nu = alpha c_s H),
+ * vertical hydrostatic balance (H = c_s / Omega), gas plus radiation
+ * pressure, radiative diffusion (4 sigma T^4 / 3 tau = F) and electron
+ * scattering plus free-free opacity.
+ *
+ * Solving the full equations rather than using the asymptotic fits lets the
+ * disk move smoothly between the radiation-pressure dominated inner region,
+ * where H is constant, and the gas-pressure dominated outer regions, where
+ * the disk flares (H ~ r^(21/20) to r^(9/8)).
+ *
+ * @param {Number} r Radius in rs
+ * @param {Number} massSolar Black hole mass in solar masses
+ * @param {Number} eddingtonRatio Disk luminosity over Eddington luminosity
+ * @param {Number} alpha Shakura-Sunyaev viscosity parameter
+ * @return {DiskStructure} Structure, or undefined inside the ISCO
+ */
+export declare function shakuraSunyaevStructure(r: number, massSolar: number, eddingtonRatio: number, alpha?: number): DiskStructure | undefined;
+/**
+ * Disk half-thickness from `shakuraSunyaevStructure`, sampled at radii
+ * spaced evenly in log r between the ISCO and `outerRadius`.
+ *
+ * @return {{logMin: number, logMax: number, heights: number[]}} Natural log
+ * of the first and last radius, and H (in rs) at each sample
+ */
+export declare function diskHalfThicknessProfile(outerRadius: number, massSolar: number, eddingtonRatio: number, alpha?: number, samples?: number): {
+    logMin: number;
+    logMax: number;
+    heights: number[];
+};
+/**
  * Error function, Abramowitz & Stegun 7.1.26 (max error 1.5e-7). Mirrored
  * in the shader.
  */

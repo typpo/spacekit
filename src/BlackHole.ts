@@ -1,0 +1,279 @@
+import * as THREE from 'three';
+import type { Coordinate3d } from './Coordinates';
+import type { Simulation, SimulationObject } from './Simulation';
+import {
+  METERS_PER_AU,
+  SPEED_OF_LIGHT,
+  SCHWARZSCHILD_CRITICAL_IMPACT,
+  schwarzschildRadiusAu,
+} from './BlackHolePhysics';
+import { BLACK_HOLE_VERTEX, BLACK_HOLE_FRAGMENT } from './blackHoleShader';
+
+export interface BlackHoleOptions {
+  /** Mass in solar masses. Required; controls all physical length/time scales. */
+  massSolar: number;
+  /** Center in AU. Default [0, 0, 0]. */
+  position?: Coordinate3d;
+  /** Normal to the accretion disk in scene coordinates. Default [0, 0, 1]. */
+  diskNormal?: Coordinate3d;
+  /** False for an isolated, dark black hole. */
+  accretionDisk?:
+    | false
+    | {
+        /** In Schwarzschild radii, at least 3 (the ISCO). Default 3. */
+        innerRadius?: number;
+        /** In Schwarzschild radii, greater than innerRadius. Default 12. */
+        outerRadius?: number;
+        /** Maximum mean midplane rest-frame temperature in Kelvin. Default 6500. */
+        temperature?: number;
+        /** Vertical optical depth of the emitting layer. Default 2. */
+        opticalDepth?: number;
+        /** RMS density height H / cylindrical radius, 0.02–0.3. Default 0.025. */
+        aspectRatio?: number;
+        /** Illustrative turbulent density/emission contrast, from 0 to 1. Default 0.65. */
+        turbulence?: number;
+        /** Artistic animation multiplier, >= 0. Default 1; does not change Doppler shifts. */
+        rotationSpeed?: number;
+      };
+  /** Display exposure, positive. Default 1. */
+  exposure?: number;
+  /** Default 'high': 1024 adaptive RK4 steps; 'low': 768 coarser steps. */
+  quality?: 'low' | 'high';
+  /**
+   * Optional caller-owned equirectangular sky, with north at +Z and longitude
+   * zero at +X (center of texture). Replaces the background with a lensed sky.
+   * Use on only one black hole per scene; ordinary scene meshes are not lensed.
+   */
+  backgroundTexture?: THREE.Texture;
+}
+
+function positive(name: string, value: number): number {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Black hole ${name} must be finite and positive`);
+  }
+  return value;
+}
+
+function vector(name: string, value: Coordinate3d): THREE.Vector3 {
+  if (value.length !== 3 || !value.every(Number.isFinite)) {
+    throw new Error(`Black hole ${name} must contain three finite coordinates`);
+  }
+  return new THREE.Vector3(value[0], value[1], value[2]);
+}
+
+function rotationSpeed(value: number): number {
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(
+      'Black hole disk rotationSpeed must be finite and nonnegative',
+    );
+  }
+  return value;
+}
+
+function diskAspectRatio(value: number): number {
+  if (!Number.isFinite(value) || value < 0.02 || value > 0.3) {
+    throw new Error('Black hole disk aspectRatio must be between 0.02 and 0.3');
+  }
+  return value;
+}
+
+/**
+ * A stationary Schwarzschild black hole, with GPU null-geodesic ray tracing.
+ * Models light around an isolated non-spinning, uncharged mass; it does not
+ * change Spacekit's Kepler orbits or simulate accretion hydrodynamics.
+ * Requires WebGL EXT_frag_depth and highp fragment precision.
+ */
+export class BlackHole implements SimulationObject {
+  private readonly id: string;
+  private readonly simulation: Simulation;
+  private readonly unitsPerAu: number;
+  private readonly radiusAu: number;
+  private readonly epochJd: number;
+  private animationSpeed: number;
+  private animationOffsetSeconds = 0;
+  private readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  private disposed = false;
+
+  constructor(id: string, options: BlackHoleOptions, simulation: Simulation) {
+    this.id = id;
+    this.simulation = simulation;
+    this.radiusAu = schwarzschildRadiusAu(options.massSolar);
+    const context = simulation.getContext();
+    this.unitsPerAu = positive('unitsPerAu', context.options.unitsPerAu ?? 1);
+    this.epochJd = simulation.getJd();
+    const position = vector('position', options.position ?? [0, 0, 0]);
+    const normal = vector('diskNormal', options.diskNormal ?? [0, 0, 1]);
+    positive('diskNormal length', normal.length());
+    normal.normalize();
+    const disk = options.accretionDisk || {};
+    this.animationSpeed = rotationSpeed(disk.rotationSpeed ?? 1);
+    const inner = positive('disk innerRadius', disk.innerRadius ?? 3);
+    const outer = positive('disk outerRadius', disk.outerRadius ?? 12);
+    if (inner < 3 || outer <= inner) {
+      throw new Error(
+        'Black hole disk requires 3 <= innerRadius < outerRadius',
+      );
+    }
+    const temperature = positive('disk temperature', disk.temperature ?? 6500);
+    const opticalDepth = positive('disk opticalDepth', disk.opticalDepth ?? 2);
+    const aspectRatio = diskAspectRatio(disk.aspectRatio ?? 0.025);
+    const turbulence = disk.turbulence ?? 0.65;
+    if (!Number.isFinite(turbulence) || turbulence < 0 || turbulence > 1) {
+      throw new Error('Black hole disk turbulence must be between 0 and 1');
+    }
+    const exposure = positive('exposure', options.exposure ?? 1);
+    if (
+      options.quality !== undefined &&
+      ['low', 'high'].indexOf(options.quality) < 0
+    ) {
+      throw new Error('Black hole quality must be low or high');
+    }
+    const renderer = context.objects.renderer;
+    if (
+      !renderer.extensions.has('EXT_frag_depth') ||
+      renderer.capabilities.getMaxPrecision('highp') !== 'highp'
+    ) {
+      throw new Error(
+        'Black holes require EXT_frag_depth and highp fragment precision',
+      );
+    }
+    const rotation = new THREE.Matrix4().makeRotationFromQuaternion(
+      new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        normal,
+      ),
+    );
+    const diskToWorld = new THREE.Matrix3().setFromMatrix4(rotation);
+    const material = new THREE.ShaderMaterial({
+      vertexShader: BLACK_HOLE_VERTEX,
+      fragmentShader: BLACK_HOLE_FRAGMENT,
+      defines: {
+        RAY_STEPS: options.quality === 'low' ? 768 : 1024,
+        RAY_STEP: options.quality === 'low' ? '0.04' : '0.02',
+        VOLUME_STEP: options.quality === 'low' ? '0.05' : '0.025',
+        VOLUME_SAMPLES: options.quality === 'low' ? 2 : 4,
+      },
+      uniforms: {
+        inverseProjection: { value: new THREE.Matrix4() },
+        cameraWorld: { value: new THREE.Matrix4() },
+        viewProjection: { value: new THREE.Matrix4() },
+        center: { value: new THREE.Vector3() },
+        worldToDisk: { value: diskToWorld.clone().transpose() },
+        diskToWorld: { value: diskToWorld },
+        horizonRadius: {
+          value: positive(
+            'scaled horizon radius',
+            this.radiusAu * this.unitsPerAu,
+          ),
+        },
+        diskInner: { value: inner },
+        diskOuter: { value: outer },
+        diskEnabled: { value: options.accretionDisk !== false },
+        temperature: { value: temperature },
+        diskOpticalDepth: { value: opticalDepth },
+        diskAspectRatio: { value: aspectRatio },
+        diskTurbulence: { value: turbulence },
+        exposure: { value: exposure },
+        timeSeconds: { value: 0 },
+        lightCrossingSeconds: {
+          value: (this.radiusAu * METERS_PER_AU) / SPEED_OF_LIGHT,
+        },
+        hasBackground: { value: !!options.backgroundTexture },
+        backgroundTexture: { value: options.backgroundTexture ?? null },
+      },
+      extensions: { fragDepth: true },
+      transparent: true,
+      depthTest: true,
+      depthWrite: true,
+      toneMapped: false,
+    });
+    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    this.mesh.name = id;
+    this.mesh.position.copy(position.multiplyScalar(this.unitsPerAu));
+    // The shader projects a full-screen quad, independent of its world position.
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 1000;
+    this.mesh.onBeforeRender = (_renderer, _scene, camera) => {
+      const uniforms = material.uniforms;
+      uniforms.inverseProjection.value.copy(camera.projectionMatrix).invert();
+      uniforms.cameraWorld.value.copy(camera.matrixWorld);
+      uniforms.viewProjection.value.multiplyMatrices(
+        camera.projectionMatrix,
+        camera.matrixWorldInverse,
+      );
+      this.mesh.getWorldPosition(uniforms.center.value);
+    };
+    simulation.addObject(this);
+  }
+
+  getId(): string {
+    return this.id;
+  }
+
+  get3jsObjects(): THREE.Object3D[] {
+    return [this.mesh];
+  }
+
+  /** Physical radii in AU, independent of the simulation's display scale. */
+  getPhysicalRadii() {
+    return {
+      eventHorizonAu: this.radiusAu,
+      photonSphereAu: 1.5 * this.radiusAu,
+      iscoAu: 3 * this.radiusAu,
+      shadowImpactParameterAu: SCHWARZSCHILD_CRITICAL_IMPACT * this.radiusAu,
+    };
+  }
+
+  setPosition(position: Coordinate3d): void {
+    this.mesh.position.copy(
+      vector('position', position).multiplyScalar(this.unitsPerAu),
+    );
+  }
+
+  update(jd: number): void {
+    this.mesh.material.uniforms.timeSeconds.value =
+      (jd - this.epochJd) * 86400 * this.animationSpeed +
+      this.animationOffsetSeconds;
+  }
+
+  /** Change the pattern's speed without a phase jump; leaves orbital Doppler shifts alone. */
+  setRotationSpeed(value: number): void {
+    const speed = rotationSpeed(value);
+    const elapsed = (this.simulation.getJd() - this.epochJd) * 86400;
+    this.animationOffsetSeconds += elapsed * (this.animationSpeed - speed);
+    this.animationSpeed = speed;
+    this.update(this.simulation.getJd());
+  }
+
+  /** Change the chosen outer gas boundary, in Schwarzschild radii. */
+  setDiskOuterRadius(value: number): void {
+    const outer = positive('disk outerRadius', value);
+    const uniforms = this.mesh.material.uniforms;
+    if (outer <= uniforms.diskInner.value) {
+      throw new Error('Black hole disk outerRadius must exceed innerRadius');
+    }
+    uniforms.diskOuter.value = outer;
+  }
+
+  /** Adjust the atmosphere without recreating the disk or resetting its animation. */
+  setDiskAspectRatio(value: number): void {
+    this.mesh.material.uniforms.diskAspectRatio.value = diskAspectRatio(value);
+  }
+
+  setDiskEnabled(enabled: boolean): void {
+    this.mesh.material.uniforms.diskEnabled.value = enabled;
+  }
+
+  /** Called by Simulation.removeObject; caller-owned sky textures are preserved. */
+  removalCleanup(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+  }
+
+  /** Remove from the scene and release GPU resources. Safe to call repeatedly. */
+  dispose(): void {
+    this.simulation.removeObject(this);
+  }
+}

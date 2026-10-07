@@ -35,10 +35,10 @@ function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yIndex) {
     }
     var maxColumn = data[0].length - 1;
     if (xIndex < 0 || xIndex > maxColumn) {
-        throw "xIndex has to be between 0 and ".concat(maxColumn, ": ").concat(xIndex);
+        throw "xIndex has to be between 0 and " + maxColumn + ": " + xIndex;
     }
     if (yIndex < 0 || yIndex > maxColumn) {
-        throw "yIndex has to be between 0 and ".concat(maxColumn, ": ").concat(yIndex);
+        throw "yIndex has to be between 0 and " + maxColumn + ": " + yIndex;
     }
     var sum = 0;
     for (var j = sampleRowMin; j <= sampleRowMax; j++) {

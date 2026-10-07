@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -78,6 +74,7 @@ var julian_1 = __importDefault(require("julian"));
 var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.module"));
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
+var BlackHole_1 = require("./BlackHole");
 var KeplerParticles_1 = require("./KeplerParticles");
 var EphemPresets_1 = require("./EphemPresets");
 var ShapeObject_1 = require("./ShapeObject");
@@ -140,6 +137,8 @@ var Simulation = /** @class */ (function () {
      * to 1.0.
      * @param {boolean} options.startPaused Whether the simulation should start
      * in a paused state.
+     * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
+     * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
      * particles, but not too much larger. It's usually good enough to choose the
@@ -283,7 +282,7 @@ var Simulation = /** @class */ (function () {
         console.info('Max texture resolution:', renderer.capabilities.maxTextureSize);
         var maxPrecision = renderer.capabilities.getMaxPrecision('highp');
         if (maxPrecision !== 'highp') {
-            console.warn("Shader maximum precision is \"".concat(maxPrecision, "\", GPU rendering may not be accurate."));
+            console.warn("Shader maximum precision is \"" + maxPrecision + "\", GPU rendering may not be accurate.");
         }
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(this.simulationElt.offsetWidth, this.simulationElt.offsetHeight);
@@ -321,11 +320,11 @@ var Simulation = /** @class */ (function () {
         */
         //godRaysEffect.dithering = true;
         var bloomEffect = new postprocessing_1.BloomEffect({
-            width: 240,
-            height: 240,
-            luminanceThreshold: 0.2
+            width: 480,
+            height: 480,
+            luminanceThreshold: 0.5
         });
-        bloomEffect.blendMode.opacity.value = 2.3;
+        bloomEffect.blendMode.opacity.value = 0.65;
         var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
         renderPass.renderToScreen = false;
         var effectPass = new postprocessing_1.EffectPass(camera, 
@@ -382,6 +381,8 @@ var Simulation = /** @class */ (function () {
             camera.aspect = newWidth / newHeight;
             camera.updateProjectionMatrix();
             this.renderer.setSize(newWidth, newHeight);
+            if (this.composer)
+                this.composer.setSize(newWidth, newHeight);
             this.staticForcedUpdate();
             this.lastResizeUpdateTime = now;
         }
@@ -429,8 +430,15 @@ var Simulation = /** @class */ (function () {
         }
         this.camera.update();
         // Update three.js scene
-        this.renderer.render(this.scene, this.camera.get3jsCamera());
-        //this.composer.render(0.1);
+        if (this.options.bloom && this.composer) {
+            this.composer.render();
+        }
+        else {
+            // EffectComposer disables autoClear. Translucent emission must not
+            // accumulate over previous frames when using the direct render path.
+            this.renderer.clear();
+            this.renderer.render(this.scene, this.camera.get3jsCamera());
+        }
         if (this.onTick) {
             this.onTick();
         }
@@ -455,7 +463,7 @@ var Simulation = /** @class */ (function () {
             // Call for updates as time passes.
             var objId = obj.getId();
             if (this.subscribedObjects[objId]) {
-                console.error("Object id is not unique: \"".concat(objId, "\". This could prevent objects from updating correctly."));
+                console.error("Object id is not unique: \"" + objId + "\". This could prevent objects from updating correctly.");
             }
             this.subscribedObjects[objId] = obj;
         }
@@ -516,6 +524,10 @@ var Simulation = /** @class */ (function () {
         }
         // @ts-ignore
         return new (SphereObject_1.SphereObject.bind.apply(SphereObject_1.SphereObject, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
+    };
+    /** Create a stationary Schwarzschild black hole with mass in solar masses. */
+    Simulation.prototype.createBlackHole = function (id, options) {
+        return new BlackHole_1.BlackHole(id, options, this);
     };
     /**
      * Shortcut for creating a new StaticParticles object belonging to this visualization.

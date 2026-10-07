@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'postprocessing';
 import type { Scene, Vector3, WebGL1Renderer } from 'three';
 import Camera from './Camera';
+import { BlackHole, BlackHoleOptions } from './BlackHole';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -15,6 +16,7 @@ export interface SimulationObject {
     update: (jd: number, force: boolean) => void;
     get3jsObjects(): THREE.Object3D[];
     getId(): string;
+    removalCleanup?(): void;
 }
 interface CameraOptions {
     initialPosition?: Coordinate3d;
@@ -33,6 +35,8 @@ interface SpacekitOptions {
     jdPerSecond?: number;
     unitsPerAu?: number;
     startPaused?: boolean;
+    /** Apply a subtle camera bloom to bright emission. Defaults to false. */
+    bloom?: boolean;
     maxNumParticles?: number;
     particleTextureUrl?: string;
     particleDefaultSize?: number;
@@ -130,6 +134,8 @@ export declare class Simulation {
      * to 1.0.
      * @param {boolean} options.startPaused Whether the simulation should start
      * in a paused state.
+     * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
+     * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
      * particles, but not too much larger. It's usually good enough to choose the
@@ -199,7 +205,7 @@ export declare class Simulation {
      * Removes an object from the visualization.
      * @param {Object} obj Object to remove
      */
-    removeObject(obj: SpaceObject): void;
+    removeObject(obj: SimulationObject): void;
     /**
      * Shortcut for creating a new SpaceObject belonging to this visualization.
      * Takes any SpaceObject arguments.
@@ -218,6 +224,8 @@ export declare class Simulation {
      * @see SphereObject
      */
     createSphere(...args: any[]): SphereObject;
+    /** Create a stationary Schwarzschild black hole with mass in solar masses. */
+    createBlackHole(id: string, options: BlackHoleOptions): BlackHole;
     /**
      * Shortcut for creating a new StaticParticles object belonging to this visualization.
      * Takes any StaticParticles arguments.

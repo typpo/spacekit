@@ -59,7 +59,7 @@ exports.EphemPresets = {
     }, 'deg', true /* locked */),
     MOON: new Ephem_1.Ephem({
         // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-        GM: 0.3986e15,
+        GM: Ephem_1.GM.EARTH_MOON,
         // Geocentric
         // https://ssd.jpl.nasa.gov/horizons.cgi#results
         epoch: 2458621.5,
@@ -239,7 +239,7 @@ function convertReferencePlaneAnglesToEcliptic(moon) {
     }
     var pole = getReferencePlanePole(moon);
     if (!pole) {
-        throw new Error("Missing reference plane pole for ".concat(moon.Planet, " ").concat(moon['Sat.'], " (").concat(moon['Element Type'], ")"));
+        throw new Error("Missing reference plane pole for " + moon.Planet + " " + moon['Sat.'] + " (" + moon['Element Type'] + ")");
     }
     var referenceBasis = getReferencePlaneBasis(pole);
     var periapsisDirection = getPeriapsisDirection(Number(moon.i), Number(moon.node), Number(moon.w));
@@ -292,7 +292,7 @@ var NaturalSatellites = /** @class */ (function () {
                         case 'Laplace':
                             break;
                         default:
-                            console.warn("Ephemeris type not yet implemented: ".concat(moon['Element Type']));
+                            console.warn("Ephemeris type not yet implemented: " + moon['Element Type']);
                             return;
                     }
                     var eclipticAngles = convertReferencePlaneAnglesToEcliptic(moon);
@@ -308,7 +308,7 @@ var NaturalSatellites = /** @class */ (function () {
                             ephemGM = Ephem_1.GM[moon.Planet.toUpperCase()];
                     }
                     if (!ephemGM) {
-                        console.error("Could not look up GM for ".concat(moon.Planet));
+                        console.error("Could not look up GM for " + moon.Planet);
                     }
                     var ephem = new Ephem_1.Ephem({
                         GM: ephemGM,

@@ -16,11 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -96,7 +92,7 @@ var SphereObject = /** @class */ (function (_super) {
             var sphereGeometry = new THREE.SphereGeometry(radius, level.segments, level.segments);
             var material = void 0;
             if (this._simulation.isUsingLightSources()) {
-                console.warn("SphereObject ".concat(this._id, " requires a texture when using a light source."));
+                console.warn("SphereObject " + this._id + " requires a texture when using a light source.");
                 var uniforms = {
                     sphereTexture: {
                         value: undefined

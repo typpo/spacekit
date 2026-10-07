@@ -7,32 +7,34 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jd: 2451545,
   jdPerSecond: 1 / 86400,
   bloom: false,
-  camera: { initialPosition: [0, -80 * radius, 7.5 * radius] },
+  // Look from the Sun's side toward the galactic center (+X), as we see Sgr A*.
+  camera: { initialPosition: [-80 * radius, 0, 7.5 * radius] },
 });
 
-// A deterministic illustrative sky. No external asset or texture request.
+// The real sky in visible light: ESO's GigaGalaxy photograph of the Milky Way
+// (eso0932a), in galactic coordinates. The black hole shader samples an
+// equirectangular sky with north at +Z and longitude increasing from +X toward
+// +Y, while astronomical maps increase longitude to the left, so the photo is
+// mirrored as it is copied. Scene +X then points at the galactic center and +Z
+// at the north galactic pole, which puts the Milky Way in the disk's plane.
+const SKY_URL = '../../src/assets/skybox/eso_milkyway.jpg';
 const canvas = document.createElement('canvas');
 canvas.width = 4096;
 canvas.height = 2048;
 const ctx = canvas.getContext('2d');
-ctx.fillStyle = '#030508';
+ctx.fillStyle = '#000';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
-let seed = 42;
-function random() {
-  seed = (1664525 * seed + 1013904223) >>> 0;
-  return seed / 4294967296;
-}
-for (let i = 0; i < 2200; i++) {
-  const x = random() * canvas.width;
-  const y = (Math.acos(2 * random() - 1) / Math.PI) * canvas.height;
-  const size = 0.4 + random() * 0.8;
-  ctx.fillStyle = `rgba(190,210,235,${0.15 + random() * 0.45})`;
-  ctx.beginPath();
-  ctx.arc(x, y, size, 0, Math.PI * 2);
-  ctx.fill();
-}
 const backgroundTexture = new Spacekit.THREE.CanvasTexture(canvas);
 backgroundTexture.wrapS = Spacekit.THREE.RepeatWrapping;
+const skyImage = new Image();
+skyImage.onload = () => {
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.drawImage(skyImage, -canvas.width, 0, canvas.width, canvas.height);
+  ctx.restore();
+  backgroundTexture.needsUpdate = true;
+};
+skyImage.src = SKY_URL;
 let blackHole;
 let showDisk = true;
 let aspectRatio = 0.025;
@@ -97,9 +99,9 @@ document.getElementById('disk').addEventListener('click', (event) => {
 });
 document.getElementById('view').addEventListener('change', (event) => {
   const directions = {
-    inclined: [0, -32, 3],
-    overhead: [0, -0.1, 32],
-    edge: [0, -32, 0],
+    inclined: [-32, 0, 3],
+    overhead: [-0.1, 0, 32],
+    edge: [-32, 0, 0],
   };
   const camera = viz.getViewer().get3jsCamera();
   const distance = camera.position.length();

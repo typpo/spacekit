@@ -11,7 +11,8 @@
     #main-container { position: fixed; inset: 0; }
     header { position: absolute; top: 20px; left: 24px; max-width: 360px; text-shadow: 0 1px 8px #000; }
     h1 { font-size: 24px; font-weight: 500; margin: 0 0 10px; }
-    nav { display: flex; gap: 4px; margin-bottom: 10px; }
+    nav { display: flex; gap: 4px; align-items: center; margin-bottom: 10px; }
+    nav span { color: #aab4c5; margin-right: 4px; }
     nav a { color: #aab4c5; text-decoration: none; padding: 6px 12px; border: 1px solid #354052; border-radius: 6px; background: #101722cc; }
     nav a:hover { border-color: #9daec5; }
     nav a[aria-current="page"] { color: #eef2fa; border-color: #d9ad73; }
@@ -37,8 +38,9 @@
   <div id="main-container" aria-label="Black hole scene; drag to orbit and scroll to zoom"></div>
   <header>
     <h1>Black hole</h1>
-    <nav aria-label="Scenes">
-      <a href="?scene=galaxy" data-scene="galaxy">Black hole</a>
+    <nav aria-label="Scene">
+      <span>Scene</span>
+      <a href="?scene=simple" data-scene="simple">Simple</a>
       <a href="?scene=meteors" data-scene="meteors">Meteor shower</a>
       <a href="?scene=saturn" data-scene="saturn">Saturn</a>
     </nav>
@@ -49,7 +51,7 @@
   </header>
   <div id="controls" aria-label="Scene controls"></div>
 
-  <template id="controls-galaxy">
+  <template id="controls-simple">
     <button id="pause" type="button">Pause disk</button>
     <button id="disk" type="button">Hide disk</button>
     <label>View <select id="view"><option value="inclined">Inclined</option><option value="overhead">Overhead</option><option value="edge">Edge-on</option></select></label>
@@ -65,7 +67,7 @@
     <label>View <select id="view"><option value="stream">Through the stream</option><option value="overview">Solar system</option></select></label>
     <label><input id="disk" type="checkbox" checked>Disk</label>
     <label><input id="lensing" type="checkbox" checked>Lens scene</label>
-    <p class="note">Drag to orbit · Scroll to zoom · Each catalogued Perseid orbit is cloned with small perturbations to fill out the stream. The hole bends light but does not pull on the meteoroids.</p>
+    <p class="note">Drag to orbit · Scroll to zoom</p>
   </template>
 
   <template id="controls-saturn">
@@ -74,19 +76,19 @@
     <label><input id="orbits" type="checkbox" checked>Moon orbits</label>
     <label><input id="disk" type="checkbox" checked>Disk</label>
     <label><input id="lensing" type="checkbox" checked>Lens scene</label>
-    <p class="note">Drag to orbit · Scroll to zoom · Saturn and its moons are to scale. The hole bends light but does not pull on them.</p>
+    <p class="note">Drag to orbit · Scroll to zoom</p>
   </template>
 
   <script src="../../build/spacekit.js"></script>
   <script>
     // Each scene is a separate simulation, so switching tabs reloads the page.
     const SCENES = {
-      galaxy: ['galaxy.js'],
+      simple: ['simple.js'],
       meteors: ['perseids.js', 'meteor-shower.js'],
       saturn: ['saturn.js'],
     };
     const requested = new URLSearchParams(location.search).get('scene');
-    const scene = SCENES[requested] ? requested : 'galaxy';
+    const scene = SCENES[requested] ? requested : 'simple';
     document
       .querySelector(`nav a[data-scene="${scene}"]`)
       .setAttribute('aria-current', 'page');

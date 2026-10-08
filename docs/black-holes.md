@@ -60,8 +60,6 @@ Procedural orbital lanes and knots modulate the local density and temperature. T
 
 ## Limits and performance
 
-The solar-system example enables `fxaa: true` in its **Simulation** options. This applies a final smoothing pass after lensing and any bloom; use `sim.setFxaaEnabled(false)` or the example's **Smooth edges** checkbox to compare. FXAA is off by default in other simulations. It softens jagged edges but can also soften tiny stars, and cannot restore line segments missing from the scene captures.
-
 - This simulates light around a Schwarzschild mass. It does not exert forces on other Spacekit objects, change their Kepler ephemerides, model Kerr spin, jets, magnetic fields, mergers, or gravitational waves.
 - The observer is static at each frame. Camera motion does not add velocity aberration. Keep the camera outside the horizon; inside it the view becomes black. Disk emission is evaluated at the current simulation time, without light travel time delays.
 - Scene lensing is a **screen-space approximation**, for perspective cameras. It intersects the outgoing asymptote with captured scene depth, accounting for finite source distance; it does not trace the curved ray against meshes. Objects close to the hole, geometry hidden behind other surfaces in a capture, and geometry outside the camera image remain approximate or unavailable. Missing samples use the sky or clear color. The split at the hole's camera depth is also approximate, especially for objects intersecting the disk. Without scene lensing, compositing uses the existing depth buffer and an apparent Euclidean distance for disk/shadow pixels. Multiple holes' metrics and lensing are not combined.

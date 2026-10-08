@@ -37,8 +37,6 @@ interface SpacekitOptions {
     startPaused?: boolean;
     /** Apply a subtle camera bloom to bright emission. Defaults to false. */
     bloom?: boolean;
-    /** Smooth the final image with FXAA. Defaults to false. */
-    fxaa?: boolean;
     maxNumParticles?: number;
     particleTextureUrl?: string;
     particleDefaultSize?: number;
@@ -114,8 +112,6 @@ export declare class Simulation {
     private scene;
     private renderer;
     private composer?;
-    private bloomPass?;
-    private fxaaPass?;
     /**
      * @param {HTMLCanvasElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
@@ -139,8 +135,6 @@ export declare class Simulation {
      * @param {boolean} options.startPaused Whether the simulation should start
      * in a paused state.
      * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
-     * Defaults to false.
-     * @param {boolean} options.fxaa Smooth the final image with FXAA.
      * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
@@ -306,11 +300,6 @@ export declare class Simulation {
      * Stop the animation
      */
     stop(): void;
-    /**
-     * Enable or disable FXAA smoothing of the final image.
-     * @param {boolean} enabled Whether to apply FXAA.
-     */
-    setFxaaEnabled(enabled: boolean): void;
     /**
      * Gets the current JD date of the simulation
      * @return {Number} JD date

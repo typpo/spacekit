@@ -53,6 +53,9 @@ function createBlackHole() {
         }
       : false,
     backgroundTexture,
+    // Volume integration through the disk dominates frame time; low quality
+    // halves it with no visible difference at this scale.
+    quality: 'low',
   });
 }
 try {

@@ -8,6 +8,7 @@ import {
   METERS_PER_AU,
 } from '../src/BlackHolePhysics';
 import { setScaleFactor } from '../src/Scale';
+import { BlackHoleSceneCapture } from '../src/BlackHoleSceneCapture';
 
 function trace(impact: number, step = 0.02) {
   let u = 0;
@@ -103,6 +104,113 @@ describe('Schwarzschild physics', () => {
 });
 
 describe('BlackHole scene integration', () => {
+  test('scene lensing has one owner, supports toggles, and releases ownership on removal', () => {
+    const sim = simulation();
+    const first = new BlackHole(
+      'first',
+      { massSolar: 4e6, lensScene: true },
+      sim,
+    );
+    const second = new BlackHole('second', { massSolar: 4e6 }, sim);
+    const registered = sim.addObject.mock.calls.length;
+    expect(
+      () => new BlackHole('third', { massSolar: 4e6, lensScene: true }, sim),
+    ).toThrow(/Only one/);
+    expect(sim.addObject).toHaveBeenCalledTimes(registered);
+    expect(() => second.setSceneLensingEnabled(true)).toThrow(/Only one/);
+    first.setSceneLensingEnabled(false);
+    second.setSceneLensingEnabled(true);
+    second.dispose();
+    first.setSceneLensingEnabled(true);
+    const capture = (first as any).sceneCapture;
+    const dispose = jest.spyOn(capture.background, 'dispose');
+    first.dispose();
+    first.dispose();
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  test('scene lensing works without a depth-texture extension', () => {
+    const sim = simulation();
+    sim.getContext = () => ({
+      options: {},
+      objects: {
+        renderer: {
+          extensions: { has: (name: string) => name !== 'WEBGL_depth_texture' },
+          capabilities: { getMaxPrecision: () => 'highp' },
+        },
+      },
+    });
+    const hole = new BlackHole('bh', { massSolar: 4e6, lensScene: true }, sim);
+    expect(sim.addObject).toHaveBeenCalledWith(hole);
+    hole.dispose();
+  });
+
+  test('a failed scene capture restores caller materials and renderer state', () => {
+    const capture = new BlackHoleSceneCapture();
+    const scene = new THREE.Scene();
+    const material = new THREE.SpriteMaterial({
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(material);
+    const hole = new THREE.Object3D();
+    hole.userData.spacekitBlackHole = true;
+    scene.add(sprite, hole);
+    const target = new THREE.WebGLRenderTarget(10, 20);
+    let currentTarget = target;
+    let clearColor = new THREE.Color(0x123456);
+    let clearAlpha = 0.7;
+    let renders = 0;
+    const renderer = {
+      autoClear: false,
+      xr: { enabled: true },
+      shadowMap: { autoUpdate: true },
+      getRenderTarget: () => currentTarget,
+      setRenderTarget: (next: THREE.WebGLRenderTarget) =>
+        (currentTarget = next),
+      getActiveCubeFace: () => 0,
+      getActiveMipmapLevel: () => 0,
+      getClearAlpha: () => clearAlpha,
+      getClearColor: (color: THREE.Color) => color.copy(clearColor),
+      setClearColor: (color: THREE.ColorRepresentation, alpha: number) => {
+        clearColor = new THREE.Color(color);
+        clearAlpha = alpha;
+      },
+      getCurrentViewport: (viewport: THREE.Vector4) =>
+        viewport.set(0, 0, 10, 20),
+      state: {
+        buffers: {
+          color: { setMask: jest.fn() },
+          depth: { setMask: jest.fn() },
+        },
+      },
+      clear: jest.fn(),
+      render: () => {
+        if (++renders === 2) throw new Error('capture failed');
+      },
+    };
+    expect(() =>
+      capture.render(
+        renderer as any,
+        scene,
+        new THREE.PerspectiveCamera(),
+        0.5,
+      ),
+    ).toThrow('capture failed');
+    expect(currentTarget).toBe(target);
+    expect(clearColor.getHex()).toBe(0x123456);
+    expect(clearAlpha).toBe(0.7);
+    expect(renderer.autoClear).toBe(false);
+    expect(renderer.xr.enabled).toBe(true);
+    expect(renderer.shadowMap.autoUpdate).toBe(true);
+    expect(sprite.material).toBe(material);
+    expect(material.blending).toBe(THREE.AdditiveBlending);
+    expect(material.depthWrite).toBe(false);
+    expect(hole.visible).toBe(true);
+    capture.dispose();
+    target.dispose();
+  });
+
   test.each([0, -1, NaN, Infinity])('rejects invalid mass %p', (massSolar) => {
     const sim = simulation();
     expect(() => new BlackHole('bh', { massSolar }, sim)).toThrow(/massSolar/);

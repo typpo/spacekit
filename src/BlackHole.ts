@@ -8,6 +8,35 @@ import {
   schwarzschildRadiusAu,
 } from './BlackHolePhysics';
 import { BLACK_HOLE_VERTEX, BLACK_HOLE_FRAGMENT } from './blackHoleShader';
+import { BlackHoleSceneCapture } from './BlackHoleSceneCapture';
+
+const sceneLensOwners = new WeakMap<Simulation, BlackHole>();
+
+/** Optional accretion-disk appearance and animation settings. */
+export interface AccretionDiskOptions {
+  /** In Schwarzschild radii, at least 3 (the ISCO). Default 3. */
+  innerRadius?: number;
+  /** In Schwarzschild radii, greater than innerRadius. Default 12. */
+  outerRadius?: number;
+  /** Maximum mean midplane rest-frame temperature in Kelvin. Default 6500. */
+  temperature?: number;
+  /** Vertical optical depth of the emitting layer. Default 2. */
+  opticalDepth?: number;
+  /** RMS density height H / cylindrical radius, 0.02–0.3. Default 0.025. */
+  aspectRatio?: number;
+  /** Illustrative turbulent density/emission contrast, from 0 to 1. Default 0.65. */
+  turbulence?: number;
+  /** Disk animation multiplier, >= 0. Default 1; does not change Doppler shifts. */
+  rotationSpeed?: number;
+}
+
+/** Physical radii in AU, independent of the simulation's display scale. */
+export interface BlackHoleRadii {
+  eventHorizonAu: number;
+  photonSphereAu: number;
+  iscoAu: number;
+  shadowImpactParameterAu: number;
+}
 
 export interface BlackHoleOptions {
   /** Mass in solar masses. Required; controls all physical length/time scales. */
@@ -16,33 +45,22 @@ export interface BlackHoleOptions {
   position?: Coordinate3d;
   /** Normal to the accretion disk in scene coordinates. Default [0, 0, 1]. */
   diskNormal?: Coordinate3d;
-  /** False for an isolated, dark black hole. */
-  accretionDisk?:
-    | false
-    | {
-        /** In Schwarzschild radii, at least 3 (the ISCO). Default 3. */
-        innerRadius?: number;
-        /** In Schwarzschild radii, greater than innerRadius. Default 12. */
-        outerRadius?: number;
-        /** Maximum mean midplane rest-frame temperature in Kelvin. Default 6500. */
-        temperature?: number;
-        /** Vertical optical depth of the emitting layer. Default 2. */
-        opticalDepth?: number;
-        /** RMS density height H / cylindrical radius, 0.02–0.3. Default 0.025. */
-        aspectRatio?: number;
-        /** Illustrative turbulent density/emission contrast, from 0 to 1. Default 0.65. */
-        turbulence?: number;
-        /** Artistic animation multiplier, >= 0. Default 1; does not change Doppler shifts. */
-        rotationSpeed?: number;
-      };
+  /** Omit for the default disk, or false to hide it. */
+  accretionDisk?: AccretionDiskOptions | false;
   /** Display exposure, positive. Default 1. */
   exposure?: number;
   /** Default 'high': 1024 adaptive RK4 steps; 'low': 768 coarser steps. */
   quality?: 'low' | 'high';
   /**
+   * Lens the camera image, including meshes, sprites, lines and particles.
+   * Default false. Screen-space approximation for perspective cameras.
+   * Enable on at most one black hole per simulation.
+   */
+  lensScene?: boolean;
+  /**
    * Optional caller-owned equirectangular sky, with north at +Z and longitude
    * zero at +X (center of texture). Replaces the background with a lensed sky.
-   * Use on only one black hole per scene; ordinary scene meshes are not lensed.
+   * Use on only one black hole per scene. Enable lensScene to also lens objects.
    */
   backgroundTexture?: THREE.Texture;
 }
@@ -93,6 +111,7 @@ export class BlackHole implements SimulationObject {
   private animationOffsetSeconds = 0;
   private readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private disposed = false;
+  private sceneCapture?: BlackHoleSceneCapture;
 
   constructor(id: string, options: BlackHoleOptions, simulation: Simulation) {
     this.id = id;
@@ -122,6 +141,7 @@ export class BlackHole implements SimulationObject {
       throw new Error('Black hole disk turbulence must be between 0 and 1');
     }
     const exposure = positive('exposure', options.exposure ?? 1);
+    if (options.lensScene) this.assertSceneLensingAvailable();
     if (
       options.quality !== undefined &&
       ['low', 'high'].indexOf(options.quality) < 0
@@ -180,6 +200,10 @@ export class BlackHole implements SimulationObject {
         },
         hasBackground: { value: !!options.backgroundTexture },
         backgroundTexture: { value: options.backgroundTexture ?? null },
+        lensScene: { value: false },
+        sceneColor: { value: null },
+        sceneForeground: { value: null },
+        sceneClearColor: { value: new THREE.Color() },
       },
       extensions: { fragDepth: true },
       transparent: true,
@@ -189,11 +213,12 @@ export class BlackHole implements SimulationObject {
     });
     this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
     this.mesh.name = id;
+    this.mesh.userData.spacekitBlackHole = true;
     this.mesh.position.copy(position.multiplyScalar(this.unitsPerAu));
     // The shader projects a full-screen quad, independent of its world position.
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = 1000;
-    this.mesh.onBeforeRender = (_renderer, _scene, camera) => {
+    const centerClip = new THREE.Vector4();
+    this.mesh.onBeforeRender = (renderer, scene, camera) => {
       const uniforms = material.uniforms;
       uniforms.inverseProjection.value.copy(camera.projectionMatrix).invert();
       uniforms.cameraWorld.value.copy(camera.matrixWorld);
@@ -202,7 +227,21 @@ export class BlackHole implements SimulationObject {
         camera.matrixWorldInverse,
       );
       this.mesh.getWorldPosition(uniforms.center.value);
+      if (uniforms.lensScene.value && this.sceneCapture) {
+        const center = uniforms.center.value;
+        centerClip
+          .set(center.x, center.y, center.z, 1)
+          .applyMatrix4(uniforms.viewProjection.value);
+        this.sceneCapture.render(
+          renderer,
+          scene,
+          camera,
+          centerClip.w > 0 ? (centerClip.z / centerClip.w) * 0.5 + 0.5 : 1,
+        );
+        uniforms.sceneClearColor.value.copy(this.sceneCapture.clearColor);
+      }
     };
+    this.setSceneLensingEnabled(options.lensScene ?? false);
     simulation.addObject(this);
   }
 
@@ -215,7 +254,7 @@ export class BlackHole implements SimulationObject {
   }
 
   /** Physical radii in AU, independent of the simulation's display scale. */
-  getPhysicalRadii() {
+  getPhysicalRadii(): BlackHoleRadii {
     return {
       eventHorizonAu: this.radiusAu,
       photonSphereAu: 1.5 * this.radiusAu,
@@ -236,7 +275,7 @@ export class BlackHole implements SimulationObject {
       this.animationOffsetSeconds;
   }
 
-  /** Change the pattern's speed without a phase jump; leaves orbital Doppler shifts alone. */
+  /** Change the disk animation multiplier without a phase jump; does not spin the black hole. */
   setRotationSpeed(value: number): void {
     const speed = rotationSpeed(value);
     const elapsed = (this.simulation.getJd() - this.epochJd) * 86400;
@@ -264,10 +303,48 @@ export class BlackHole implements SimulationObject {
     this.mesh.material.uniforms.diskEnabled.value = enabled;
   }
 
+  /** Toggle scene distortion without changing the disk, sky or simulation time. */
+  setSceneLensingEnabled(enabled: boolean): void {
+    if (this.disposed) return;
+    const material = this.mesh.material;
+    if (enabled) {
+      this.assertSceneLensingAvailable();
+      if (!this.sceneCapture) this.sceneCapture = new BlackHoleSceneCapture();
+      material.uniforms.sceneColor.value = this.sceneCapture.background.texture;
+      material.uniforms.sceneForeground.value =
+        this.sceneCapture.foreground.texture;
+      sceneLensOwners.set(this.simulation, this);
+    } else if (sceneLensOwners.get(this.simulation) === this) {
+      sceneLensOwners.delete(this.simulation);
+    }
+    material.uniforms.lensScene.value = enabled;
+    material.depthTest = !enabled;
+    material.depthWrite = !enabled;
+    material.blending = enabled ? THREE.NoBlending : THREE.NormalBlending;
+    // A supplied sky must render before transparent objects, which may not
+    // write depth. The scene-compositing pass must render after those objects.
+    this.mesh.renderOrder = enabled
+      ? Number.MAX_SAFE_INTEGER
+      : material.uniforms.hasBackground.value
+      ? -1
+      : 1000;
+  }
+
+  private assertSceneLensingAvailable(): void {
+    const owner = sceneLensOwners.get(this.simulation);
+    if (owner && owner !== this) {
+      throw new Error('Only one black hole can lens the scene per simulation');
+    }
+  }
+
   /** Called by Simulation.removeObject; caller-owned sky textures are preserved. */
   removalCleanup(): void {
     if (this.disposed) return;
     this.disposed = true;
+    if (sceneLensOwners.get(this.simulation) === this) {
+      sceneLensOwners.delete(this.simulation);
+    }
+    this.sceneCapture?.dispose();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
   }

@@ -28,9 +28,14 @@ uniform float timeSeconds;
 uniform float lightCrossingSeconds;
 uniform bool hasBackground;
 uniform sampler2D backgroundTexture;
+uniform bool lensScene;
+uniform sampler2D sceneColor;
+uniform sampler2D sceneForeground;
+uniform vec3 sceneClearColor;
 const float PI = 3.141592653589793;
 bool sampledSky;
 vec2 skyUv;
+vec3 escapedWorldDirection;
 vec3 emittedLight;
 float transmission;
 float firstDiskDistance;
@@ -138,11 +143,12 @@ void writeDepth(vec3 ray, float distanceInRadii) {
 }
 
 void escaped(vec3 direction) {
-  if (!hasBackground) {
+  if (!hasBackground && !lensScene) {
     if (firstDiskDistance < 0.0) discard;
     return;
   }
   vec3 worldDirection = normalize(diskToWorld * direction);
+  escapedWorldDirection = worldDirection;
   skyUv = vec2(atan(worldDirection.y, worldDirection.x) / (2.0 * PI) + 0.5,
                 asin(clamp(worldDirection.z, -1.0, 1.0)) / PI + 0.5);
   sampledSky = true;
@@ -169,7 +175,7 @@ void traceRay() {
   float impact = observerRadius * sine / lapse;
   // Without a sky to lens, skip rays that cannot enter the emitting region.
   float bound = diskEnabled ? diskOuter * sqrt(1.0 + 9.0 * diskAspectRatio * diskAspectRatio) : 3.0;
-  if (!hasBackground && observerRadius > bound &&
+  if (!hasBackground && !lensScene && observerRadius > bound &&
       (radialCosine >= 0.0 || impact > bound / sqrt(1.0 - 1.0 / bound))) discard;
   if (sine < 0.000001) {
     // The angular coordinate degenerates on radial rays. Integrate these in
@@ -262,6 +268,7 @@ void traceRay() {
 void main() {
   sampledSky = false;
   skyUv = vec2(0.0);
+  escapedWorldDirection = vec3(0.0);
   emittedLight = vec3(0.0);
   transmission = 1.0;
   firstDiskDistance = -1.0;
@@ -269,7 +276,31 @@ void main() {
   traceRay();
   // Compute texture derivatives after the variable-length integration loop.
   // Sampling inside that loop makes implicit mip selection undefined.
-  vec3 sky = texture2D(backgroundTexture, skyUv).rgb;
+  vec3 sky = hasBackground ? texture2D(backgroundTexture, skyUv).rgb : sceneClearColor;
+  if (lensScene) {
+    vec2 originalUv = screenPosition * 0.5 + 0.5;
+    vec4 foreground = texture2D(sceneForeground, originalUv);
+    // Treat the captured camera image as distant sources. This is a
+    // screen-space optical approximation, not curved-ray mesh intersection.
+    vec4 sourceClip = viewProjection * vec4(cameraPosition + escapedWorldDirection, 1.0);
+    vec2 sourceUv = sourceClip.xy / max(sourceClip.w, 0.00001) * 0.5 + 0.5;
+    vec4 source = texture2D(sceneColor, sourceUv);
+    bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&
+      all(lessThanEqual(sourceUv, vec2(1.0)));
+    // Do not repeat/clamp the edge of the camera image or bend a foreground
+    // object into the background. The sky fills unavailable image samples.
+    if (sampledSky && inFrame) {
+      sky = source.rgb + (1.0 - source.a) * sky;
+    }
+    vec3 color = 1.0 - exp(-exposure * emittedLight);
+    if (sampledSky) color += transmission * pow(max(sky, vec3(0.0)), vec3(2.2));
+    color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / 2.2));
+    // Each capture contains only its side of the lens plane, so transparent
+    // foregrounds do not bring an unwarped copy of the background with them.
+    color = foreground.rgb + (1.0 - foreground.a) * color;
+    gl_FragColor = vec4(color, 1.0);
+    return;
+  }
   float alpha = captured || sampledSky ? 1.0 : 1.0 - transmission;
   if (alpha < 0.0001) discard;
   vec3 color = 1.0 - exp(-exposure * emittedLight / alpha);

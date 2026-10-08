@@ -4,26 +4,41 @@
 const hole = sim.createBlackHole('galactic-center', {
   massSolar: 4e6,
   position: [0, 0, 0], // AU, like other Spacekit objects
-  diskNormal: [0, 0, 1],
+  lensScene: true, // distort scene meshes, sprites, lines and particles
+  quality: 'low', // faster rendering; default is 'high'
   accretionDisk: {
-    innerRadius: 3, outerRadius: 30, temperature: 7500,
-    opticalDepth: 2, aspectRatio: 0.025, turbulence: 0.65,
+    outerRadius: 30, // in Schwarzschild radii, not AU
+    temperature: 7500, // Kelvin
     rotationSpeed: 200, // artistic animation; use 1 for physical time
   },
 });
-console.log(hole.getPhysicalRadii()); // all values in AU
-hole.setPosition([1, 0, 0]);
-hole.setRotationSpeed(20); // changes speed without jumping to a new phase
-hole.setDiskOuterRadius(100); // in horizon radii; does not change the hole
-hole.setDiskAspectRatio(0.025);
-hole.setDiskEnabled(false); // preserves animation and resources
-// sim.removeObject(hole); // removes it and releases its GPU resources
-// hole.dispose();        // equivalent
 ```
+
+Only `massSolar` is required. Omitting `accretionDisk` creates the default disk; `accretionDisk: false` starts with it hidden. `lensScene` defaults to false. TypeScript exports `BlackHoleOptions`, `AccretionDiskOptions`, and `BlackHoleRadii` from the main package.
+
+The runtime controls are:
+
+```js
+hole.setPosition([1, 0, 0]);
+hole.setRotationSpeed(20); // disk animation multiplier, not black-hole spin
+hole.setDiskOuterRadius(100); // in Schwarzschild radii
+hole.setDiskAspectRatio(0.025);
+hole.setDiskEnabled(false); // hide/show without resetting the animation
+hole.setSceneLensingEnabled(false); // retains the sky/disk and ordinary objects
+const radii = hole.getPhysicalRadii(); // eventHorizonAu, photonSphereAu,
+                                     // iscoAu, shadowImpactParameterAu
+hole.dispose(); // equivalent to sim.removeObject(hole)
+```
+
+Other options (mass, disk normal, inner radius, temperature, optical depth, turbulence, exposure, quality, and background texture) are set at construction. The simulation advances the object automatically; callers do not need to call `update()` or adjust its Three.js render order. Disposal releases owned GPU resources but does not dispose a caller-supplied `backgroundTexture`.
 
 Run the [interactive example](../examples/black-hole/index.html) after building. A 4-million-solar-mass black hole has a horizon radius of about 0.079 AU; a useful initial camera position is `[0, -3.3, 0.7]` AU. A stellar-mass black hole is far smaller: adjust the camera near/far planes through `sim.getViewer().get3jsCamera()` when viewing one up close. `unitsPerAu` scales the object but does not change its physical size.
 
-`massSolar` is required. Optional settings are position, disk normal, `accretionDisk: false`, `exposure` (default 1), `quality: 'low' | 'high'` (default high), and a caller-owned `THREE.Texture` in `backgroundTexture`. The background must be an equirectangular sky in display RGB: north at +Z, longitude zero (+X) at the center, increasing toward +Y. It replaces the sky with the lensed texture. Use it on only one black hole in a scene, without an additional Skybox or Stars layer. Without it, escaping rays leave the scene untouched. Dispose the texture yourself when no longer needed.
+`exposure` controls display brightness and defaults to 1. The optional `backgroundTexture` accepts a caller-owned `THREE.Texture`: an equirectangular sky in display RGB, with north at +Z, longitude zero (+X) at the center, increasing toward +Y. It replaces the sky with the lensed texture. Use it on only one black hole in a scene, without an additional Skybox or Stars layer. Without either a background texture or scene lensing, escaping rays leave the scene untouched. Dispose the texture yourself when no longer needed.
+
+With `lensScene: true`, objects behind the black hole are distorted automatically, including orbit lines, the additive Sun sprite, GPU particles, and ordinary Three.js spheres or other meshes added through `sim.getScene().add(mesh)`. The renderer captures the two sides of a plane through the hole, perpendicular to the camera, retaining the objects' shaders, texture alpha and blending. It warps the background image using the outgoing geodesic directions, adds the disk, then composites the foreground. Objects in front remain visible, and transparent foregrounds do not carry an undistorted copy of the background. HTML labels are overlays and continue to mark the objects' true positions. Only one scene-lensing black hole may be enabled per simulation; turn it off with `setSceneLensingEnabled(false)` before enabling another.
+
+The [solar-system mashup](../examples/black-hole-solar-system/) combines this object with the standard Sun and planet ephemerides, textured Earth/Jupiter/Saturn, and the Halley orbit from the comet example. It includes camera-follow views, a full-system view, and a shortcut to the comet near perihelion. Select **Sun behind black hole** or **Jupiter behind black hole**, then toggle **Lens scene** to compare. Disable **Disk** to see the distorted images more clearly. Body sizes are enlarged for visibility; the nearby black hole is an illustrative placement and does not perturb the solar Kepler orbits. The example uses low ray-tracing quality and compensates disk animation speed for its accelerated planetary clock.
 
 ## Physical model
 
@@ -47,7 +62,8 @@ Procedural orbital lanes and knots modulate the local density and temperature. T
 
 - This simulates light around a Schwarzschild mass. It does not exert forces on other Spacekit objects, change their Kepler ephemerides, model Kerr spin, jets, magnetic fields, mergers, or gravitational waves.
 - The observer is static at each frame. Camera motion does not add velocity aberration. Keep the camera outside the horizon; inside it the view becomes black. Disk emission is evaluated at the current simulation time, without light travel time delays.
-- Ordinary scene meshes are not traced along curved rays. Compositing uses their existing depth buffer and an apparent Euclidean distance for disk/shadow pixels. Nearby intersecting objects and multiple interacting black holes therefore are not a relativistic scene simulation. Multiple holes can be placed as independent objects, but their metrics and lensing are not combined.
+- Scene lensing is a **screen-space approximation**, for perspective cameras: captured background pixels are treated as distant light sources. Their finite distances do not determine the bending strength, and geometry outside the camera image is unavailable; missing samples use the sky or clear color. The split at the hole's camera depth is also approximate, especially for objects intersecting the disk. This is not curved-ray intersection with scene geometry. Without scene lensing, compositing uses the existing depth buffer and an apparent Euclidean distance for disk/shadow pixels. Multiple holes' metrics and lensing are not combined.
+- Scene lensing adds two scene captures at the current render-target resolution and reuses their GPU resources. It works with standard Three.js materials and custom GLSL `main` shaders, including Spacekit's GPU Kepler particles; custom render callbacks run for these extra passes too. It retains normal transparent-material sorting limitations. Removing the hole disposes its capture targets and cloned materials, preserving the caller's materials and textures.
 - WebGL 1 requires `EXT_frag_depth` and high precision fragment floats. Unsupported renderers throw before adding anything to the scene. Camera matrices update on every render, including while paused and after resizing.
 - Each hole draws a full-screen ray-tracing pass. High quality allows 1024 steps of at most 0.02 radians; low allows 768 at 0.04. In the gas region, proper spatial steps are additionally limited to half a scale height and 2.5% (high) or 5% (low) of spherical radius; near the midplane this resolves the cylindrical scale height. Volume transfer uses composite midpoint quadrature with four gas samples per ray segment at high quality and two at low quality. These additional samples resolve density lanes that can otherwise alias into crosshatching even when the light path itself is accurate. Multiple samples through the atmosphere cost more than a zero-thickness disk. Without a background, rays missing the emitting region are skipped. Near-critical rays exhausting the budget become dark; arbitrarily high-order photon images are not resolved. Tiny stars can alias without beam filtering. Lower canvas resolution or choose low quality on slower GPUs.
 
@@ -61,3 +77,5 @@ Procedural orbital lanes and knots modulate the local density and temperature. T
 `test/BlackHole.test.ts` checks the solar horizon, radius ratios, ISCO period, critical capture threshold, weak-field deflection, null invariant, integration convergence, positioning/scaling, time scrubbing, camera updates, validation, and resource ownership. Browser checks are also necessary: numerical CPU tests do not compile the GPU shader.
 
 After `pnpm build`, serve the repository and open [the WebGL checks](../test/browser/black-hole.html). They render the actual shader into a framebuffer at both quality settings, compare the shadow diameter with the finite-observer prediction (within two pixels at 256 × 256), and verify translation, foreground/background occlusion, removal, optical-depth response, deterministic disk animation and scrubbing, exact edge-on thickness without bloom, scale-height response, transfer convergence between quality settings, both inward and outward radial rays, artistic-speed equivalence to accelerated simulation time, and full-disk views out to 100 horizon radii. [The sampling comparison](../test/browser/black-hole-sampling.html) also renders a fixed turbulent disk against a much denser integration reference, checking both quality levels and showing the previous one-sample artifacts beside the current result.
+
+[The scene-lensing checks](../test/browser/black-hole-scene.html) exercise actual sphere, sprite, orbit-line, custom GPU particle, and additive Sun images at both quality levels. They also cover foreground occlusion, transparent layering, moving objects, camera changes without simulation ticks, resizing, resource reuse/removal, and restoration of caller render state.

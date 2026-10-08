@@ -23,6 +23,8 @@ exports.BlackHole = void 0;
 var THREE = __importStar(require("three"));
 var BlackHolePhysics_1 = require("./BlackHolePhysics");
 var blackHoleShader_1 = require("./blackHoleShader");
+var BlackHoleSceneCapture_1 = require("./BlackHoleSceneCapture");
+var sceneLensOwners = new WeakMap();
 function positive(name, value) {
     if (!Number.isFinite(value) || value <= 0) {
         throw new Error("Black hole " + name + " must be finite and positive");
@@ -56,7 +58,7 @@ function diskAspectRatio(value) {
 var BlackHole = /** @class */ (function () {
     function BlackHole(id, options, simulation) {
         var _this = this;
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         this.animationOffsetSeconds = 0;
         this.disposed = false;
         this.id = id;
@@ -84,6 +86,8 @@ var BlackHole = /** @class */ (function () {
             throw new Error('Black hole disk turbulence must be between 0 and 1');
         }
         var exposure = positive('exposure', (_l = options.exposure) !== null && _l !== void 0 ? _l : 1);
+        if (options.lensScene)
+            this.assertSceneLensingAvailable();
         if (options.quality !== undefined &&
             ['low', 'high'].indexOf(options.quality) < 0) {
             throw new Error('Black hole quality must be low or high');
@@ -127,7 +131,11 @@ var BlackHole = /** @class */ (function () {
                     value: (this.radiusAu * BlackHolePhysics_1.METERS_PER_AU) / BlackHolePhysics_1.SPEED_OF_LIGHT
                 },
                 hasBackground: { value: !!options.backgroundTexture },
-                backgroundTexture: { value: (_m = options.backgroundTexture) !== null && _m !== void 0 ? _m : null }
+                backgroundTexture: { value: (_m = options.backgroundTexture) !== null && _m !== void 0 ? _m : null },
+                lensScene: { value: false },
+                sceneColor: { value: null },
+                sceneForeground: { value: null },
+                sceneClearColor: { value: new THREE.Color() }
             },
             extensions: { fragDepth: true },
             transparent: true,
@@ -137,17 +145,27 @@ var BlackHole = /** @class */ (function () {
         });
         this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
         this.mesh.name = id;
+        this.mesh.userData.spacekitBlackHole = true;
         this.mesh.position.copy(position.multiplyScalar(this.unitsPerAu));
         // The shader projects a full-screen quad, independent of its world position.
         this.mesh.frustumCulled = false;
-        this.mesh.renderOrder = 1000;
-        this.mesh.onBeforeRender = function (_renderer, _scene, camera) {
+        var centerClip = new THREE.Vector4();
+        this.mesh.onBeforeRender = function (renderer, scene, camera) {
             var uniforms = material.uniforms;
             uniforms.inverseProjection.value.copy(camera.projectionMatrix).invert();
             uniforms.cameraWorld.value.copy(camera.matrixWorld);
             uniforms.viewProjection.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
             _this.mesh.getWorldPosition(uniforms.center.value);
+            if (uniforms.lensScene.value && _this.sceneCapture) {
+                var center = uniforms.center.value;
+                centerClip
+                    .set(center.x, center.y, center.z, 1)
+                    .applyMatrix4(uniforms.viewProjection.value);
+                _this.sceneCapture.render(renderer, scene, camera, centerClip.w > 0 ? (centerClip.z / centerClip.w) * 0.5 + 0.5 : 1);
+                uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
+            }
         };
+        this.setSceneLensingEnabled((_o = options.lensScene) !== null && _o !== void 0 ? _o : false);
         simulation.addObject(this);
     }
     BlackHole.prototype.getId = function () {
@@ -173,7 +191,7 @@ var BlackHole = /** @class */ (function () {
             (jd - this.epochJd) * 86400 * this.animationSpeed +
                 this.animationOffsetSeconds;
     };
-    /** Change the pattern's speed without a phase jump; leaves orbital Doppler shifts alone. */
+    /** Change the disk animation multiplier without a phase jump; does not spin the black hole. */
     BlackHole.prototype.setRotationSpeed = function (value) {
         var speed = rotationSpeed(value);
         var elapsed = (this.simulation.getJd() - this.epochJd) * 86400;
@@ -197,11 +215,51 @@ var BlackHole = /** @class */ (function () {
     BlackHole.prototype.setDiskEnabled = function (enabled) {
         this.mesh.material.uniforms.diskEnabled.value = enabled;
     };
+    /** Toggle scene distortion without changing the disk, sky or simulation time. */
+    BlackHole.prototype.setSceneLensingEnabled = function (enabled) {
+        if (this.disposed)
+            return;
+        var material = this.mesh.material;
+        if (enabled) {
+            this.assertSceneLensingAvailable();
+            if (!this.sceneCapture)
+                this.sceneCapture = new BlackHoleSceneCapture_1.BlackHoleSceneCapture();
+            material.uniforms.sceneColor.value = this.sceneCapture.background.texture;
+            material.uniforms.sceneForeground.value =
+                this.sceneCapture.foreground.texture;
+            sceneLensOwners.set(this.simulation, this);
+        }
+        else if (sceneLensOwners.get(this.simulation) === this) {
+            sceneLensOwners["delete"](this.simulation);
+        }
+        material.uniforms.lensScene.value = enabled;
+        material.depthTest = !enabled;
+        material.depthWrite = !enabled;
+        material.blending = enabled ? THREE.NoBlending : THREE.NormalBlending;
+        // A supplied sky must render before transparent objects, which may not
+        // write depth. The scene-compositing pass must render after those objects.
+        this.mesh.renderOrder = enabled
+            ? Number.MAX_SAFE_INTEGER
+            : material.uniforms.hasBackground.value
+                ? -1
+                : 1000;
+    };
+    BlackHole.prototype.assertSceneLensingAvailable = function () {
+        var owner = sceneLensOwners.get(this.simulation);
+        if (owner && owner !== this) {
+            throw new Error('Only one black hole can lens the scene per simulation');
+        }
+    };
     /** Called by Simulation.removeObject; caller-owned sky textures are preserved. */
     BlackHole.prototype.removalCleanup = function () {
+        var _a;
         if (this.disposed)
             return;
         this.disposed = true;
+        if (sceneLensOwners.get(this.simulation) === this) {
+            sceneLensOwners["delete"](this.simulation);
+        }
+        (_a = this.sceneCapture) === null || _a === void 0 ? void 0 : _a.dispose();
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
     };

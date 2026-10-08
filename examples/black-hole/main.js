@@ -6,7 +6,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
   jd: 2451545,
   jdPerSecond: 1 / 86400,
-  bloom: false,
   // Look from the Sun's side toward the galactic center (+X), as we see Sgr A*.
   camera: { initialPosition: [-80 * radius, 0, 7.5 * radius] },
 });

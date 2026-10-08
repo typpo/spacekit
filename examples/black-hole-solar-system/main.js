@@ -22,7 +22,6 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   basePath: '../../src',
   jd: perihelionJd - 120,
   jdPerSecond: daysPerSecond,
-  bloom: false,
   camera: { initialPosition: [6.5, -22, 15] },
 });
 const camera = viz.getViewer().get3jsCamera();

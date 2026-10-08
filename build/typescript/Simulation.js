@@ -141,8 +141,6 @@ var Simulation = /** @class */ (function () {
      * to 1.0.
      * @param {boolean} options.startPaused Whether the simulation should start
      * in a paused state.
-     * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
-     * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
      * particles, but not too much larger. It's usually good enough to choose the
@@ -324,11 +322,11 @@ var Simulation = /** @class */ (function () {
         */
         //godRaysEffect.dithering = true;
         var bloomEffect = new postprocessing_1.BloomEffect({
-            width: 480,
-            height: 480,
-            luminanceThreshold: 0.5
+            width: 240,
+            height: 240,
+            luminanceThreshold: 0.2
         });
-        bloomEffect.blendMode.opacity.value = 0.65;
+        bloomEffect.blendMode.opacity.value = 2.3;
         var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
         renderPass.renderToScreen = false;
         var effectPass = new postprocessing_1.EffectPass(camera, 
@@ -385,8 +383,6 @@ var Simulation = /** @class */ (function () {
             camera.aspect = newWidth / newHeight;
             camera.updateProjectionMatrix();
             this.renderer.setSize(newWidth, newHeight);
-            if (this.composer)
-                this.composer.setSize(newWidth, newHeight);
             this.staticForcedUpdate();
             this.lastResizeUpdateTime = now;
         }
@@ -434,15 +430,11 @@ var Simulation = /** @class */ (function () {
         }
         this.camera.update();
         // Update three.js scene
-        if (this.options.bloom && this.composer) {
-            this.composer.render();
-        }
-        else {
-            // EffectComposer disables autoClear. Translucent emission must not
-            // accumulate over previous frames when using the direct render path.
-            this.renderer.clear();
-            this.renderer.render(this.scene, this.camera.get3jsCamera());
-        }
+        // EffectComposer disables autoClear. Translucent emission must not
+        // accumulate over previous frames.
+        this.renderer.clear();
+        this.renderer.render(this.scene, this.camera.get3jsCamera());
+        //this.composer.render(0.1);
         if (this.onTick) {
             this.onTick();
         }

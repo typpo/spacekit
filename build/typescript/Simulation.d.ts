@@ -35,8 +35,6 @@ interface SpacekitOptions {
     jdPerSecond?: number;
     unitsPerAu?: number;
     startPaused?: boolean;
-    /** Apply a subtle camera bloom to bright emission. Defaults to false. */
-    bloom?: boolean;
     maxNumParticles?: number;
     particleTextureUrl?: string;
     particleDefaultSize?: number;
@@ -134,8 +132,6 @@ export declare class Simulation {
      * to 1.0.
      * @param {boolean} options.startPaused Whether the simulation should start
      * in a paused state.
-     * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
-     * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
      * particles, but not too much larger. It's usually good enough to choose the

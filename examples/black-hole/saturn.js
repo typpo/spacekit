@@ -58,11 +58,12 @@ viz.loadNaturalSatellites().then((loader) => {
   });
 });
 
-// A hypothetical intermediate-mass black hole of 10,000 solar masses, just
-// beyond Titan's orbit. Its horizon radius is about half of Saturn's.
+// A hypothetical intermediate-mass black hole of 10,000 solar masses, between
+// the orbits of Rhea and Titan. Its horizon radius is about half of Saturn's.
 const massSolar = 1e4;
+const distanceAu = 0.004;
 const outward = new T.Vector3(1, -0.55, 0.12).normalize();
-const holePosition = outward.clone().multiplyScalar(0.012);
+const holePosition = outward.clone().multiplyScalar(distanceAu);
 const screenUp = new T.Vector3(0, 0, 1)
   .addScaledVector(outward, -outward.z)
   .normalize();
@@ -81,8 +82,12 @@ try {
       outerRadius: 6,
       temperature: 7500,
       turbulence: 0.85,
-      // Play the gas at 200x real time despite the simulation clock.
-      rotationSpeed: 200 / (daysPerSecond * 86400),
+      // Orbits this close to a small hole take seconds. Slow the gas so the
+      // innermost orbit takes about 10 seconds on screen, whatever the clock.
+      rotationSpeed:
+        Spacekit.schwarzschildOrbitalPeriodSeconds(massSolar, 3) /
+        10 /
+        (daysPerSecond * 86400),
     },
   });
 } catch (err) {
@@ -91,14 +96,14 @@ try {
 
 // Camera positions in AU, relative to Saturn.
 const views = {
-  // Looking back at Saturn through the hole, slightly off axis so Saturn is
-  // lensed into arcs rather than a perfect ring.
+  // Looking back at Saturn through the hole, about one Einstein radius off
+  // axis, so a warped image of Saturn appears beside the disk.
   lensed: {
     position: holePosition
       .clone()
-      .addScaledVector(outward, 0.009)
-      .addScaledVector(sideways, 0.0005),
-    target: holePosition,
+      .addScaledVector(outward, 0.004)
+      .addScaledVector(sideways, 0.002),
+    target: holePosition.clone().addScaledVector(sideways, -0.0008),
   },
   system: {
     position: new T.Vector3(0.012, -0.04, 0.018),
@@ -123,7 +128,9 @@ document.getElementById(
   'facts',
 ).textContent = `10,000 solar masses · Horizon radius ${Math.round(
   radiusKm,
-).toLocaleString()} km · ${(0.012 * 149.6).toFixed(1)} million km from Saturn`;
+).toLocaleString()} km · ${Math.round(
+  distanceAu * 149597870.7,
+).toLocaleString()} km from Saturn`;
 document.getElementById('view').addEventListener('change', (event) => {
   setView(event.target.value);
 });

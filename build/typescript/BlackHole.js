@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -27,13 +31,13 @@ var BlackHoleSceneCapture_1 = require("./BlackHoleSceneCapture");
 var sceneLensOwners = new WeakMap();
 function positive(name, value) {
     if (!Number.isFinite(value) || value <= 0) {
-        throw new Error("Black hole " + name + " must be finite and positive");
+        throw new Error("Black hole ".concat(name, " must be finite and positive"));
     }
     return value;
 }
 function vector(name, value) {
     if (value.length !== 3 || !value.every(Number.isFinite)) {
-        throw new Error("Black hole " + name + " must contain three finite coordinates");
+        throw new Error("Black hole ".concat(name, " must contain three finite coordinates"));
     }
     return new THREE.Vector3(value[0], value[1], value[2]);
 }

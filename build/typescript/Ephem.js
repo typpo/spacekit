@@ -118,7 +118,7 @@ var Ephem = /** @class */ (function () {
             throw new Error('Attempted to modify locked (immutable) Ephem object');
         }
         if (!EPHEM_VALID_ATTRS.has(attr)) {
-            console.warn("Invalid ephem attr: " + attr);
+            console.warn("Invalid ephem attr: ".concat(attr));
             return false;
         }
         // Store everything in radians.
@@ -161,7 +161,7 @@ var Ephem = /** @class */ (function () {
         var retVal = this.getUnsafe(attr, units);
         if (typeof retVal === 'undefined') {
             console.info(this.attrs);
-            throw new Error("Attempted to get ephemeris value '" + attr + "' but it was undefined");
+            throw new Error("Attempted to get ephemeris value '".concat(attr, "' but it was undefined"));
         }
         return retVal;
     };
@@ -217,16 +217,16 @@ var Ephem = /** @class */ (function () {
         var n = this.getUnsafe('n');
         var GM = this.getUnsafe('GM');
         var period = this.getUnsafe('period');
-        if (e < 1.0) {
-            if (!isDef(period) && isDef(a)) {
-                if (!isDef(GM)) {
-                    throw new Error('Expected ephemeris attribute GM to be set');
-                }
-                period =
-                    (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
-                        SECONDS_IN_DAY;
-                this.set('period', period);
+        if (!isDef(period) && isDef(a)) {
+            if (!isDef(GM)) {
+                throw new Error('Expected ephemeris attribute GM to be set');
             }
+            period =
+                (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
+                    SECONDS_IN_DAY;
+            this.set('period', period);
+        }
+        if (e < 1.0) {
             // Only work with mean motion for elliptical orbits.
             if (isDef(period) && !isDef(n)) {
                 // Set radians

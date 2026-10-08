@@ -139,6 +139,8 @@ var Simulation = /** @class */ (function () {
      * in a paused state.
      * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
      * Defaults to false.
+     * @param {boolean} options.fxaa Smooth the final image with FXAA.
+     * Defaults to false.
      * @param {Number} options.maxNumParticles The maximum number of particles in
      * the visualization. Try choosing a number that is larger than your
      * particles, but not too much larger. It's usually good enough to choose the
@@ -327,13 +329,19 @@ var Simulation = /** @class */ (function () {
         bloomEffect.blendMode.opacity.value = 0.65;
         var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
         renderPass.renderToScreen = false;
-        var effectPass = new postprocessing_1.EffectPass(camera, 
-        /*smaaEffect, godRaysEffect*/ bloomEffect);
-        effectPass.renderToScreen = true;
+        var bloomPass = new postprocessing_1.EffectPass(camera, bloomEffect);
+        bloomPass.enabled = !!this.options.bloom;
+        // Keep FXAA separate so it samples the completed scene, including bloom.
+        var fxaaPass = new postprocessing_1.EffectPass(camera, new postprocessing_1.FXAAEffect());
+        fxaaPass.renderToScreen = true;
         var composer = new postprocessing_1.EffectComposer(this.renderer);
         composer.addPass(renderPass);
-        composer.addPass(effectPass);
+        composer.addPass(bloomPass);
+        composer.addPass(fxaaPass);
         this.composer = composer;
+        this.bloomPass = bloomPass;
+        this.fxaaPass = fxaaPass;
+        this.setFxaaEnabled(!!this.options.fxaa);
     };
     /**
      * @private
@@ -430,7 +438,7 @@ var Simulation = /** @class */ (function () {
         }
         this.camera.update();
         // Update three.js scene
-        if (this.options.bloom && this.composer) {
+        if ((this.options.bloom || this.options.fxaa) && this.composer) {
             this.composer.render();
         }
         else {
@@ -751,6 +759,17 @@ var Simulation = /** @class */ (function () {
      */
     Simulation.prototype.stop = function () {
         this.isPaused = true;
+    };
+    /**
+     * Enable or disable FXAA smoothing of the final image.
+     * @param {boolean} enabled Whether to apply FXAA.
+     */
+    Simulation.prototype.setFxaaEnabled = function (enabled) {
+        this.options.fxaa = enabled;
+        if (this.fxaaPass)
+            this.fxaaPass.enabled = enabled;
+        if (this.bloomPass)
+            this.bloomPass.renderToScreen = !enabled;
     };
     /**
      * Gets the current JD date of the simulation

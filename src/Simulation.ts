@@ -6,6 +6,7 @@ import {
   BloomEffect,
   EffectComposer,
   EffectPass,
+  FXAAEffect,
   RenderPass,
   // @ts-ignore
 } from 'postprocessing';
@@ -56,6 +57,8 @@ interface SpacekitOptions {
   startPaused?: boolean;
   /** Apply a subtle camera bloom to bright emission. Defaults to false. */
   bloom?: boolean;
+  /** Smooth the final image with FXAA. Defaults to false. */
+  fxaa?: boolean;
   maxNumParticles?: number;
   particleTextureUrl?: string;
   particleDefaultSize?: number;
@@ -157,6 +160,10 @@ export class Simulation {
 
   private composer?: EffectComposer;
 
+  private bloomPass?: EffectPass;
+
+  private fxaaPass?: EffectPass;
+
   /**
    * @param {HTMLCanvasElement} simulationElt The container for this simulation.
    * @param {Object} options for simulation
@@ -180,6 +187,8 @@ export class Simulation {
    * @param {boolean} options.startPaused Whether the simulation should start
    * in a paused state.
    * @param {boolean} options.bloom Apply subtle camera bloom to bright emission.
+   * Defaults to false.
+   * @param {boolean} options.fxaa Smooth the final image with FXAA.
    * Defaults to false.
    * @param {Number} options.maxNumParticles The maximum number of particles in
    * the visualization. Try choosing a number that is larger than your
@@ -417,16 +426,21 @@ export class Simulation {
     const renderPass = new RenderPass(this.scene, camera);
     renderPass.renderToScreen = false;
 
-    const effectPass = new EffectPass(
-      camera,
-      /*smaaEffect, godRaysEffect*/ bloomEffect,
-    );
-    effectPass.renderToScreen = true;
+    const bloomPass = new EffectPass(camera, bloomEffect);
+    bloomPass.enabled = !!this.options.bloom;
+
+    // Keep FXAA separate so it samples the completed scene, including bloom.
+    const fxaaPass = new EffectPass(camera, new FXAAEffect());
+    fxaaPass.renderToScreen = true;
 
     const composer = new EffectComposer(this.renderer);
     composer.addPass(renderPass);
-    composer.addPass(effectPass);
+    composer.addPass(bloomPass);
+    composer.addPass(fxaaPass);
     this.composer = composer;
+    this.bloomPass = bloomPass;
+    this.fxaaPass = fxaaPass;
+    this.setFxaaEnabled(!!this.options.fxaa);
   }
 
   /**
@@ -533,7 +547,7 @@ export class Simulation {
     this.camera.update();
 
     // Update three.js scene
-    if (this.options.bloom && this.composer) {
+    if ((this.options.bloom || this.options.fxaa) && this.composer) {
       this.composer.render();
     } else {
       // EffectComposer disables autoClear. Translucent emission must not
@@ -851,6 +865,16 @@ export class Simulation {
    */
   stop() {
     this.isPaused = true;
+  }
+
+  /**
+   * Enable or disable FXAA smoothing of the final image.
+   * @param {boolean} enabled Whether to apply FXAA.
+   */
+  setFxaaEnabled(enabled: boolean) {
+    this.options.fxaa = enabled;
+    if (this.fxaaPass) this.fxaaPass.enabled = enabled;
+    if (this.bloomPass) this.bloomPass.renderToScreen = !enabled;
   }
 
   /**

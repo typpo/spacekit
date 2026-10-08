@@ -23,6 +23,7 @@ const viz = new Spacekit.Simulation(document.getElementById('main-container'), {
   jd: perihelionJd - 120,
   jdPerSecond: daysPerSecond,
   bloom: false,
+  fxaa: true,
   camera: { initialPosition: [6.5, -22, 15] },
 });
 const camera = viz.getViewer().get3jsCamera();
@@ -335,6 +336,9 @@ document.getElementById('disk').addEventListener('change', (event) => {
 document.getElementById('lensing').addEventListener('change', (event) => {
   if (!blackHole) return;
   blackHole.setSceneLensingEnabled(event.target.checked);
+});
+document.getElementById('fxaa').addEventListener('change', (event) => {
+  viz.setFxaaEnabled(event.target.checked);
 });
 const dateElement = document.getElementById('date');
 viz.onTick = () => {

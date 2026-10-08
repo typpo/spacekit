@@ -1,13 +1,20 @@
 import * as THREE from 'three';
-/** Split the camera image at the lens plane, preserving transparent layers. */
+/** Camera-clipped color/depth layers for screen-space scene lensing. */
 export declare class BlackHoleSceneCapture {
     readonly background: THREE.WebGLRenderTarget;
+    readonly transparent: THREE.WebGLRenderTarget;
     readonly foreground: THREE.WebGLRenderTarget;
     readonly clearColor: THREE.Color;
+    readonly viewProjection: THREE.Matrix4;
+    readonly depthRange: THREE.Vector2;
+    readonly size: THREE.Vector2;
+    hasTransparent: boolean;
+    private readonly camera;
     private readonly viewport;
-    private readonly planeDepth;
-    private readonly materials;
-    private layerMaterial;
-    render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, planeDepth: number): void;
+    private readonly compositeScene;
+    private readonly composite;
+    constructor();
+    private clipCamera;
+    render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, planeDistance: number): void;
     dispose(): void;
 }

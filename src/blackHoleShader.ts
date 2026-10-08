@@ -30,12 +30,20 @@ uniform bool hasBackground;
 uniform sampler2D backgroundTexture;
 uniform bool lensScene;
 uniform sampler2D sceneColor;
+uniform sampler2D sceneDepth;
+uniform sampler2D sceneTransparent;
+uniform sampler2D sceneTransparentDepth;
+uniform bool sceneHasTransparent;
+uniform mat4 sceneViewProjection;
+uniform vec2 sceneSize;
+uniform vec2 sceneDepthRange;
 uniform sampler2D sceneForeground;
 uniform vec3 sceneClearColor;
 const float PI = 3.141592653589793;
 bool sampledSky;
 vec2 skyUv;
 vec3 escapedWorldDirection;
+vec3 escapedWorldOrigin;
 vec3 emittedLight;
 float transmission;
 float firstDiskDistance;
@@ -142,13 +150,14 @@ void writeDepth(vec3 ray, float distanceInRadii) {
   gl_FragDepthEXT = depth;
 }
 
-void escaped(vec3 direction) {
+void escaped(vec3 direction, vec3 closestPoint) {
   if (!hasBackground && !lensScene) {
     if (firstDiskDistance < 0.0) discard;
     return;
   }
   vec3 worldDirection = normalize(diskToWorld * direction);
   escapedWorldDirection = worldDirection;
+  escapedWorldOrigin = center + horizonRadius * (diskToWorld * closestPoint);
   skyUv = vec2(atan(worldDirection.y, worldDirection.x) / (2.0 * PI) + 0.5,
                 asin(clamp(worldDirection.z, -1.0, 1.0)) / PI + 0.5);
   sampledSky = true;
@@ -202,7 +211,7 @@ void traceRay() {
       captured = true;
       writeDepth(worldRay, firstDiskDistance >= 0.0 ? firstDiskDistance : observerRadius - 1.0);
     } else {
-      escaped(ray);
+      escaped(ray, vec3(0.0));
       if (firstDiskDistance >= 0.0) writeDepth(worldRay, firstDiskDistance);
     }
     return;
@@ -230,7 +239,8 @@ void traceRay() {
     if (next.x <= 0.0) {
       // Refine the asymptote rather than using the overshot step angle.
       float escapePhi = phi + h * state.x / (state.x - next.x);
-      escaped(radial * cos(escapePhi) + tangent * sin(escapePhi));
+      escaped(radial * cos(escapePhi) + tangent * sin(escapePhi),
+        impact * (radial * sin(escapePhi) - tangent * cos(escapePhi)));
       if (firstDiskDistance >= 0.0) writeDepth(worldRay, firstDiskDistance);
       return;
     }
@@ -265,10 +275,69 @@ void traceRay() {
   writeDepth(worldRay, firstDiskDistance >= 0.0 ? firstDiskDistance : observerRadius);
 }
 
+// Follow the outgoing asymptote through the camera's depth image. Screen x/y
+// and hardware depth are linear in the same projected-line parameter, so each
+// one-pixel interval can be intersected without an arbitrary world thickness.
+vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
+    bool transparent, float limit, out float firstHit) {
+  firstHit = -1.0;
+  vec4 light = vec4(0.0);
+  if (direction.w <= 0.0) return light;
+  float offset = max(0.0, (sceneDepthRange.x - start.w) / direction.w);
+  start += direction * offset;
+  vec3 first = start.xyz / start.w * 0.5 + 0.5;
+  vec3 last = direction.xyz / direction.w * 0.5 + 0.5;
+  vec3 delta = last - first;
+  vec2 inverseDelta = mix(vec2(-1.0), vec2(1.0), step(vec2(0.0), delta.xy)) /
+    max(abs(delta.xy), vec2(0.00000001));
+  vec2 a = -first.xy * inverseDelta;
+  vec2 b = (1.0 - first.xy) * inverseDelta;
+  vec2 entry = min(a, b), exitPoint = max(a, b);
+  float lo = max(0.0, max(entry.x, entry.y));
+  float hi = min(limit, min(exitPoint.x, exitPoint.y));
+  if (lo > hi || delta.z <= 0.0) return light;
+  vec2 pixelSpan = abs(delta.xy) * sceneSize;
+  float steps = clamp(ceil(max(pixelSpan.x, pixelSpan.y) * (hi - lo)), 1.0, 1024.0);
+  float stride = (hi - lo) / steps;
+  float previousDifference = 0.0;
+  float previousDepth = 1.0;
+  float previousHit = -1.0;
+  bool previousSurface = false;
+  for (int i = 0; i < 1024; i++) {
+    if (float(i) >= steps) break;
+    float along = lo + (float(i) + 0.5) * stride;
+    vec2 uv = first.xy + delta.xy * along;
+    // Sample color and depth at the same texel, including one-pixel orbits.
+    uv = (floor(uv * sceneSize) + 0.5) / sceneSize;
+    float depth = texture2D(depths, uv).x;
+    float hit = (depth - first.z) / delta.z;
+    float difference = along - hit;
+    // Curved/sloping surfaces can cross the ray between sampled texels even
+    // when neither texel's constant-depth slab contains the intersection.
+    bool continuous = abs(depth - previousDepth) <= max(0.001, 4.0 * stride * delta.z);
+    bool crossed = previousSurface && continuous && previousDifference < 0.0 && difference >= 0.0;
+    if (depth < 1.0 && hit <= limit && (previousHit < 0.0 || hit > previousHit + stride) &&
+        (crossed || abs(difference) <= stride * 0.5 + 0.0000002)) {
+      // Capture targets have no mipmaps. Accumulate premultiplied light from
+      // front to back, continuing through additive halos and translucency.
+      vec4 source = texture2D(colors, uv);
+      light += (1.0 - light.a) * source;
+      if (firstHit < 0.0) firstHit = hit;
+      if (!transparent || light.a >= 0.999) return light;
+      previousHit = hit;
+    }
+    previousDifference = difference;
+    previousDepth = depth;
+    previousSurface = depth < 1.0;
+  }
+  return light;
+}
+
 void main() {
   sampledSky = false;
   skyUv = vec2(0.0);
   escapedWorldDirection = vec3(0.0);
+  escapedWorldOrigin = vec3(0.0);
   emittedLight = vec3(0.0);
   transmission = 1.0;
   firstDiskDistance = -1.0;
@@ -280,18 +349,30 @@ void main() {
   if (lensScene) {
     vec2 originalUv = screenPosition * 0.5 + 0.5;
     vec4 foreground = texture2D(sceneForeground, originalUv);
-    // Treat the captured camera image as distant sources. This is a
-    // screen-space optical approximation, not curved-ray mesh intersection.
-    vec4 sourceClip = viewProjection * vec4(cameraPosition + escapedWorldDirection, 1.0);
+    vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);
+    vec4 sourceClip = sceneViewProjection * vec4(escapedWorldDirection, 0.0);
     vec2 sourceUv = sourceClip.xy / max(sourceClip.w, 0.00001) * 0.5 + 0.5;
-    vec4 source = texture2D(sceneColor, sourceUv);
+    float opaqueHit = -1.0;
+    vec4 source = vec4(0.0);
+    vec4 transparentSource = vec4(0.0);
+    if (sampledSky) {
+      source = sceneSample(sceneColor, sceneDepth, rayOrigin, sourceClip, false, 1.0, opaqueHit);
+      if (sceneHasTransparent) {
+        float transparentHit;
+        transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, rayOrigin,
+          sourceClip, true, opaqueHit < 0.0 ? 1.0 : opaqueHit, transparentHit);
+      }
+    }
     bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&
       all(lessThanEqual(sourceUv, vec2(1.0)));
     // Do not repeat/clamp the edge of the camera image or bend a foreground
     // object into the background. The sky fills unavailable image samples.
-    if (sampledSky && inFrame) {
-      sky = source.rgb + (1.0 - source.a) * sky;
+    if (sampledSky && inFrame && texture2D(sceneDepth, sourceUv).x == 1.0) {
+      vec4 distant = texture2D(sceneColor, sourceUv);
+      sky = distant.rgb + (1.0 - distant.a) * sky;
     }
+    if (opaqueHit >= 0.0) sky = source.rgb + (1.0 - source.a) * sky;
+    sky = transparentSource.rgb + (1.0 - transparentSource.a) * sky;
     vec3 color = 1.0 - exp(-exposure * emittedLight);
     if (sampledSky) color += transmission * pow(max(sky, vec3(0.0)), vec3(2.2));
     color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / 2.2));

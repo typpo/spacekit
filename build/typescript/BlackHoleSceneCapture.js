@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -32,70 +21,58 @@ var __importStar = (this && this.__importStar) || function (mod) {
 exports.__esModule = true;
 exports.BlackHoleSceneCapture = void 0;
 var THREE = __importStar(require("three"));
-/** Split the camera image at the lens plane, preserving transparent layers. */
+function depthTarget() {
+    var target = new THREE.WebGLRenderTarget(1, 1);
+    target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
+    return target;
+}
+/** Camera-clipped color/depth layers for screen-space scene lensing. */
 var BlackHoleSceneCapture = /** @class */ (function () {
     function BlackHoleSceneCapture() {
-        this.background = new THREE.WebGLRenderTarget(1, 1);
-        this.foreground = new THREE.WebGLRenderTarget(1, 1);
+        this.background = depthTarget();
+        this.transparent = depthTarget();
+        this.foreground = depthTarget();
         this.clearColor = new THREE.Color();
+        this.viewProjection = new THREE.Matrix4();
+        this.depthRange = new THREE.Vector2();
+        this.size = new THREE.Vector2();
+        this.hasTransparent = false;
+        this.camera = new THREE.PerspectiveCamera();
         this.viewport = new THREE.Vector4();
-        this.planeDepth = { value: 1 };
-        this.materials = new Map();
+        this.compositeScene = new THREE.Scene();
+        this.composite = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+            uniforms: {
+                color: { value: this.foreground.texture },
+                depth: { value: this.foreground.depthTexture }
+            },
+            vertexShader: "varying vec2 sampleUv;\n        void main() { sampleUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }",
+            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          // Additive black padding contributes neither light nor coverage.\n          if (max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a)) == 0.0) discard;\n          gl_FragColor = sampleColor;\n          gl_FragDepthEXT = texture2D(depth, sampleUv).x;\n        }",
+            extensions: { fragDepth: true },
+            transparent: true,
+            premultipliedAlpha: true,
+            toneMapped: false
+        }));
+        this.camera.matrixAutoUpdate = false;
+        this.composite.frustumCulled = false;
+        this.compositeScene.add(this.composite);
     }
-    BlackHoleSceneCapture.prototype.layerMaterial = function (source, foreground) {
-        var _this = this;
-        var entry = this.materials.get(source);
-        if (!entry || entry.version !== source.version) {
-            if (entry)
-                entry.layers.forEach(function (material) { return material.dispose(); });
-            var layers = [false, true].map(function (front) {
-                var material = source.clone();
-                var onBeforeCompile = source.onBeforeCompile;
-                material.onBeforeCompile = function (shader, renderer) {
-                    onBeforeCompile.call(material, shader, renderer);
-                    shader.uniforms.blackHolePlaneDepth = _this.planeDepth;
-                    // Retain each object's vertex transform and fragment shader: this
-                    // also works with GPU Kepler particles, sprites, lines and skinning.
-                    shader.fragmentShader =
-                        'uniform highp float blackHolePlaneDepth;\n' +
-                            shader.fragmentShader.replace(/void\s+main\s*\(\s*(?:void)?\s*\)\s*\{/, "void main() {\n                if ((gl_FragCoord.z < blackHolePlaneDepth) != " + (front ? 'true' : 'false') + ") discard;");
-                };
-                material.customProgramCacheKey = function () {
-                    return source.customProgramCacheKey() + ':black-hole-layer:' + front;
-                };
-                return material;
-            });
-            entry = { version: source.version, layers: layers };
-            this.materials.set(source, entry);
-        }
-        var material = entry.layers[foreground ? 1 : 0];
-        // copy() preserves changing opacity/maps/colors/point sizes, as well as
-        // blending/depth settings. Avoid ShaderMaterial.copy's deep uniform clone;
-        // share the uniform values so GPU animation remains current in both passes.
-        if (source instanceof THREE.ShaderMaterial) {
-            THREE.Material.prototype.copy.call(material, source);
-            material.uniforms = __assign({}, source.uniforms);
-        }
-        else {
-            material.copy(source);
-        }
-        if (source.blending === THREE.AdditiveBlending) {
-            // Additive light contributes RGB, not coverage. The Sun's opaque JPEG
-            // has black padding which must not replace the sky with a black square.
-            material.blending = THREE.CustomBlending;
-            material.blendSrc = source.premultipliedAlpha
-                ? THREE.OneFactor
-                : THREE.SrcAlphaFactor;
-            material.blendDst = THREE.OneFactor;
-            material.blendEquation = THREE.AddEquation;
-            material.blendSrcAlpha = THREE.ZeroFactor;
-            material.blendDstAlpha = THREE.OneFactor;
-            material.blendEquationAlpha = THREE.AddEquation;
-        }
-        return material;
+    BlackHoleSceneCapture.prototype.clipCamera = function (source, near, far) {
+        this.camera.copy(source, false);
+        this.camera.matrixAutoUpdate = false;
+        this.camera.near = near;
+        this.camera.far = far;
+        // Preserve the caller's asymmetric frustum / view offset and change only
+        // the perspective depth mapping. No source shader modification is needed.
+        var projection = this.camera.projectionMatrix;
+        projection.elements[10] = -(far + near) / (far - near);
+        projection.elements[14] = (-2 * far * near) / (far - near);
+        this.camera.projectionMatrixInverse.copy(projection).invert();
     };
-    BlackHoleSceneCapture.prototype.render = function (renderer, scene, camera, planeDepth) {
-        var _this = this;
+    BlackHoleSceneCapture.prototype.render = function (renderer, scene, camera, planeDistance) {
+        if (!camera.isPerspectiveCamera) {
+            throw new Error('Black hole scene lensing requires a perspective camera');
+        }
+        var sourceCamera = camera;
         var previousTarget = renderer.getRenderTarget();
         var cubeFace = renderer.getActiveCubeFace();
         var mipLevel = renderer.getActiveMipmapLevel();
@@ -104,19 +81,31 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         var xrEnabled = renderer.xr.enabled;
         var shadowAutoUpdate = renderer.shadowMap.autoUpdate;
         var background = scene.background;
-        var overrideMaterial = scene.overrideMaterial;
         renderer.getClearColor(this.clearColor);
         renderer.getCurrentViewport(this.viewport);
-        this.planeDepth.value = planeDepth;
-        var width = Math.max(1, this.viewport.z);
-        var height = Math.max(1, this.viewport.w);
-        if (this.background.width !== width || this.background.height !== height) {
-            this.background.setSize(width, height);
-            this.foreground.setSize(width, height);
+        this.size.set(Math.max(1, this.viewport.z), Math.max(1, this.viewport.w));
+        for (var _i = 0, _a = [this.background, this.transparent, this.foreground]; _i < _a.length; _i++) {
+            var target = _a[_i];
+            if (target.width !== this.size.x || target.height !== this.size.y) {
+                target.setSize(this.size.x, this.size.y);
+            }
         }
+        // A distant Skybox must remain in the background capture. Starting at the
+        // lens plane also avoids the simulation camera's very small near plane.
+        var near = Math.max(sourceCamera.near, planeDistance > 0 ? planeDistance : sourceCamera.far);
+        var far = Math.max(sourceCamera.far, 1e11, near * 1e5);
+        this.depthRange.set(near, far);
+        var objects = [];
+        var position = new THREE.Vector3();
+        var materials = new Map();
         var hidden = [];
-        var replaced = [];
-        var used = new Set();
+        var clear = function (target) {
+            renderer.setRenderTarget(target);
+            renderer.setClearColor(0, 0);
+            renderer.state.buffers.color.setMask(true);
+            renderer.state.buffers.depth.setMask(true);
+            renderer.clear();
+        };
         try {
             scene.traverse(function (object) {
                 if (object.userData.spacekitBlackHole && object.visible) {
@@ -125,71 +114,141 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 }
             });
             scene.traverseVisible(function (object) {
+                var _a;
                 var renderable = object;
-                if (renderable.material)
-                    replaced.push([renderable, renderable.material]);
+                if (!renderable.material)
+                    return;
+                var sources = scene.overrideMaterial
+                    ? [scene.overrideMaterial]
+                    : Array.isArray(renderable.material)
+                        ? renderable.material
+                        : [renderable.material];
+                var parent = object.parent;
+                while (parent && !parent.isGroup)
+                    parent = parent.parent;
+                objects.push({
+                    object: renderable,
+                    mask: object.layers.mask,
+                    transparent: sources.some(function (material) {
+                        return material.transparent ||
+                            !material.depthWrite ||
+                            !material.depthTest;
+                    }),
+                    z: position
+                        .setFromMatrixPosition(object.matrixWorld)
+                        .applyMatrix4(camera.matrixWorldInverse).z,
+                    groupOrder: (_a = parent === null || parent === void 0 ? void 0 : parent.renderOrder) !== null && _a !== void 0 ? _a : 0
+                });
+                sources.forEach(function (material) {
+                    if (materials.has(material))
+                        return;
+                    materials.set(material, {
+                        depthWrite: material.depthWrite,
+                        depthTest: material.depthTest,
+                        blending: material.blending,
+                        blendSrc: material.blendSrc,
+                        blendDst: material.blendDst,
+                        blendEquation: material.blendEquation,
+                        blendSrcAlpha: material.blendSrcAlpha,
+                        blendDstAlpha: material.blendDstAlpha,
+                        blendEquationAlpha: material.blendEquationAlpha
+                    });
+                    if (material.blending === THREE.AdditiveBlending) {
+                        // Preserve additive RGB but not the opaque alpha of the Sun JPEG.
+                        material.blending = THREE.CustomBlending;
+                        material.blendSrc = material.premultipliedAlpha
+                            ? THREE.OneFactor
+                            : THREE.SrcAlphaFactor;
+                        material.blendDst = THREE.OneFactor;
+                        material.blendEquation = THREE.AddEquation;
+                        material.blendSrcAlpha = THREE.ZeroFactor;
+                        material.blendDstAlpha = THREE.OneFactor;
+                        material.blendEquationAlpha = THREE.AddEquation;
+                    }
+                });
             });
             renderer.xr.enabled = false;
             renderer.shadowMap.autoUpdate = false;
             renderer.autoClear = false;
-            var _loop_1 = function (front) {
-                replaced.forEach(function (_a) {
-                    var object = _a[0], original = _a[1];
-                    var layer = function (material) {
-                        used.add(material);
-                        return _this.layerMaterial(material, front);
-                    };
-                    object.material = Array.isArray(original)
-                        ? original.map(layer)
-                        : layer(original);
-                });
-                scene.background = front ? null : background;
-                if (overrideMaterial) {
-                    used.add(overrideMaterial);
-                    scene.overrideMaterial = this_1.layerMaterial(overrideMaterial, front);
-                }
-                renderer.setRenderTarget(front ? this_1.foreground : this_1.background);
-                renderer.setClearColor(0, 0);
-                renderer.state.buffers.color.setMask(true);
-                renderer.state.buffers.depth.setMask(true);
-                renderer.clear();
-                renderer.render(scene, camera);
-            };
-            var this_1 = this;
-            for (var _i = 0, _a = [false, true]; _i < _a.length; _i++) {
-                var front = _a[_i];
-                _loop_1(front);
+            this.clipCamera(sourceCamera, near, far);
+            this.composite.layers.mask = camera.layers.mask;
+            this.viewProjection.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+            objects.forEach(function (_a) {
+                var object = _a.object, mask = _a.mask, transparent = _a.transparent;
+                object.layers.mask = transparent ? 0 : mask;
+            });
+            clear(this.background);
+            renderer.render(scene, this.camera);
+            scene.background = null;
+            clear(this.transparent);
+            var transparentObjects = objects.filter(function (entry) { return entry.transparent && (entry.mask & camera.layers.mask) !== 0; });
+            this.hasTransparent = transparentObjects.length > 0;
+            // Match ordinary transparent sorting. Layers use the nearest contributing
+            // depth; intersecting transparent surfaces retain screen-space limits.
+            transparentObjects.sort(function (a, b) {
+                return a.groupOrder - b.groupOrder ||
+                    a.object.renderOrder - b.object.renderOrder ||
+                    a.z - b.z ||
+                    a.object.id - b.object.id;
+            });
+            objects.forEach(function (_a) {
+                var object = _a.object;
+                object.layers.mask = 0;
+            });
+            materials.forEach(function (_, material) {
+                material.depthWrite = material.depthTest = true;
+            });
+            for (var _b = 0, transparentObjects_1 = transparentObjects; _b < transparentObjects_1.length; _b++) {
+                var entry = transparentObjects_1[_b];
+                entry.object.layers.mask = entry.mask;
+                // Reuse the foreground target as temporary storage until its final
+                // capture, avoiding another full-resolution color/depth allocation.
+                clear(this.foreground);
+                renderer.render(scene, this.camera);
+                entry.object.layers.mask = 0;
+                renderer.setRenderTarget(this.transparent);
+                renderer.render(this.compositeScene, this.camera);
+            }
+            objects.forEach(function (_a) {
+                var object = _a.object, mask = _a.mask;
+                object.layers.mask = mask;
+            });
+            materials.forEach(function (original, material) {
+                material.depthWrite = original.depthWrite;
+                material.depthTest = original.depthTest;
+            });
+            clear(this.foreground);
+            if (near > sourceCamera.near) {
+                this.clipCamera(sourceCamera, sourceCamera.near, Math.min(near, sourceCamera.far));
+                renderer.render(scene, this.camera);
             }
         }
         finally {
-            replaced.forEach(function (_a) {
-                var object = _a[0], material = _a[1];
-                return (object.material = material);
+            materials.forEach(function (original, material) {
+                return Object.assign(material, original);
             });
-            hidden.forEach(function (object) { return (object.visible = true); });
+            objects.forEach(function (_a) {
+                var object = _a.object, mask = _a.mask;
+                object.layers.mask = mask;
+            });
+            hidden.forEach(function (object) {
+                object.visible = true;
+            });
             scene.background = background;
-            scene.overrideMaterial = overrideMaterial;
             renderer.setRenderTarget(previousTarget, cubeFace, mipLevel);
             renderer.setClearColor(this.clearColor, clearAlpha);
             renderer.autoClear = autoClear;
             renderer.xr.enabled = xrEnabled;
             renderer.shadowMap.autoUpdate = shadowAutoUpdate;
-            this.materials.forEach(function (entry, source) {
-                if (!used.has(source)) {
-                    entry.layers.forEach(function (material) { return material.dispose(); });
-                    _this.materials["delete"](source);
-                }
-            });
         }
     };
     BlackHoleSceneCapture.prototype.dispose = function () {
-        this.background.dispose();
-        this.foreground.dispose();
-        this.materials.forEach(function (_a) {
-            var layers = _a.layers;
-            return layers.forEach(function (material) { return material.dispose(); });
-        });
-        this.materials.clear();
+        for (var _i = 0, _a = [this.background, this.transparent, this.foreground]; _i < _a.length; _i++) {
+            var target = _a[_i];
+            target.dispose();
+        }
+        this.composite.geometry.dispose();
+        this.composite.material.dispose();
     };
     return BlackHoleSceneCapture;
 }());

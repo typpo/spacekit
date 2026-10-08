@@ -129,7 +129,7 @@ describe('BlackHole scene integration', () => {
     expect(dispose).toHaveBeenCalledTimes(1);
   });
 
-  test('scene lensing works without a depth-texture extension', () => {
+  test('only scene lensing requires a depth-texture extension', () => {
     const sim = simulation();
     sim.getContext = () => ({
       options: {},
@@ -140,76 +140,88 @@ describe('BlackHole scene integration', () => {
         },
       },
     });
-    const hole = new BlackHole('bh', { massSolar: 4e6, lensScene: true }, sim);
+    expect(
+      () => new BlackHole('bh', { massSolar: 4e6, lensScene: true }, sim),
+    ).toThrow(/WEBGL_depth_texture/);
+    expect(sim.addObject).not.toHaveBeenCalled();
+    const hole = new BlackHole('bh', { massSolar: 4e6 }, sim);
     expect(sim.addObject).toHaveBeenCalledWith(hole);
+    expect(() => hole.setSceneLensingEnabled(true)).toThrow(
+      /WEBGL_depth_texture/,
+    );
     hole.dispose();
   });
 
-  test('a failed scene capture restores caller materials and renderer state', () => {
-    const capture = new BlackHoleSceneCapture();
-    const scene = new THREE.Scene();
-    const material = new THREE.SpriteMaterial({
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const sprite = new THREE.Sprite(material);
-    const hole = new THREE.Object3D();
-    hole.userData.spacekitBlackHole = true;
-    scene.add(sprite, hole);
-    const target = new THREE.WebGLRenderTarget(10, 20);
-    let currentTarget = target;
-    let clearColor = new THREE.Color(0x123456);
-    let clearAlpha = 0.7;
-    let renders = 0;
-    const renderer = {
-      autoClear: false,
-      xr: { enabled: true },
-      shadowMap: { autoUpdate: true },
-      getRenderTarget: () => currentTarget,
-      setRenderTarget: (next: THREE.WebGLRenderTarget) =>
-        (currentTarget = next),
-      getActiveCubeFace: () => 0,
-      getActiveMipmapLevel: () => 0,
-      getClearAlpha: () => clearAlpha,
-      getClearColor: (color: THREE.Color) => color.copy(clearColor),
-      setClearColor: (color: THREE.ColorRepresentation, alpha: number) => {
-        clearColor = new THREE.Color(color);
-        clearAlpha = alpha;
-      },
-      getCurrentViewport: (viewport: THREE.Vector4) =>
-        viewport.set(0, 0, 10, 20),
-      state: {
-        buffers: {
-          color: { setMask: jest.fn() },
-          depth: { setMask: jest.fn() },
+  test.each([1, 2, 3, 4])(
+    'capture failure in pass %p restores caller materials and renderer state',
+    (failedPass) => {
+      const capture = new BlackHoleSceneCapture();
+      const scene = new THREE.Scene();
+      const material = new THREE.SpriteMaterial({
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(material);
+      const hole = new THREE.Object3D();
+      hole.userData.spacekitBlackHole = true;
+      scene.add(sprite, hole);
+      const target = new THREE.WebGLRenderTarget(10, 20);
+      let currentTarget = target;
+      let clearColor = new THREE.Color(0x123456);
+      let clearAlpha = 0.7;
+      let renders = 0;
+      const renderer = {
+        autoClear: false,
+        xr: { enabled: true },
+        shadowMap: { autoUpdate: true },
+        getRenderTarget: () => currentTarget,
+        setRenderTarget: (next: THREE.WebGLRenderTarget) =>
+          (currentTarget = next),
+        getActiveCubeFace: () => 0,
+        getActiveMipmapLevel: () => 0,
+        getClearAlpha: () => clearAlpha,
+        getClearColor: (color: THREE.Color) => color.copy(clearColor),
+        setClearColor: (color: THREE.ColorRepresentation, alpha: number) => {
+          clearColor = new THREE.Color(color);
+          clearAlpha = alpha;
         },
-      },
-      clear: jest.fn(),
-      render: () => {
-        if (++renders === 2) throw new Error('capture failed');
-      },
-    };
-    expect(() =>
-      capture.render(
-        renderer as any,
-        scene,
-        new THREE.PerspectiveCamera(),
-        0.5,
-      ),
-    ).toThrow('capture failed');
-    expect(currentTarget).toBe(target);
-    expect(clearColor.getHex()).toBe(0x123456);
-    expect(clearAlpha).toBe(0.7);
-    expect(renderer.autoClear).toBe(false);
-    expect(renderer.xr.enabled).toBe(true);
-    expect(renderer.shadowMap.autoUpdate).toBe(true);
-    expect(sprite.material).toBe(material);
-    expect(material.blending).toBe(THREE.AdditiveBlending);
-    expect(material.depthWrite).toBe(false);
-    expect(hole.visible).toBe(true);
-    capture.dispose();
-    target.dispose();
-  });
+        getCurrentViewport: (viewport: THREE.Vector4) =>
+          viewport.set(0, 0, 10, 20),
+        state: {
+          buffers: {
+            color: { setMask: jest.fn() },
+            depth: { setMask: jest.fn() },
+          },
+        },
+        clear: jest.fn(),
+        render: () => {
+          if (++renders === failedPass) throw new Error('capture failed');
+        },
+      };
+      expect(() =>
+        capture.render(
+          renderer as any,
+          scene,
+          new THREE.PerspectiveCamera(),
+          0.5,
+        ),
+      ).toThrow('capture failed');
+      expect(currentTarget).toBe(target);
+      expect(clearColor.getHex()).toBe(0x123456);
+      expect(clearAlpha).toBe(0.7);
+      expect(renderer.autoClear).toBe(false);
+      expect(renderer.xr.enabled).toBe(true);
+      expect(renderer.shadowMap.autoUpdate).toBe(true);
+      expect(sprite.material).toBe(material);
+      expect(material.blending).toBe(THREE.AdditiveBlending);
+      expect(material.depthWrite).toBe(false);
+      expect(material.depthTest).toBe(true);
+      expect(sprite.layers.mask).toBe(1);
+      expect(hole.visible).toBe(true);
+      capture.dispose();
+      target.dispose();
+    },
+  );
 
   test.each([0, -1, NaN, Infinity])('rejects invalid mass %p', (massSolar) => {
     const sim = simulation();

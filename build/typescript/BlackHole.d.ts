@@ -41,6 +41,7 @@ export interface BlackHoleOptions {
     /**
      * Lens the camera image, including meshes, sprites, lines and particles.
      * Default false. Screen-space approximation for perspective cameras.
+     * Requires WEBGL_depth_texture; uses captured finite source distances.
      * Enable on at most one black hole per simulation.
      */
     lensScene?: boolean;

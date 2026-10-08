@@ -4,82 +4,84 @@ type Renderable = THREE.Object3D & {
   material: THREE.Material | THREE.Material[];
 };
 
-/** Split the camera image at the lens plane, preserving transparent layers. */
-export class BlackHoleSceneCapture {
-  readonly background = new THREE.WebGLRenderTarget(1, 1);
-  readonly foreground = new THREE.WebGLRenderTarget(1, 1);
-  readonly clearColor = new THREE.Color();
-  private readonly viewport = new THREE.Vector4();
-  private readonly planeDepth = { value: 1 };
-  private readonly materials = new Map<
-    THREE.Material,
-    { version: number; layers: [THREE.Material, THREE.Material] }
-  >();
+function depthTarget(): THREE.WebGLRenderTarget {
+  const target = new THREE.WebGLRenderTarget(1, 1);
+  target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
+  return target;
+}
 
-  private layerMaterial(
-    source: THREE.Material,
-    foreground: boolean,
-  ): THREE.Material {
-    let entry = this.materials.get(source);
-    if (!entry || entry.version !== source.version) {
-      if (entry) entry.layers.forEach((material) => material.dispose());
-      const layers = [false, true].map((front) => {
-        const material = source.clone();
-        const onBeforeCompile = source.onBeforeCompile;
-        material.onBeforeCompile = (shader, renderer) => {
-          onBeforeCompile.call(material, shader, renderer);
-          shader.uniforms.blackHolePlaneDepth = this.planeDepth;
-          // Retain each object's vertex transform and fragment shader: this
-          // also works with GPU Kepler particles, sprites, lines and skinning.
-          shader.fragmentShader =
-            'uniform highp float blackHolePlaneDepth;\n' +
-            shader.fragmentShader.replace(
-              /void\s+main\s*\(\s*(?:void)?\s*\)\s*\{/,
-              `void main() {
-                if ((gl_FragCoord.z < blackHolePlaneDepth) != ${
-                  front ? 'true' : 'false'
-                }) discard;`,
-            );
-        };
-        material.customProgramCacheKey = () =>
-          source.customProgramCacheKey() + ':black-hole-layer:' + front;
-        return material;
-      }) as [THREE.Material, THREE.Material];
-      entry = { version: source.version, layers };
-      this.materials.set(source, entry);
-    }
-    const material = entry.layers[foreground ? 1 : 0];
-    // copy() preserves changing opacity/maps/colors/point sizes, as well as
-    // blending/depth settings. Avoid ShaderMaterial.copy's deep uniform clone;
-    // share the uniform values so GPU animation remains current in both passes.
-    if (source instanceof THREE.ShaderMaterial) {
-      THREE.Material.prototype.copy.call(material, source);
-      (material as THREE.ShaderMaterial).uniforms = { ...source.uniforms };
-    } else {
-      material.copy(source);
-    }
-    if (source.blending === THREE.AdditiveBlending) {
-      // Additive light contributes RGB, not coverage. The Sun's opaque JPEG
-      // has black padding which must not replace the sky with a black square.
-      material.blending = THREE.CustomBlending;
-      material.blendSrc = source.premultipliedAlpha
-        ? THREE.OneFactor
-        : THREE.SrcAlphaFactor;
-      material.blendDst = THREE.OneFactor;
-      material.blendEquation = THREE.AddEquation;
-      material.blendSrcAlpha = THREE.ZeroFactor;
-      material.blendDstAlpha = THREE.OneFactor;
-      material.blendEquationAlpha = THREE.AddEquation;
-    }
-    return material;
+/** Camera-clipped color/depth layers for screen-space scene lensing. */
+export class BlackHoleSceneCapture {
+  readonly background = depthTarget();
+  readonly transparent = depthTarget();
+  readonly foreground = depthTarget();
+  readonly clearColor = new THREE.Color();
+  readonly viewProjection = new THREE.Matrix4();
+  readonly depthRange = new THREE.Vector2();
+  readonly size = new THREE.Vector2();
+  hasTransparent = false;
+  private readonly camera = new THREE.PerspectiveCamera();
+  private readonly viewport = new THREE.Vector4();
+  private readonly compositeScene = new THREE.Scene();
+  private readonly composite = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: this.foreground.texture },
+        depth: { value: this.foreground.depthTexture },
+      },
+      vertexShader: `varying vec2 sampleUv;
+        void main() { sampleUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+      fragmentShader: `varying vec2 sampleUv;
+        uniform sampler2D color;
+        uniform sampler2D depth;
+        void main() {
+          vec4 sampleColor = texture2D(color, sampleUv);
+          // Additive black padding contributes neither light nor coverage.
+          if (max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a)) == 0.0) discard;
+          gl_FragColor = sampleColor;
+          gl_FragDepthEXT = texture2D(depth, sampleUv).x;
+        }`,
+      extensions: { fragDepth: true },
+      transparent: true,
+      premultipliedAlpha: true,
+      toneMapped: false,
+    }),
+  );
+
+  constructor() {
+    this.camera.matrixAutoUpdate = false;
+    this.composite.frustumCulled = false;
+    this.compositeScene.add(this.composite);
+  }
+
+  private clipCamera(
+    source: THREE.PerspectiveCamera,
+    near: number,
+    far: number,
+  ): void {
+    this.camera.copy(source, false);
+    this.camera.matrixAutoUpdate = false;
+    this.camera.near = near;
+    this.camera.far = far;
+    // Preserve the caller's asymmetric frustum / view offset and change only
+    // the perspective depth mapping. No source shader modification is needed.
+    const projection = this.camera.projectionMatrix;
+    projection.elements[10] = -(far + near) / (far - near);
+    projection.elements[14] = (-2 * far * near) / (far - near);
+    this.camera.projectionMatrixInverse.copy(projection).invert();
   }
 
   render(
     renderer: THREE.WebGLRenderer,
     scene: THREE.Scene,
     camera: THREE.Camera,
-    planeDepth: number,
+    planeDistance: number,
   ): void {
+    if (!(camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
+      throw new Error('Black hole scene lensing requires a perspective camera');
+    }
+    const sourceCamera = camera as THREE.PerspectiveCamera;
     const previousTarget = renderer.getRenderTarget();
     const cubeFace = renderer.getActiveCubeFace();
     const mipLevel = renderer.getActiveMipmapLevel();
@@ -88,19 +90,53 @@ export class BlackHoleSceneCapture {
     const xrEnabled = renderer.xr.enabled;
     const shadowAutoUpdate = renderer.shadowMap.autoUpdate;
     const background = scene.background;
-    const overrideMaterial = scene.overrideMaterial;
     renderer.getClearColor(this.clearColor);
     renderer.getCurrentViewport(this.viewport);
-    this.planeDepth.value = planeDepth;
-    const width = Math.max(1, this.viewport.z);
-    const height = Math.max(1, this.viewport.w);
-    if (this.background.width !== width || this.background.height !== height) {
-      this.background.setSize(width, height);
-      this.foreground.setSize(width, height);
+    this.size.set(Math.max(1, this.viewport.z), Math.max(1, this.viewport.w));
+    for (const target of [this.background, this.transparent, this.foreground]) {
+      if (target.width !== this.size.x || target.height !== this.size.y) {
+        target.setSize(this.size.x, this.size.y);
+      }
     }
+    // A distant Skybox must remain in the background capture. Starting at the
+    // lens plane also avoids the simulation camera's very small near plane.
+    const near = Math.max(
+      sourceCamera.near,
+      planeDistance > 0 ? planeDistance : sourceCamera.far,
+    );
+    const far = Math.max(sourceCamera.far, 1e11, near * 1e5);
+    this.depthRange.set(near, far);
+    const objects: {
+      object: Renderable;
+      mask: number;
+      transparent: boolean;
+      z: number;
+      groupOrder: number;
+    }[] = [];
+    const position = new THREE.Vector3();
+    const materials = new Map<
+      THREE.Material,
+      Pick<
+        THREE.Material,
+        | 'depthWrite'
+        | 'depthTest'
+        | 'blending'
+        | 'blendSrc'
+        | 'blendDst'
+        | 'blendEquation'
+        | 'blendSrcAlpha'
+        | 'blendDstAlpha'
+        | 'blendEquationAlpha'
+      >
+    >();
     const hidden: THREE.Object3D[] = [];
-    const replaced: [Renderable, THREE.Material | THREE.Material[]][] = [];
-    const used = new Set<THREE.Material>();
+    const clear = (target: THREE.WebGLRenderTarget) => {
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0, 0);
+      renderer.state.buffers.color.setMask(true);
+      renderer.state.buffers.depth.setMask(true);
+      renderer.clear();
+    };
     try {
       scene.traverse((object) => {
         if (object.userData.spacekitBlackHole && object.visible) {
@@ -110,59 +146,140 @@ export class BlackHoleSceneCapture {
       });
       scene.traverseVisible((object) => {
         const renderable = object as Renderable;
-        if (renderable.material)
-          replaced.push([renderable, renderable.material]);
+        if (!renderable.material) return;
+        const sources = scene.overrideMaterial
+          ? [scene.overrideMaterial]
+          : Array.isArray(renderable.material)
+          ? renderable.material
+          : [renderable.material];
+        let parent = object.parent;
+        while (parent && !(parent as THREE.Group).isGroup)
+          parent = parent.parent;
+        objects.push({
+          object: renderable,
+          mask: object.layers.mask,
+          transparent: sources.some(
+            (material) =>
+              material.transparent ||
+              !material.depthWrite ||
+              !material.depthTest,
+          ),
+          z: position
+            .setFromMatrixPosition(object.matrixWorld)
+            .applyMatrix4(camera.matrixWorldInverse).z,
+          groupOrder: parent?.renderOrder ?? 0,
+        });
+        sources.forEach((material) => {
+          if (materials.has(material)) return;
+          materials.set(material, {
+            depthWrite: material.depthWrite,
+            depthTest: material.depthTest,
+            blending: material.blending,
+            blendSrc: material.blendSrc,
+            blendDst: material.blendDst,
+            blendEquation: material.blendEquation,
+            blendSrcAlpha: material.blendSrcAlpha,
+            blendDstAlpha: material.blendDstAlpha,
+            blendEquationAlpha: material.blendEquationAlpha,
+          });
+          if (material.blending === THREE.AdditiveBlending) {
+            // Preserve additive RGB but not the opaque alpha of the Sun JPEG.
+            material.blending = THREE.CustomBlending;
+            material.blendSrc = material.premultipliedAlpha
+              ? THREE.OneFactor
+              : THREE.SrcAlphaFactor;
+            material.blendDst = THREE.OneFactor;
+            material.blendEquation = THREE.AddEquation;
+            material.blendSrcAlpha = THREE.ZeroFactor;
+            material.blendDstAlpha = THREE.OneFactor;
+            material.blendEquationAlpha = THREE.AddEquation;
+          }
+        });
       });
       renderer.xr.enabled = false;
       renderer.shadowMap.autoUpdate = false;
       renderer.autoClear = false;
-      for (const front of [false, true]) {
-        replaced.forEach(([object, original]) => {
-          const layer = (material: THREE.Material) => {
-            used.add(material);
-            return this.layerMaterial(material, front);
-          };
-          object.material = Array.isArray(original)
-            ? original.map(layer)
-            : layer(original);
-        });
-        scene.background = front ? null : background;
-        if (overrideMaterial) {
-          used.add(overrideMaterial);
-          scene.overrideMaterial = this.layerMaterial(overrideMaterial, front);
-        }
-        renderer.setRenderTarget(front ? this.foreground : this.background);
-        renderer.setClearColor(0, 0);
-        renderer.state.buffers.color.setMask(true);
-        renderer.state.buffers.depth.setMask(true);
-        renderer.clear();
-        renderer.render(scene, camera);
+      this.clipCamera(sourceCamera, near, far);
+      this.composite.layers.mask = camera.layers.mask;
+      this.viewProjection.multiplyMatrices(
+        this.camera.projectionMatrix,
+        this.camera.matrixWorldInverse,
+      );
+      objects.forEach(({ object, mask, transparent }) => {
+        object.layers.mask = transparent ? 0 : mask;
+      });
+      clear(this.background);
+      renderer.render(scene, this.camera);
+      scene.background = null;
+      clear(this.transparent);
+      const transparentObjects = objects.filter(
+        (entry) => entry.transparent && (entry.mask & camera.layers.mask) !== 0,
+      );
+      this.hasTransparent = transparentObjects.length > 0;
+      // Match ordinary transparent sorting. Layers use the nearest contributing
+      // depth; intersecting transparent surfaces retain screen-space limits.
+      transparentObjects.sort(
+        (a, b) =>
+          a.groupOrder - b.groupOrder ||
+          a.object.renderOrder - b.object.renderOrder ||
+          a.z - b.z ||
+          a.object.id - b.object.id,
+      );
+      objects.forEach(({ object }) => {
+        object.layers.mask = 0;
+      });
+      materials.forEach((_, material) => {
+        material.depthWrite = material.depthTest = true;
+      });
+      for (const entry of transparentObjects) {
+        entry.object.layers.mask = entry.mask;
+        // Reuse the foreground target as temporary storage until its final
+        // capture, avoiding another full-resolution color/depth allocation.
+        clear(this.foreground);
+        renderer.render(scene, this.camera);
+        entry.object.layers.mask = 0;
+        renderer.setRenderTarget(this.transparent);
+        renderer.render(this.compositeScene, this.camera);
+      }
+      objects.forEach(({ object, mask }) => {
+        object.layers.mask = mask;
+      });
+      materials.forEach((original, material) => {
+        material.depthWrite = original.depthWrite;
+        material.depthTest = original.depthTest;
+      });
+      clear(this.foreground);
+      if (near > sourceCamera.near) {
+        this.clipCamera(
+          sourceCamera,
+          sourceCamera.near,
+          Math.min(near, sourceCamera.far),
+        );
+        renderer.render(scene, this.camera);
       }
     } finally {
-      replaced.forEach(([object, material]) => (object.material = material));
-      hidden.forEach((object) => (object.visible = true));
+      materials.forEach((original, material) =>
+        Object.assign(material, original),
+      );
+      objects.forEach(({ object, mask }) => {
+        object.layers.mask = mask;
+      });
+      hidden.forEach((object) => {
+        object.visible = true;
+      });
       scene.background = background;
-      scene.overrideMaterial = overrideMaterial;
       renderer.setRenderTarget(previousTarget, cubeFace, mipLevel);
       renderer.setClearColor(this.clearColor, clearAlpha);
       renderer.autoClear = autoClear;
       renderer.xr.enabled = xrEnabled;
       renderer.shadowMap.autoUpdate = shadowAutoUpdate;
-      this.materials.forEach((entry, source) => {
-        if (!used.has(source)) {
-          entry.layers.forEach((material) => material.dispose());
-          this.materials.delete(source);
-        }
-      });
     }
   }
 
   dispose(): void {
-    this.background.dispose();
-    this.foreground.dispose();
-    this.materials.forEach(({ layers }) =>
-      layers.forEach((material) => material.dispose()),
-    );
-    this.materials.clear();
+    for (const target of [this.background, this.transparent, this.foreground])
+      target.dispose();
+    this.composite.geometry.dispose();
+    this.composite.material.dispose();
   }
 }

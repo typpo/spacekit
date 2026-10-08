@@ -134,6 +134,13 @@ var BlackHole = /** @class */ (function () {
                 backgroundTexture: { value: (_m = options.backgroundTexture) !== null && _m !== void 0 ? _m : null },
                 lensScene: { value: false },
                 sceneColor: { value: null },
+                sceneDepth: { value: null },
+                sceneTransparent: { value: null },
+                sceneTransparentDepth: { value: null },
+                sceneHasTransparent: { value: false },
+                sceneViewProjection: { value: new THREE.Matrix4() },
+                sceneSize: { value: new THREE.Vector2() },
+                sceneDepthRange: { value: new THREE.Vector2() },
                 sceneForeground: { value: null },
                 sceneClearColor: { value: new THREE.Color() }
             },
@@ -161,8 +168,9 @@ var BlackHole = /** @class */ (function () {
                 centerClip
                     .set(center.x, center.y, center.z, 1)
                     .applyMatrix4(uniforms.viewProjection.value);
-                _this.sceneCapture.render(renderer, scene, camera, centerClip.w > 0 ? (centerClip.z / centerClip.w) * 0.5 + 0.5 : 1);
+                _this.sceneCapture.render(renderer, scene, camera, centerClip.w);
                 uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
+                uniforms.sceneHasTransparent.value = _this.sceneCapture.hasTransparent;
             }
         };
         this.setSceneLensingEnabled((_o = options.lensScene) !== null && _o !== void 0 ? _o : false);
@@ -225,6 +233,16 @@ var BlackHole = /** @class */ (function () {
             if (!this.sceneCapture)
                 this.sceneCapture = new BlackHoleSceneCapture_1.BlackHoleSceneCapture();
             material.uniforms.sceneColor.value = this.sceneCapture.background.texture;
+            material.uniforms.sceneDepth.value =
+                this.sceneCapture.background.depthTexture;
+            material.uniforms.sceneTransparent.value =
+                this.sceneCapture.transparent.texture;
+            material.uniforms.sceneTransparentDepth.value =
+                this.sceneCapture.transparent.depthTexture;
+            material.uniforms.sceneViewProjection.value =
+                this.sceneCapture.viewProjection;
+            material.uniforms.sceneSize.value = this.sceneCapture.size;
+            material.uniforms.sceneDepthRange.value = this.sceneCapture.depthRange;
             material.uniforms.sceneForeground.value =
                 this.sceneCapture.foreground.texture;
             sceneLensOwners.set(this.simulation, this);
@@ -245,6 +263,11 @@ var BlackHole = /** @class */ (function () {
                 : 1000;
     };
     BlackHole.prototype.assertSceneLensingAvailable = function () {
+        if (!this.simulation
+            .getContext()
+            .objects.renderer.extensions.has('WEBGL_depth_texture')) {
+            throw new Error('Black hole scene lensing requires WEBGL_depth_texture');
+        }
         var owner = sceneLensOwners.get(this.simulation);
         if (owner && owner !== this) {
             throw new Error('Only one black hole can lens the scene per simulation');

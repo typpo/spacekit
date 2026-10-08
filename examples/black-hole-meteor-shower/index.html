@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Black Hole in a Meteor Shower | Spacekit</title>
+  <title>Black Hole and Meteor Shower | Spacekit</title>
   <link rel="icon" href="data:,">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; background: #030508; color: #edf3fa; font: 14px/1.5 system-ui, sans-serif; }
     #main-container { position: fixed; inset: 0; }
     header { position: absolute; top: 24px; left: 28px; max-width: 330px; pointer-events: none; text-shadow: 0 2px 12px #000; }
-    .eyebrow { color: #e7bc81; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }
     h1 { font-size: 28px; line-height: 1.15; font-weight: 450; letter-spacing: -.04em; margin: 10px 0; }
     header p { color: #afbdcd; margin: 10px 0; }
     #date { color: #e7bc81; font-variant-numeric: tabular-nums; }
@@ -37,9 +36,7 @@
 <body>
   <div id="main-container" aria-label="Perseid meteor stream passing behind a black hole; drag to orbit, scroll to zoom"></div>
   <header>
-    <div class="eyebrow">Spacekit · A cosmic mashup</div>
-    <h1>A meteor shower behind a black hole.</h1>
-    <p>Thousands of Perseid meteoroids stream past a hypothetical black hole. Light from the part of the stream behind it is bent around the shadow.</p>
+    <h1>Black hole and meteor shower</h1>
     <time id="date"></time>
     <p id="facts"></p>
     <p>Drag to orbit · Scroll to zoom · Right-drag to pan</p>
@@ -53,7 +50,7 @@
     </select></label>
     <label><input id="disk" type="checkbox" checked>Disk</label>
     <label><input id="lensing" type="checkbox" checked>Lens scene</label>
-    <div class="note">Toggle Lens scene to compare. Each catalogued Perseid orbit is cloned with small perturbations to fill out the stream. The hole bends light but does not pull on the meteoroids. · <a href="../black-hole/">Black-hole lab</a></div>
+    <div class="note">Toggle Lens scene to compare. Each catalogued Perseid orbit is cloned with small perturbations to fill out the stream. The hole bends light but does not pull on the meteoroids.</div>
   </div>
   <script src="../../build/spacekit.js"></script>
   <script src="perseids.js"></script>

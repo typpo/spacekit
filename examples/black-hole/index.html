@@ -10,7 +10,6 @@
     body { margin: 0; background: #030407; color: #eef2fa; font: 15px/1.5 system-ui, sans-serif; }
     #main-container { position: fixed; inset: 0; }
     main { position: absolute; top: 24px; left: 28px; max-width: 350px; pointer-events: none; }
-    .eyebrow { color: #d9ad73; letter-spacing: .18em; font-size: 11px; text-transform: uppercase; }
     h1 { font-size: 30px; font-weight: 450; letter-spacing: -.04em; margin: 8px 0; }
     p { color: #aab4c5; }
     #controls { position: absolute; bottom: 24px; left: 28px; right: 28px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -25,12 +24,10 @@
 <body>
   <div id="main-container" aria-label="Interactive black hole; drag to orbit and scroll to zoom"></div>
   <main>
-    <div class="eyebrow">Spacekit · General relativity</div>
-    <h1>A black hole, in your scene.</h1>
-    <p>Light bends around a non-rotating black hole. The far side of its disk appears above and below the shadow.</p>
+    <h1>Schwarzschild black hole</h1>
     <p id="facts"></p>
     <p id="disk-facts" class="note"></p>
-    <p class="note">Drag to orbit · Scroll to zoom<br>Schwarzschild light paths and a gas disk with finite thickness, seen from the Sun's direction against the real Milky Way. Camera remains outside the horizon.<br>Sky: ESO/S. Brunier, CC BY 4.0</p>
+    <p class="note">Drag to orbit · Scroll to zoom<br>Sky: ESO/S. Brunier, CC BY 4.0</p>
     <p id="error" role="alert"></p>
   </main>
   <div id="controls">
@@ -41,7 +38,6 @@
     <label>Rotation <select id="rotation"><option value="1">1× — real time</option><option value="20">20× — slow</option><option value="200" selected>200× — artistic</option><option value="1000">1000× — fast</option></select></label>
     <label>Outer radius <select id="extent"><option value="12">12× horizon</option><option value="30" selected>30× horizon</option><option value="100">100× horizon</option></select></label>
     <button id="fit" type="button">Fit full disk</button>
-    <a href="../black-hole-solar-system/" style="color: #d9ad73">Explore with the solar system →</a>
   </div>
   <script src="../../build/spacekit.js?sampling=4"></script>
   <script src="main.js"></script>

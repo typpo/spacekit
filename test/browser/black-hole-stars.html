@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole distant-star validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running distant-star GPU checks...</pre>
+<script src="../../build/spacekit.js"></script>
+<script>
+(async () => {
+  const T = Spacekit.THREE;
+  const renderer = new T.WebGL1Renderer();
+  const size = 600;
+  renderer.setSize(size, size);
+  renderer.setClearColor(0, 0);
+  const target = new T.WebGLRenderTarget(size, size);
+  const scene = new T.Scene();
+  // Saturn-scale camera distances with the real catalogue at 1e9 units.
+  const camera = new T.PerspectiveCamera(50, 1, 1e-6, 200000);
+  camera.position.z = 0.44;
+  camera.lookAt(0, 0, 0);
+  let starsLoaded;
+  const ready = new Promise(resolve => { starsLoaded = resolve; });
+  const simulation = {
+    getContext: () => ({ options: { basePath: '../../src', unitsPerAu: 100 }, objects: { renderer } }),
+    getJd: () => 2451545,
+    addObject: object => {
+      scene.add(...object.get3jsObjects());
+      if (object instanceof Spacekit.Stars) starsLoaded(object.get3jsObjects()[0]);
+    },
+    removeObject: object => { scene.remove(...object.get3jsObjects()); object.removalCleanup(); },
+  };
+  const results = [];
+  const assert = (condition, message) => {
+    if (!condition) throw new Error(message);
+    results.push('PASS: ' + message);
+  };
+  const read = output => {
+    const pixels = new Uint8Array(size * size * 4);
+    renderer.readRenderTargetPixels(output, 0, 0, size, size, pixels);
+    return pixels;
+  };
+  const render = () => {
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    return read(target);
+  };
+  const light = pixels => pixels.reduce((sum, value, i) => sum + (i % 4 === 3 ? 0 : value), 0);
+  let stars, hole;
+  try {
+    new Spacekit.Stars({}, simulation);
+    stars = await ready;
+    const initialView = camera.quaternion.clone();
+    for (const quality of ['low', 'high']) {
+      hole = new Spacekit.BlackHole('stars', {
+        massSolar: 1e4, lensScene: true, accretionDisk: false, quality,
+      }, simulation);
+      for (const lensed of [true, false]) {
+        hole.setSceneLensingEnabled(lensed);
+        camera.quaternion.copy(initialView);
+        const frames = [];
+        for (let frame = 0; frame < 20; frame++) {
+          camera.rotateY(0.00005);
+          frames.push(light(render()));
+        }
+        const mean = frames.reduce((a, b) => a + b) / frames.length;
+        const variation = Math.sqrt(frames.reduce((sum, value) => sum + (value - mean) ** 2, 0) / frames.length) / mean;
+        assert(mean > 10000 && variation < 0.05,
+          quality + ': slow camera rotation preserves star brightness with lensing ' + lensed + ' (' + (variation * 100).toFixed(2) + '% variation)');
+      }
+      hole.setSceneLensingEnabled(true);
+      camera.quaternion.copy(initialView);
+      const lensed = render();
+      const background = read(hole.sceneCapture.background);
+      assert(light(background) > 10000 && light(read(hole.sceneCapture.transparent)) === 0,
+        quality + ': catalogue stars reach the sky capture without finite-depth tracing');
+      assert(light(read(hole.sceneCapture.foreground)) === 0,
+        quality + ': distant stars never appear in the foreground capture');
+      let difference = 0;
+      for (let i = 0; i < lensed.length; i++) if (i % 4 !== 3) difference += Math.abs(lensed[i] - background[i]);
+      assert(light(lensed) > 10000 && difference > light(background) * 0.2,
+        quality + ': the sky is visibly warped, not copied without lensing');
+
+      const blocker = new T.Mesh(new T.PlaneGeometry(20, 20), new T.MeshBasicMaterial({ color: 0xff0000 }));
+      scene.add(blocker);
+      for (const z of [-1, 0.2]) {
+        blocker.position.z = z;
+        const pixels = render();
+        assert(pixels.some((value, i) => i % 4 === 0 && value > 200) &&
+          !pixels.some((value, i) => (i % 4 === 1 || i % 4 === 2) && value > 0),
+          quality + ': opaque geometry at z=' + z + ' occludes the starfield');
+      }
+      scene.remove(blocker); blocker.geometry.dispose(); blocker.material.dispose();
+      // StaticParticles shares the star shader, but still has finite depth.
+      stars.visible = false;
+      const particles = new Spacekit.StaticParticles('finite', [[0, 0, -1]], {
+        defaultColor: 0x00ff00, size: 12,
+      }, simulation);
+      const points = particles.get3jsObjects()[0];
+      assert(light(render()) > 1000, quality + ': static particles retain finite-depth lensing');
+      scene.remove(points); points.geometry.dispose(); points.material.dispose();
+      stars.visible = true;
+      stars.layers.set(1);
+      assert(light(render()) === 0, quality + ': excluded star layers stay hidden');
+      camera.layers.set(1); hole.get3jsObjects()[0].layers.set(1);
+      assert(light(render()) > 10000 && stars.layers.mask === 2,
+        quality + ': sky capture respects and restores nondefault layers');
+      camera.layers.set(0); stars.layers.set(0);
+      hole.dispose(); hole = null;
+      assert(light(render()) > 10000, quality + ': stars remain visible after removing the lens');
+    }
+    assert(renderer.info.programs.every(program => !program.diagnostics || program.diagnostics.runnable), 'all shaders compile');
+    results.push('ALL CHECKS PASSED');
+  } catch (error) {
+    results.push('FAIL: ' + error.message);
+    console.error(error);
+  } finally {
+    if (hole) hole.dispose();
+    if (stars) { stars.geometry.dispose(); stars.material.dispose(); }
+    target.dispose(); renderer.dispose();
+    document.getElementById('results').textContent = results.join('\n');
+  }
+})();
+</script>

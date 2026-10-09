@@ -110,6 +110,7 @@ export class BlackHoleSceneCapture {
       object: Renderable;
       sources: THREE.Material[];
       mask: number;
+      background: boolean;
       transparent: boolean;
       z: number;
       groupOrder: number;
@@ -157,16 +158,22 @@ export class BlackHoleSceneCapture {
         let parent = object.parent;
         while (parent && !(parent as THREE.Group).isGroup)
           parent = parent.parent;
+        const background =
+          !scene.overrideMaterial &&
+          object.userData.spacekitBackground === true;
         objects.push({
           object: renderable,
           sources,
           mask: object.layers.mask,
-          transparent: sources.some(
-            (material) =>
-              material.transparent ||
-              !material.depthWrite ||
-              !material.depthTest,
-          ),
+          background,
+          transparent:
+            !background &&
+            sources.some(
+              (material) =>
+                material.transparent ||
+                !material.depthWrite ||
+                !material.depthTest,
+            ),
           z: position
             .setFromMatrixPosition(object.matrixWorld)
             .applyMatrix4(camera.matrixWorldInverse).z,
@@ -259,8 +266,10 @@ export class BlackHoleSceneCapture {
         renderer.setRenderTarget(this.transparent);
         renderer.render(this.compositeScene, this.camera);
       }
-      objects.forEach(({ object, mask }) => {
-        object.layers.mask = mask;
+      objects.forEach(({ object, mask, background }) => {
+        // Infinite sky belongs only to the background color capture. It must
+        // neither enter finite-depth tracing nor cover the lens as foreground.
+        object.layers.mask = background ? 0 : mask;
       });
       clear(this.foreground);
       if (near > sourceCamera.near) {

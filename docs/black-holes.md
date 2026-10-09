@@ -40,6 +40,8 @@ With `lensScene: true`, objects behind the black hole are distorted automaticall
 
 The [example](../examples/black-hole/) has three scenes: **Simple**, the standalone object described above; **Meteor shower**, about 10,000 GPU-propagated Perseid meteoroids passing behind a 4-million-solar-mass hole; and **Saturn**, Saturn, its rings and moons seen through a 10,000-solar-mass hole between the orbits of Rhea and Titan. The last two use `lensScene`; toggle **Lens scene** to compare. The holes bend light but do not perturb the Kepler orbits. These scenes use low ray-tracing quality and compensate disk animation speed for their accelerated clocks.
 
+Catalogue `Stars` are treated as infinitely distant sky. Their background color is sampled along the escaped ray's direction without a finite-depth test, preventing depth precision loss from making them flash during camera movement. They remain behind scene geometry and out of the foreground capture.
+
 ## Physical model
 
 The isolated mass is stationary, uncharged, and non-rotating (Schwarzschild). The horizon radius is `rs = 2 GM / c²`, using the IAU nominal solar GM of `1.3271244e20 m³/s²`. The photon sphere is at `1.5 rs`, the innermost stable circular orbit (ISCO) at `3 rs`, and the asymptotic shadow impact parameter at `3 sqrt(3) rs / 2`. The shadow is consequently larger than the event horizon.
@@ -81,3 +83,5 @@ After `pnpm build`, serve the repository and open [the WebGL checks](../test/bro
 [The scene-lensing checks](../test/browser/black-hole-scene.html) exercise actual sphere, sprite, orbit-line, custom GPU particle, and additive Sun images at both quality levels. They also cover foreground occlusion, transparent layering, moving objects, camera changes without simulation ticks, resizing, resource reuse/removal, and restoration of caller render state.
 
 [The finite-distance checks](../test/browser/black-hole-scene-depth.html) compare rendered ring radii at three source distances against an independently integrated finite-source boundary condition, at both quality levels. They also exercise the simulation's tiny camera near plane, overlapping opaque surfaces and orbit lines, commented custom GLSL entry points, geometry crossing the lens plane, distant skyboxes, additive padding, and opaque occlusion of additive light.
+
+[The distant-star checks](../test/browser/black-hole-stars.html) load the real star catalogue and check brightness stability during slow camera rotation, with and without scene lensing at both quality levels. They also check sky distortion, foreground exclusion, opaque occlusion, camera layers, and lens removal.

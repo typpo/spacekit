@@ -130,15 +130,19 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 var parent = object.parent;
                 while (parent && !parent.isGroup)
                     parent = parent.parent;
+                var background = !scene.overrideMaterial &&
+                    object.userData.spacekitBackground === true;
                 objects.push({
                     object: renderable,
                     sources: sources,
                     mask: object.layers.mask,
-                    transparent: sources.some(function (material) {
-                        return material.transparent ||
-                            !material.depthWrite ||
-                            !material.depthTest;
-                    }),
+                    background: background,
+                    transparent: !background &&
+                        sources.some(function (material) {
+                            return material.transparent ||
+                                !material.depthWrite ||
+                                !material.depthTest;
+                        }),
                     z: position
                         .setFromMatrixPosition(object.matrixWorld)
                         .applyMatrix4(camera.matrixWorldInverse).z,
@@ -230,8 +234,10 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 renderer.render(this.compositeScene, this.camera);
             }
             objects.forEach(function (_a) {
-                var object = _a.object, mask = _a.mask;
-                object.layers.mask = mask;
+                var object = _a.object, mask = _a.mask, background = _a.background;
+                // Infinite sky belongs only to the background color capture. It must
+                // neither enter finite-depth tracing nor cover the lens as foreground.
+                object.layers.mask = background ? 0 : mask;
             });
             clear(this.foreground);
             if (near > sourceCamera.near) {

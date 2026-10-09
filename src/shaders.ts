@@ -196,6 +196,11 @@ export const STAR_SHADER_VERTEX = `
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = size;
         gl_Position = projectionMatrix * mvPosition;
+        #ifdef SPACEKIT_BACKGROUND
+        // Keep the distant sky exactly at the far plane. At stellar distances,
+        // rounding ordinary projected depth makes stars blink as the view moves.
+        gl_Position.z = gl_Position.w;
+        #endif
     }
 `;
 

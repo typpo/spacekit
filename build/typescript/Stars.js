@@ -112,13 +112,18 @@ var Stars = /** @class */ (function () {
                 sizes[idx] = getSizeForStar(mag, _this._options.minSize || 3.0 /* minSize */);
             });
             var material = new THREE.ShaderMaterial({
+                defines: { SPACEKIT_BACKGROUND: true },
                 uniforms: {},
                 vertexColors: true,
                 vertexShader: shaders_1.STAR_SHADER_VERTEX,
                 fragmentShader: shaders_1.STAR_SHADER_FRAGMENT,
-                transparent: true
+                transparent: true,
+                depthWrite: false
             });
             _this._stars = new THREE.Points(geometry, material);
+            // Catalogue stars are a sky layer, not finite-distance scene geometry.
+            _this._stars.userData.spacekitBackground = true;
+            _this._stars.renderOrder = -1;
             if (_this._simulation) {
                 _this._simulation.addObject(_this, true /* noUpdate */);
             }

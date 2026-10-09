@@ -39,7 +39,7 @@
     renderer.render(scene, camera);
     return read(target);
   };
-  let texture, cloud, ring, underlay, sheet, hole;
+  let texture, cloud, ring, underlay, sheet, pair, hole;
   try {
     texture = await new Promise((resolve, reject) => new T.TextureLoader().load(
       '../../src/assets/sprites/fuzzyparticle.png', resolve, undefined, reject));
@@ -123,6 +123,41 @@
       underlay.geometry.dispose(); underlay.material.dispose(); underlay = null;
       hole.dispose(); hole = null;
     }
+    // Nearby, non-overlapping sprites must not borrow each other's depth.
+    // Their square footprints have a four-pixel gap in the capture, and the
+    // farther green sprite cannot physically change the nearer red image.
+    cloud.visible = false; ring.visible = false;
+    camera.quaternion.copy(initialView);
+    pair = new T.Points(new T.BufferGeometry()
+      .setAttribute('color', new T.Float32BufferAttribute([1, 0, 0, 0, 1, 0], 3)),
+      new T.PointsMaterial({ sizeAttenuation: false, map: texture, vertexColors: true, transparent: true, depthWrite: false }));
+    scene.add(pair);
+    const focal = size / 2 / Math.tan(camera.fov * Math.PI / 360);
+    for (const quality of ['low', 'high']) {
+      hole = new Spacekit.BlackHole('sparse', { massSolar: 4e6, lensScene: true, accretionDisk: false, quality }, simulation);
+      for (const spriteSize of [8, 16]) for (const offset of [0, 0.5]) {
+        const halfSpacing = (spriteSize + 4) / 2;
+        pair.geometry.setAttribute('position', new T.Float32BufferAttribute([
+          (-halfSpacing + offset) * 10 / focal, 0, -2,
+          (halfSpacing + offset) * 28 / focal, 0, -20,
+        ], 3));
+        pair.material.size = spriteSize;
+        pair.geometry.setDrawRange(0, 1);
+        const alone = render();
+        pair.geometry.setDrawRange(0, 2);
+        const together = render();
+        let difference = 0, light = 0;
+        for (let i = 0; i < alone.length; i += 4) {
+          difference += Math.abs(alone[i] - together[i]);
+          light += alone[i];
+        }
+        assert(light > 1000 && difference === 0,
+          quality + ': disjoint ' + spriteSize + 'px sprites preserve depth at offset ' + offset + ' (' + difference + ' difference)');
+      }
+      hole.dispose(); hole = null;
+    }
+    scene.remove(pair); pair.geometry.dispose(); pair.material.dispose(); pair = null;
+
     // Overlapping sprites at different distances share one captured depth per
     // pixel. Spread a dense cloud in depth behind the hole, scaled so its
     // unlensed image is unchanged. The nearest square quad at each pixel must
@@ -174,7 +209,7 @@
     console.error(error);
   } finally {
     if (hole) hole.dispose();
-    for (const object of [cloud, ring, underlay, sheet]) if (object) { object.geometry.dispose(); object.material.dispose(); }
+    for (const object of [cloud, ring, underlay, sheet, pair]) if (object) { object.geometry.dispose(); object.material.dispose(); }
     if (texture) texture.dispose();
     target.dispose(); renderer.dispose();
     document.getElementById('results').textContent = results.join('\n');

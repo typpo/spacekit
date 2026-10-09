@@ -58,6 +58,7 @@ export class BlackHoleSceneCapture {
             // the batch bends as one continuous sheet.
             float weight = light(sampleColor);
             float weightedDepth = weight * sampleDepth;
+            float covered = 0.0;
             for (int i = 0; i < ${POINT_SMOOTHING_SAMPLES}; i++) {
               float radius = sqrt((float(i) + 0.5) / ${POINT_SMOOTHING_SAMPLES}.0);
               float angle = float(i) * 2.39996323;
@@ -66,8 +67,12 @@ export class BlackHoleSceneCapture {
               float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;
               weight += neighborWeight;
               weightedDepth += neighborWeight * neighborDepth;
+              covered += neighborWeight > 0.0 ? 1.0 : 0.0;
             }
-            sampleDepth = weightedDepth / weight;
+            // Preserve depth in sparse neighborhoods; fade smoothing in from
+            // 60% to 90% coverage, using the samples already gathered above.
+            float density = covered / ${POINT_SMOOTHING_SAMPLES}.0;
+            sampleDepth = mix(sampleDepth, weightedDepth / weight, smoothstep(0.6, 0.9, density));
           }
           gl_FragDepthEXT = sampleDepth;
         }`,

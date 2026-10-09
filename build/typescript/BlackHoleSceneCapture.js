@@ -25,6 +25,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 exports.__esModule = true;
 exports.BlackHoleSceneCapture = void 0;
 var THREE = __importStar(require("three"));
+// Point sprites are drawn in framebuffer pixels, so depth smoothing is too.
+var POINT_SMOOTHING_PIXELS = 16;
+var POINT_SMOOTHING_SAMPLES = 32;
 function depthTarget() {
     var target = new THREE.WebGLRenderTarget(1, 1);
     target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
@@ -49,10 +52,11 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         this.composite = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
             uniforms: {
                 color: { value: this.foreground.texture },
-                depth: { value: this.foreground.depthTexture }
+                depth: { value: this.foreground.depthTexture },
+                smoothingRadius: { value: new THREE.Vector2() }
             },
             vertexShader: "varying vec2 sampleUv;\n        void main() { sampleUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }",
-            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          // Additive black padding contributes neither light nor coverage.\n          if (max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a)) == 0.0) discard;\n          gl_FragColor = sampleColor;\n          gl_FragDepthEXT = texture2D(depth, sampleUv).x;\n        }",
+            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        uniform vec2 smoothingRadius;\n        float light(vec4 sampleColor) {\n          return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));\n        }\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          // Additive black padding contributes neither light nor coverage.\n          if (light(sampleColor) == 0.0) discard;\n          gl_FragColor = sampleColor;\n          float sampleDepth = texture2D(depth, sampleUv).x;\n          if (smoothingRadius.x > 0.0 && sampleDepth < 1.0) {\n            // Overlapping sprites share one depth per pixel, which would lens\n            // each square quad separately. Average nearby depths by light so\n            // the batch bends as one continuous sheet.\n            float weight = light(sampleColor);\n            float weightedDepth = weight * sampleDepth;\n            for (int i = 0; i < ".concat(POINT_SMOOTHING_SAMPLES, "; i++) {\n              float radius = sqrt((float(i) + 0.5) / ").concat(POINT_SMOOTHING_SAMPLES, ".0);\n              float angle = float(i) * 2.39996323;\n              vec2 uv = sampleUv + vec2(cos(angle), sin(angle)) * radius * smoothingRadius;\n              float neighborDepth = texture2D(depth, uv).x;\n              float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;\n              weight += neighborWeight;\n              weightedDepth += neighborWeight * neighborDepth;\n            }\n            sampleDepth = weightedDepth / weight;\n          }\n          gl_FragDepthEXT = sampleDepth;\n        }"),
             extensions: { fragDepth: true },
             transparent: true,
             premultipliedAlpha: true,
@@ -228,7 +232,8 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 renderer.render(scene, this.camera);
                 // Then the nearest depth of everything drawn, without touching color.
                 // The composite discards empty pixels; overlapping particles within
-                // one renderable still share a single captured depth per pixel.
+                // one renderable still share a single captured depth per pixel, so
+                // the composite smooths point depths.
                 entry.sources.forEach(function (material) {
                     material.depthWrite = material.depthTest = true;
                     material.colorWrite = false;
@@ -245,6 +250,11 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 // depth of a faint particle overlapping it in the captured image.
                 renderer.setRenderTarget(entry.surface ? this.surfaces : this.transparent);
                 var composite = this.composite.material;
+                composite.uniforms.smoothingRadius.value
+                    .set(1 / this.size.x, 1 / this.size.y)
+                    .multiplyScalar(entry.object.isPoints
+                    ? POINT_SMOOTHING_PIXELS
+                    : 0);
                 composite.depthFunc = THREE.LessEqualDepth;
                 composite.depthWrite = true;
                 composite.blending = THREE.NormalBlending;

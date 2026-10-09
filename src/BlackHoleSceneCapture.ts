@@ -108,6 +108,7 @@ export class BlackHoleSceneCapture {
     this.depthRange.set(near, far);
     const objects: {
       object: Renderable;
+      sources: THREE.Material[];
       mask: number;
       transparent: boolean;
       z: number;
@@ -120,6 +121,7 @@ export class BlackHoleSceneCapture {
         THREE.Material,
         | 'depthWrite'
         | 'depthTest'
+        | 'colorWrite'
         | 'blending'
         | 'blendSrc'
         | 'blendDst'
@@ -157,6 +159,7 @@ export class BlackHoleSceneCapture {
           parent = parent.parent;
         objects.push({
           object: renderable,
+          sources,
           mask: object.layers.mask,
           transparent: sources.some(
             (material) =>
@@ -174,6 +177,7 @@ export class BlackHoleSceneCapture {
           materials.set(material, {
             depthWrite: material.depthWrite,
             depthTest: material.depthTest,
+            colorWrite: material.colorWrite,
             blending: material.blending,
             blendSrc: material.blendSrc,
             blendDst: material.blendDst,
@@ -228,25 +232,35 @@ export class BlackHoleSceneCapture {
       objects.forEach(({ object }) => {
         object.layers.mask = 0;
       });
-      materials.forEach((_, material) => {
-        material.depthWrite = material.depthTest = true;
-      });
       for (const entry of transparentObjects) {
         entry.object.layers.mask = entry.mask;
         // Reuse the foreground target as temporary storage until its final
         // capture, avoiding another full-resolution color/depth allocation.
         clear(this.foreground);
+        // Color first, with the material's own depth settings. Forcing depth
+        // writes here would let each sprite's transparent corners hide the
+        // particles drawn after it in the same draw call.
         renderer.render(scene, this.camera);
+        // Then the nearest depth of everything drawn, without touching color.
+        // The composite discards pixels without color, so the depth of
+        // transparent corners does not leak into the layer.
+        entry.sources.forEach((material) => {
+          material.depthWrite = material.depthTest = true;
+          material.colorWrite = false;
+        });
+        renderer.render(scene, this.camera);
+        entry.sources.forEach((material) => {
+          const original = materials.get(material)!;
+          material.depthWrite = original.depthWrite;
+          material.depthTest = original.depthTest;
+          material.colorWrite = original.colorWrite;
+        });
         entry.object.layers.mask = 0;
         renderer.setRenderTarget(this.transparent);
         renderer.render(this.compositeScene, this.camera);
       }
       objects.forEach(({ object, mask }) => {
         object.layers.mask = mask;
-      });
-      materials.forEach((original, material) => {
-        material.depthWrite = original.depthWrite;
-        material.depthTest = original.depthTest;
       });
       clear(this.foreground);
       if (near > sourceCamera.near) {

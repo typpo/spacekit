@@ -132,6 +132,7 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                     parent = parent.parent;
                 objects.push({
                     object: renderable,
+                    sources: sources,
                     mask: object.layers.mask,
                     transparent: sources.some(function (material) {
                         return material.transparent ||
@@ -149,6 +150,7 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                     materials.set(material, {
                         depthWrite: material.depthWrite,
                         depthTest: material.depthTest,
+                        colorWrite: material.colorWrite,
                         blending: material.blending,
                         blendSrc: material.blendSrc,
                         blendDst: material.blendDst,
@@ -199,16 +201,30 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 var object = _a.object;
                 object.layers.mask = 0;
             });
-            materials.forEach(function (_, material) {
-                material.depthWrite = material.depthTest = true;
-            });
             for (var _b = 0, transparentObjects_1 = transparentObjects; _b < transparentObjects_1.length; _b++) {
                 var entry = transparentObjects_1[_b];
                 entry.object.layers.mask = entry.mask;
                 // Reuse the foreground target as temporary storage until its final
                 // capture, avoiding another full-resolution color/depth allocation.
                 clear(this.foreground);
+                // Color first, with the material's own depth settings. Forcing depth
+                // writes here would let each sprite's transparent corners hide the
+                // particles drawn after it in the same draw call.
                 renderer.render(scene, this.camera);
+                // Then the nearest depth of everything drawn, without touching color.
+                // The composite discards pixels without color, so the depth of
+                // transparent corners does not leak into the layer.
+                entry.sources.forEach(function (material) {
+                    material.depthWrite = material.depthTest = true;
+                    material.colorWrite = false;
+                });
+                renderer.render(scene, this.camera);
+                entry.sources.forEach(function (material) {
+                    var original = materials.get(material);
+                    material.depthWrite = original.depthWrite;
+                    material.depthTest = original.depthTest;
+                    material.colorWrite = original.colorWrite;
+                });
                 entry.object.layers.mask = 0;
                 renderer.setRenderTarget(this.transparent);
                 renderer.render(this.compositeScene, this.camera);
@@ -216,10 +232,6 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             objects.forEach(function (_a) {
                 var object = _a.object, mask = _a.mask;
                 object.layers.mask = mask;
-            });
-            materials.forEach(function (original, material) {
-                material.depthWrite = original.depthWrite;
-                material.depthTest = original.depthTest;
             });
             clear(this.foreground);
             if (near > sourceCamera.near) {

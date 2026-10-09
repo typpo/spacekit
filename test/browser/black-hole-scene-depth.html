@@ -193,6 +193,32 @@ try {
     assert(greenLight > 100 && greenDifference < greenLight * 0.01,
       quality + ': additive black padding preserves the depth of a farther transparent sprite');
     scene.remove(farSprite); farSprite.material.dispose();
+
+    // Overlapping soft sprites drawn in one call, nearest first, must all reach
+    // the transparent capture: one sprite's clear corners must not hide the next.
+    const disc = new Uint8Array(16 * 16 * 4);
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+      const i = (y * 16 + x) * 4;
+      disc[i + 1] = 255; disc[i + 3] = Math.hypot(x - 7.5, y - 7.5) < 4 ? 255 : 0;
+    }
+    const discTexture = new T.DataTexture(disc, 16, 16); discTexture.needsUpdate = true;
+    const cloudPositions = [];
+    for (let i = 0; i < 20; i++) for (let j = 0; j < 20; j++) {
+      cloudPositions.push(-3 + i * 0.12, 1.5 + j * 0.12, -18 - (i + j) * 0.01);
+    }
+    const cloud = new T.Points(
+      new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(cloudPositions, 3)),
+      new T.PointsMaterial({ size: 24, sizeAttenuation: false, map: discTexture, transparent: true, depthWrite: false }));
+    scene.add(cloud);
+    const green = pixels => { let n = 0; for (let i = 1; i < pixels.length; i += 4) if (pixels[i] > 128) n++; return n; };
+    hole.get3jsObjects()[0].visible = false;
+    const cloudPlain = green(render());
+    hole.get3jsObjects()[0].visible = true;
+    render();
+    const cloudCaptured = green(read(hole.sceneCapture.transparent));
+    assert(cloudPlain > 1000 && cloudCaptured > 0.95 * cloudPlain,
+      quality + ': overlapping sprites in one draw all reach the capture (' + cloudCaptured + ' of ' + cloudPlain + ' px)');
+    scene.remove(cloud); cloud.geometry.dispose(); cloud.material.dispose(); discTexture.dispose();
     camera.layers.set(1); hole.get3jsObjects()[0].layers.set(1); sun.layers.set(1);
     assert(ringRadius(render()) > 90, quality + ': transparent capture respects nondefault camera layers');
     camera.layers.set(0);

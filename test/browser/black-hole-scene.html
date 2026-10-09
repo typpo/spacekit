@@ -167,6 +167,48 @@ try {
     });
     texture.dispose();
   }
+  // Kepler positions and per-particle origins live in the vertex shader. The
+  // zeroed CPU position buffer does not bound the visible orbiting particles.
+  const kepler = new Spacekit.KeplerParticles({
+    textureUrl: '../../src/assets/sprites/fuzzyparticle.png',
+    maxNumParticles: 1, jd: 2451545,
+  }, simulation);
+  const point = kepler.get3jsObjects()[0];
+  const loadedTexture = point.material.uniforms.texture.value;
+  const white = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  white.needsUpdate = true;
+  point.material.uniforms.texture.value = white;
+  const particleId = kepler.addParticle(new Spacekit.Ephem({
+    a: 1, e: 0, i: 0, om: 0, w: 0, ma: 0, epoch: 2451545,
+  }), { particleSize: 18, color: 0xff0000 });
+  for (const quality of ['low', 'high']) {
+    const hole = new Spacekit.BlackHole('kepler-lens', {
+      massSolar: 4e6, quality, lensScene: true, accretionDisk: false,
+    }, simulation);
+    for (const [name, cameraX, holeZ, particleX, particleZ] of [
+      ['origin outside the view', 4, 0, 4.5, -4],
+      ['origin in front of the background capture', 0, -2, 1, -4],
+      ['origin behind the foreground capture', 0, 2, 0.5, 4],
+    ]) {
+      camera.position.set(cameraX, 0, 8);
+      camera.lookAt(cameraX, 0, 0);
+      hole.setPosition([cameraX, 0, holeZ]);
+      // The circular orbit is at (1, 0, 0) at this epoch.
+      kepler.setParticleOrigin(particleId, [particleX - 1, 0, particleZ]);
+      for (const lensing of [false, true]) {
+        hole.setSceneLensingEnabled(lensing);
+        const visible = coloredRadius(render(), 0).count;
+        assert(visible > 30, quality + ': Kepler particle survives ' + name +
+          ' with lensing ' + lensing + ' (' + visible + ' pixels)');
+      }
+    }
+    hole.dispose();
+  }
+  scene.remove(point);
+  point.geometry.dispose(); point.material.dispose();
+  loadedTexture.dispose(); white.dispose();
+  camera.position.set(0, 0, 8); camera.lookAt(0, 0, 0);
+
   // The public toggle must preserve foreground sprites without caller edits
   // to renderOrder, both at creation and after switching back to sky-only.
   const sky = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);

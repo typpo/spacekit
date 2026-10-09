@@ -191,6 +191,9 @@ export class KeplerParticles {
     this.shaderMaterial = shader;
     this.geometry = geometry;
     this.particleSystem = new THREE.Points(geometry, shader);
+    // The vertex shader computes positions and per-particle origins. The
+    // zeroed CPU position buffer cannot provide a valid bounding sphere.
+    this.particleSystem.frustumCulled = false;
   }
 
   /**

@@ -13,6 +13,8 @@ export * from './SphereObject';
 export * from './StaticParticles';
 export * from './KeplerParticles';
 export * from './Stars';
+export * from './BlackHole';
+export * from './BlackHolePhysics';
 export * from './Units';
 import * as _THREE from 'three';
 export declare const THREE: typeof _THREE;

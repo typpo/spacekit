@@ -13,6 +13,7 @@ import {
 import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
 
 import Camera from './Camera';
+import { BlackHole, BlackHoleOptions } from './BlackHole';
 import { KeplerParticles } from './KeplerParticles';
 import { NaturalSatellites } from './EphemPresets';
 import { ShapeObject } from './ShapeObject';
@@ -31,6 +32,7 @@ export interface SimulationObject {
   update: (jd: number, force: boolean) => void;
   get3jsObjects(): THREE.Object3D[];
   getId(): string;
+  removalCleanup?(): void;
 }
 
 interface CameraOptions {
@@ -526,6 +528,9 @@ export class Simulation {
     this.camera.update();
 
     // Update three.js scene
+    // EffectComposer disables autoClear. Translucent emission must not
+    // accumulate over previous frames.
+    this.renderer.clear();
     this.renderer.render(this.scene, this.camera.get3jsCamera());
     //this.composer.render(0.1);
 
@@ -566,7 +571,7 @@ export class Simulation {
    * Removes an object from the visualization.
    * @param {Object} obj Object to remove
    */
-  removeObject(obj: SpaceObject) {
+  removeObject(obj: SimulationObject) {
     // TODO(ian): test this and avoid memory leaks...
     obj.get3jsObjects().map((x) => {
       this.scene.remove(x);
@@ -609,6 +614,11 @@ export class Simulation {
   createSphere(...args): SphereObject {
     // @ts-ignore
     return new SphereObject(...args, this);
+  }
+
+  /** Create a stationary Schwarzschild black hole with mass in solar masses. */
+  createBlackHole(id: string, options: BlackHoleOptions): BlackHole {
+    return new BlackHole(id, options, this);
   }
 
   /**

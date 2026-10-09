@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole scene lensing validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running scene lensing GPU checks...</pre>
+<script src="../../build/spacekit.js"></script>
+<script>
+const T = Spacekit.THREE;
+const renderer = new T.WebGL1Renderer();
+renderer.setSize(256, 256);
+renderer.setClearColor(0x102030);
+const target = new T.WebGLRenderTarget(256, 256);
+const scene = new T.Scene();
+const camera = new T.PerspectiveCamera(35, 1, 0.01, 100);
+camera.position.set(0, 0, 8);
+camera.lookAt(0, 0, 0);
+const simulation = {
+  getContext: () => ({ options: {}, objects: { renderer } }),
+  getJd: () => 2451545,
+  addObject: object => scene.add(...object.get3jsObjects()),
+  removeObject: object => {
+    scene.remove(...object.get3jsObjects());
+    object.removalCleanup();
+  },
+};
+const results = [];
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+  results.push('PASS: ' + message);
+}
+function render() {
+  renderer.setRenderTarget(target);
+  renderer.render(scene, camera);
+  const pixels = new Uint8Array(target.width * target.height * 4);
+  renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
+  return pixels;
+}
+function pixel(pixels, x, y) {
+  return Array.from(pixels.slice((y * target.width + x) * 4, (y * target.width + x) * 4 + 3));
+}
+function coloredRadius(pixels, channel) {
+  let radius = 0, count = 0;
+  for (let y = 0; y < target.height; y++) for (let x = 0; x < target.width; x++) {
+    const rgb = pixel(pixels, x, y);
+    if (rgb[channel] > 180 && rgb[(channel + 1) % 3] < 80 && rgb[(channel + 2) % 3] < 80) {
+      radius = Math.max(radius, Math.hypot(x - 127.5, y - 127.5));
+      count++;
+    }
+  }
+  return { radius, count };
+}
+function objectCheck(hole, object, channel, name) {
+  scene.add(object);
+  hole.setSceneLensingEnabled(false);
+  const plain = coloredRadius(render(), channel);
+  hole.setSceneLensingEnabled(true);
+  const warped = coloredRadius(render(), channel);
+  assert(warped.count > 30 && warped.radius > plain.radius + 20,
+    name + ' bends into an extended image (' + plain.radius.toFixed(1) + ' → ' + warped.radius.toFixed(1) + 'px)');
+  scene.remove(object);
+  return object;
+}
+try {
+  for (const quality of ['low', 'high']) {
+    const hole = new Spacekit.BlackHole('lens', {
+      massSolar: 4e6, quality, lensScene: true, accretionDisk: false,
+    }, simulation);
+    const sphere = new T.Mesh(new T.SphereGeometry(0.5, 32, 24), new T.MeshBasicMaterial({ color: 0xff0000 }));
+    sphere.position.z = -4;
+    objectCheck(hole, sphere, 0, quality + ': ordinary sphere');
+
+    const sprite = new T.Sprite(new T.SpriteMaterial({ color: 0x00ff00, depthWrite: false }));
+    sprite.position.z = -4;
+    objectCheck(hole, sprite, 1, quality + ': depthWrite:false sprite');
+
+    const orbit = new T.LineLoop(new T.BufferGeometry().setFromPoints(
+      Array.from({ length: 256 }, (_, i) => new T.Vector3(0.5 * Math.cos(i * Math.PI / 128), 0.5 * Math.sin(i * Math.PI / 128), -4)),
+    ), new T.LineBasicMaterial({ color: 0x0000ff }));
+    objectCheck(hole, orbit, 2, quality + ': orbit line');
+
+    // A GPU-transformed particle, like the Kepler-particle path. Its depth
+    // capture must run the custom vertex shader, not a MeshDepthMaterial.
+    const particle = new T.Points(new T.BufferGeometry().setFromPoints([new T.Vector3()]), new T.ShaderMaterial({
+      uniforms: { location: { value: new T.Vector3(0, 0, -4) } },
+      vertexShader: 'uniform vec3 location; void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position + location, 1.0); gl_PointSize = 18.0; }',
+      fragmentShader: 'void main() { if (distance(gl_PointCoord, vec2(0.5)) > 0.5) discard; gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }',
+      transparent: true, depthWrite: false,
+    }));
+    objectCheck(hole, particle, 0, quality + ': custom GPU particle');
+
+    // A translucent foreground must not carry an unwarped background image.
+    scene.add(sprite, sphere);
+    sprite.position.z = 4;
+    sprite.material.opacity = 0.5;
+    const layered = pixel(render(), 128, 128);
+    assert(layered[0] === 0 && layered[1] >= 126 && layered[1] <= 129,
+      quality + ': transparent foreground has no unwarped background duplicate');
+    scene.remove(sprite, sphere);
+    sprite.material.opacity = 1;
+
+    scene.background = new T.Color(0x334455);
+    assert(pixel(render(), 128, 128).every(value => value === 0), quality + ': scene background does not fill the foreground layer');
+    assert(pixel(render(), 0, 0).join() === '51,68,85', quality + ': scene background color is retained');
+    scene.background = null;
+
+    scene.add(sprite);
+    sprite.position.z = 4;
+    assert(pixel(render(), 128, 128).join() === '0,255,0', quality + ': foreground sprite covers the shadow');
+    sprite.position.x = 1.5;
+    assert(pixel(render(), 128, 128).every(value => value === 0), quality + ': moving sprite leaves no stale depth/color');
+    scene.remove(sprite);
+    sphere.position.z = 4;
+    scene.add(sphere);
+    assert(pixel(render(), 128, 128).join() === '255,0,0', quality + ': foreground sphere covers the shadow');
+    scene.remove(sphere);
+    particle.material.uniforms.location.value.z = 4;
+    scene.add(particle);
+    assert(pixel(render(), 128, 128).join() === '255,0,0', quality + ': custom vertex transform reaches foreground depth');
+    scene.remove(particle);
+
+    // An opaque RGB image with black padding, as used by the additive Sun.
+    const data = new Uint8Array(32 * 32 * 4);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+      const i = (y * 32 + x) * 4;
+      data[i] = Math.hypot(x - 15.5, y - 15.5) < 7 ? 255 : 0;
+      data[i + 3] = 255;
+    }
+    const texture = new T.DataTexture(data, 32, 32);
+    texture.needsUpdate = true;
+    const sun = new T.Sprite(new T.SpriteMaterial({ map: texture, blending: T.AdditiveBlending, depthWrite: false }));
+    sun.position.set(0, 0, -4);
+    objectCheck(hole, sun, 0, quality + ': additive Sun sprite');
+    sun.position.set(1.5, 0, 4);
+    scene.add(sun);
+    const withSun = render();
+    assert(pixel(withSun, 238, 165).join() === '16,32,48', quality + ': additive black padding does not erase the background');
+    assert(sun.material.blending === T.AdditiveBlending && sun.material.depthWrite === false,
+      quality + ': capture preserves caller material properties');
+    scene.remove(sun);
+
+    const textureCount = renderer.info.memory.textures;
+    for (let i = 0; i < 3; i++) {
+      hole.setSceneLensingEnabled(false); render();
+      hole.setSceneLensingEnabled(true); render();
+    }
+    assert(renderer.info.memory.textures === textureCount, quality + ': toggles reuse capture textures');
+    camera.position.x = 1;
+    const moved = render();
+    assert(pixel(moved, 128, 128).some(value => value > 0), quality + ': camera movement updates lensing without a simulation tick');
+    camera.position.x = 0;
+    target.setSize(128, 96);
+    camera.aspect = 128 / 96;
+    camera.updateProjectionMatrix();
+    assert(render().length === 128 * 96 * 4, quality + ': render-target resize succeeds');
+    assert(renderer.getRenderTarget() === target && renderer.getClearColor(new T.Color()).getHex() === 0x102030,
+      quality + ': capture restores the caller target and clear color');
+    hole.dispose();
+    assert(pixel(render(), 64, 48).join() === '16,32,48', quality + ': removal restores the ordinary scene');
+    assert(renderer.info.memory.textures < textureCount, quality + ': removal releases capture textures');
+    target.setSize(256, 256);
+    camera.aspect = 1;
+    camera.updateProjectionMatrix();
+    [sphere, sprite, orbit, particle, sun].forEach(object => {
+      if (object !== sprite && object !== sun) object.geometry.dispose();
+      object.material.dispose();
+    });
+    texture.dispose();
+  }
+  // Kepler positions and per-particle origins live in the vertex shader. The
+  // zeroed CPU position buffer does not bound the visible orbiting particles.
+  const kepler = new Spacekit.KeplerParticles({
+    textureUrl: '../../src/assets/sprites/fuzzyparticle.png',
+    maxNumParticles: 1, jd: 2451545,
+  }, simulation);
+  const point = kepler.get3jsObjects()[0];
+  const loadedTexture = point.material.uniforms.texture.value;
+  const white = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  white.needsUpdate = true;
+  point.material.uniforms.texture.value = white;
+  const particleId = kepler.addParticle(new Spacekit.Ephem({
+    a: 1, e: 0, i: 0, om: 0, w: 0, ma: 0, epoch: 2451545,
+  }), { particleSize: 18, color: 0xff0000 });
+  for (const quality of ['low', 'high']) {
+    const hole = new Spacekit.BlackHole('kepler-lens', {
+      massSolar: 4e6, quality, lensScene: true, accretionDisk: false,
+    }, simulation);
+    for (const [name, cameraX, holeZ, particleX, particleZ] of [
+      ['origin outside the view', 4, 0, 4.5, -4],
+      ['origin in front of the background capture', 0, -2, 1, -4],
+      ['origin behind the foreground capture', 0, 2, 0.5, 4],
+    ]) {
+      camera.position.set(cameraX, 0, 8);
+      camera.lookAt(cameraX, 0, 0);
+      hole.setPosition([cameraX, 0, holeZ]);
+      // The circular orbit is at (1, 0, 0) at this epoch.
+      kepler.setParticleOrigin(particleId, [particleX - 1, 0, particleZ]);
+      for (const lensing of [false, true]) {
+        hole.setSceneLensingEnabled(lensing);
+        const visible = coloredRadius(render(), 0).count;
+        assert(visible > 30, quality + ': Kepler particle survives ' + name +
+          ' with lensing ' + lensing + ' (' + visible + ' pixels)');
+      }
+    }
+    hole.dispose();
+  }
+  scene.remove(point);
+  point.geometry.dispose(); point.material.dispose();
+  loadedTexture.dispose(); white.dispose();
+  camera.position.set(0, 0, 8); camera.lookAt(0, 0, 0);
+
+  // The public toggle must preserve foreground sprites without caller edits
+  // to renderOrder, both at creation and after switching back to sky-only.
+  const sky = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  sky.needsUpdate = true;
+  const skyHole = new Spacekit.BlackHole('sky', {
+    massSolar: 4e6, backgroundTexture: sky, accretionDisk: false,
+  }, simulation);
+  const foregroundSprite = new T.Sprite(new T.SpriteMaterial({ color: 0x00ff00, depthWrite: false }));
+  foregroundSprite.position.set(0.7, 0, 4);
+  scene.add(foregroundSprite);
+  assert(pixel(render(), 200, 128).join() === '0,255,0', 'sky-only constructor preserves transparent foreground objects');
+  skyHole.setSceneLensingEnabled(true);
+  assert(pixel(render(), 200, 128).join() === '0,255,0', 'scene-lensing toggle preserves transparent foreground objects');
+  skyHole.setSceneLensingEnabled(false);
+  assert(pixel(render(), 200, 128).join() === '0,255,0', 'switching back to sky-only needs no render-order workaround');
+  scene.remove(foregroundSprite);
+  foregroundSprite.material.dispose();
+  skyHole.dispose();
+  sky.dispose();
+  assert(renderer.info.programs.every(program => !program.diagnostics || program.diagnostics.runnable), 'all scene/lens shaders compile');
+  results.push('ALL CHECKS PASSED');
+  document.getElementById('results').textContent = results.join('\n');
+} catch (error) {
+  document.getElementById('results').textContent = results.join('\n') + '\nFAIL: ' + error.message;
+  console.error(error);
+}
+</script>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole WebGL validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running GPU checks...</pre>
+<script src="../../build/spacekit.js?sampling=4"></script>
+<script>
+// Run through the local HTTP server. This tests the compiled GPU shader, not
+// a second CPU implementation of it. Failures are also reported to the console.
+const T = Spacekit.THREE;
+const renderer = new T.WebGL1Renderer();
+renderer.setSize(256, 256);
+const target = new T.WebGLRenderTarget(256, 256);
+const camera = new T.PerspectiveCamera(12, 1, 0.001, 1000);
+const scene = new T.Scene();
+const pixels = new Uint8Array(256 * 256 * 4);
+const massSolar = 4e6;
+const rs = Spacekit.schwarzschildRadiusAu(massSolar);
+const results = [];
+const simulation = {
+  getContext: () => ({ options: { unitsPerAu: 1 }, objects: { renderer } }),
+  getJd: () => 2451545,
+  addObject: (object) => scene.add(...object.get3jsObjects()),
+  removeObject: (object) => {
+    object.get3jsObjects().forEach((mesh) => scene.remove(mesh));
+    object.removalCleanup();
+  },
+};
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+  results.push('PASS: ' + message);
+}
+function render(clearColor = 0xffffff) {
+  renderer.setRenderTarget(target);
+  renderer.setClearColor(clearColor);
+  renderer.render(scene, camera);
+  renderer.readRenderTargetPixels(target, 0, 0, 256, 256, pixels);
+  return pixels;
+}
+function centerPixel() { return Array.from(pixels.slice((128 * 256 + 128) * 4, (128 * 256 + 128) * 4 + 3)); }
+function countShadow() {
+  let count = 0;
+  for (let x = 0; x < 256; x++) {
+    if (pixels[(128 * 256 + x) * 4] === 0) count++;
+  }
+  return count;
+}
+try {
+  camera.position.set(0, 0, 100 * rs);
+  camera.lookAt(0, 0, 0);
+  for (const quality of ['low', 'high']) {
+    const hole = new Spacekit.BlackHole('test', { massSolar, quality, accretionDisk: false }, simulation);
+    render();
+    const actual = countShadow();
+    const angularRadius = Math.asin(Spacekit.SCHWARZSCHILD_CRITICAL_IMPACT * Math.sqrt(1 - 1 / 100) / 100);
+    const expected = 256 * Math.tan(angularRadius) / Math.tan(6 * Math.PI / 180);
+    assert(Math.abs(actual - expected) <= 2, quality + ' quality shadow diameter: ' + actual + 'px; analytic ' + expected.toFixed(3) + 'px');
+    assert(centerPixel().every((x) => x === 0), 'captured central ray is black');
+    assert(pixels[0] === 255, 'escaping rays preserve the existing background');
+    // Translate camera and hole together: the image must be invariant.
+    hole.setPosition([2, -1, 0.5]);
+    camera.position.add(new T.Vector3(2, -1, 0.5));
+    render();
+    assert(countShadow() === actual, 'translated hole has the same shadow');
+    hole.setPosition([0, 0, 0]);
+    camera.position.set(0, 0, 100 * rs);
+    const foreground = new T.Mesh(new T.PlaneGeometry(10, 10), new T.MeshBasicMaterial({ color: 0xff0000 }));
+    foreground.position.z = 50 * rs;
+    scene.add(foreground);
+    render();
+    assert(centerPixel().join(',') === '255,0,0', 'foreground geometry occludes the shadow');
+    foreground.position.z = -50 * rs;
+    render();
+    assert(centerPixel().every((x) => x === 0), 'shadow occludes background geometry');
+    scene.remove(foreground);
+    foreground.geometry.dispose();
+    foreground.material.dispose();
+    hole.dispose();
+    render();
+    assert(countShadow() === 0, 'disposed hole leaves no visible shadow');
+  }
+  camera.fov = 50;
+  camera.position.set(0, 0, 43 * rs);
+  camera.updateProjectionMatrix();
+  const makeDisk = (options, quality = 'high') => new Spacekit.BlackHole('disk', {
+    massSolar,
+    quality,
+    accretionDisk: { outerRadius: 16, ...options },
+  }, simulation);
+  const energy = (image) => image.reduce((sum, value, index) => sum + (index % 4 === 3 ? 0 : value), 0);
+  let disk = makeDisk({ turbulence: 0 });
+  const smooth = render(0).slice();
+  assert(energy(smooth) > 100000, 'thermal disk emits visible light');
+  disk.update(2451545.01);
+  assert(render(0).every((value, index) => value === smooth[index]), 'smooth disk is time invariant');
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0, opticalDepth: 0.01 });
+  assert(energy(render(0)) < energy(smooth) * 0.25, 'optically thin gas transmits most light');
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0.85 });
+  const initial = render(0).slice();
+  disk.update(2451545.01);
+  const animated = render(0).slice();
+  assert(animated.some((value, index) => Math.abs(value - initial[index]) > 10), 'turbulent emission moves with simulation time');
+  assert(render(0).every((value, index) => value === animated[index]), 'paused gas remains identical between frames');
+  disk.update(2451545);
+  assert(render(0).every((value, index) => value === initial[index]), 'time scrubbing restores the same gas pattern');
+  const turnover = Spacekit.schwarzschildOrbitalPeriodSeconds(massSolar, 3) * 4;
+  disk.update(2451545 + (turnover - 0.1) / 86400);
+  const beforeTurnover = render(0).slice();
+  disk.update(2451545 + (turnover + 0.1) / 86400);
+  const afterTurnover = render(0).slice();
+  const turnoverDifference = afterTurnover.reduce((sum, value, index) => sum + (index % 4 === 3 ? 0 : Math.abs(value - beforeTurnover[index])), 0) / energy(beforeTurnover);
+  assert(turnoverDifference < 0.01, 'turbulent pattern renewal has no visible phase jump: ' + turnoverDifference.toFixed(4));
+  disk.dispose();
+  // A speed multiplier must match elapsed simulation time, including Doppler
+  // color, rather than multiplying physical orbital velocities.
+  disk = makeDisk({ turbulence: 0.85, rotationSpeed: 64 });
+  disk.update(2451545 + 1 / 1024);
+  const accelerated = render(0).slice();
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0.85 });
+  disk.update(2451545 + 1 / 16);
+  assert(render(0).every((value, index) => value === accelerated[index]), 'artistic rotation matches accelerated time without changing Doppler color');
+  disk.dispose();
+  camera.position.set(0, 0, 300 * rs);
+  disk = makeDisk({ turbulence: 0 });
+  disk.setDiskOuterRadius(100);
+  const extended = render(0).slice();
+  assert(energy(extended) > 1000, 'extended disk renders from the full-disk camera');
+  disk.setDiskEnabled(false);
+  assert(energy(render(0)) === 0, 'disk visibility changes without leaving emission behind');
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0, outerRadius: 100 }, 'low');
+  const extendedCoarse = render(0).slice();
+  const extendedDifference = extendedCoarse.reduce((sum, value, index) => sum + (index % 4 === 3 ? 0 : Math.abs(value - extended[index])), 0) / energy(extended);
+  assert(extendedDifference < 0.08, '100-radii disk agrees across quality settings: ' + extendedDifference.toFixed(4));
+  disk.dispose();
+  // Measure the foreground gas away from the lensed central ring, with no
+  // bloom and an observer exactly in the midplane. A screen-space line fails.
+  camera.up.set(0, 0, 1);
+  camera.position.set(0, -43 * rs, 0);
+  camera.lookAt(0, 0, 0);
+  const edgeWidth = () => {
+    let width = 0;
+    for (let y = 0; y < 256; y++) if (pixels[(y * 256 + 190) * 4] > 12) width++;
+    return width;
+  };
+  disk = makeDisk({ turbulence: 0 });
+  render(0);
+  const defaultWidth = edgeWidth();
+  assert(defaultWidth >= 4 && defaultWidth <= 12, 'default disk has a narrow but resolved emitting layer: ' + defaultWidth + 'px');
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0, aspectRatio: 0.03 });
+  render(0);
+  const thinWidth = edgeWidth();
+  assert(thinWidth >= 4, 'edge-on thin disk spans multiple pixels: ' + thinWidth);
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0, aspectRatio: 0.12 });
+  const thickImage = render(0).slice();
+  const thickWidth = edgeWidth();
+  assert(thickWidth > thinWidth * 2, 'scale height changes actual edge-on thickness: ' + thinWidth + ' to ' + thickWidth + 'px');
+  disk.dispose();
+  disk = makeDisk({ turbulence: 0, aspectRatio: 0.12 }, 'low');
+  const coarseImage = render(0).slice();
+  const relativeDifference = coarseImage.reduce((sum, value, index) => sum + (index % 4 === 3 ? 0 : Math.abs(value - thickImage[index])), 0) / energy(thickImage);
+  assert(relativeDifference < 0.08, 'volume integration agrees across quality settings: ' + relativeDifference.toFixed(4));
+  disk.dispose();
+  // One pixel gives an exactly radial ray; angular integration is singular here.
+  const radialTarget = new T.WebGLRenderTarget(1, 1);
+  const radialPixel = new Uint8Array(4);
+  disk = makeDisk({ turbulence: 0 });
+  renderer.setRenderTarget(radialTarget);
+  renderer.setClearColor(0);
+  renderer.render(scene, camera);
+  renderer.readRenderTargetPixels(radialTarget, 0, 0, 1, 1, radialPixel);
+  assert(radialPixel[0] > 10, 'radial ray sees foreground gas before the horizon');
+  camera.position.set(0, -2 * rs, 0);
+  camera.lookAt(0, -43 * rs, 0);
+  renderer.render(scene, camera);
+  renderer.readRenderTargetPixels(radialTarget, 0, 0, 1, 1, radialPixel);
+  assert(radialPixel[0] > 10, 'outgoing radial ray from the inner cavity sees the gas');
+  radialTarget.dispose();
+  disk.dispose();
+  assert(renderer.info.programs.every((program) => !program.diagnostics || program.diagnostics.runnable), 'all GPU shader programs compile');
+  document.getElementById('results').textContent = results.join('\n');
+  document.body.dataset.result = 'pass';
+} catch (error) {
+  document.getElementById('results').textContent = results.join('\n') + '\nFAIL: ' + error.message;
+  document.body.dataset.result = 'fail';
+  console.error(error);
+} finally {
+  target.dispose();
+  renderer.dispose();
+}
+</script>
+</html>

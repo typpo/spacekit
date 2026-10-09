@@ -78,6 +78,7 @@ var julian_1 = __importDefault(require("julian"));
 var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.module"));
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
+var BlackHole_1 = require("./BlackHole");
 var KeplerParticles_1 = require("./KeplerParticles");
 var EphemPresets_1 = require("./EphemPresets");
 var ShapeObject_1 = require("./ShapeObject");
@@ -429,6 +430,9 @@ var Simulation = /** @class */ (function () {
         }
         this.camera.update();
         // Update three.js scene
+        // EffectComposer disables autoClear. Translucent emission must not
+        // accumulate over previous frames.
+        this.renderer.clear();
         this.renderer.render(this.scene, this.camera.get3jsCamera());
         //this.composer.render(0.1);
         if (this.onTick) {
@@ -516,6 +520,10 @@ var Simulation = /** @class */ (function () {
         }
         // @ts-ignore
         return new (SphereObject_1.SphereObject.bind.apply(SphereObject_1.SphereObject, __spreadArray(__spreadArray([void 0], args, false), [this], false)))();
+    };
+    /** Create a stationary Schwarzschild black hole with mass in solar masses. */
+    Simulation.prototype.createBlackHole = function (id, options) {
+        return new BlackHole_1.BlackHole(id, options, this);
     };
     /**
      * Shortcut for creating a new StaticParticles object belonging to this visualization.

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole finite-distance scene validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running finite-distance GPU checks...</pre>
+<script src="../../build/spacekit.js"></script>
+<script>
+const T = Spacekit.THREE;
+const renderer = new T.WebGL1Renderer();
+const size = 800;
+renderer.setSize(size, size);
+renderer.setClearColor(0, 0);
+const target = new T.WebGLRenderTarget(size, size);
+const scene = new T.Scene();
+// Exercise Spacekit's unusually small near plane, rather than a forgiving one.
+const camera = new T.PerspectiveCamera(50, 1, 1e-5, 2000);
+camera.position.z = 6.3;
+camera.lookAt(0, 0, 0);
+const simulation = {
+  getContext: () => ({ options: {}, objects: { renderer } }),
+  getJd: () => 2451545,
+  addObject: object => scene.add(...object.get3jsObjects()),
+  removeObject: object => { scene.remove(...object.get3jsObjects()); object.removalCleanup(); },
+};
+const results = [];
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+  results.push('PASS: ' + message);
+}
+function read(output) {
+  const pixels = new Uint8Array(size * size * 4);
+  renderer.readRenderTargetPixels(output, 0, 0, size, size, pixels);
+  return pixels;
+}
+function render() {
+  renderer.setRenderTarget(target);
+  renderer.render(scene, camera);
+  return read(target);
+}
+function rgb(pixels, x = size / 2, y = size / 2) {
+  return Array.from(pixels.slice((y * size + x) * 4, (y * size + x) * 4 + 3));
+}
+function ringRadius(pixels, channel = 0) {
+  const histogram = new Float64Array(250);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const radius = Math.round(Math.hypot(x - 399.5, y - 399.5));
+    if (radius > 40 && radius < 250) histogram[radius] += pixels[(y * size + x) * 4 + channel];
+  }
+  const peak = histogram.indexOf(Math.max(...histogram));
+  let weighted = 0, weight = 0;
+  for (let r = Math.max(0, peak - 8); r <= Math.min(249, peak + 8); r++) {
+    weighted += r * histogram[r]; weight += histogram[r];
+  }
+  return weighted / weight;
+}
+// Independent numerical boundary-value reference: integrate to the source
+// plane at phi=pi, not to infinity and not using the renderer's asymptote.
+function referenceRadius(distance, step = 0.001) {
+  const rs = Spacekit.schwarzschildRadiusAu(4e6), ro = camera.position.z / rs;
+  let lo = 0.04, hi = 0.4;
+  for (let j = 0; j < 48; j++) {
+    const angle = (lo + hi) / 2, b = ro * Math.sin(angle) / Math.sqrt(1 - 1 / ro);
+    let u = 1 / ro, v = Math.cos(angle) / b, phi = 0;
+    while (phi < Math.PI && u < 1) {
+      const h = Math.min(step, Math.PI - phi);
+      [u, v] = Spacekit.stepSchwarzschildRay(u, v, h); phi += h;
+    }
+    if (u > rs / distance) lo = angle; else hi = angle;
+  }
+  return size / 2 * Math.tan((lo + hi) / 2) / Math.tan(camera.fov * Math.PI / 360);
+}
+try {
+  const sunDistance = Math.hypot(7.5, 3.5, 0.6);
+  assert(Math.abs(referenceRadius(sunDistance) - referenceRadius(sunDistance, 0.0005)) < 0.0001,
+    'finite-distance reference converges under step refinement');
+  for (const quality of ['low', 'high']) {
+    const hole = new Spacekit.BlackHole('finite', {
+      massSolar: 4e6, lensScene: true, accretionDisk: false, quality,
+    }, simulation);
+    const sphere = new T.Mesh(new T.SphereGeometry(0.06, 48, 32), new T.MeshBasicMaterial({ color: 0xff0000 }));
+    scene.add(sphere);
+    for (const distance of [4, sunDistance, 20]) {
+      sphere.position.z = -distance;
+      const radius = ringRadius(render()), expected = referenceRadius(distance);
+      assert(Math.abs(radius - expected) < 2,
+        quality + ': source at ' + distance.toFixed(2) + ' AU gives ' + radius.toFixed(2) + ' px ring; finite reference ' + expected.toFixed(2));
+    }
+    // The farther green plane used to overwrite this red sphere in the
+    // 16-bit capture even though the ordinary scene placed the sphere first.
+    sphere.scale.setScalar(16);
+    sphere.position.z = -4;
+    const plane = new T.Mesh(new T.PlaneGeometry(30, 30), new T.MeshBasicMaterial({ color: 0x00ff00 }));
+    plane.position.z = -20;
+    scene.add(plane);
+    const overlapping = render();
+    assert(rgb(read(hole.sceneCapture.background)).join() === '255,0,0', quality + ': nearer opaque surface wins in the capture');
+    assert(overlapping.some((value, i) => i % 4 === 0 && value > 240), quality + ': nearer sphere remains visible in the lensed image');
+    scene.remove(sphere, plane);
+
+    // Adjacent orbit pixels at different distances must not create a phantom
+    // surface spanning the depth jump (visible as blocks over the Sun ring).
+    const focal = size / 2 / Math.tan(camera.fov * Math.PI / 360);
+    const lines = [4, 20].map((distance, index) => new T.LineLoop(
+      new T.BufferGeometry().setFromPoints(Array.from({ length: 512 }, (_, i) => {
+        const radius = (30 + index) * (camera.position.z + distance) / focal;
+        return new T.Vector3(radius * Math.cos(i * Math.PI / 256), radius * Math.sin(i * Math.PI / 256), -distance);
+      })), new T.LineBasicMaterial({ color: 0x0000ff }),
+    ));
+    scene.add(lines[0]); const firstLine = render(); scene.remove(lines[0]);
+    scene.add(lines[1]); const secondLine = render(); scene.add(lines[0]);
+    const bothLines = render();
+    let phantomPixels = 0;
+    for (let y = 1; y < size - 1; y++) for (let x = 1; x < size - 1; x++) {
+      if (bothLines[(y * size + x) * 4 + 2] < 200) continue;
+      let inSeparateImages = false;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const i = ((y + dy) * size + x + dx) * 4 + 2;
+        if (firstLine[i] > 10 || secondLine[i] > 10) inSeparateImages = true;
+      }
+      if (!inSeparateImages) phantomPixels++;
+    }
+    assert(phantomPixels < 20, quality + ': overlapping orbit captures create no phantom surface (' + phantomPixels + ' pixels)');
+    lines.forEach(line => { scene.remove(line); line.geometry.dispose(); line.material.dispose(); });
+
+    // Valid GLSL syntax must not depend on finding a particular main spelling.
+    const vertex = 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+    for (const fragment of [
+      'void main() /* comment */ { gl_FragColor = vec4(1.,0.,0.,1.); }',
+      '// void main() {\nvoid main(void) { gl_FragColor = vec4(1.,0.,0.,1.); }',
+    ]) {
+      const custom = new T.Mesh(new T.PlaneGeometry(0.4, 0.4), new T.ShaderMaterial({ vertexShader: vertex, fragmentShader: fragment }));
+      custom.position.z = -sunDistance;
+      scene.add(custom);
+      const pixels = render();
+      assert(rgb(pixels).every(value => value === 0) && pixels.some((value, i) => i % 4 === 0 && value > 240),
+        quality + ': commented custom main is clipped and lensed correctly');
+      scene.remove(custom); custom.geometry.dispose(); custom.material.dispose();
+    }
+
+    // A sphere straddling the lens plane must contribute to both captures,
+    // with its front half still covering the black-hole shadow.
+    sphere.position.z = 0;
+    scene.add(sphere);
+    assert(rgb(render()).join() === '255,0,0', quality + ': geometry crossing the lens plane retains its foreground');
+    scene.remove(sphere);
+    const skybox = new T.Mesh(new T.SphereGeometry(1e10, 32, 16), new T.MeshBasicMaterial({ color: 0x0000ff, side: T.BackSide }));
+    scene.add(skybox);
+    assert(rgb(render(), 0, 0).join() === '0,0,255', quality + ': distant simulation Skybox survives camera clipping');
+    // Spacekit's Skybox is flagged as sky and writes no depth, like the stars.
+    skybox.material.depthWrite = false;
+    skybox.userData.spacekitBackground = true;
+    skybox.renderOrder = -1;
+    const skyImage = render();
+    const lightIn = pixels => pixels.reduce((sum, value, i) => sum + (i % 4 === 3 ? 0 : value), 0);
+    assert(rgb(skyImage, 0, 0).join() === '0,0,255' && rgb(skyImage, 400, 560).join() === '0,0,255',
+      quality + ': flagged Skybox is drawn directly and through the lens');
+    assert(lightIn(read(hole.sceneCapture.transparent)) === 0 && lightIn(read(hole.sceneCapture.foreground)) === 0,
+      quality + ': flagged Skybox stays out of the transparent and foreground captures');
+    scene.remove(skybox); skybox.geometry.dispose(); skybox.material.dispose();
+
+    // Opaque black JPEG padding must not become a false nearest surface.
+    const texels = new Uint8Array(32 * 32 * 4);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+      const i = (y * 32 + x) * 4;
+      texels[i] = Math.hypot(x - 15.5, y - 15.5) < 5 ? 255 : 0; texels[i + 3] = 255;
+    }
+    const texture = new T.DataTexture(texels, 32, 32); texture.needsUpdate = true;
+    const sun = new T.Sprite(new T.SpriteMaterial({ map: texture, blending: T.AdditiveBlending, depthWrite: false }));
+    sun.position.z = -sunDistance; sun.scale.setScalar(2);
+    sphere.position.z = -20; sphere.scale.setScalar(1); sphere.material.color.set(0x00ff00);
+    scene.add(sphere);
+    const withoutSun = render(), farRing = ringRadius(withoutSun, 1);
+    scene.add(sun);
+    const withSun = render();
+    assert(Math.abs(ringRadius(withSun, 1) - farRing) < 0.1,
+      quality + ': additive Sun does not shift the farther opaque source to the Sun depth');
+    assert(rgb(read(hole.sceneCapture.transparent), 440, 440).every(value => value === 0),
+      quality + ': additive black padding contributes no color or coverage');
+    const originalDepthTest = sun.material.depthTest;
+    sun.material.depthTest = false;
+    assert(ringRadius(render()) > 90, quality + ': depthTest:false light still receives a finite-distance image');
+    assert(sun.material.depthTest === false && sun.material.depthWrite === false && sun.material.blending === T.AdditiveBlending,
+      quality + ': caller depth and blending settings survive captures');
+    sun.material.depthTest = originalDepthTest;
+
+    // A nearer opaque source must occlude additive light behind it after warping.
+    sphere.scale.setScalar(16); sphere.position.z = -4;
+    assert(!render().some((value, i) => i % 4 === 0 && value > 5), quality + ': nearer opaque sphere occludes the farther Sun');
+    scene.remove(sphere, sun);
+    const farSprite = new T.Sprite(new T.SpriteMaterial({ color: 0x00ff00, depthWrite: false }));
+    farSprite.position.set(40.5 * 26.3 / focal, 40.5 * 26.3 / focal, -20);
+    farSprite.scale.setScalar(0.08);
+    scene.add(farSprite);
+    const farSpriteOnly = render();
+    scene.add(sun);
+    const farSpriteWithSun = render();
+    let greenDifference = 0, greenLight = 0;
+    for (let i = 1; i < farSpriteOnly.length; i += 4) {
+      greenLight += farSpriteOnly[i];
+      greenDifference += Math.abs(farSpriteOnly[i] - farSpriteWithSun[i]);
+    }
+    assert(greenLight > 100 && greenDifference < greenLight * 0.01,
+      quality + ': additive black padding preserves the depth of a farther transparent sprite');
+    scene.remove(farSprite); farSprite.material.dispose();
+
+    // Overlapping soft sprites drawn in one call, nearest first, must all reach
+    // the transparent capture: one sprite's clear corners must not hide the next.
+    const disc = new Uint8Array(16 * 16 * 4);
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+      const i = (y * 16 + x) * 4;
+      disc[i + 1] = 255; disc[i + 3] = Math.hypot(x - 7.5, y - 7.5) < 4 ? 255 : 0;
+    }
+    const discTexture = new T.DataTexture(disc, 16, 16); discTexture.needsUpdate = true;
+    const cloudPositions = [];
+    for (let i = 0; i < 20; i++) for (let j = 0; j < 20; j++) {
+      cloudPositions.push(-3 + i * 0.12, 1.5 + j * 0.12, -18 - (i + j) * 0.01);
+    }
+    const cloud = new T.Points(
+      new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(cloudPositions, 3)),
+      new T.PointsMaterial({ size: 24, sizeAttenuation: false, map: discTexture, transparent: true, depthWrite: false }));
+    scene.add(cloud);
+    const green = pixels => { let n = 0; for (let i = 1; i < pixels.length; i += 4) if (pixels[i] > 128) n++; return n; };
+    hole.get3jsObjects()[0].visible = false;
+    const cloudPlain = green(render());
+    hole.get3jsObjects()[0].visible = true;
+    render();
+    const cloudCaptured = green(read(hole.sceneCapture.transparent));
+    assert(cloudPlain > 1000 && cloudCaptured > 0.95 * cloudPlain,
+      quality + ': overlapping sprites in one draw all reach the capture (' + cloudCaptured + ' of ' + cloudPlain + ' px)');
+    scene.remove(cloud); cloud.geometry.dispose(); cloud.material.dispose(); discTexture.dispose();
+    camera.layers.set(1); hole.get3jsObjects()[0].layers.set(1); sun.layers.set(1);
+    assert(ringRadius(render()) > 90, quality + ': transparent capture respects nondefault camera layers');
+    camera.layers.set(0);
+    scene.remove(sun);
+    sphere.geometry.dispose(); sphere.material.dispose(); plane.geometry.dispose(); plane.material.dispose();
+    texture.dispose(); sun.material.dispose(); hole.dispose();
+  }
+  assert(renderer.info.programs.every(program => !program.diagnostics || program.diagnostics.runnable), 'all shaders compile');
+  results.push('ALL CHECKS PASSED');
+  document.getElementById('results').textContent = results.join('\n');
+} catch (error) {
+  document.getElementById('results').textContent = results.join('\n') + '\nFAIL: ' + error.message;
+  console.error(error);
+} finally { target.dispose(); renderer.dispose(); }
+</script>

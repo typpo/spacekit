@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8" /><title>Black-hole sampling comparison</title>
+  <style>
+    body {
+      background: #151515;
+      color: white;
+      font: 15px system-ui;
+    }
+    section {
+      display: inline-block;
+      margin: 8px;
+    }
+    canvas {
+      display: block;
+      width: 480px;
+      height: 480px;
+    }
+  </style>
+  <h1>Procedural disk sampling</h1>
+  <pre id="result">Rendering…</pre>
+  <script src="../../build/spacekit.js?sampling=4"></script>
+  <script>
+    const T = Spacekit.THREE,
+      size = 480;
+    const renderer = new T.WebGL1Renderer();
+    renderer.setSize(size, size);
+    const target = new T.WebGLRenderTarget(size, size),
+      scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(46, 1, 0.0001, 1000);
+    const rs = Spacekit.schwarzschildRadiusAu(4e6);
+    camera.up.set(0, 0, 1);
+    camera.position.set(0, -35 * rs, 22 * rs);
+    camera.lookAt(0, 0, 0);
+    const sim = {
+      getContext: () => ({ options: { unitsPerAu: 1 }, objects: { renderer } }),
+      getJd: () => 2451545,
+      addObject: (o) => scene.add(...o.get3jsObjects()),
+      removeObject: (o) => {
+        scene.remove(...o.get3jsObjects());
+        o.removalCleanup();
+      },
+    };
+    const hole = new Spacekit.BlackHole(
+      "comparison",
+      {
+        massSolar: 4e6,
+        accretionDisk: { outerRadius: 30, temperature: 7500, turbulence: 0.85 },
+      },
+      sim
+    );
+    hole.update(2451545 + 0.004);
+    const material = hole.get3jsObjects()[0].material;
+    function draw(label, step, steps, samples, show = true, rayStep = 0.02) {
+      material.defines.VOLUME_SAMPLES = samples;
+      material.defines.VOLUME_STEP = String(step);
+      material.defines.RAY_STEPS = steps;
+      material.defines.RAY_STEP = String(rayStep);
+      material.needsUpdate = true;
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0);
+      renderer.render(scene, camera);
+      const data = new Uint8Array(size * size * 4);
+      renderer.readRenderTargetPixels(target, 0, 0, size, size, data);
+      if (show) {
+        const section = document.createElement("section");
+        section.textContent = label;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        section.append(canvas);
+        document.body.append(section);
+        const context = canvas.getContext("2d"),
+          image = context.createImageData(size, size);
+        for (let y = 0; y < size; y++)
+          image.data.set(
+            data.subarray((size - y - 1) * size * 4, (size - y) * size * 4),
+            y * size * 4
+          );
+        context.putImageData(image, 0, 0);
+      }
+      return data;
+    }
+    const productionSamples = material.defines.VOLUME_SAMPLES;
+    const previous = draw(
+      "Previous: one gas sample per segment",
+      0.025,
+      1024,
+      1
+    );
+    const current = draw(
+      "Updated: " + productionSamples + " gas samples per segment",
+      0.025,
+      1024,
+      productionSamples
+    );
+    const reference = draw(
+      "Dense integration reference",
+      0.0015,
+      8192,
+      4,
+      false
+    );
+    function error(image) {
+      let sum = 0,
+        energy = 0;
+      for (let i = 0; i < image.length; i++)
+        if (i % 4 !== 3) {
+          sum += Math.abs(image[i] - reference[i]);
+          energy += reference[i];
+        }
+      return sum / energy;
+    }
+    const coarse = draw("Low quality", 0.05, 768, 2, false, 0.04);
+    const oldError = error(previous),
+      newError = error(current),
+      coarseError = error(coarse);
+    const passed = newError < oldError * 0.4 && coarseError < oldError * 0.6;
+    document.getElementById("result").textContent =
+      (passed ? "PASS" : "FAIL") +
+      ": error vs dense integration — previous " +
+      oldError.toFixed(4) +
+      ", high " +
+      newError.toFixed(4) +
+      ", low " +
+      coarseError.toFixed(4);
+    document.body.dataset.result = passed ? "pass" : "fail";
+    hole.dispose();
+    target.dispose();
+    renderer.dispose();
+    if (!passed)
+      throw new Error("Procedural emission sampling did not converge");
+  </script>
+</html>

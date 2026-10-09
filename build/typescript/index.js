@@ -42,6 +42,8 @@ __exportStar(require("./SphereObject"), exports);
 __exportStar(require("./StaticParticles"), exports);
 __exportStar(require("./KeplerParticles"), exports);
 __exportStar(require("./Stars"), exports);
+__exportStar(require("./BlackHole"), exports);
+__exportStar(require("./BlackHolePhysics"), exports);
 __exportStar(require("./Units"), exports);
 var _THREE = __importStar(require("three"));
 exports.THREE = _THREE;

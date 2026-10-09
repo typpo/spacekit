@@ -131,15 +131,20 @@ export class Stars implements SimulationObject {
         });
 
         const material = new THREE.ShaderMaterial({
+          defines: { SPACEKIT_BACKGROUND: true },
           uniforms: {},
           vertexColors: true,
           vertexShader: STAR_SHADER_VERTEX,
           fragmentShader: STAR_SHADER_FRAGMENT,
 
           transparent: true,
+          depthWrite: false,
         });
 
         this._stars = new THREE.Points(geometry, material);
+        // Catalogue stars are a sky layer, not finite-distance scene geometry.
+        this._stars.userData.spacekitBackground = true;
+        this._stars.renderOrder = -1;
 
         if (this._simulation) {
           this._simulation.addObject(this, true /* noUpdate */);

@@ -138,6 +138,16 @@ sim.createSphere('earth', {
 
 `KeplerParticles`: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.
 
+`BlackHole`: a stationary Schwarzschild black hole with mass-derived dimensions, traced light paths, and an optional accretion disk. Positions use AU; disk radii use Schwarzschild radii.
+```javascript
+const hole = sim.createBlackHole('black-hole', {
+  massSolar: 4e6,
+  position: [0, 0, 0],
+  accretionDisk: { outerRadius: 12, temperature: 10000 },
+});
+```
+See the [interactive example](examples/black-hole/index.html) and [physical model, options, and limitations](docs/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
+
 # Dependencies
 
 Spacekit relies on some image and data assets that are not included in the Javascript file.

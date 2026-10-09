@@ -110,10 +110,17 @@ export class Skybox implements SimulationObject {
       side: THREE.BackSide,
       transparent: (this.options.opacity || 1) < 1,
       opacity: this.options.opacity || 1,
+      // The sky is behind everything, so it needs no depth. Leaving the depth
+      // buffer clear also marks it as infinitely distant for scene captures.
+      depthWrite: false,
     });
 
     const sky = new THREE.Mesh(geometry, material);
     sky.applyMatrix4(getSkyboxOrientationTransform(this.options));
+    // Like catalogue stars, the skybox is a sky layer, not finite-distance
+    // scene geometry: black hole lensing samples it by direction.
+    sky.userData.spacekitBackground = true;
+    sky.renderOrder = -1;
 
     this.mesh = sky;
 

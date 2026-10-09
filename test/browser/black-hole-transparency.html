@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole transparent-layer validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running transparent-layer GPU checks...</pre>
+<script src="../../build/spacekit.js"></script>
+<script>
+(async () => {
+  const T = Spacekit.THREE;
+  const renderer = new T.WebGL1Renderer();
+  const size = 256;
+  renderer.setSize(size, size);
+  renderer.setClearColor(0, 0);
+  const target = new T.WebGLRenderTarget(size, size);
+  const scene = new T.Scene();
+  const camera = new T.PerspectiveCamera(50, 1, 0.01, 100);
+  camera.position.z = 8;
+  camera.lookAt(0, 0, 0);
+  const initialView = camera.quaternion.clone();
+  const simulation = {
+    getContext: () => ({ options: {}, objects: { renderer } }),
+    getJd: () => 2451545,
+    addObject: object => scene.add(...object.get3jsObjects()),
+    removeObject: object => { scene.remove(...object.get3jsObjects()); object.removalCleanup(); },
+  };
+  const results = [];
+  const assert = (condition, message) => {
+    if (!condition) throw new Error(message);
+    results.push('PASS: ' + message);
+  };
+  const read = output => {
+    const pixels = new Uint8Array(size * size * 4);
+    renderer.readRenderTargetPixels(output, 0, 0, size, size, pixels);
+    return pixels;
+  };
+  const render = () => {
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    return read(target);
+  };
+  let texture, cloud, ring, underlay, hole;
+  try {
+    texture = await new Promise((resolve, reject) => new T.TextureLoader().load(
+      '../../src/assets/sprites/fuzzyparticle.png', resolve, undefined, reject));
+    // Like GPU moons and Saturn's rings, the objects have the same origin.
+    // One batch contains particles both in front of and behind the surface.
+    const positions = [-2, 0, -5, 3.5, 0, -15];
+    cloud = new T.Points(
+      new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(positions, 3)),
+      new T.PointsMaterial({ size: 60, sizeAttenuation: false, map: texture, transparent: true, depthWrite: false }),
+    );
+    ring = new T.Mesh(new T.PlaneGeometry(30, 30).translate(0, 0, -10),
+      new T.MeshBasicMaterial({ color: 0x808080, transparent: true }));
+    scene.add(cloud, ring);
+    for (const quality of ['low', 'high']) {
+      hole = new Spacekit.BlackHole('transparency', {
+        massSolar: 4e6, lensScene: true, accretionDisk: false, quality,
+      }, simulation);
+      for (const blending of [T.NormalBlending, T.AdditiveBlending]) {
+        cloud.material.blending = blending;
+        for (const opacity of [0.65, 1]) for (const angle of [0, 0.04]) {
+          ring.material.opacity = opacity;
+          camera.quaternion.copy(initialView);
+          camera.rotateY(angle);
+          ring.visible = false; cloud.visible = true;
+          cloud.geometry.setDrawRange(0, 1);
+          const frontImage = render();
+          cloud.geometry.setDrawRange(1, 1);
+          const behindImage = render();
+          cloud.geometry.setDrawRange(0, 2);
+          ring.visible = true; cloud.visible = false;
+          ring.material.color.set(0xffffff);
+          const ringCoverage = render();
+          ring.material.color.set(0x808080);
+          const ringImage = render();
+          cloud.visible = true;
+          let firstImage;
+          for (const order of [-1, 1]) {
+            ring.renderOrder = order;
+            const image = render();
+            let maxError = 0, sampled = 0;
+            for (let i = 0; i < image.length; i += 4) {
+              if (frontImage[i] > 2 || behindImage[i] > 2) sampled++;
+              // Independent reference: render each object alone, then compose
+              // the images in their known physical order (far, ring, near).
+              const frontAlpha = blending === T.AdditiveBlending ? 0 : frontImage[i] / 255;
+              const behindRing = ringImage[i] + (1 - ringCoverage[i] / 255) * behindImage[i];
+              const expected = Math.min(255, frontImage[i] + (1 - frontAlpha) * behindRing);
+              maxError = Math.max(maxError, Math.abs(image[i] - expected));
+            }
+            const label = quality + ', blend=' + blending + ', opacity=' + opacity + ', yaw=' + angle;
+            assert(sampled > 100 && maxError <= 3,
+              label + ': final image matches separately lensed objects with ring order ' + order + ' (error ' + maxError.toFixed(2) + ')');
+            let darkening = 0;
+            for (let i = 0; i < image.length; i += 4) darkening = Math.max(darkening, ringImage[i] - image[i]);
+            assert(darkening <= 2, label + ': white particles do not darken the lensed ring (drop ' + darkening + ')');
+            if (firstImage) {
+              const difference = image.reduce((max, value, i) => Math.max(max, Math.abs(value - firstImage[i])), 0);
+              assert(difference <= 2, label + ': changing draw order preserves the lensed image');
+            }
+            firstImage = image;
+          }
+        }
+      }
+      // Both surfaces share a capture layer. A nearer translucent object must
+      // allow a farther one to blend underneath even if it is drawn first.
+      cloud.visible = false;
+      ring.material.opacity = 0.5;
+      ring.material.color.set(0x00ff00);
+      underlay = new T.Mesh(new T.PlaneGeometry(30, 30).translate(0, 0, -15),
+        new T.MeshBasicMaterial({ color: 0x0000ff, opacity: 0.5, transparent: true }));
+      scene.add(underlay);
+      ring.renderOrder = -1;
+      const nearFirst = render();
+      ring.renderOrder = 1;
+      const farFirst = render();
+      assert(nearFirst.some((value, i) => i % 4 === 2 && value > 20 && nearFirst[i - 1] > 20),
+        quality + ': both overlapping translucent surfaces contribute light');
+      assert(nearFirst.reduce((max, value, i) => Math.max(max, Math.abs(value - farFirst[i])), 0) <= 1,
+        quality + ': a farther surface blends underneath one drawn earlier');
+      scene.remove(underlay);
+      underlay.geometry.dispose(); underlay.material.dispose(); underlay = null;
+      hole.dispose(); hole = null;
+    }
+    assert(cloud.material.depthWrite === false && cloud.material.depthTest && cloud.material.colorWrite,
+      'particle depth/color settings survive captures');
+    assert(renderer.info.programs.every(program => !program.diagnostics || program.diagnostics.runnable), 'all shaders compile');
+    results.push('ALL CHECKS PASSED');
+  } catch (error) {
+    results.push('FAIL: ' + error.message);
+    console.error(error);
+  } finally {
+    if (hole) hole.dispose();
+    for (const object of [cloud, ring, underlay]) if (object) { object.geometry.dispose(); object.material.dispose(); }
+    if (texture) texture.dispose();
+    target.dispose(); renderer.dispose();
+    document.getElementById('results').textContent = results.join('\n');
+  }
+})();
+</script>

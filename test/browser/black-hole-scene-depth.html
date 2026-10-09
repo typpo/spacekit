@@ -147,6 +147,16 @@ try {
     const skybox = new T.Mesh(new T.SphereGeometry(1e10, 32, 16), new T.MeshBasicMaterial({ color: 0x0000ff, side: T.BackSide }));
     scene.add(skybox);
     assert(rgb(render(), 0, 0).join() === '0,0,255', quality + ': distant simulation Skybox survives camera clipping');
+    // Spacekit's Skybox is flagged as sky and writes no depth, like the stars.
+    skybox.material.depthWrite = false;
+    skybox.userData.spacekitBackground = true;
+    skybox.renderOrder = -1;
+    const skyImage = render();
+    const lightIn = pixels => pixels.reduce((sum, value, i) => sum + (i % 4 === 3 ? 0 : value), 0);
+    assert(rgb(skyImage, 0, 0).join() === '0,0,255' && rgb(skyImage, 400, 560).join() === '0,0,255',
+      quality + ': flagged Skybox is drawn directly and through the lens');
+    assert(lightIn(read(hole.sceneCapture.transparent)) === 0 && lightIn(read(hole.sceneCapture.foreground)) === 0,
+      quality + ': flagged Skybox stays out of the transparent and foreground captures');
     scene.remove(skybox); skybox.geometry.dispose(); skybox.material.dispose();
 
     // Opaque black JPEG padding must not become a false nearest surface.

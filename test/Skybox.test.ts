@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 
 import { transformGalacticToEcliptic } from '../src/CoordinateTransforms';
-import { getSkyboxOrientationTransform, SkyboxPresets } from '../src/Skybox';
+import {
+  getSkyboxOrientationTransform,
+  Skybox,
+  SkyboxPresets,
+} from '../src/Skybox';
 
 function transformVector(
   vector: [number, number, number],
@@ -64,5 +68,26 @@ describe('Skybox orientation transforms', () => {
     expect(SkyboxPresets.ESO_LITE.mirrorLongitude).toBe(true);
     expect(SkyboxPresets.NASA_TYCHO.longitudeOffsetDeg).toBe(180);
     expect(SkyboxPresets.NASA_TYCHO.mirrorLongitude).toBe(true);
+  });
+});
+
+describe('Skybox sky layer', () => {
+  test('is marked as distant sky that writes no depth', () => {
+    const load = jest
+      .spyOn(THREE.TextureLoader.prototype, 'load')
+      .mockReturnValue(new THREE.Texture());
+    const addObject = jest.fn();
+    const simulation = {
+      getContext: () => ({ options: { basePath: '' } }),
+      addObject,
+    };
+    // @ts-ignore A minimal simulation is enough to build the mesh.
+    const skybox = new Skybox({ textureUrl: 'sky.png' }, simulation);
+    const [mesh] = skybox.get3jsObjects() as THREE.Mesh[];
+    expect(mesh.userData.spacekitBackground).toBe(true);
+    expect((mesh.material as THREE.Material).depthWrite).toBe(false);
+    expect(mesh.renderOrder).toBe(-1);
+    expect(addObject).toHaveBeenCalledWith(skybox, true);
+    load.mockRestore();
   });
 });

@@ -40,7 +40,7 @@ With `lensScene: true`, objects behind the black hole are distorted automaticall
 
 The [example](../examples/black-hole/) has three scenes: **Simple**, the standalone object described above; **Meteor shower**, about 10,000 GPU-propagated Perseid meteoroids passing behind a 4-million-solar-mass hole; and **Saturn**, Saturn, its rings and moons seen through a 10,000-solar-mass hole between the orbits of Rhea and Titan. The last two use `lensScene`; toggle **Lens scene** to compare. The holes bend light but do not perturb the Kepler orbits. These scenes use low ray-tracing quality and compensate disk animation speed for their accelerated clocks.
 
-Catalogue `Stars` are treated as infinitely distant sky. Their background color is sampled along the escaped ray's direction without a finite-depth test, preventing depth precision loss from making them flash during camera movement. They remain behind scene geometry and out of the foreground capture.
+Catalogue `Stars` and the `Skybox` are treated as infinitely distant sky. Their background color is sampled along the escaped ray's direction without a finite-depth test, preventing depth precision loss from making them flash during camera movement. They remain behind scene geometry and out of the foreground capture. Other objects can opt in by setting `userData.spacekitBackground = true` and not writing depth.
 
 ## Physical model
 

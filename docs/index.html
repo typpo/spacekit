@@ -179,6 +179,14 @@
 <span style="color: #000000">});</span>
 </code></pre>
 				<p><code>KeplerParticles</code>: an optimized class for creating many particles that follow Kepler orbits.  These particles don&#39;t have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.</p>
+				<p><code>BlackHole</code>: a stationary Schwarzschild black hole with mass-derived dimensions, traced light paths, and an optional accretion disk. Positions use AU; disk radii use Schwarzschild radii.</p>
+				<pre><code class="language-javascript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">hole</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createBlackHole</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;black-hole&#039;</span><span style="color: #000000">, {</span>
+<span style="color: #000000">  </span><span style="color: #001080">massSolar:</span><span style="color: #000000"> </span><span style="color: #098658">4e6</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #001080">position:</span><span style="color: #000000"> [</span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">],</span>
+<span style="color: #000000">  </span><span style="color: #001080">accretionDisk:</span><span style="color: #000000"> { </span><span style="color: #001080">outerRadius:</span><span style="color: #000000"> </span><span style="color: #098658">12</span><span style="color: #000000">, </span><span style="color: #001080">temperature:</span><span style="color: #000000"> </span><span style="color: #098658">10000</span><span style="color: #000000"> },</span>
+<span style="color: #000000">});</span>
+</code></pre>
+				<p>See the <a href="examples/black-hole/index.html">interactive example</a> and <a href="docs/black-holes.md">physical model, options, and limitations</a>. The model traces light around a non-rotating mass; it does not change other objects&#39; orbits.</p>
 				<a href="#dependencies" id="dependencies" style="color: inherit; text-decoration: none;">
 					<h1>Dependencies</h1>
 				</a>
@@ -241,6 +249,9 @@
 						<a href="enums/OrbitType.html" class="tsd-kind-icon">Orbit<wbr>Type</a>
 					</li>
 					<li class=" tsd-kind-class">
+						<a href="classes/BlackHole.html" class="tsd-kind-icon">Black<wbr>Hole</a>
+					</li>
+					<li class=" tsd-kind-class">
 						<a href="classes/Ephem.html" class="tsd-kind-icon">Ephem</a>
 					</li>
 					<li class=" tsd-kind-class">
@@ -280,10 +291,22 @@
 						<a href="classes/StaticParticles.html" class="tsd-kind-icon">Static<wbr>Particles</a>
 					</li>
 					<li class=" tsd-kind-interface">
+						<a href="interfaces/AccretionDiskOptions.html" class="tsd-kind-icon">Accretion<wbr>Disk<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/BlackHoleOptions.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/BlackHoleRadii.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Radii</a>
+					</li>
+					<li class=" tsd-kind-interface">
 						<a href="interfaces/SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/SkyboxOptions.html" class="tsd-kind-icon">Skybox<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
@@ -301,6 +324,18 @@
 						<a href="modules.html#GM" class="tsd-kind-icon">GM</a>
 					</li>
 					<li class=" tsd-kind-variable">
+						<a href="modules.html#METERS_PER_AU" class="tsd-kind-icon">METERS_<wbr>PER_<wbr>AU</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#SCHWARZSCHILD_CRITICAL_IMPACT" class="tsd-kind-icon">SCHWARZSCHILD_<wbr>CRITICAL_<wbr>IMPACT</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#SOLAR_GM" class="tsd-kind-icon">SOLAR_<wbr>GM</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#SPEED_OF_LIGHT" class="tsd-kind-icon">SPEED_<wbr>OF_<wbr>LIGHT</a>
+					</li>
+					<li class=" tsd-kind-variable">
 						<a href="modules.html#SkyboxPresets" class="tsd-kind-icon">Skybox<wbr>Presets</a>
 					</li>
 					<li class=" tsd-kind-variable">
@@ -308,6 +343,18 @@
 					</li>
 					<li class=" tsd-kind-variable">
 						<a href="modules.html#THREE" class="tsd-kind-icon">THREE</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#getSkyboxOrientationTransform" class="tsd-kind-icon">get<wbr>Skybox<wbr>Orientation<wbr>Transform</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#schwarzschildOrbitalPeriodSeconds" class="tsd-kind-icon">schwarzschild<wbr>Orbital<wbr>Period<wbr>Seconds</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#schwarzschildRadiusAu" class="tsd-kind-icon">schwarzschild<wbr>Radius<wbr>Au</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#stepSchwarzschildRay" class="tsd-kind-icon">step<wbr>Schwarzschild<wbr>Ray</a>
 					</li>
 				</ul>
 			</nav>
@@ -330,10 +377,6 @@
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
 				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>

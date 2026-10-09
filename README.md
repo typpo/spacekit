@@ -146,7 +146,7 @@ const hole = sim.createBlackHole('black-hole', {
   accretionDisk: { outerRadius: 12, temperature: 10000 },
 });
 ```
-See the [interactive example](examples/black-hole/index.html) and [physical model, options, and limitations](docs/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
+See the [interactive example](examples/black-hole/index.html) and [physical model, options, and limitations](guides/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
 
 # Dependencies
 

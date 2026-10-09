@@ -28,7 +28,7 @@ exports.schwarzschildOrbitalPeriodSeconds = schwarzschildOrbitalPeriodSeconds;
 /**
  * Reference null-geodesic solver, also useful for checking the GPU integrator.
  * u = rs/r, v = du/dphi; u'' = 1.5 u^2 - u. The conserved quantity is
- * v^2 + u^2 - u^3 = 1/b^2. See docs/black-holes.md for conventions.
+ * v^2 + u^2 - u^3 = 1/b^2. See guides/black-holes.md for conventions.
  */
 function stepSchwarzschildRay(u, v, step) {
     var acceleration = function (x) { return 1.5 * x * x - x; };

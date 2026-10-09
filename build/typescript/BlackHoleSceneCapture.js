@@ -35,12 +35,14 @@ var BlackHoleSceneCapture = /** @class */ (function () {
     function BlackHoleSceneCapture() {
         this.background = depthTarget();
         this.transparent = depthTarget();
+        this.surfaces = depthTarget();
         this.foreground = depthTarget();
         this.clearColor = new THREE.Color();
         this.viewProjection = new THREE.Matrix4();
         this.depthRange = new THREE.Vector2();
         this.size = new THREE.Vector2();
         this.hasTransparent = false;
+        this.hasSurfaces = false;
         this.camera = new THREE.PerspectiveCamera();
         this.viewport = new THREE.Vector4();
         this.compositeScene = new THREE.Scene();
@@ -137,6 +139,7 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                     sources: sources,
                     mask: object.layers.mask,
                     background: background,
+                    surface: object.isMesh === true,
                     transparent: !background &&
                         sources.some(function (material) {
                             return material.transparent ||
@@ -192,7 +195,15 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             scene.background = null;
             clear(this.transparent);
             var transparentObjects = objects.filter(function (entry) { return entry.transparent && (entry.mask & camera.layers.mask) !== 0; });
-            this.hasTransparent = transparentObjects.length > 0;
+            this.hasTransparent = transparentObjects.some(function (entry) { return !entry.surface; });
+            this.hasSurfaces = transparentObjects.some(function (entry) { return entry.surface; });
+            if (this.hasSurfaces) {
+                if (this.surfaces.width !== this.size.x ||
+                    this.surfaces.height !== this.size.y) {
+                    this.surfaces.setSize(this.size.x, this.size.y);
+                }
+                clear(this.surfaces);
+            }
             // Match ordinary transparent sorting. Layers use the nearest contributing
             // depth; intersecting transparent surfaces retain screen-space limits.
             transparentObjects.sort(function (a, b) {
@@ -216,8 +227,8 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 // particles drawn after it in the same draw call.
                 renderer.render(scene, this.camera);
                 // Then the nearest depth of everything drawn, without touching color.
-                // The composite discards pixels without color, so the depth of
-                // transparent corners does not leak into the layer.
+                // The composite discards empty pixels; overlapping particles within
+                // one renderable still share a single captured depth per pixel.
                 entry.sources.forEach(function (material) {
                     material.depthWrite = material.depthTest = true;
                     material.colorWrite = false;
@@ -230,7 +241,22 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                     material.colorWrite = original.colorWrite;
                 });
                 entry.object.layers.mask = 0;
-                renderer.setRenderTarget(this.transparent);
+                // Keep surfaces at their own distance instead of moving a ring to the
+                // depth of a faint particle overlapping it in the captured image.
+                renderer.setRenderTarget(entry.surface ? this.surfaces : this.transparent);
+                var composite = this.composite.material;
+                composite.depthFunc = THREE.LessEqualDepth;
+                composite.depthWrite = true;
+                composite.blending = THREE.NormalBlending;
+                renderer.render(this.compositeScene, this.camera);
+                // A nearer translucent pixel must not reject light behind it. Blend
+                // farther fragments underneath without replacing the nearest depth.
+                // The strict depth test excludes pixels handled by the first pass.
+                composite.depthFunc = THREE.GreaterDepth;
+                composite.depthWrite = false;
+                composite.blending = THREE.CustomBlending;
+                composite.blendSrc = THREE.OneMinusDstAlphaFactor;
+                composite.blendDst = THREE.OneFactor;
                 renderer.render(this.compositeScene, this.camera);
             }
             objects.forEach(function (_a) {
@@ -265,7 +291,12 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         }
     };
     BlackHoleSceneCapture.prototype.dispose = function () {
-        for (var _i = 0, _a = [this.background, this.transparent, this.foreground]; _i < _a.length; _i++) {
+        for (var _i = 0, _a = [
+            this.background,
+            this.transparent,
+            this.surfaces,
+            this.foreground,
+        ]; _i < _a.length; _i++) {
             var target = _a[_i];
             target.dispose();
         }

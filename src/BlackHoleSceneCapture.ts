@@ -14,12 +14,14 @@ function depthTarget(): THREE.WebGLRenderTarget {
 export class BlackHoleSceneCapture {
   readonly background = depthTarget();
   readonly transparent = depthTarget();
+  readonly surfaces = depthTarget();
   readonly foreground = depthTarget();
   readonly clearColor = new THREE.Color();
   readonly viewProjection = new THREE.Matrix4();
   readonly depthRange = new THREE.Vector2();
   readonly size = new THREE.Vector2();
   hasTransparent = false;
+  hasSurfaces = false;
   private readonly camera = new THREE.PerspectiveCamera();
   private readonly viewport = new THREE.Vector4();
   private readonly compositeScene = new THREE.Scene();
@@ -111,6 +113,7 @@ export class BlackHoleSceneCapture {
       sources: THREE.Material[];
       mask: number;
       background: boolean;
+      surface: boolean;
       transparent: boolean;
       z: number;
       groupOrder: number;
@@ -166,6 +169,7 @@ export class BlackHoleSceneCapture {
           sources,
           mask: object.layers.mask,
           background,
+          surface: (object as THREE.Mesh).isMesh === true,
           transparent:
             !background &&
             sources.some(
@@ -226,7 +230,17 @@ export class BlackHoleSceneCapture {
       const transparentObjects = objects.filter(
         (entry) => entry.transparent && (entry.mask & camera.layers.mask) !== 0,
       );
-      this.hasTransparent = transparentObjects.length > 0;
+      this.hasTransparent = transparentObjects.some((entry) => !entry.surface);
+      this.hasSurfaces = transparentObjects.some((entry) => entry.surface);
+      if (this.hasSurfaces) {
+        if (
+          this.surfaces.width !== this.size.x ||
+          this.surfaces.height !== this.size.y
+        ) {
+          this.surfaces.setSize(this.size.x, this.size.y);
+        }
+        clear(this.surfaces);
+      }
       // Match ordinary transparent sorting. Layers use the nearest contributing
       // depth; intersecting transparent surfaces retain screen-space limits.
       transparentObjects.sort(
@@ -249,8 +263,8 @@ export class BlackHoleSceneCapture {
         // particles drawn after it in the same draw call.
         renderer.render(scene, this.camera);
         // Then the nearest depth of everything drawn, without touching color.
-        // The composite discards pixels without color, so the depth of
-        // transparent corners does not leak into the layer.
+        // The composite discards empty pixels; overlapping particles within
+        // one renderable still share a single captured depth per pixel.
         entry.sources.forEach((material) => {
           material.depthWrite = material.depthTest = true;
           material.colorWrite = false;
@@ -263,7 +277,24 @@ export class BlackHoleSceneCapture {
           material.colorWrite = original.colorWrite;
         });
         entry.object.layers.mask = 0;
-        renderer.setRenderTarget(this.transparent);
+        // Keep surfaces at their own distance instead of moving a ring to the
+        // depth of a faint particle overlapping it in the captured image.
+        renderer.setRenderTarget(
+          entry.surface ? this.surfaces : this.transparent,
+        );
+        const composite = this.composite.material;
+        composite.depthFunc = THREE.LessEqualDepth;
+        composite.depthWrite = true;
+        composite.blending = THREE.NormalBlending;
+        renderer.render(this.compositeScene, this.camera);
+        // A nearer translucent pixel must not reject light behind it. Blend
+        // farther fragments underneath without replacing the nearest depth.
+        // The strict depth test excludes pixels handled by the first pass.
+        composite.depthFunc = THREE.GreaterDepth;
+        composite.depthWrite = false;
+        composite.blending = THREE.CustomBlending;
+        composite.blendSrc = THREE.OneMinusDstAlphaFactor;
+        composite.blendDst = THREE.OneFactor;
         renderer.render(this.compositeScene, this.camera);
       }
       objects.forEach(({ object, mask, background }) => {
@@ -300,7 +331,12 @@ export class BlackHoleSceneCapture {
   }
 
   dispose(): void {
-    for (const target of [this.background, this.transparent, this.foreground])
+    for (const target of [
+      this.background,
+      this.transparent,
+      this.surfaces,
+      this.foreground,
+    ])
       target.dispose();
     this.composite.geometry.dispose();
     this.composite.material.dispose();

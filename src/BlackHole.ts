@@ -207,6 +207,9 @@ export class BlackHole implements SimulationObject {
         sceneTransparent: { value: null },
         sceneTransparentDepth: { value: null },
         sceneHasTransparent: { value: false },
+        sceneSurfaces: { value: null },
+        sceneSurfaceDepth: { value: null },
+        sceneHasSurfaces: { value: false },
         sceneViewProjection: { value: new THREE.Matrix4() },
         sceneSize: { value: new THREE.Vector2() },
         sceneDepthRange: { value: new THREE.Vector2() },
@@ -243,6 +246,7 @@ export class BlackHole implements SimulationObject {
         this.sceneCapture.render(renderer, scene, camera, centerClip.w);
         uniforms.sceneClearColor.value.copy(this.sceneCapture.clearColor);
         uniforms.sceneHasTransparent.value = this.sceneCapture.hasTransparent;
+        uniforms.sceneHasSurfaces.value = this.sceneCapture.hasSurfaces;
       }
     };
     this.setSceneLensingEnabled(options.lensScene ?? false);
@@ -321,6 +325,10 @@ export class BlackHole implements SimulationObject {
         this.sceneCapture.transparent.texture;
       material.uniforms.sceneTransparentDepth.value =
         this.sceneCapture.transparent.depthTexture;
+      material.uniforms.sceneSurfaces.value =
+        this.sceneCapture.surfaces.texture;
+      material.uniforms.sceneSurfaceDepth.value =
+        this.sceneCapture.surfaces.depthTexture;
       material.uniforms.sceneViewProjection.value =
         this.sceneCapture.viewProjection;
       material.uniforms.sceneSize.value = this.sceneCapture.size;

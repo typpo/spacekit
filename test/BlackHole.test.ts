@@ -123,10 +123,15 @@ describe('BlackHole scene integration', () => {
     second.dispose();
     first.setSceneLensingEnabled(true);
     const capture = (first as any).sceneCapture;
-    const dispose = jest.spyOn(capture.background, 'dispose');
+    const disposals = [
+      'background',
+      'transparent',
+      'surfaces',
+      'foreground',
+    ].map((layer) => jest.spyOn(capture[layer], 'dispose'));
     first.dispose();
     first.dispose();
-    expect(dispose).toHaveBeenCalledTimes(1);
+    disposals.forEach((dispose) => expect(dispose).toHaveBeenCalledTimes(1));
   });
 
   test('only scene lensing requires a depth-texture extension', () => {
@@ -152,7 +157,7 @@ describe('BlackHole scene integration', () => {
     hole.dispose();
   });
 
-  test.each([1, 2, 3, 4])(
+  test.each([1, 2, 3, 4, 5, 6])(
     'capture failure in pass %p restores caller materials and renderer state',
     (failedPass) => {
       const capture = new BlackHoleSceneCapture();
@@ -216,6 +221,7 @@ describe('BlackHole scene integration', () => {
       expect(material.blending).toBe(THREE.AdditiveBlending);
       expect(material.depthWrite).toBe(false);
       expect(material.depthTest).toBe(true);
+      expect(material.colorWrite).toBe(true);
       expect(sprite.layers.mask).toBe(1);
       expect(hole.visible).toBe(true);
       capture.dispose();

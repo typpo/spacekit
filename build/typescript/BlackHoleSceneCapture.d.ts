@@ -3,12 +3,14 @@ import * as THREE from 'three';
 export declare class BlackHoleSceneCapture {
     readonly background: THREE.WebGLRenderTarget;
     readonly transparent: THREE.WebGLRenderTarget;
+    readonly surfaces: THREE.WebGLRenderTarget;
     readonly foreground: THREE.WebGLRenderTarget;
     readonly clearColor: THREE.Color;
     readonly viewProjection: THREE.Matrix4;
     readonly depthRange: THREE.Vector2;
     readonly size: THREE.Vector2;
     hasTransparent: boolean;
+    hasSurfaces: boolean;
     private readonly camera;
     private readonly viewport;
     private readonly compositeScene;

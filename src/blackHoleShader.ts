@@ -34,6 +34,9 @@ uniform sampler2D sceneDepth;
 uniform sampler2D sceneTransparent;
 uniform sampler2D sceneTransparentDepth;
 uniform bool sceneHasTransparent;
+uniform sampler2D sceneSurfaces;
+uniform sampler2D sceneSurfaceDepth;
+uniform bool sceneHasSurfaces;
 uniform mat4 sceneViewProjection;
 uniform vec2 sceneSize;
 uniform vec2 sceneDepthRange;
@@ -279,10 +282,10 @@ void traceRay() {
 // and hardware depth are linear in the same projected-line parameter, so each
 // one-pixel interval can be intersected without an arbitrary world thickness.
 vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
-    bool transparent, float limit, out float firstHit) {
+    bool transparent, float limit, vec4 surface, float surfaceHit, out float firstHit) {
   firstHit = -1.0;
   vec4 light = vec4(0.0);
-  if (direction.w <= 0.0) return light;
+  if (direction.w <= 0.0) return surface;
   float offset = max(0.0, (sceneDepthRange.x - start.w) / direction.w);
   start += direction * offset;
   vec3 first = start.xyz / start.w * 0.5 + 0.5;
@@ -294,8 +297,9 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
   vec2 b = (1.0 - first.xy) * inverseDelta;
   vec2 entry = min(a, b), exitPoint = max(a, b);
   float lo = max(0.0, max(entry.x, entry.y));
-  float hi = min(limit, min(exitPoint.x, exitPoint.y));
-  if (lo > hi || delta.z <= 0.0) return light;
+  // Keep pixel intervals fixed as occluders enter or leave the ray.
+  float hi = min(1.0, min(exitPoint.x, exitPoint.y));
+  if (lo > hi || lo > limit || delta.z <= 0.0) return surface;
   vec2 pixelSpan = abs(delta.xy) * sceneSize;
   float steps = clamp(ceil(max(pixelSpan.x, pixelSpan.y) * (hi - lo)), 1.0, 1024.0);
   float stride = (hi - lo) / steps;
@@ -306,6 +310,7 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
   for (int i = 0; i < 1024; i++) {
     if (float(i) >= steps) break;
     float along = lo + (float(i) + 0.5) * stride;
+    if (along - stride * 0.5 > limit) break;
     vec2 uv = first.xy + delta.xy * along;
     // Sample color and depth at the same texel, including one-pixel orbits.
     uv = (floor(uv * sceneSize) + 0.5) / sceneSize;
@@ -318,6 +323,14 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
     bool crossed = previousSurface && continuous && previousDifference < 0.0 && difference >= 0.0;
     if (depth < 1.0 && hit <= limit && (previousHit < 0.0 || hit > previousHit + stride) &&
         (crossed || abs(difference) <= stride * 0.5 + 0.0000002)) {
+      // Insert the mesh layer at its own distance while marching particles
+      // once. A single batch may contain light on both sides of a ring.
+      if (surfaceHit >= 0.0 && hit > surfaceHit) {
+        light += (1.0 - light.a) * surface;
+        surface = vec4(0.0);
+        surfaceHit = -1.0;
+        if (light.a >= 0.999) return light;
+      }
       // Capture targets have no mipmaps. Accumulate premultiplied light from
       // front to back, continuing through additive halos and translucency.
       vec4 source = texture2D(colors, uv);
@@ -330,7 +343,7 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
     previousDepth = depth;
     previousSurface = depth < 1.0;
   }
-  return light;
+  return light + (1.0 - light.a) * surface;
 }
 
 void main() {
@@ -356,11 +369,17 @@ void main() {
     vec4 source = vec4(0.0);
     vec4 transparentSource = vec4(0.0);
     if (sampledSky) {
-      source = sceneSample(sceneColor, sceneDepth, rayOrigin, sourceClip, false, 1.0, opaqueHit);
+      source = sceneSample(sceneColor, sceneDepth, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
+      float limit = opaqueHit < 0.0 ? 1.0 : opaqueHit;
+      float surfaceHit = -1.0;
+      if (sceneHasSurfaces) {
+        transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, rayOrigin,
+          sourceClip, true, limit, vec4(0.0), -1.0, surfaceHit);
+      }
       if (sceneHasTransparent) {
         float transparentHit;
         transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, rayOrigin,
-          sourceClip, true, opaqueHit < 0.0 ? 1.0 : opaqueHit, transparentHit);
+          sourceClip, true, limit, transparentSource, surfaceHit, transparentHit);
       }
     }
     bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&

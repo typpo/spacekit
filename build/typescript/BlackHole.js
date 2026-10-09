@@ -142,6 +142,9 @@ var BlackHole = /** @class */ (function () {
                 sceneTransparent: { value: null },
                 sceneTransparentDepth: { value: null },
                 sceneHasTransparent: { value: false },
+                sceneSurfaces: { value: null },
+                sceneSurfaceDepth: { value: null },
+                sceneHasSurfaces: { value: false },
                 sceneViewProjection: { value: new THREE.Matrix4() },
                 sceneSize: { value: new THREE.Vector2() },
                 sceneDepthRange: { value: new THREE.Vector2() },
@@ -175,6 +178,7 @@ var BlackHole = /** @class */ (function () {
                 _this.sceneCapture.render(renderer, scene, camera, centerClip.w);
                 uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
                 uniforms.sceneHasTransparent.value = _this.sceneCapture.hasTransparent;
+                uniforms.sceneHasSurfaces.value = _this.sceneCapture.hasSurfaces;
             }
         };
         this.setSceneLensingEnabled((_o = options.lensScene) !== null && _o !== void 0 ? _o : false);
@@ -243,6 +247,10 @@ var BlackHole = /** @class */ (function () {
                 this.sceneCapture.transparent.texture;
             material.uniforms.sceneTransparentDepth.value =
                 this.sceneCapture.transparent.depthTexture;
+            material.uniforms.sceneSurfaces.value =
+                this.sceneCapture.surfaces.texture;
+            material.uniforms.sceneSurfaceDepth.value =
+                this.sceneCapture.surfaces.depthTexture;
             material.uniforms.sceneViewProjection.value =
                 this.sceneCapture.viewProjection;
             material.uniforms.sceneSize.value = this.sceneCapture.size;

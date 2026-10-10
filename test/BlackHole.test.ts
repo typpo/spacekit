@@ -41,7 +41,7 @@ function simulation(unitsPerAu = 1) {
       objects: {
         renderer: {
           extensions: { has: () => true },
-          capabilities: { isWebGL2: true, getMaxPrecision: () => 'highp' },
+          capabilities: { getMaxPrecision: () => 'highp' },
         },
       },
     }),
@@ -135,27 +135,6 @@ describe('BlackHole scene integration', () => {
     first.dispose();
     first.dispose();
     disposals.forEach((dispose) => expect(dispose).toHaveBeenCalledTimes(1));
-  });
-
-  test('scene lensing requires WebGL 2', () => {
-    const sim = simulation();
-    sim.getContext = () => ({
-      options: {},
-      objects: {
-        renderer: {
-          extensions: { has: () => false },
-          capabilities: { isWebGL2: false, getMaxPrecision: () => 'highp' },
-        },
-      },
-    });
-    expect(
-      () => new BlackHole('bh', { massSolar: 4e6, lensScene: true }, sim),
-    ).toThrow(/WebGL 2/);
-    expect(sim.addObject).not.toHaveBeenCalled();
-    const hole = new BlackHole('bh', { massSolar: 4e6 }, sim);
-    expect(sim.addObject).toHaveBeenCalledWith(hole);
-    expect(() => hole.setSceneLensingEnabled(true)).toThrow(/WebGL 2/);
-    hole.dispose();
   });
 
   test.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(

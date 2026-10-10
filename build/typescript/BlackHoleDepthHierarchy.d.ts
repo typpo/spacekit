@@ -7,6 +7,6 @@ export declare class BlackHoleDepthHierarchy {
     private readonly camera;
     private readonly quad;
     constructor();
-    render(renderer: THREE.WebGLRenderer, depth: THREE.Texture, width: number, height: number): void;
+    render(renderer: THREE.WebGLRenderer, source: THREE.WebGLRenderTarget): void;
     dispose(): void;
 }

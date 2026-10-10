@@ -1,5 +1,5 @@
 // Compare every scene-lensed GPU regression image with the original linear
-// walk. Enable with ?compareHierarchy=1; no second CPU renderer is involved.
+// walk. Enable with ?compareHierarchy=1.
 window.compareBlackHoleHierarchy = function (renderer) {
   if (!new URLSearchParams(location.search).has('compareHierarchy')) return;
   const originalRender = renderer.render;
@@ -8,23 +8,20 @@ window.compareBlackHoleHierarchy = function (renderer) {
   renderer.render = function (scene, camera) {
     if (rendering) return originalRender.call(this, scene, camera);
     const target = this.getRenderTarget();
-    const holes = [];
+    let hole;
     scene.traverseVisible((object) => {
       if (
         object.userData.spacekitBlackHole &&
-        object.material.uniforms.lensScene.value
+        object.material.defines.SCENE_LENSING
       )
-        holes.push(object);
+        hole = object;
     });
-    if (!target || holes.length === 0)
-      return originalRender.call(this, scene, camera);
+    if (!target || !hole) return originalRender.call(this, scene, camera);
     rendering = true;
-    const callbacks = holes.map((hole) => hole.onBeforeRender);
+    const onBeforeRender = hole.onBeforeRender;
     try {
       originalRender.call(this, scene, camera);
-      if (
-        !holes.every((hole) => hole.material.uniforms.sceneDepthHierarchy.value)
-      ) {
+      if (!hole.material.uniforms.sceneDepthHierarchy.value) {
         throw new Error('Depth hierarchy unavailable; comparison did not run');
       }
       const accelerated = new Uint8Array(target.width * target.height * 4);
@@ -37,12 +34,10 @@ window.compareBlackHoleHierarchy = function (renderer) {
         target.height,
         accelerated,
       );
-      holes.forEach((hole, index) => {
-        hole.onBeforeRender = function (...args) {
-          callbacks[index].apply(this, args);
-          hole.material.uniforms.sceneDepthHierarchy.value = false;
-        };
-      });
+      hole.onBeforeRender = function (...args) {
+        onBeforeRender.apply(this, args);
+        hole.material.uniforms.sceneDepthHierarchy.value = false;
+      };
       originalRender.call(this, scene, camera);
       this.readRenderTargetPixels(
         target,
@@ -65,9 +60,7 @@ window.compareBlackHoleHierarchy = function (renderer) {
         );
       window.hierarchyComparisons++;
     } finally {
-      holes.forEach((hole, index) => {
-        hole.onBeforeRender = callbacks[index];
-      });
+      hole.onBeforeRender = onBeforeRender;
       rendering = false;
     }
   };

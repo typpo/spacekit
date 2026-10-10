@@ -299,8 +299,6 @@ var Simulation = /** @class */ (function () {
         var renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             context: context,
-            antialias: false,
-            //logarithmicDepthBuffer: true,
         });
         console.info('Max texture resolution:', renderer.capabilities.maxTextureSize);
         var maxPrecision = renderer.capabilities.getMaxPrecision('highp');
@@ -324,8 +322,7 @@ var Simulation = /** @class */ (function () {
         });
         bloomEffect.blendMode.opacity.value = 2.3;
         var bloomPass = new postprocessing_1.EffectPass(camera, bloomEffect);
-        // Bloom was not part of the default frame. Keep it available to callers
-        // through the composer without changing the simulation's appearance.
+        // Bloom is opt-in through the composer.
         bloomPass.enabled = false;
         // sRGB8 targets preserve dark-tone precision and blend in linear light in
         // WebGL 2, just like the lens captures. MSAA belongs on this scene target;

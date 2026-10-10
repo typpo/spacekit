@@ -65,7 +65,6 @@ window.profileBlackHole = async function (simulation, hole, frames = 30) {
         capture.transparentBounds,
         capture.surfaceBounds,
       ]) {
-        if (!bounds) continue;
         wrap(
           bounds,
           'render',

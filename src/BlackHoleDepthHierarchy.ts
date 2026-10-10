@@ -60,21 +60,16 @@ export class BlackHoleDepthHierarchy {
   }
 
   // Called inside scene capture, which owns restoration of renderer state.
-  render(
-    renderer: THREE.WebGLRenderer,
-    depth: THREE.Texture,
-    width: number,
-    height: number,
-  ): void {
+  render(renderer: THREE.WebGLRenderer, source: THREE.WebGLRenderTarget): void {
+    let { width, height } = source;
     const uniforms = this.quad.material.uniforms;
-    uniforms.source.value = depth;
+    uniforms.source.value = source.depthTexture;
     uniforms.sourceIsBounds.value = false;
     for (const target of [this.fine, this.coarse]) {
       uniforms.sourceSize.value.set(width, height);
       width = Math.ceil(width / 8);
       height = Math.ceil(height / 8);
-      if (target.width !== width || target.height !== height)
-        target.setSize(width, height);
+      target.setSize(width, height);
       renderer.setRenderTarget(target);
       renderer.render(this.scene, this.camera);
       uniforms.source.value = target.texture;

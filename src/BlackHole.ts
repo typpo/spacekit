@@ -197,7 +197,6 @@ export class BlackHole implements SimulationObject {
         },
         hasBackground: { value: !!options.backgroundTexture },
         backgroundTexture: { value: options.backgroundTexture ?? null },
-        lensScene: { value: false },
         sceneDepthHierarchy: { value: false },
         sceneBoundsFine: { value: null },
         sceneBoundsCoarse: { value: null },
@@ -240,7 +239,7 @@ export class BlackHole implements SimulationObject {
         camera.matrixWorldInverse,
       );
       this.mesh.getWorldPosition(uniforms.center.value);
-      if (uniforms.lensScene.value && this.sceneCapture) {
+      if (material.defines.SCENE_LENSING && this.sceneCapture) {
         const center = uniforms.center.value;
         centerClip
           .set(center.x, center.y, center.z, 1)
@@ -357,12 +356,11 @@ export class BlackHole implements SimulationObject {
     }
     // Keep the extra traversal code out of the standalone disk program;
     // unused branches can still increase GPU register pressure.
-    if (material.uniforms.lensScene.value !== enabled) {
+    if (!!material.defines.SCENE_LENSING !== enabled) {
       if (enabled) material.defines.SCENE_LENSING = 1;
       else delete material.defines.SCENE_LENSING;
       material.needsUpdate = true;
     }
-    material.uniforms.lensScene.value = enabled;
     material.depthTest = !enabled;
     material.depthWrite = !enabled;
     material.blending = enabled ? THREE.NoBlending : THREE.NormalBlending;
@@ -376,9 +374,6 @@ export class BlackHole implements SimulationObject {
   }
 
   private assertSceneLensingAvailable(): void {
-    if (!this.simulation.getContext().objects.renderer.capabilities.isWebGL2) {
-      throw new Error('Black hole scene lensing requires WebGL 2');
-    }
     const owner = sceneLensOwners.get(this.simulation);
     if (owner && owner !== this) {
       throw new Error('Only one black hole can lens the scene per simulation');

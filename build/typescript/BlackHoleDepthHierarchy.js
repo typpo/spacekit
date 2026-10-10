@@ -71,17 +71,17 @@ var BlackHoleDepthHierarchy = /** @class */ (function () {
         this.coarse.texture.name = 'black-hole-depth-coarse';
     }
     // Called inside scene capture, which owns restoration of renderer state.
-    BlackHoleDepthHierarchy.prototype.render = function (renderer, depth, width, height) {
+    BlackHoleDepthHierarchy.prototype.render = function (renderer, source) {
+        var width = source.width, height = source.height;
         var uniforms = this.quad.material.uniforms;
-        uniforms.source.value = depth;
+        uniforms.source.value = source.depthTexture;
         uniforms.sourceIsBounds.value = false;
         for (var _i = 0, _a = [this.fine, this.coarse]; _i < _a.length; _i++) {
             var target = _a[_i];
             uniforms.sourceSize.value.set(width, height);
             width = Math.ceil(width / 8);
             height = Math.ceil(height / 8);
-            if (target.width !== width || target.height !== height)
-                target.setSize(width, height);
+            target.setSize(width, height);
             renderer.setRenderTarget(target);
             renderer.render(this.scene, this.camera);
             uniforms.source.value = target.texture;

@@ -355,8 +355,6 @@ export class Simulation {
     const renderer = new THREE.WebGLRenderer({
       canvas,
       context,
-      antialias: false,
-      //logarithmicDepthBuffer: true,
     });
     console.info(
       'Max texture resolution:',
@@ -393,8 +391,7 @@ export class Simulation {
     });
     bloomEffect.blendMode.opacity.value = 2.3;
     const bloomPass = new EffectPass(camera, bloomEffect);
-    // Bloom was not part of the default frame. Keep it available to callers
-    // through the composer without changing the simulation's appearance.
+    // Bloom is opt-in through the composer.
     bloomPass.enabled = false;
 
     // sRGB8 targets preserve dark-tone precision and blend in linear light in

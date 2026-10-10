@@ -398,55 +398,52 @@ void main() {
   // Sampling inside that loop makes implicit mip selection undefined.
   vec3 sky = hasBackground ? texture2D(backgroundTexture, skyUv).rgb : sceneClearColor;
 #ifdef SCENE_LENSING
-  {
-    vec2 originalUv = screenPosition * 0.5 + 0.5;
-    vec4 foreground = texture2D(sceneForeground, originalUv);
-    vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);
-    vec4 sourceClip = sceneViewProjection * vec4(escapedWorldDirection, 0.0);
-    vec2 sourceUv = sourceClip.xy / max(sourceClip.w, 0.00001) * 0.5 + 0.5;
-    float opaqueHit = -1.0;
-    vec4 source = vec4(0.0);
-    vec4 transparentSource = vec4(0.0);
-    if (sampledSky) {
-      source = sceneSample(sceneColor, sceneDepth, sceneBoundsFine, sceneBoundsCoarse, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
-      float limit = opaqueHit < 0.0 ? 1.0 : opaqueHit;
-      float surfaceHit = -1.0;
-      if (sceneHasSurfaces) {
-        transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, surfaceBoundsFine, surfaceBoundsCoarse, rayOrigin,
-          sourceClip, true, limit, vec4(0.0), -1.0, surfaceHit);
-      }
-      if (sceneHasTransparent) {
-        float transparentHit;
-        transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, transparentBoundsFine, transparentBoundsCoarse, rayOrigin,
-          sourceClip, true, limit, transparentSource, surfaceHit, transparentHit);
-      }
+  vec2 originalUv = screenPosition * 0.5 + 0.5;
+  vec4 foreground = texture2D(sceneForeground, originalUv);
+  vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);
+  vec4 sourceClip = sceneViewProjection * vec4(escapedWorldDirection, 0.0);
+  vec2 sourceUv = sourceClip.xy / max(sourceClip.w, 0.00001) * 0.5 + 0.5;
+  float opaqueHit = -1.0;
+  vec4 source = vec4(0.0);
+  vec4 transparentSource = vec4(0.0);
+  if (sampledSky) {
+    source = sceneSample(sceneColor, sceneDepth, sceneBoundsFine, sceneBoundsCoarse, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
+    float limit = opaqueHit < 0.0 ? 1.0 : opaqueHit;
+    float surfaceHit = -1.0;
+    if (sceneHasSurfaces) {
+      transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, surfaceBoundsFine, surfaceBoundsCoarse, rayOrigin,
+        sourceClip, true, limit, vec4(0.0), -1.0, surfaceHit);
     }
-    bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&
-      all(lessThanEqual(sourceUv, vec2(1.0)));
-    // Do not repeat/clamp the edge of the camera image or bend a foreground
-    // object into the background. The sky fills unavailable image samples.
-    if (sampledSky && inFrame && texture2D(sceneDepth, sourceUv).x == 1.0) {
-      vec4 distant = texture2D(sceneColor, sourceUv);
-      sky = distant.rgb + (1.0 - distant.a) * sky;
+    if (sceneHasTransparent) {
+      float transparentHit;
+      transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, transparentBoundsFine, transparentBoundsCoarse, rayOrigin,
+        sourceClip, true, limit, transparentSource, surfaceHit, transparentHit);
     }
-    if (opaqueHit >= 0.0) sky = source.rgb + (1.0 - source.a) * sky;
-    sky = transparentSource.rgb + (1.0 - transparentSource.a) * sky;
-    vec3 color = 1.0 - exp(-exposure * emittedLight);
-    if (sampledSky) color += transmission * max(sky, vec3(0.0));
-    color = clamp(color, 0.0, 1.0);
-    // Each capture contains only its side of the lens plane, so transparent
-    // foregrounds do not bring an unwarped copy of the background with them.
-    color = foreground.rgb + (1.0 - foreground.a) * color;
-    gl_FragColor = vec4(color, 1.0);
-    #include <colorspace_fragment>
-    return;
   }
-#endif
+  bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&
+    all(lessThanEqual(sourceUv, vec2(1.0)));
+  // Do not repeat/clamp the edge of the camera image or bend a foreground
+  // object into the background. The sky fills unavailable image samples.
+  if (sampledSky && inFrame && texture2D(sceneDepth, sourceUv).x == 1.0) {
+    vec4 distant = texture2D(sceneColor, sourceUv);
+    sky = distant.rgb + (1.0 - distant.a) * sky;
+  }
+  if (opaqueHit >= 0.0) sky = source.rgb + (1.0 - source.a) * sky;
+  sky = transparentSource.rgb + (1.0 - transparentSource.a) * sky;
+  vec3 color = 1.0 - exp(-exposure * emittedLight);
+  if (sampledSky) color += transmission * max(sky, vec3(0.0));
+  color = clamp(color, 0.0, 1.0);
+  // Each capture contains only its side of the lens plane, so transparent
+  // foregrounds do not bring an unwarped copy of the background with them.
+  color = foreground.rgb + (1.0 - foreground.a) * color;
+  gl_FragColor = vec4(color, 1.0);
+#else
   float alpha = captured || sampledSky ? 1.0 : 1.0 - transmission;
   if (alpha < 0.0001) discard;
   vec3 color = 1.0 - exp(-exposure * emittedLight / alpha);
   if (sampledSky) color += transmission * sky;
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), alpha);
+#endif
   #include <colorspace_fragment>
 }
 `;

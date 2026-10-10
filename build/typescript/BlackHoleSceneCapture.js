@@ -296,11 +296,11 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 renderer.render(scene, this.camera);
             }
             if (this.hasDepthHierarchy) {
-                this.backgroundBounds.render(renderer, this.background.depthTexture, this.size.x, this.size.y);
+                this.backgroundBounds.render(renderer, this.background);
                 if (this.hasTransparent)
-                    this.transparentBounds.render(renderer, this.transparent.depthTexture, this.size.x, this.size.y);
+                    this.transparentBounds.render(renderer, this.transparent);
                 if (this.hasSurfaces)
-                    this.surfaceBounds.render(renderer, this.surfaces.depthTexture, this.size.x, this.size.y);
+                    this.surfaceBounds.render(renderer, this.surfaces);
             }
         }
         finally {

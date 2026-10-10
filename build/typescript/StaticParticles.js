@@ -88,7 +88,6 @@ var StaticParticles = /** @class */ (function () {
             vertexShader: shaders_1.STAR_SHADER_VERTEX,
             fragmentShader: shaders_1.STAR_SHADER_FRAGMENT,
             transparent: true,
-            premultipliedAlpha: true,
         });
         this.pointObject = new THREE.Points(geometry, material);
     };

@@ -117,13 +117,15 @@ var KeplerParticles = /** @class */ (function () {
             geometry.setAttribute(attributeName, attribute);
         });
         var shader = new THREE.ShaderMaterial({
+            defines: this.options.textureUrl === util_1.DEFAULT_TEXTURE_URL
+                ? { SOFT_PARTICLE: 1 }
+                : {},
             uniforms: this.uniforms,
             vertexShader: (0, shaders_1.getOrbitShaderVertex)(),
             fragmentShader: (0, shaders_1.getOrbitShaderFragment)(),
             depthTest: true,
             depthWrite: false,
             transparent: true,
-            premultipliedAlpha: true,
         });
         this.shaderMaterial = shader;
         this.geometry = geometry;

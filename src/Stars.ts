@@ -138,7 +138,6 @@ export class Stars implements SimulationObject {
           fragmentShader: STAR_SHADER_FRAGMENT,
 
           transparent: true,
-          premultipliedAlpha: true,
           depthWrite: false,
         });
 

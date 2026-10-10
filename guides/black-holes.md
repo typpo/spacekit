@@ -87,8 +87,15 @@ This adds two small GPU passes per captured layer and approximately 1.34 MiB of
 bounds textures across three layers at 2560×1440. It targets scene-lensing cost;
 standalone disk integration does not benefit. There is no new public option.
 
-Color captures use sRGB 8-bit storage to preserve dark tones. Texture sampling
-and blending operate in linear light. See the [contributor GPU checks](../test/browser/README.md)
+Color captures and the main frame use sRGB 8-bit storage to preserve dark tones.
+Texture sampling and blending operate in linear light, including overlapping
+transparency over surfaces with scene lensing disabled. The main frame uses
+4-sample MSAA (limited by device support) and a final display-conversion pass;
+bloom remains disabled by default. This fixes the blending mismatch without
+removing the capture-depth and sampling limitations above. The bundled particle
+glow and star fades have opacity profiles tuned for linear blending, with the
+glow tapering to zero at its outer edge. Custom particle textures keep their
+original alpha. See the [contributor GPU checks](../test/browser/README.md)
 for correctness comparisons and profiling instructions.
 
 ## References and validation

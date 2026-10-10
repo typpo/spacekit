@@ -150,6 +150,9 @@
           'custom particle shaders preserve sRGB colors',
         );
         renderer.setRenderTarget(null);
+        // The normal frame uses the composer too, with bloom disabled by
+        // default. Explicitly enable the optional effect for these checks.
+        sim.getContext().objects.composer.passes[1].enabled = true;
         sim.getContext().objects.composer.render();
         const screen = new Uint8Array(4);
         const gl = renderer.getContext();

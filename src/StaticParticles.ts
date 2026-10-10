@@ -89,7 +89,6 @@ export class StaticParticles implements SimulationObject {
       vertexShader: STAR_SHADER_VERTEX,
       fragmentShader: STAR_SHADER_FRAGMENT,
       transparent: true,
-      premultipliedAlpha: true,
     });
 
     this.pointObject = new THREE.Points(geometry, material);

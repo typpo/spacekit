@@ -128,7 +128,6 @@ var Stars = /** @class */ (function () {
                 vertexShader: shaders_1.STAR_SHADER_VERTEX,
                 fragmentShader: shaders_1.STAR_SHADER_FRAGMENT,
                 transparent: true,
-                premultipliedAlpha: true,
                 depthWrite: false,
             });
             _this._stars = new THREE.Points(geometry, material);

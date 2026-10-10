@@ -81,6 +81,11 @@ including capture color precision and scene-depth traversal comparisons.</p>
 caller-provided color images (including black-hole skies); Spacekit sets this
 automatically for its own image textures. Custom <code>ShaderMaterial</code> fragments
 should use Three.js's <code>colorspace_fragment</code> chunk for output conversion.
+The simulation renders through its composer into an MSAA sRGB render target,
+where WebGL 2 blends in linear light, then converts the resolved frame for display.
+Use <code>sim.getContext().objects.composer.render()</code> for a manually rendered frame;
+calling <code>getRenderer().render()</code> directly bypasses this pipeline. Bloom remains
+disabled by default and can be enabled on the composer's bloom pass (<code>passes[1]</code>).
 See the <a href="https://github.com/mrdoob/three.js/wiki/Migration-Guide">Three.js migration guide</a>
 for changes to the exposed <code>Spacekit.THREE</code> API since r135.</p>
 <h1 id="usage-1" class="tsd-anchor-link">Usage<a href="#usage-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>

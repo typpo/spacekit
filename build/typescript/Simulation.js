@@ -290,7 +290,7 @@ var Simulation = /** @class */ (function () {
         // Three.js requires WebGL 2; report a useful error on unsupported devices.
         var canvas = document.createElement('canvas');
         var context = canvas.getContext('webgl2', {
-            antialias: true,
+            antialias: false,
             alpha: false,
         });
         if (!context) {
@@ -299,7 +299,7 @@ var Simulation = /** @class */ (function () {
         var renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             context: context,
-            antialias: true,
+            antialias: false,
             //logarithmicDepthBuffer: true,
         });
         console.info('Max texture resolution:', renderer.capabilities.maxTextureSize);
@@ -316,46 +316,24 @@ var Simulation = /** @class */ (function () {
      * @private
      */
     Simulation.prototype.initPasses = function () {
-        //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
-        //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
         var camera = this.camera.get3jsCamera();
-        /*
-        const sunGeometry = new THREE.SphereGeometry(
-          rescaleNumber(0.004),
-          16,
-        );
-        const sunMaterial = new THREE.MeshBasicMaterial({
-          color: 0xffddaa,
-          transparent: true,
-          depthWrite: false,
-          fog: false,
-        });
-        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-        const rescaled = rescaleArray([0.1, 0.1, 0.0]);
-        sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
-        sun.updateMatrix();
-        sun.updateMatrixWorld();
-    
-        const godRaysEffect = new GodRaysEffect(camera, sun, {
-          color: 0xfff5f2,
-          blur: false,
-        });
-        */
-        //godRaysEffect.dithering = true;
         var bloomEffect = new postprocessing_1.BloomEffect({
             width: 240,
             height: 240,
             luminanceThreshold: 0.2,
         });
         bloomEffect.blendMode.opacity.value = 2.3;
-        var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
-        renderPass.renderToScreen = false;
-        var effectPass = new postprocessing_1.EffectPass(camera, 
-        /*smaaEffect, godRaysEffect*/ bloomEffect);
-        effectPass.renderToScreen = true;
-        var composer = new postprocessing_1.EffectComposer(this.renderer);
-        composer.addPass(renderPass);
-        composer.addPass(effectPass);
+        var bloomPass = new postprocessing_1.EffectPass(camera, bloomEffect);
+        // Bloom was not part of the default frame. Keep it available to callers
+        // through the composer without changing the simulation's appearance.
+        bloomPass.enabled = false;
+        // sRGB8 targets preserve dark-tone precision and blend in linear light in
+        // WebGL 2, just like the lens captures. MSAA belongs on this scene target;
+        // the final fullscreen pass converts the resolved image for display.
+        var composer = new postprocessing_1.EffectComposer(this.renderer, { multisampling: 4 });
+        composer.addPass(new postprocessing_1.RenderPass(this.scene, camera));
+        composer.addPass(bloomPass);
+        composer.addPass(new postprocessing_1.EffectPass(camera));
         this.composer = composer;
     };
     /**
@@ -403,7 +381,7 @@ var Simulation = /** @class */ (function () {
             var camera = this.camera.get3jsCamera();
             camera.aspect = newWidth / newHeight;
             camera.updateProjectionMatrix();
-            this.renderer.setSize(newWidth, newHeight);
+            this.composer.setSize(newWidth, newHeight);
             this.staticForcedUpdate();
             this.lastResizeUpdateTime = now;
         }
@@ -450,12 +428,9 @@ var Simulation = /** @class */ (function () {
             this.doCameraDrift();
         }
         this.camera.update();
-        // Update three.js scene
-        // EffectComposer disables autoClear. Translucent emission must not
-        // accumulate over previous frames.
-        this.renderer.clear();
-        this.renderer.render(this.scene, this.camera.get3jsCamera());
-        //this.composer.render(0.1);
+        // All transparent materials blend in linear light before display output,
+        // whether or not a black hole lenses the scene. RenderPass clears each frame.
+        this.composer.render();
         if (this.onTick) {
             this.onTick();
         }

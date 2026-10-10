@@ -30,17 +30,27 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.SphereObject = void 0;
 var THREE = __importStar(require("three"));
 //import { TranslucentShader } from 'three/examples/jsm/shaders/TranslucentShader.js';
@@ -85,6 +95,7 @@ var SphereObject = /** @class */ (function (_super) {
         var map = null;
         if (this._options.textureUrl) {
             map = new THREE.TextureLoader().load(this._options.textureUrl);
+            map.colorSpace = THREE.SRGBColorSpace;
         }
         var detailedObj = new THREE.LOD();
         var levelsOfDetail = this._options.levelsOfDetail || [
@@ -99,11 +110,11 @@ var SphereObject = /** @class */ (function (_super) {
                 console.warn("SphereObject ".concat(this._id, " requires a texture when using a light source."));
                 var uniforms = {
                     sphereTexture: {
-                        value: undefined
+                        value: undefined,
                     },
                     lightPos: {
-                        value: new THREE.Vector3()
-                    }
+                        value: new THREE.Vector3(),
+                    },
                 };
                 // TODO(ian): Handle if no map
                 uniforms.sphereTexture.value = map;
@@ -112,14 +123,14 @@ var SphereObject = /** @class */ (function (_super) {
                     uniforms: uniforms,
                     vertexShader: shaders_1.SPHERE_SHADER_VERTEX,
                     fragmentShader: shaders_1.SPHERE_SHADER_FRAGMENT,
-                    transparent: true
+                    transparent: true,
                 });
             }
             else {
                 var color = (_a = this._options.color) !== null && _a !== void 0 ? _a : 0xbbbbbb;
                 material = new THREE.MeshBasicMaterial({
                     map: map,
-                    color: color
+                    color: color,
                 });
             }
             var mesh = new THREE.Mesh(sphereGeometry, material);
@@ -139,7 +150,7 @@ var SphereObject = /** @class */ (function (_super) {
             }
         }
         if (this._options.axialTilt) {
-            this._obj.rotation.y += Units_1["default"].rad(this._options.axialTilt);
+            this._obj.rotation.y += Units_1.default.rad(this._options.axialTilt);
         }
         this._renderMethod = 'SPHERE';
         if (this._simulation) {
@@ -194,7 +205,7 @@ var SphereObject = /** @class */ (function (_super) {
             c: { value: coefficient },
             p: { value: power },
             color: { value: colorObj },
-            lightPos: { value: new THREE.Vector3() }
+            lightPos: { value: new THREE.Vector3() },
         };
         var lightPosition = this._simulation.getLightPosition();
         if (lightPosition) {
@@ -207,7 +218,7 @@ var SphereObject = /** @class */ (function (_super) {
             fragmentShader: shaders_1.ATMOSPHERE_SHADER_FRAGMENT,
             side: THREE.BackSide,
             transparent: true,
-            depthWrite: false
+            depthWrite: false,
         });
         return new THREE.Mesh(geometry, material);
     };
@@ -222,11 +233,12 @@ var SphereObject = /** @class */ (function (_super) {
      */
     SphereObject.prototype.addRings = function (innerRadiusKm, outerRadiusKm, texturePath, segments) {
         if (segments === void 0) { segments = 128; }
-        var innerRadiusSize = (0, Scale_1.rescaleNumber)(Units_1["default"].kmToAu(innerRadiusKm));
-        var outerRadiusSize = (0, Scale_1.rescaleNumber)(Units_1["default"].kmToAu(outerRadiusKm));
+        var innerRadiusSize = (0, Scale_1.rescaleNumber)(Units_1.default.kmToAu(innerRadiusKm));
+        var outerRadiusSize = (0, Scale_1.rescaleNumber)(Units_1.default.kmToAu(outerRadiusKm));
         var geometry = new THREE.RingGeometry(innerRadiusSize, outerRadiusSize, segments, 5, 0, Math.PI * 2);
         // TODO(ian): Load from base path.
         var map = new THREE.TextureLoader().load(texturePath);
+        map.colorSpace = THREE.SRGBColorSpace;
         var material;
         if (this._simulation.isUsingLightSources()) {
             // TODO(ian): Follow recommendation for defining ShaderMaterials here:
@@ -240,7 +252,7 @@ var SphereObject = /** @class */ (function (_super) {
                     ringTexture: { value: null },
                     innerRadius: { value: innerRadiusSize },
                     outerRadius: { value: outerRadiusSize },
-                    lightPos: { value: new THREE.Vector3() }
+                    lightPos: { value: new THREE.Vector3() },
                 },
             ]);
             uniforms.ringTexture.value = map;
@@ -252,7 +264,7 @@ var SphereObject = /** @class */ (function (_super) {
                 fragmentShader: shaders_1.RING_SHADER_FRAGMENT,
                 transparent: true,
                 alphaTest: 0.1,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
             });
         }
         else {
@@ -261,7 +273,7 @@ var SphereObject = /** @class */ (function (_super) {
                 side: THREE.DoubleSide,
                 transparent: true,
                 alphaTest: 0.1,
-                opacity: 0.8
+                opacity: 0.8,
             });
         }
         var mesh = new THREE.Mesh(geometry, material);

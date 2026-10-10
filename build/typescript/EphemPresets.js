@@ -2,7 +2,7 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.NaturalSatellites = exports.EphemPresets = void 0;
 var Units_1 = __importDefault(require("./Units"));
 var Ephem_1 = require("./Ephem");
@@ -26,7 +26,7 @@ exports.EphemPresets = {
         i: 7.003891682749818,
         om: 4.830774804443502e1,
         w: 2.917940253442659e1,
-        ma: 2.56190975209273e2
+        ma: 2.56190975209273e2,
     }, 'deg', true /* locked */),
     VENUS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -35,7 +35,7 @@ exports.EphemPresets = {
         i: 3.394567787211735,
         om: 7.662534150657346e1,
         w: 5.474567447560867e1,
-        ma: 2.756687596099721e2
+        ma: 2.756687596099721e2,
     }, 'deg', true /* locked */),
     EARTH: new Ephem_1.Ephem({
         // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
@@ -55,7 +55,16 @@ exports.EphemPresets = {
         i: -0.00001531,
         om: 0.0,
         wBar: 102.93768193,
-        L: 100.46457166
+        L: 100.46457166,
+        /*
+        epoch: 2458426.500000000,
+        a: 1.000618919441359E+00,
+        e: 1.676780871638673E-02,
+        i: 0,
+        om: 1.888900932218542E+02,
+        w: 2.718307282052625E+02,
+        ma: 3.021792498388233E+02,
+       */
     }, 'deg', true /* locked */),
     MOON: new Ephem_1.Ephem({
         // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
@@ -68,7 +77,17 @@ exports.EphemPresets = {
         i: 5.102060246928811,
         om: 1.085916732144811e2,
         w: 6.180561793729225e1,
-        ma: 5.053270083636792e1
+        ma: 5.053270083636792e1,
+        /*
+       * heliocentric
+      epoch: 2458621.500000000,
+      a: 1.078855621785179E+00,
+      e: 6.333300212090676E-02,
+      i: 7.211217382317713E-02,
+      om: 6.722057157026397E+01,
+      w: 1.503642883585293E+02,
+      ma: 1.666758688084831E+01,
+     */
     }, 'deg', true /* locked */),
     MARS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -77,7 +96,7 @@ exports.EphemPresets = {
         i: 1.848141099825311,
         om: 4.950420572080223e1,
         w: 2.866965847685386e2,
-        ma: 2.538237617924876e1
+        ma: 2.538237617924876e1,
     }, 'deg', true /* locked */),
     JUPITER: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -86,7 +105,7 @@ exports.EphemPresets = {
         i: 1.303560894624275,
         om: 1.005203828847816e2,
         w: 2.73736301845404e2,
-        ma: 2.31939544389401e2
+        ma: 2.31939544389401e2,
     }, 'deg', true /* locked */),
     SATURN: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -95,7 +114,7 @@ exports.EphemPresets = {
         i: 2.482782449972317,
         om: 1.136154964073247e2,
         w: 3.394422648650336e2,
-        ma: 1.870970898012944e2
+        ma: 1.870970898012944e2,
     }, 'deg', true /* locked */),
     URANUS: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -104,7 +123,7 @@ exports.EphemPresets = {
         i: 7.697511134483724e-1,
         om: 7.414239045667875e1,
         w: 9.942704504702185e1,
-        ma: 2.202603033874267e2
+        ma: 2.202603033874267e2,
     }, 'deg', true /* locked */),
     NEPTUNE: new Ephem_1.Ephem({
         epoch: 2458426.5,
@@ -113,7 +132,7 @@ exports.EphemPresets = {
         i: 1.774569249829094,
         om: 1.318695882492132e2,
         w: 2.586226409499831e2,
-        ma: 3.152804988924479e2
+        ma: 3.152804988924479e2,
     }, 'deg', true /* locked */),
     PLUTO: new Ephem_1.Ephem({
         epoch: 2454000.5,
@@ -122,21 +141,21 @@ exports.EphemPresets = {
         i: 17.0890009196,
         om: 110.376957955,
         w: 112.597141677,
-        ma: 25.2471897122
-    }, 'deg', true /* locked */)
+        ma: 25.2471897122,
+    }, 'deg', true /* locked */),
 };
 var NATURAL_SATELLITE_EQUATORIAL_POLES = {
     // J2000 pole orientations from NAIF PCK pck00011.tpc.
     Pluto: {
         ra: 132.993,
-        dec: -6.163
+        dec: -6.163,
     },
     Uranus: {
         ra: 257.311,
-        dec: -15.175
-    }
+        dec: -15.175,
+    },
 };
-var J2000_OBLIQUITY = Coordinates_1["default"].getObliquity();
+var J2000_OBLIQUITY = Coordinates_1.default.getObliquity();
 var REFERENCE_PLANE_Z_AXIS = [0, 0, 1];
 var VECTOR_EPSILON = 1e-12;
 function clamp(value, min, max) {
@@ -180,7 +199,7 @@ function transformToReferenceFrame(vector, basis) {
     ];
 }
 function equatorialToEcliptic(vector) {
-    return Coordinates_1["default"].equatorialToEcliptic_Cartesian(vector[0], vector[1], vector[2], J2000_OBLIQUITY);
+    return Coordinates_1.default.equatorialToEcliptic_Cartesian(vector[0], vector[1], vector[2], J2000_OBLIQUITY);
 }
 function getReferencePlanePole(moon) {
     switch (moon['Element Type']) {
@@ -199,7 +218,7 @@ function getReferencePlanePole(moon) {
     }
 }
 function getReferencePlaneBasis(pole) {
-    var zAxis = normalizeVector(Coordinates_1["default"].sphericalToCartesian(Units_1["default"].rad(pole.ra), Units_1["default"].rad(pole.dec), 1));
+    var zAxis = normalizeVector(Coordinates_1.default.sphericalToCartesian(Units_1.default.rad(pole.ra), Units_1.default.rad(pole.dec), 1));
     var xAxis = crossProduct(REFERENCE_PLANE_Z_AXIS, zAxis);
     if (magnitude(xAxis) < VECTOR_EPSILON) {
         xAxis = [1, 0, 0];
@@ -209,9 +228,9 @@ function getReferencePlaneBasis(pole) {
     return [xAxis, yAxis, zAxis];
 }
 function getPeriapsisDirection(inclinationDeg, nodeDeg, periapsisDeg) {
-    var inclination = Units_1["default"].rad(inclinationDeg);
-    var node = Units_1["default"].rad(nodeDeg);
-    var periapsis = Units_1["default"].rad(periapsisDeg);
+    var inclination = Units_1.default.rad(inclinationDeg);
+    var node = Units_1.default.rad(nodeDeg);
+    var periapsis = Units_1.default.rad(periapsisDeg);
     return [
         Math.cos(node) * Math.cos(periapsis) -
             Math.sin(node) * Math.sin(periapsis) * Math.cos(inclination),
@@ -221,8 +240,8 @@ function getPeriapsisDirection(inclinationDeg, nodeDeg, periapsisDeg) {
     ];
 }
 function getOrbitalPole(inclinationDeg, nodeDeg) {
-    var inclination = Units_1["default"].rad(inclinationDeg);
-    var node = Units_1["default"].rad(nodeDeg);
+    var inclination = Units_1.default.rad(inclinationDeg);
+    var node = Units_1.default.rad(nodeDeg);
     return [
         Math.sin(node) * Math.sin(inclination),
         -Math.cos(node) * Math.sin(inclination),
@@ -234,7 +253,7 @@ function convertReferencePlaneAnglesToEcliptic(moon) {
         return {
             i: Number(moon.i),
             om: Number(moon.node),
-            w: Number(moon.w)
+            w: Number(moon.w),
         };
     }
     var pole = getReferencePlanePole(moon);
@@ -261,9 +280,9 @@ function convertReferencePlaneAnglesToEcliptic(moon) {
         periapsis = Math.atan2(dotProduct(eclipticPeriapsis, transverseAxis), dotProduct(eclipticPeriapsis, ascendingNode));
     }
     return {
-        i: Units_1["default"].deg(inclination),
-        om: normalizeDegrees(Units_1["default"].deg(node)),
-        w: normalizeDegrees(Units_1["default"].deg(periapsis))
+        i: Units_1.default.deg(inclination),
+        om: normalizeDegrees(Units_1.default.deg(node)),
+        w: normalizeDegrees(Units_1.default.deg(periapsis)),
     };
 }
 /**
@@ -313,23 +332,24 @@ var NaturalSatellites = /** @class */ (function () {
                     var ephem = new Ephem_1.Ephem({
                         GM: ephemGM,
                         epoch: Number(moon['Epoch JD']),
-                        a: Units_1["default"].kmToAu(Number(moon.a)),
+                        a: Units_1.default.kmToAu(Number(moon.a)),
                         e: Number(moon.e),
                         i: eclipticAngles.i,
                         w: eclipticAngles.w,
                         om: eclipticAngles.om,
-                        ma: Number(moon.M)
+                        ma: Number(moon.M),
                     }, 'deg', true /* locked */);
                     _this._satellitesByPlanet[planetName].push({
                         name: moon['Sat.'],
                         elementType: moon['Element Type'],
                         tags: new Set(moon['tags'].split(',')),
-                        ephem: ephem
+                        ephem: ephem,
                     });
                 });
                 console.info('Loaded', moons.length, 'natural satellites');
                 resolve(_this);
-            })["catch"](function (err) {
+            })
+                .catch(function (err) {
                 reject(err);
             });
         });

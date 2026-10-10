@@ -5,9 +5,11 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running finite-distance GPU checks...</pre>
 <script src="../../build/spacekit.js"></script>
+<script src="black-hole-hierarchy-check.js"></script>
 <script>
 const T = Spacekit.THREE;
-const renderer = new T.WebGL1Renderer();
+const renderer = new T.WebGLRenderer();
+compareBlackHoleHierarchy(renderer);
 const size = 800;
 renderer.setSize(size, size);
 renderer.setClearColor(0, 0);

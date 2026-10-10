@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Coordinate3d } from './Coordinates';
 import type { SimulationContext } from './Simulation';
 import type { SpaceObject } from './SpaceObject';

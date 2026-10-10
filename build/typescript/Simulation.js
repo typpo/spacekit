@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -32,12 +42,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -70,12 +80,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.Simulation = void 0;
 var THREE = __importStar(require("three"));
 // @ts-ignore
 var julian_1 = __importDefault(require("julian"));
-var stats_module_1 = __importDefault(require("three/examples/jsm/libs/stats.module"));
+var stats_module_js_1 = __importDefault(require("three/examples/jsm/libs/stats.module.js"));
 var postprocessing_1 = require("postprocessing");
 var Camera_1 = __importDefault(require("./Camera"));
 var BlackHole_1 = require("./BlackHole");
@@ -167,7 +177,7 @@ var Simulation = /** @class */ (function () {
         this.options.basePath = this.options.basePath || (0, util_1.getDefaultBasePath)();
         this.jd =
             typeof this.options.jd === 'undefined'
-                ? Number((0, julian_1["default"])(this.options.startDate || new Date()))
+                ? Number((0, julian_1.default)(this.options.startDate || new Date()))
                 : this.options.jd;
         this.jdDelta = this.options.jdDelta;
         this.jdPerSecond = this.options.jdPerSecond || 100;
@@ -186,7 +196,7 @@ var Simulation = /** @class */ (function () {
         this.subscribedObjects = {};
         // This makes controls.lookAt and other objects treat the positive Z axis
         // as "up" direction.
-        THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+        THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
         // Scale
         if (this.options.unitsPerAu) {
             (0, Scale_1.setScaleFactor)(this.options.unitsPerAu);
@@ -203,7 +213,7 @@ var Simulation = /** @class */ (function () {
         this.animate = this.animate.bind(this);
         this.renderer = this.initRenderer();
         this.scene = new THREE.Scene();
-        this.camera = new Camera_1["default"](this.getContext());
+        this.camera = new Camera_1.default(this.getContext());
         this.composer = undefined;
         // Orbit particle system must be initialized after scene is created and
         // scale is set.
@@ -212,7 +222,7 @@ var Simulation = /** @class */ (function () {
                 '{{assets}}/sprites/smallparticle.png',
             jd: this.jd,
             maxNumParticles: this.options.maxNumParticles,
-            defaultSize: this.options.particleDefaultSize
+            defaultSize: this.options.particleDefaultSize,
         }, this);
         this.init();
         this.animate();
@@ -265,7 +275,7 @@ var Simulation = /** @class */ (function () {
                 this.scene.add(new THREE.AxesHelper(0.5));
             }
             if (this.options.debug.showStats) {
-                this.stats = new stats_module_1["default"]();
+                this.stats = new stats_module_js_1.default();
                 this.stats.showPanel(0);
                 this.simulationElt.appendChild(this.stats.dom);
             }
@@ -277,9 +287,20 @@ var Simulation = /** @class */ (function () {
      * @private
      */
     Simulation.prototype.initRenderer = function () {
-        // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
-        var renderer = new THREE.WebGL1Renderer({
-            antialias: true
+        // Three.js requires WebGL 2; report a useful error on unsupported devices.
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('webgl2', {
+            antialias: true,
+            alpha: false,
+        });
+        if (!context) {
+            throw new Error('Spacekit requires a browser and GPU with WebGL 2 support.');
+        }
+        var renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            context: context,
+            antialias: true,
+            //logarithmicDepthBuffer: true,
         });
         console.info('Max texture resolution:', renderer.capabilities.maxTextureSize);
         var maxPrecision = renderer.capabilities.getMaxPrecision('highp');
@@ -299,7 +320,7 @@ var Simulation = /** @class */ (function () {
         //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
         var camera = this.camera.get3jsCamera();
         /*
-        const sunGeometry = new THREE.SphereBufferGeometry(
+        const sunGeometry = new THREE.SphereGeometry(
           rescaleNumber(0.004),
           16,
         );
@@ -324,7 +345,7 @@ var Simulation = /** @class */ (function () {
         var bloomEffect = new postprocessing_1.BloomEffect({
             width: 240,
             height: 240,
-            luminanceThreshold: 0.2
+            luminanceThreshold: 0.2,
         });
         bloomEffect.blendMode.opacity.value = 2.3;
         var renderPass = new postprocessing_1.RenderPass(this.scene, camera);
@@ -578,7 +599,7 @@ var Simulation = /** @class */ (function () {
      */
     Simulation.prototype.createAmbientLight = function (color) {
         if (color === void 0) { color = 0x333333; }
-        this.scene.add(new THREE.AmbientLight(color));
+        this.scene.add(new THREE.AmbientLight(color, Math.PI));
         this.useLightSources = true;
     };
     /**
@@ -598,7 +619,8 @@ var Simulation = /** @class */ (function () {
         this.lightPosition = new THREE.Vector3();
         // Pointlight is for standard meshes created by ShapeObjects.
         // TODO(ian): Remove this point light.
-        var pointLight = new THREE.PointLight();
+        // Preserve illumination at AU scales with Three.js's physical light units.
+        var pointLight = new THREE.PointLight(color, Math.PI, 0, 0);
         if (typeof pos === 'undefined') {
             // The light comes from the camera.
             // FIXME(ian): This only affects the point source.
@@ -677,10 +699,10 @@ var Simulation = /** @class */ (function () {
      * @param {Number} offset Add some extra room in the viewport. Increase to be
      * further zoomed out, decrease to be closer. Default 3.0.
      */
-    Simulation.prototype.zoomToFit = function (spaceObj, offset) {
-        if (offset === void 0) { offset = 3.0; }
-        return __awaiter(this, void 0, void 0, function () {
+    Simulation.prototype.zoomToFit = function (spaceObj_1) {
+        return __awaiter(this, arguments, void 0, function (spaceObj, offset) {
             var orbit, obj, _a;
+            if (offset === void 0) { offset = 3.0; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -768,14 +790,14 @@ var Simulation = /** @class */ (function () {
      * @return {Date} Date of simulation
      */
     Simulation.prototype.getDate = function () {
-        return julian_1["default"].toDate(this.jd);
+        return julian_1.default.toDate(this.jd);
     };
     /**
      * Set the local date and time of the simulation.
      * @param {Date} date Date of simulation
      */
     Simulation.prototype.setDate = function (date) {
-        this.setJd(Number((0, julian_1["default"])(date)));
+        this.setJd(Number((0, julian_1.default)(date)));
     };
     /**
      * Get the JD per frame of the visualization.
@@ -828,12 +850,12 @@ var Simulation = /** @class */ (function () {
                 camera: this.camera,
                 scene: this.scene,
                 renderer: this.renderer,
-                composer: this.composer
+                composer: this.composer,
             },
             container: {
                 width: this.simulationElt.offsetWidth,
-                height: this.simulationElt.offsetHeight
-            }
+                height: this.simulationElt.offsetHeight,
+            },
         };
     };
     /**
@@ -859,7 +881,7 @@ var Simulation = /** @class */ (function () {
     };
     /**
      * Get the three.js renderer
-     * @return {THREE.WebGL1Renderer} The THREE.js renderer
+     * @return {THREE.WebGLRenderer} The THREE.js renderer
      */
     Simulation.prototype.getRenderer = function () {
         return this.renderer;
@@ -874,4 +896,4 @@ var Simulation = /** @class */ (function () {
     return Simulation;
 }());
 exports.Simulation = Simulation;
-exports["default"] = Simulation;
+exports.default = Simulation;

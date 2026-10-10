@@ -1,5 +1,5 @@
-export declare type Coordinate3d = [number, number, number];
-export declare type CoordinateXYZ = {
+export type Coordinate3d = [number, number, number];
+export type CoordinateXYZ = {
     x: number;
     y: number;
     z: number;

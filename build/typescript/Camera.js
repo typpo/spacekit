@@ -15,16 +15,26 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-exports.__esModule = true;
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __importStar(require("three"));
-var OrbitControls_1 = require("three/examples/jsm/controls/OrbitControls");
+var OrbitControls_js_1 = require("three/examples/jsm/controls/OrbitControls.js");
 var Scale_1 = require("./Scale");
 /**
  * A wrapper for Three.js camera and controls.
@@ -48,7 +58,7 @@ var Camera = /** @class */ (function () {
         // See https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/6
         // TODO(ian): Access this better
         var renderer = this.context.simulation.getRenderer();
-        var controls = new OrbitControls_1.OrbitControls(this.camera, renderer.domElement);
+        var controls = new OrbitControls_js_1.OrbitControls(this.camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.enablePan = true;
@@ -58,11 +68,11 @@ var Camera = /** @class */ (function () {
         controls.mouseButtons = {
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: THREE.MOUSE.DOLLY,
-            RIGHT: THREE.MOUSE.PAN
+            RIGHT: THREE.MOUSE.PAN,
         };
         controls.touches = {
             ONE: THREE.TOUCH.ROTATE,
-            TWO: THREE.TOUCH.DOLLY_ROTATE
+            TWO: THREE.TOUCH.DOLLY_ROTATE,
         };
         this.cameraControls = controls;
     }
@@ -126,4 +136,4 @@ var Camera = /** @class */ (function () {
     };
     return Camera;
 }());
-exports["default"] = Camera;
+exports.default = Camera;

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Black hole depth hierarchy validation</title>
+<link rel="icon" href="data:,">
+<pre id="results">Running hierarchy GPU checks...</pre>
+<script src="../../build/spacekit.js"></script>
+<script src="black-hole-hierarchy-check.js"></script>
+<script>
+const T = Spacekit.THREE;
+const renderer = new T.WebGLRenderer();
+const plainRender = renderer.render.bind(renderer);
+compareBlackHoleHierarchy(renderer);
+const scene = new T.Scene();
+const camera = new T.PerspectiveCamera(50, 1, 0.01, 100);
+const target = new T.WebGLRenderTarget(1, 1);
+const simulation = {
+  getContext: () => ({ options: {}, objects: { renderer } }),
+  getJd: () => 2451545,
+  addObject: object => scene.add(...object.get3jsObjects()),
+  removeObject: object => { scene.remove(...object.get3jsObjects()); object.removalCleanup(); },
+};
+const results = [];
+let hole;
+const assert = (condition, message) => {
+  if (!condition) throw new Error(message);
+  results.push('PASS: ' + message);
+};
+try {
+  assert(new URLSearchParams(location.search).has('compareHierarchy'), 'pixel comparison enabled');
+  const positions = [];
+  let seed = 123;
+  const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+  for (let i = 0; i < 1024; i++) positions.push((random() - 0.5) * 22, (random() - 0.5) * 16, -2 - 12 * random());
+  scene.add(new T.Points(
+    new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(positions, 3)),
+    new T.PointsMaterial({ size: 2, sizeAttenuation: false, transparent: true, opacity: 0.2, depthWrite: false, blending: T.AdditiveBlending }),
+  ));
+  scene.add(new T.LineSegments(
+    new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute([
+      -20, 0, -7, 20, 0, -7, 0, -20, -8, 0, 20, -8,
+      -15, -15, -6, 15, 15, -9, -15, 15, -9, 15, -15, -6,
+    ], 3)), new T.LineBasicMaterial({ color: 0xff4040 }),
+  ));
+  const surface = new T.Mesh(new T.PlaneGeometry(20, 20),
+    new T.MeshBasicMaterial({ color: 0x4080ff, transparent: true, opacity: 0.3, side: T.DoubleSide }));
+  surface.position.z = -10;
+  surface.rotation.y = 0.5;
+  scene.add(surface);
+  const sphere = new T.Mesh(new T.SphereGeometry(2, 32, 16), new T.MeshBasicMaterial({ color: 0xffff00 }));
+  sphere.position.set(3, 1, -8);
+  scene.add(sphere);
+  for (const quality of ['low', 'high']) {
+    hole = new Spacekit.BlackHole('hierarchy', { massSolar: 4e6, lensScene: true, accretionDisk: false, quality }, simulation);
+    for (const [width, height] of [[1, 1], [63, 65], [257, 129], [641, 359]]) {
+      target.setSize(width, height);
+      renderer.setRenderTarget(target);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      for (const offset of [0, 0.09]) {
+        camera.position.set(offset * 10, 0, 8);
+        camera.lookAt(0, 0, 0);
+        camera.setViewOffset(width * 2, height * 2, width * (0.5 + offset), height * 0.5, width, height);
+        renderer.render(scene, camera);
+        assert(hole.sceneCapture.hasDepthHierarchy, `${quality}: ${width}x${height}, offset ${offset} uses hierarchy`);
+      }
+    }
+    // Force the optional float-target capability off. The original walk must
+    // still work, without running any hierarchy render passes.
+    const pixels = () => {
+      const data = new Uint8Array(target.width * target.height * 4);
+      renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, data);
+      return data;
+    };
+    hole.sceneCapture.depthHierarchyEnabled = false;
+    plainRender(scene, camera);
+    const linear = pixels();
+    hole.sceneCapture.depthHierarchyEnabled = true;
+    const hasExtension = renderer.extensions.has;
+    renderer.extensions.has = name => name === 'EXT_color_buffer_float' ? false : hasExtension.call(renderer.extensions, name);
+    try {
+      plainRender(scene, camera);
+      assert(!hole.sceneCapture.hasDepthHierarchy, `${quality}: no float targets uses linear fallback`);
+      assert(pixels().every((value, index) => value === linear[index]), `${quality}: fallback is pixel identical`);
+    } finally { renderer.extensions.has = hasExtension; }
+    hole.dispose();
+  }
+  assert(window.hierarchyComparisons === 16, 'all 16 resized/asymmetric images match the linear walk exactly');
+  assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+  results.push('ALL CHECKS PASSED');
+} catch (error) {
+  results.push('FAIL: ' + error.message);
+  console.error(error);
+} finally {
+  hole?.dispose();
+  target.dispose();
+  scene.traverse(object => { object.geometry?.dispose(); object.material?.dispose(); });
+  renderer.dispose();
+  document.getElementById('results').textContent = results.join('\n');
+}
+</script>
+</html>

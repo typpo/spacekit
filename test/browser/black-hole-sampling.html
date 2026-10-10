@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <link rel="icon" href="data:," />
   <meta charset="utf-8" /><title>Black-hole sampling comparison</title>
   <style>
     body {
@@ -20,10 +21,12 @@
   <h1>Procedural disk sampling</h1>
   <pre id="result">Rendering…</pre>
   <script src="../../build/spacekit.js?sampling=4"></script>
+  <script src="black-hole-hierarchy-check.js"></script>
   <script>
     const T = Spacekit.THREE,
       size = 480;
-    const renderer = new T.WebGL1Renderer();
+    const renderer = new T.WebGLRenderer();
+    compareBlackHoleHierarchy(renderer);
     renderer.setSize(size, size);
     const target = new T.WebGLRenderTarget(size, size),
       scene = new T.Scene();

@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var Units = /** @class */ (function () {
     function Units() {
     }
@@ -45,4 +45,4 @@ var Units = /** @class */ (function () {
     };
     return Units;
 }());
-exports["default"] = Units;
+exports.default = Units;

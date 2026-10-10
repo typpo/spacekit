@@ -41,13 +41,14 @@ export interface BlackHoleOptions {
     /**
      * Lens the camera image, including meshes, sprites, lines and particles.
      * Default false. Screen-space approximation for perspective cameras.
-     * Requires WEBGL_depth_texture; uses captured finite source distances.
+     * Requires WebGL 2; uses captured finite source distances.
      * Enable on at most one black hole per simulation.
      */
     lensScene?: boolean;
     /**
      * Optional caller-owned equirectangular sky, with north at +Z and longitude
      * zero at +X (center of texture). Replaces the background with a lensed sky.
+     * Set colorSpace to THREE.SRGBColorSpace for display-color images.
      * Use on only one black hole per scene. Enable lensScene to also lens objects.
      */
     backgroundTexture?: THREE.Texture;
@@ -56,7 +57,7 @@ export interface BlackHoleOptions {
  * A stationary Schwarzschild black hole, with GPU null-geodesic ray tracing.
  * Models light around an isolated non-spinning, uncharged mass; it does not
  * change Spacekit's Kepler orbits or simulate accretion hydrodynamics.
- * Requires WebGL EXT_frag_depth and highp fragment precision.
+ * Requires WebGL 2 and highp fragment precision.
  */
 export declare class BlackHole implements SimulationObject {
     private readonly id;

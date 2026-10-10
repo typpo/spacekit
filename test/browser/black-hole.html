@@ -5,13 +5,15 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running GPU checks...</pre>
 <script src="../../build/spacekit.js?sampling=4"></script>
+<script src="black-hole-hierarchy-check.js"></script>
 <script>
 // Run through the local HTTP server. This tests the compiled GPU shader, not
 // a second CPU implementation of it. Failures are also reported to the console.
 const T = Spacekit.THREE;
-const renderer = new T.WebGL1Renderer();
+const renderer = new T.WebGLRenderer();
+compareBlackHoleHierarchy(renderer);
 renderer.setSize(256, 256);
-const target = new T.WebGLRenderTarget(256, 256);
+const target = new T.WebGLRenderTarget(256, 256, { colorSpace: T.SRGBColorSpace });
 const camera = new T.PerspectiveCamera(12, 1, 0.001, 1000);
 const scene = new T.Scene();
 const pixels = new Uint8Array(256 * 256 * 4);
@@ -168,7 +170,7 @@ try {
   assert(relativeDifference < 0.08, 'volume integration agrees across quality settings: ' + relativeDifference.toFixed(4));
   disk.dispose();
   // One pixel gives an exactly radial ray; angular integration is singular here.
-  const radialTarget = new T.WebGLRenderTarget(1, 1);
+  const radialTarget = new T.WebGLRenderTarget(1, 1, { colorSpace: T.SRGBColorSpace });
   const radialPixel = new Uint8Array(4);
   disk = makeDisk({ turbulence: 0 });
   renderer.setRenderTarget(radialTarget);

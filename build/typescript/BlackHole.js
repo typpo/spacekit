@@ -15,14 +15,24 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-exports.__esModule = true;
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.BlackHole = void 0;
 var THREE = __importStar(require("three"));
 var BlackHolePhysics_1 = require("./BlackHolePhysics");
@@ -57,7 +67,7 @@ function diskAspectRatio(value) {
  * A stationary Schwarzschild black hole, with GPU null-geodesic ray tracing.
  * Models light around an isolated non-spinning, uncharged mass; it does not
  * change Spacekit's Kepler orbits or simulate accretion hydrodynamics.
- * Requires WebGL EXT_frag_depth and highp fragment precision.
+ * Requires WebGL 2 and highp fragment precision.
  */
 var BlackHole = /** @class */ (function () {
     function BlackHole(id, options, simulation) {
@@ -97,9 +107,8 @@ var BlackHole = /** @class */ (function () {
             throw new Error('Black hole quality must be low or high');
         }
         var renderer = context.objects.renderer;
-        if (!renderer.extensions.has('EXT_frag_depth') ||
-            renderer.capabilities.getMaxPrecision('highp') !== 'highp') {
-            throw new Error('Black holes require EXT_frag_depth and highp fragment precision');
+        if (renderer.capabilities.getMaxPrecision('highp') !== 'highp') {
+            throw new Error('Black holes require highp fragment precision');
         }
         var rotation = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal));
         var diskToWorld = new THREE.Matrix3().setFromMatrix4(rotation);
@@ -110,7 +119,7 @@ var BlackHole = /** @class */ (function () {
                 RAY_STEPS: options.quality === 'low' ? 768 : 1024,
                 RAY_STEP: options.quality === 'low' ? '0.04' : '0.02',
                 VOLUME_STEP: options.quality === 'low' ? '0.05' : '0.025',
-                VOLUME_SAMPLES: options.quality === 'low' ? 2 : 4
+                VOLUME_SAMPLES: options.quality === 'low' ? 2 : 4,
             },
             uniforms: {
                 inverseProjection: { value: new THREE.Matrix4() },
@@ -120,7 +129,7 @@ var BlackHole = /** @class */ (function () {
                 worldToDisk: { value: diskToWorld.clone().transpose() },
                 diskToWorld: { value: diskToWorld },
                 horizonRadius: {
-                    value: positive('scaled horizon radius', this.radiusAu * this.unitsPerAu)
+                    value: positive('scaled horizon radius', this.radiusAu * this.unitsPerAu),
                 },
                 diskInner: { value: inner },
                 diskOuter: { value: outer },
@@ -132,11 +141,18 @@ var BlackHole = /** @class */ (function () {
                 exposure: { value: exposure },
                 timeSeconds: { value: 0 },
                 lightCrossingSeconds: {
-                    value: (this.radiusAu * BlackHolePhysics_1.METERS_PER_AU) / BlackHolePhysics_1.SPEED_OF_LIGHT
+                    value: (this.radiusAu * BlackHolePhysics_1.METERS_PER_AU) / BlackHolePhysics_1.SPEED_OF_LIGHT,
                 },
                 hasBackground: { value: !!options.backgroundTexture },
                 backgroundTexture: { value: (_m = options.backgroundTexture) !== null && _m !== void 0 ? _m : null },
                 lensScene: { value: false },
+                sceneDepthHierarchy: { value: false },
+                sceneBoundsFine: { value: null },
+                sceneBoundsCoarse: { value: null },
+                transparentBoundsFine: { value: null },
+                transparentBoundsCoarse: { value: null },
+                surfaceBoundsFine: { value: null },
+                surfaceBoundsCoarse: { value: null },
                 sceneColor: { value: null },
                 sceneDepth: { value: null },
                 sceneTransparent: { value: null },
@@ -149,13 +165,12 @@ var BlackHole = /** @class */ (function () {
                 sceneSize: { value: new THREE.Vector2() },
                 sceneDepthRange: { value: new THREE.Vector2() },
                 sceneForeground: { value: null },
-                sceneClearColor: { value: new THREE.Color() }
+                sceneClearColor: { value: new THREE.Color() },
             },
-            extensions: { fragDepth: true },
             transparent: true,
             depthTest: true,
             depthWrite: true,
-            toneMapped: false
+            toneMapped: false,
         });
         this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
         this.mesh.name = id;
@@ -176,6 +191,8 @@ var BlackHole = /** @class */ (function () {
                     .set(center.x, center.y, center.z, 1)
                     .applyMatrix4(uniforms.viewProjection.value);
                 _this.sceneCapture.render(renderer, scene, camera, centerClip.w);
+                uniforms.sceneDepthHierarchy.value =
+                    _this.sceneCapture.hasDepthHierarchy;
                 uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
                 uniforms.sceneHasTransparent.value = _this.sceneCapture.hasTransparent;
                 uniforms.sceneHasSurfaces.value = _this.sceneCapture.hasSurfaces;
@@ -196,7 +213,7 @@ var BlackHole = /** @class */ (function () {
             eventHorizonAu: this.radiusAu,
             photonSphereAu: 1.5 * this.radiusAu,
             iscoAu: 3 * this.radiusAu,
-            shadowImpactParameterAu: BlackHolePhysics_1.SCHWARZSCHILD_CRITICAL_IMPACT * this.radiusAu
+            shadowImpactParameterAu: BlackHolePhysics_1.SCHWARZSCHILD_CRITICAL_IMPACT * this.radiusAu,
         };
     };
     BlackHole.prototype.setPosition = function (position) {
@@ -240,6 +257,18 @@ var BlackHole = /** @class */ (function () {
             this.assertSceneLensingAvailable();
             if (!this.sceneCapture)
                 this.sceneCapture = new BlackHoleSceneCapture_1.BlackHoleSceneCapture();
+            material.uniforms.sceneBoundsFine.value =
+                this.sceneCapture.backgroundBounds.fine.texture;
+            material.uniforms.sceneBoundsCoarse.value =
+                this.sceneCapture.backgroundBounds.coarse.texture;
+            material.uniforms.transparentBoundsFine.value =
+                this.sceneCapture.transparentBounds.fine.texture;
+            material.uniforms.transparentBoundsCoarse.value =
+                this.sceneCapture.transparentBounds.coarse.texture;
+            material.uniforms.surfaceBoundsFine.value =
+                this.sceneCapture.surfaceBounds.fine.texture;
+            material.uniforms.surfaceBoundsCoarse.value =
+                this.sceneCapture.surfaceBounds.coarse.texture;
             material.uniforms.sceneColor.value = this.sceneCapture.background.texture;
             material.uniforms.sceneDepth.value =
                 this.sceneCapture.background.depthTexture;
@@ -260,7 +289,16 @@ var BlackHole = /** @class */ (function () {
             sceneLensOwners.set(this.simulation, this);
         }
         else if (sceneLensOwners.get(this.simulation) === this) {
-            sceneLensOwners["delete"](this.simulation);
+            sceneLensOwners.delete(this.simulation);
+        }
+        // Keep the extra traversal code out of the standalone disk program;
+        // unused branches can still increase GPU register pressure.
+        if (material.uniforms.lensScene.value !== enabled) {
+            if (enabled)
+                material.defines.SCENE_LENSING = 1;
+            else
+                delete material.defines.SCENE_LENSING;
+            material.needsUpdate = true;
         }
         material.uniforms.lensScene.value = enabled;
         material.depthTest = !enabled;
@@ -275,10 +313,8 @@ var BlackHole = /** @class */ (function () {
                 : 1000;
     };
     BlackHole.prototype.assertSceneLensingAvailable = function () {
-        if (!this.simulation
-            .getContext()
-            .objects.renderer.extensions.has('WEBGL_depth_texture')) {
-            throw new Error('Black hole scene lensing requires WEBGL_depth_texture');
+        if (!this.simulation.getContext().objects.renderer.capabilities.isWebGL2) {
+            throw new Error('Black hole scene lensing requires WebGL 2');
         }
         var owner = sceneLensOwners.get(this.simulation);
         if (owner && owner !== this) {
@@ -292,7 +328,7 @@ var BlackHole = /** @class */ (function () {
             return;
         this.disposed = true;
         if (sceneLensOwners.get(this.simulation) === this) {
-            sceneLensOwners["delete"](this.simulation);
+            sceneLensOwners.delete(this.simulation);
         }
         (_a = this.sceneCapture) === null || _a === void 0 ? void 0 : _a.dispose();
         this.mesh.geometry.dispose();

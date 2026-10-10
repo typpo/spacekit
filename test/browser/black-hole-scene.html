@@ -5,9 +5,11 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running scene lensing GPU checks...</pre>
 <script src="../../build/spacekit.js"></script>
+<script src="black-hole-hierarchy-check.js"></script>
 <script>
 const T = Spacekit.THREE;
-const renderer = new T.WebGL1Renderer();
+const renderer = new T.WebGLRenderer();
+compareBlackHoleHierarchy(renderer);
 renderer.setSize(256, 256);
 renderer.setClearColor(0x102030);
 const target = new T.WebGLRenderTarget(256, 256);
@@ -101,7 +103,7 @@ try {
 
     scene.background = new T.Color(0x334455);
     assert(pixel(render(), 128, 128).every(value => value === 0), quality + ': scene background does not fill the foreground layer');
-    assert(pixel(render(), 0, 0).join() === '51,68,85', quality + ': scene background color is retained');
+    assert(pixel(render(), 0, 0).join() === scene.background.toArray().map(value => Math.round(value * 255)).join(), quality + ': scene background color is retained');
     scene.background = null;
 
     scene.add(sprite);
@@ -134,7 +136,7 @@ try {
     sun.position.set(1.5, 0, 4);
     scene.add(sun);
     const withSun = render();
-    assert(pixel(withSun, 238, 165).join() === '16,32,48', quality + ': additive black padding does not erase the background');
+    assert(pixel(withSun, 238, 165).join() === new T.Color(0x102030).toArray().map(value => Math.round(value * 255)).join(), quality + ': additive black padding does not erase the background');
     assert(sun.material.blending === T.AdditiveBlending && sun.material.depthWrite === false,
       quality + ': capture preserves caller material properties');
     scene.remove(sun);
@@ -156,7 +158,7 @@ try {
     assert(renderer.getRenderTarget() === target && renderer.getClearColor(new T.Color()).getHex() === 0x102030,
       quality + ': capture restores the caller target and clear color');
     hole.dispose();
-    assert(pixel(render(), 64, 48).join() === '16,32,48', quality + ': removal restores the ordinary scene');
+    assert(pixel(render(), 64, 48).join() === new T.Color(0x102030).toArray().map(value => Math.round(value * 255)).join(), quality + ': removal restores the ordinary scene');
     assert(renderer.info.memory.textures < textureCount, quality + ': removal releases capture textures');
     target.setSize(256, 256);
     camera.aspect = 1;
@@ -174,10 +176,10 @@ try {
     maxNumParticles: 1, jd: 2451545,
   }, simulation);
   const point = kepler.get3jsObjects()[0];
-  const loadedTexture = point.material.uniforms.texture.value;
+  const loadedTexture = point.material.uniforms.particleTexture.value;
   const white = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   white.needsUpdate = true;
-  point.material.uniforms.texture.value = white;
+  point.material.uniforms.particleTexture.value = white;
   const particleId = kepler.addParticle(new Spacekit.Ephem({
     a: 1, e: 0, i: 0, om: 0, w: 0, ma: 0, epoch: 2451545,
   }), { particleSize: 18, color: 0xff0000 });

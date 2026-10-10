@@ -1,16 +1,15 @@
 import * as THREE from 'three';
 // @ts-ignore
 import julian from 'julian';
-import Stats from 'three/examples/jsm/libs/stats.module';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import {
   BloomEffect,
   EffectComposer,
   EffectPass,
   RenderPass,
-  // @ts-ignore
 } from 'postprocessing';
 
-import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
+import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
 
 import Camera from './Camera';
 import { BlackHole, BlackHoleOptions } from './BlackHole';
@@ -65,7 +64,7 @@ export interface SimulationContext {
   simulation: Simulation;
   options: SpacekitOptions;
   objects: {
-    renderer: WebGL1Renderer;
+    renderer: WebGLRenderer;
     camera: Camera;
     scene: Scene;
     particles: KeplerParticles;
@@ -151,7 +150,7 @@ export class Simulation {
 
   private scene: Scene;
 
-  private renderer: WebGL1Renderer;
+  private renderer: WebGLRenderer;
 
   private composer?: EffectComposer;
 
@@ -229,7 +228,7 @@ export class Simulation {
 
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+    THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
     // Scale
     if (this.options.unitsPerAu) {
@@ -341,9 +340,21 @@ export class Simulation {
   /**
    * @private
    */
-  private initRenderer(): THREE.WebGL1Renderer {
-    // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
-    const renderer = new THREE.WebGL1Renderer({
+  private initRenderer(): THREE.WebGLRenderer {
+    // Three.js requires WebGL 2; report a useful error on unsupported devices.
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgl2', {
+      antialias: true,
+      alpha: false,
+    });
+    if (!context) {
+      throw new Error(
+        'Spacekit requires a browser and GPU with WebGL 2 support.',
+      );
+    }
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      context,
       antialias: true,
       //logarithmicDepthBuffer: true,
     });
@@ -380,7 +391,7 @@ export class Simulation {
     const camera = this.camera.get3jsCamera();
 
     /*
-    const sunGeometry = new THREE.SphereBufferGeometry(
+    const sunGeometry = new THREE.SphereGeometry(
       rescaleNumber(0.004),
       16,
     );
@@ -664,7 +675,7 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene.add(new THREE.AmbientLight(color));
+    this.scene.add(new THREE.AmbientLight(color, Math.PI));
     this.useLightSources = true;
   }
 
@@ -688,7 +699,8 @@ export class Simulation {
 
     // Pointlight is for standard meshes created by ShapeObjects.
     // TODO(ian): Remove this point light.
-    const pointLight = new THREE.PointLight();
+    // Preserve illumination at AU scales with Three.js's physical light units.
+    const pointLight = new THREE.PointLight(color, Math.PI, 0, 0);
 
     if (typeof pos === 'undefined') {
       // The light comes from the camera.
@@ -969,9 +981,9 @@ export class Simulation {
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGL1Renderer} The THREE.js renderer
+   * @return {THREE.WebGLRenderer} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGL1Renderer {
+  getRenderer(): THREE.WebGLRenderer {
     return this.renderer;
   }
 

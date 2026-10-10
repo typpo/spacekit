@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Spacekit WebGL 2 regression checks</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running GPU checks...</pre>
+  <div id="simulation" style="width: 256px; height: 256px"></div>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    (async () => {
+      const T = Spacekit.THREE;
+      const results = [];
+      const container = document.getElementById('simulation');
+      function assert(condition, message) {
+        if (!condition) throw new Error(message);
+        results.push('PASS: ' + message);
+      }
+      try {
+        // Exercise the actual Simulation initialization failure, before any scene
+        // or animation loop is registered, without depending on a WebGL 1 device.
+        const getContext = HTMLCanvasElement.prototype.getContext;
+        let unsupportedError;
+        HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+          return type === 'webgl2'
+            ? null
+            : getContext.call(this, type, ...args);
+        };
+        try {
+          new Spacekit.Simulation(container, { basePath: '../../src' });
+        } catch (error) {
+          unsupportedError = error;
+        } finally {
+          HTMLCanvasElement.prototype.getContext = getContext;
+        }
+        assert(
+          unsupportedError?.message.includes('WebGL 2'),
+          'unsupported devices receive a WebGL 2 error',
+        );
+        assert(
+          container.children.length === 0,
+          'failed initialization leaves no canvas behind',
+        );
+
+        const jd = 2451545;
+        const sim = new Spacekit.Simulation(container, {
+          basePath: '../../src',
+          jd,
+          startPaused: true,
+          maxNumParticles: 8,
+          camera: { initialPosition: [0, 0, 10] },
+        });
+        const renderer = sim.getRenderer();
+        renderer.setPixelRatio(1);
+        const scene = sim.getScene();
+        const camera = sim.getViewer().get3jsCamera();
+        camera.up.set(0, 1, 0);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        assert(
+          renderer.getContext() instanceof WebGL2RenderingContext,
+          'Simulation uses WebGL 2',
+        );
+        assert(
+          T.Object3D.DEFAULT_UP.z === 1,
+          'simulation coordinates remain Z-up',
+        );
+
+        const target = new T.WebGLRenderTarget(256, 256, {
+          colorSpace: T.SRGBColorSpace,
+        });
+        const pixels = new Uint8Array(256 * 256 * 4);
+        function render() {
+          renderer.setRenderTarget(target);
+          renderer.setClearColor(0);
+          renderer.clear();
+          renderer.render(scene, camera);
+          renderer.readRenderTargetPixels(target, 0, 0, 256, 256, pixels);
+          renderer.setRenderTarget(null);
+        }
+        const particles = sim.getContext().objects.particles;
+        const white = new T.DataTexture(
+          new Uint8Array([255, 255, 255, 255]),
+          1,
+          1,
+        );
+        white.colorSpace = T.SRGBColorSpace;
+        white.needsUpdate = true;
+        particles.get3jsObjects()[0].material.uniforms.particleTexture.value =
+          white;
+        for (const [name, e] of [
+          ['elliptical', 0.3],
+          ['near-parabolic', 1.0],
+          ['hyperbolic', 1.8],
+        ]) {
+          const ephem = new Spacekit.Ephem({
+            q: 1,
+            e,
+            i: 0.2,
+            om: 0.3,
+            w: 0.4,
+            ma: 0.25,
+            n: 0.01,
+            epoch: jd,
+            tp: jd - 10,
+          });
+          const index = particles.addParticle(ephem, {
+            particleSize: 7,
+            color: 0x80c040,
+          });
+          for (const time of [jd, jd + 10]) {
+            particles.update(time);
+            render();
+            const expected = new T.Vector3(
+              ...new Spacekit.Orbit(ephem).getPositionAtTime(time),
+            ).project(camera);
+            let sumX = 0,
+              sumY = 0,
+              count = 0;
+            for (let y = 0; y < 256; y++)
+              for (let x = 0; x < 256; x++) {
+                const p = (y * 256 + x) * 4;
+                if (pixels[p + 1] > 100) {
+                  sumX += x + 0.5;
+                  sumY += y + 0.5;
+                  count++;
+                }
+              }
+            assert(count > 0, name + ' GPU particle is visible at JD ' + time);
+            assert(
+              Math.hypot(
+                sumX / count - (expected.x + 1) * 128,
+                sumY / count - (expected.y + 1) * 128,
+              ) < 1.5,
+              name + ' GPU position agrees with the CPU orbit at JD ' + time,
+            );
+          }
+          particles.hideParticle(index);
+        }
+
+        // A known sRGB swatch must survive both custom shaders and the bloom path.
+        const points = sim.createStaticParticles('color', [[0, 0, 0]], {
+          size: 64,
+          defaultColor: 0x804020,
+        });
+        render();
+        const center = (128 * 256 + 128) * 4;
+        const direct = Array.from(pixels.slice(center, center + 3));
+        assert(
+          direct.every((v, i) => Math.abs(v - [128, 64, 32][i]) < 4),
+          'custom particle shaders preserve sRGB colors',
+        );
+        renderer.setRenderTarget(null);
+        sim.getContext().objects.composer.render();
+        const screen = new Uint8Array(4);
+        const gl = renderer.getContext();
+        gl.readPixels(128, 128, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, screen);
+        assert(
+          direct.every((v, i) => Math.abs(v - screen[i]) < 4),
+          'bloom preserves colors below its luminance threshold',
+        );
+        const colors = points.get3jsObjects()[0].geometry.getAttribute('color');
+        colors.setXYZ(0, 1, 1, 1);
+        colors.needsUpdate = true;
+        render();
+        const energy = (image) =>
+          image.reduce(
+            (sum, value, index) => sum + (index % 4 === 3 ? 0 : value),
+            0,
+          );
+        const directEnergy = energy(pixels);
+        sim.getContext().objects.composer.render();
+        gl.readPixels(0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        assert(
+          energy(pixels) > directEnergy * 1.05,
+          'bloom adds visible light around bright particles',
+        );
+        sim.removeObject(points);
+
+        // Exercise texture decoding and the custom lit-sphere fragment shader.
+        sim.createLight([0, 0, 100]);
+        const swatch = document.createElement('canvas');
+        swatch.width = swatch.height = 2;
+        const ctx = swatch.getContext('2d');
+        ctx.fillStyle = '#804020';
+        ctx.fillRect(0, 0, 2, 2);
+        const loaded = new Promise((resolve) => {
+          T.DefaultLoadingManager.onLoad = resolve;
+        });
+        const sphere = sim.createSphere('sphere', {
+          radius: 1,
+          textureUrl: swatch.toDataURL(),
+        });
+        await loaded;
+        render();
+        assert(
+          [128, 64, 32].every((v, i) => Math.abs(v - pixels[center + i]) < 4),
+          'lit sphere decodes and outputs sRGB once',
+        );
+        sim.removeObject(sphere);
+        assert(
+          renderer.info.programs.every(
+            (p) => !p.diagnostics || p.diagnostics.runnable,
+          ),
+          'all GPU programs compile',
+        );
+        assert(
+          gl.getError() === gl.NO_ERROR,
+          'rendering produces no WebGL errors',
+        );
+        target.dispose();
+        white.dispose();
+        document.body.dataset.result = 'pass';
+      } catch (error) {
+        results.push('FAIL: ' + error.message);
+        document.body.dataset.result = 'fail';
+        console.error(error);
+      }
+      document.getElementById('results').textContent = results.join('\n');
+    })();
+  </script>
+</html>

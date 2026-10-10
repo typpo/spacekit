@@ -14,6 +14,9 @@ Note that this library is a work in progress and the API might change!
 
 # Usage
 
+Spacekit requires WebGL 2 and uses Three.js r186 (0.186.1). Devices without
+WebGL 2 support receive an error when creating a `Simulation`.
+
 Install via npm:
 
 ```
@@ -172,6 +175,20 @@ If you want to contribute to this project, you will also need to install Python 
 Running `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/index.html to load a simple example.
 
 If you're making changes to the code, run `pnpm build` to update the build outputs.  `pnpm build:watch` will continuously watch for your changes and update the build and also host a server on localhost:8001 (so you don't have to start the Python server separately).
+
+After building, run `pnpm exec jest --runInBand` and open the
+[WebGL 2 regression checks](test/browser/webgl2.html) and
+[black-hole GPU checks](test/browser/black-hole.html) through the local server.
+These exercise the compiled shaders, orbital particle positions, color output,
+bloom, and depth occlusion on an actual WebGL 2 context.
+
+When migrating custom Three.js code, `getRenderer()` now returns a
+`THREE.WebGLRenderer`. Use `texture.colorSpace = THREE.SRGBColorSpace` for
+caller-provided color images (including black-hole skies); Spacekit sets this
+automatically for its own image textures. Custom `ShaderMaterial` fragments
+should use Three.js's `colorspace_fragment` chunk for output conversion.
+See the [Three.js migration guide](https://github.com/mrdoob/three.js/wiki/Migration-Guide)
+for changes to the exposed `Spacekit.THREE` API since r135.
 
 # Usage
 

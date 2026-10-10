@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -32,12 +42,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -58,7 +68,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpaceObjectPresets = exports.SpaceObject = void 0;
 var THREE = __importStar(require("three"));
 var EphemPresets_1 = require("./EphemPresets");
@@ -85,7 +95,7 @@ function toScreenXY(position, camera, canvas) {
     pos.project(camera);
     return {
         x: ((pos.x + 1) * canvas.clientWidth) / 2,
-        y: ((-pos.y + 1) * canvas.clientHeight) / 2
+        y: ((-pos.y + 1) * canvas.clientHeight) / 2,
     };
 }
 /**
@@ -250,7 +260,7 @@ var SpaceObject = /** @class */ (function () {
                 // Create a particle representing this object on the GPU.
                 this._particleIndex = this._context.objects.particles.addParticle(this._options.ephem, {
                     particleSize: this._options.particleSize,
-                    color: this.getColor()
+                    color: this.getColor(),
                 });
                 this._renderMethod = 'PARTICLESYSTEM';
             }
@@ -296,7 +306,7 @@ var SpaceObject = /** @class */ (function () {
             left: pos.x,
             top: pos.y,
             right: pos.x + label.clientWidth,
-            bottom: pos.y + label.clientHeight
+            bottom: pos.y + label.clientHeight,
         };
         if (loc.left - 30 > 0 &&
             loc.right + 20 < simulationElt.clientWidth &&
@@ -321,12 +331,12 @@ var SpaceObject = /** @class */ (function () {
         }
         var fullTextureUrl = (0, util_1.getFullTextureUrl)(this._options.textureUrl, this._context.options.basePath);
         var texture = new THREE.TextureLoader().load(fullTextureUrl);
-        texture.encoding = THREE.LinearEncoding;
+        texture.colorSpace = THREE.SRGBColorSpace;
         var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
             map: texture,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
-            color: this._options.theme ? this._options.theme.color : 0xffffff
+            color: this._options.theme ? this._options.theme.color : 0xffffff,
         }));
         var scale = (0, Scale_1.rescaleArray)(this._scale);
         sprite.scale.set(scale[0], scale[1], scale[2]);
@@ -358,7 +368,7 @@ var SpaceObject = /** @class */ (function () {
             color: this._options.theme ? this._options.theme.orbitColor : undefined,
             eclipticLineColor: this._options.ecliptic
                 ? this._options.ecliptic.lineColor
-                : undefined
+                : undefined,
         });
     };
     /**
@@ -617,78 +627,78 @@ var DEFAULT_PLANET_TEXTURE_URL = '{{assets}}/sprites/smallparticle.png';
 exports.SpaceObjectPresets = {
     SUN: {
         textureUrl: '{{assets}}/sprites/lensflare0.png',
-        position: [0, 0, 0]
+        position: [0, 0, 0],
     },
     MERCURY: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0x913cee
+            color: 0x913cee,
         },
-        ephem: EphemPresets_1.EphemPresets.MERCURY
+        ephem: EphemPresets_1.EphemPresets.MERCURY,
     },
     VENUS: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0xff7733
+            color: 0xff7733,
         },
-        ephem: EphemPresets_1.EphemPresets.VENUS
+        ephem: EphemPresets_1.EphemPresets.VENUS,
     },
     EARTH: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0x009acd
+            color: 0x009acd,
         },
-        ephem: EphemPresets_1.EphemPresets.EARTH
+        ephem: EphemPresets_1.EphemPresets.EARTH,
     },
     MOON: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0xffd700
+            color: 0xffd700,
         },
         ephem: EphemPresets_1.EphemPresets.MOON,
         // Special params
-        particleSize: 6
+        particleSize: 6,
     },
     MARS: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0xa63a3a
+            color: 0xa63a3a,
         },
-        ephem: EphemPresets_1.EphemPresets.MARS
+        ephem: EphemPresets_1.EphemPresets.MARS,
     },
     JUPITER: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0xffb90f
+            color: 0xffb90f,
         },
-        ephem: EphemPresets_1.EphemPresets.JUPITER
+        ephem: EphemPresets_1.EphemPresets.JUPITER,
     },
     SATURN: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0x336633
+            color: 0x336633,
         },
-        ephem: EphemPresets_1.EphemPresets.SATURN
+        ephem: EphemPresets_1.EphemPresets.SATURN,
     },
     URANUS: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0x0099ff
+            color: 0x0099ff,
         },
-        ephem: EphemPresets_1.EphemPresets.URANUS
+        ephem: EphemPresets_1.EphemPresets.URANUS,
     },
     NEPTUNE: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0x3333ff
+            color: 0x3333ff,
         },
-        ephem: EphemPresets_1.EphemPresets.NEPTUNE
+        ephem: EphemPresets_1.EphemPresets.NEPTUNE,
     },
     PLUTO: {
         textureUrl: DEFAULT_PLANET_TEXTURE_URL,
         theme: {
-            color: 0xccc0b0
+            color: 0xccc0b0,
         },
-        ephem: EphemPresets_1.EphemPresets.PLUTO
-    }
+        ephem: EphemPresets_1.EphemPresets.PLUTO,
+    },
 };

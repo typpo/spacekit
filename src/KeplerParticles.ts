@@ -86,7 +86,7 @@ export class KeplerParticles {
   private elements: Ephem[];
 
   private uniforms: {
-    texture: { value: THREE.Texture };
+    particleTexture: { value: THREE.Texture };
   };
 
   private geometry: THREE.BufferGeometry;
@@ -136,7 +136,7 @@ export class KeplerParticles {
     );
 
     this.uniforms = {
-      texture: { value: defaultMapTexture },
+      particleTexture: { value: defaultMapTexture },
     };
 
     const particleCount =

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'postprocessing';
-import type { Scene, Vector3, WebGL1Renderer } from 'three';
+import type { Scene, Vector3, WebGLRenderer } from 'three';
 import Camera from './Camera';
 import { BlackHole, BlackHoleOptions } from './BlackHole';
 import { KeplerParticles } from './KeplerParticles';
@@ -45,7 +45,7 @@ export interface SimulationContext {
     simulation: Simulation;
     options: SpacekitOptions;
     objects: {
-        renderer: WebGL1Renderer;
+        renderer: WebGLRenderer;
         camera: Camera;
         scene: Scene;
         particles: KeplerParticles;
@@ -359,9 +359,9 @@ export declare class Simulation {
     getScene(): THREE.Scene;
     /**
      * Get the three.js renderer
-     * @return {THREE.WebGL1Renderer} The THREE.js renderer
+     * @return {THREE.WebGLRenderer} The THREE.js renderer
      */
-    getRenderer(): THREE.WebGL1Renderer;
+    getRenderer(): THREE.WebGLRenderer;
     /**
      * Enable or disable camera drift.
      * @param {boolean} driftOn True if you want the camera to float around a bit

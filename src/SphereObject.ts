@@ -53,6 +53,7 @@ export class SphereObject extends RotatingObject {
     let map: THREE.Texture | null = null;
     if (this._options.textureUrl) {
       map = new THREE.TextureLoader().load(this._options.textureUrl);
+      map.colorSpace = THREE.SRGBColorSpace;
     }
 
     const detailedObj = new THREE.LOD();
@@ -71,7 +72,9 @@ export class SphereObject extends RotatingObject {
 
       let material: THREE.ShaderMaterial | THREE.MeshBasicMaterial;
       if (this._simulation.isUsingLightSources()) {
-        console.warn(`SphereObject ${this._id} requires a texture when using a light source.`);
+        console.warn(
+          `SphereObject ${this._id} requires a texture when using a light source.`,
+        );
         const uniforms: Record<string, IUniform> = {
           sphereTexture: {
             value: undefined,
@@ -243,6 +246,7 @@ export class SphereObject extends RotatingObject {
     );
     // TODO(ian): Load from base path.
     const map = new THREE.TextureLoader().load(texturePath);
+    map.colorSpace = THREE.SRGBColorSpace;
 
     let material;
     if (this._simulation.isUsingLightSources()) {

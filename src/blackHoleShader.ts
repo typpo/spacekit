@@ -28,7 +28,15 @@ uniform float timeSeconds;
 uniform float lightCrossingSeconds;
 uniform bool hasBackground;
 uniform sampler2D backgroundTexture;
-uniform bool lensScene;
+#ifdef SCENE_LENSING
+const bool lensScene = true;
+uniform bool sceneDepthHierarchy;
+uniform sampler2D sceneBoundsFine;
+uniform sampler2D sceneBoundsCoarse;
+uniform sampler2D transparentBoundsFine;
+uniform sampler2D transparentBoundsCoarse;
+uniform sampler2D surfaceBoundsFine;
+uniform sampler2D surfaceBoundsCoarse;
 uniform sampler2D sceneColor;
 uniform sampler2D sceneDepth;
 uniform sampler2D sceneTransparent;
@@ -41,6 +49,9 @@ uniform mat4 sceneViewProjection;
 uniform vec2 sceneSize;
 uniform vec2 sceneDepthRange;
 uniform sampler2D sceneForeground;
+#else
+const bool lensScene = false;
+#endif
 uniform vec3 sceneClearColor;
 const float PI = 3.141592653589793;
 bool sampledSky;
@@ -150,7 +161,7 @@ void writeDepth(vec3 ray, float distanceInRadii) {
   vec4 clip = viewProjection * vec4(apparentPosition, 1.0);
   float depth = clip.z / clip.w * 0.5 + 0.5;
   if (clip.w <= 0.0 || depth < 0.0 || depth > 1.0) discard;
-  gl_FragDepthEXT = depth;
+  gl_FragDepth = depth;
 }
 
 void escaped(vec3 direction, vec3 closestPoint) {
@@ -164,7 +175,7 @@ void escaped(vec3 direction, vec3 closestPoint) {
   skyUv = vec2(atan(worldDirection.y, worldDirection.x) / (2.0 * PI) + 0.5,
                 asin(clamp(worldDirection.z, -1.0, 1.0)) / PI + 0.5);
   sampledSky = true;
-  gl_FragDepthEXT = 1.0;
+  gl_FragDepth = 1.0;
 }
 
 void traceRay() {
@@ -176,7 +187,7 @@ void traceRay() {
   // A static observer cannot exist on or inside the horizon.
   if (observerRadius <= 1.00001) {
     captured = true;
-    gl_FragDepthEXT = 0.0;
+    gl_FragDepth = 0.0;
     return;
   }
   vec3 radial = origin / observerRadius;
@@ -278,10 +289,29 @@ void traceRay() {
   writeDepth(worldRay, firstDiskDistance >= 0.0 ? firstDiskDistance : observerRadius);
 }
 
+#ifdef SCENE_LENSING
+// Return the last original sample in a tile only when its entire depth range
+// cannot intersect this ray. Keep both endpoint samples: the final sample seeds
+// the existing continuous-surface crossing test at the next tile boundary.
+float skipDepthTile(sampler2D boundsTexture, float tileSize, vec3 first, vec3 delta,
+    vec2 uv, vec2 inverseDelta, float lo, float stride, float steps, float index) {
+  vec2 tile = floor(uv * sceneSize / tileSize);
+  vec2 edge = (tile + step(vec2(0.0), delta.xy)) * tileSize / sceneSize;
+  vec2 exitAlong = (edge - first.xy) * inverseDelta;
+  float end = min(steps - 1.0, floor((min(exitAlong.x, exitAlong.y) - lo) / stride - 0.5 - 0.001));
+  if (end <= index + 1.0) return index;
+  vec2 bounds = texelFetch(boundsTexture, ivec2(tile), 0).rg;
+  float rayNear = first.z + delta.z * (lo + (index + 0.5) * stride);
+  float rayFar = first.z + delta.z * (lo + (end + 0.5) * stride);
+  float margin = delta.z * (stride * 0.5 + 0.0000002);
+  if (bounds.x == 1.0 || rayFar < bounds.x - margin || rayNear > bounds.y + margin) return end;
+  return index;
+}
+
 // Follow the outgoing asymptote through the camera's depth image. Screen x/y
 // and hardware depth are linear in the same projected-line parameter, so each
 // one-pixel interval can be intersected without an arbitrary world thickness.
-vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
+vec4 sceneSample(sampler2D colors, sampler2D depths, sampler2D fineBounds, sampler2D coarseBounds, vec4 start, vec4 direction,
     bool transparent, float limit, vec4 surface, float surfaceHit, out float firstHit) {
   firstHit = -1.0;
   vec4 light = vec4(0.0);
@@ -307,9 +337,10 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
   float previousDepth = 1.0;
   float previousHit = -1.0;
   bool previousSurface = false;
+  float index = 0.0;
   for (int i = 0; i < 1024; i++) {
-    if (float(i) >= steps) break;
-    float along = lo + (float(i) + 0.5) * stride;
+    if (index >= steps) break;
+    float along = lo + (index + 0.5) * stride;
     if (along - stride * 0.5 > limit) break;
     vec2 uv = first.xy + delta.xy * along;
     // Sample color and depth at the same texel, including one-pixel orbits.
@@ -342,9 +373,16 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, vec4 start, vec4 direction,
     previousDifference = difference;
     previousDepth = depth;
     previousSurface = depth < 1.0;
+    float next = index;
+    if (sceneDepthHierarchy) {
+      next = skipDepthTile(coarseBounds, 64.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
+      if (next == index) next = skipDepthTile(fineBounds, 8.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
+    }
+    index = max(index + 1.0, next);
   }
   return light + (1.0 - light.a) * surface;
 }
+#endif
 
 void main() {
   sampledSky = false;
@@ -359,7 +397,8 @@ void main() {
   // Compute texture derivatives after the variable-length integration loop.
   // Sampling inside that loop makes implicit mip selection undefined.
   vec3 sky = hasBackground ? texture2D(backgroundTexture, skyUv).rgb : sceneClearColor;
-  if (lensScene) {
+#ifdef SCENE_LENSING
+  {
     vec2 originalUv = screenPosition * 0.5 + 0.5;
     vec4 foreground = texture2D(sceneForeground, originalUv);
     vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);
@@ -369,16 +408,16 @@ void main() {
     vec4 source = vec4(0.0);
     vec4 transparentSource = vec4(0.0);
     if (sampledSky) {
-      source = sceneSample(sceneColor, sceneDepth, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
+      source = sceneSample(sceneColor, sceneDepth, sceneBoundsFine, sceneBoundsCoarse, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
       float limit = opaqueHit < 0.0 ? 1.0 : opaqueHit;
       float surfaceHit = -1.0;
       if (sceneHasSurfaces) {
-        transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, rayOrigin,
+        transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, surfaceBoundsFine, surfaceBoundsCoarse, rayOrigin,
           sourceClip, true, limit, vec4(0.0), -1.0, surfaceHit);
       }
       if (sceneHasTransparent) {
         float transparentHit;
-        transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, rayOrigin,
+        transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, transparentBoundsFine, transparentBoundsCoarse, rayOrigin,
           sourceClip, true, limit, transparentSource, surfaceHit, transparentHit);
       }
     }
@@ -393,18 +432,21 @@ void main() {
     if (opaqueHit >= 0.0) sky = source.rgb + (1.0 - source.a) * sky;
     sky = transparentSource.rgb + (1.0 - transparentSource.a) * sky;
     vec3 color = 1.0 - exp(-exposure * emittedLight);
-    if (sampledSky) color += transmission * pow(max(sky, vec3(0.0)), vec3(2.2));
-    color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / 2.2));
+    if (sampledSky) color += transmission * max(sky, vec3(0.0));
+    color = clamp(color, 0.0, 1.0);
     // Each capture contains only its side of the lens plane, so transparent
     // foregrounds do not bring an unwarped copy of the background with them.
     color = foreground.rgb + (1.0 - foreground.a) * color;
     gl_FragColor = vec4(color, 1.0);
+    #include <colorspace_fragment>
     return;
   }
+#endif
   float alpha = captured || sampledSky ? 1.0 : 1.0 - transmission;
   if (alpha < 0.0001) discard;
   vec3 color = 1.0 - exp(-exposure * emittedLight / alpha);
-  if (sampledSky) color += transmission * pow(sky, vec3(2.2));
-  gl_FragColor = vec4(pow(clamp(color, 0.0, 1.0), vec3(1.0 / 2.2)), alpha);
+  if (sampledSky) color += transmission * sky;
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0), alpha);
+  #include <colorspace_fragment>
 }
 `;

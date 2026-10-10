@@ -1,6 +1,6 @@
 "use strict";
-exports.__esModule = true;
-exports.interpolate = void 0;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.interpolate = interpolate;
 /**
  * Interpolates the given 2D array of data using a Lagrange Polynomial interpolation. User specifies first/last row
  * versus giving a number of sample points and a starting index. For best performance number of points generally would
@@ -53,4 +53,3 @@ function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yIndex) {
     }
     return sum;
 }
-exports.interpolate = interpolate;

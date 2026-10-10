@@ -15,17 +15,27 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.EphemerisTable = void 0;
 var SpacekitMath = __importStar(require("./Math"));
 var Util = __importStar(require("./util"));
@@ -36,7 +46,7 @@ var INCREASING_JDATE_SEARCH_METHOD = function (a, b) { return a[0] - b; };
 // Default Values
 var DEFAULT_UNITS = {
     distance: 'au',
-    time: 'day'
+    time: 'day',
 };
 var DEFAULT_EPHEM_TYPE = 'cartesianposvel';
 var DEFAULT_INTERPOLATION_TYPE = 'lagrange';
@@ -172,7 +182,7 @@ var EphemerisTable = /** @class */ (function () {
             case 'au':
                 return 1.0;
             case 'km':
-                return Units_1["default"].kmToAu(1);
+                return Units_1.default.kmToAu(1);
             default:
                 throw new Error('Unknown distance unit type: ' + unitType);
         }

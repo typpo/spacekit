@@ -2,6 +2,12 @@
 // https://jestjs.io/docs/en/configuration.html
 
 module.exports = {
+  // Three.js ships ES modules. Test that entry directly, including through
+  // pnpm's real package paths, instead of its deprecated require() shim.
+  moduleNameMapper: {
+    '^three$': '<rootDir>/node_modules/three/build/three.module.js',
+  },
+  transformIgnorePatterns: ['/node_modules/(?!\\.pnpm/three@|three/)'],
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 

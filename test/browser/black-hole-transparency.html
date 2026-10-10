@@ -39,7 +39,7 @@
     renderer.render(scene, camera);
     return read(target);
   };
-  let texture, cloud, ring, underlay, hole;
+  let texture, cloud, ring, underlay, sheet, pair, hole;
   try {
     texture = await new Promise((resolve, reject) => new T.TextureLoader().load(
       '../../src/assets/sprites/fuzzyparticle.png', resolve, undefined, reject));
@@ -123,6 +123,87 @@
       underlay.geometry.dispose(); underlay.material.dispose(); underlay = null;
       hole.dispose(); hole = null;
     }
+    // Across a four-pixel gap, the far green sprite must not change the near
+    // red image, even with large sprites or a cluster at the near depth.
+    cloud.visible = false; ring.visible = false;
+    camera.quaternion.copy(initialView);
+    pair = new T.Points(new T.BufferGeometry(),
+      new T.PointsMaterial({ sizeAttenuation: false, map: texture, vertexColors: true, transparent: true, depthWrite: false }));
+    scene.add(pair);
+    const focal = size / 2 / Math.tan(camera.fov * Math.PI / 360);
+    for (const quality of ['low', 'high']) {
+      hole = new Spacekit.BlackHole('sparse', { massSolar: 4e6, lensScene: true, accretionDisk: false, quality }, simulation);
+      for (const spriteSize of [8, 16, 24, 32]) for (const offset of [0, 0.5]) for (const crowded of [false, true]) {
+        const halfSpacing = (spriteSize + 4) / 2;
+        const near = [[-halfSpacing + offset, 0]];
+        if (crowded) {
+          const step = 0.75 * spriteSize;
+          near.push([-halfSpacing + offset - step, 0], [-halfSpacing + offset, step], [-halfSpacing + offset, -step]);
+        }
+        const positions = [], colors = [];
+        for (const [x, y] of near) {
+          positions.push(x * 10 / focal, y * 10 / focal, -2);
+          colors.push(1, 0, 0);
+        }
+        positions.push((halfSpacing + offset) * 28 / focal, 0, -20); colors.push(0, 1, 0);
+        pair.geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+        pair.geometry.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
+        pair.material.size = spriteSize;
+        pair.geometry.setDrawRange(0, near.length);
+        const alone = render();
+        pair.geometry.setDrawRange(0, near.length + 1);
+        const together = render();
+        let difference = 0, light = 0;
+        for (let i = 0; i < alone.length; i += 4) {
+          difference += Math.abs(alone[i] - together[i]);
+          light += alone[i];
+        }
+        assert(light > 1000 && difference === 0,
+          quality + ': disjoint ' + spriteSize + 'px sprites' + (crowded ? ' beside a cluster' : '') +
+          ' preserve depth at offset ' + offset + ' (' + difference + ' difference)');
+      }
+      hole.dispose(); hole = null;
+    }
+    scene.remove(pair); pair.geometry.dispose(); pair.material.dispose(); pair = null;
+
+    // Spread a dense cloud in depth while preserving its unlensed image.
+    // Its lensed image must stay smooth rather than break into square tiles.
+    let seed = 7;
+    const random = () => (seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296;
+    const planar = [], spread = [];
+    for (let i = 0; i < 8192; i++) {
+      const x = (random() - 0.5) * 12, y = (random() - 0.5) * 12, z = -2 + (random() - 0.5) * 3;
+      const scale = (camera.position.z - z) / (camera.position.z + 2);
+      planar.push(x, y, -2);
+      spread.push(x * scale, y * scale, z);
+    }
+    sheet = new T.Points(
+      new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(planar, 3)),
+      new T.PointsMaterial({ size: 16, sizeAttenuation: false, map: texture, transparent: true, depthWrite: false }),
+    );
+    scene.add(sheet);
+    hole = new Spacekit.BlackHole('sheet', { massSolar: 2e7, lensScene: true, accretionDisk: false }, simulation);
+    const planarImage = render();
+    sheet.geometry.setAttribute('position', new T.Float32BufferAttribute(spread, 3));
+    const spreadImage = render();
+    // Soft sprites have no hard edges, but the tiles do. Count large steps
+    // between neighboring pixels outside the shadow and the brightest images.
+    const measure = image => {
+      let edges = 0, light = 0;
+      for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) {
+        if (Math.hypot(x - size / 2, y - size / 2) < 80) continue;
+        const i = (y * size + x) * 4;
+        light += image[i];
+        if (Math.abs(image[i] - image[i + 4]) > 64) edges++;
+        if (Math.abs(image[i] - image[i + size * 4]) > 64) edges++;
+      }
+      return { edges, light };
+    };
+    const planarSheet = measure(planarImage), spreadSheet = measure(spreadImage);
+    assert(spreadSheet.light > 0.9 * planarSheet.light && spreadSheet.edges <= 2 * planarSheet.edges + 50,
+      'overlapping sprites at different depths lens without tiles (' + spreadSheet.edges + ' hard edges, ' +
+      planarSheet.edges + ' on one plane)');
+    hole.dispose(); hole = null;
     assert(cloud.material.depthWrite === false && cloud.material.depthTest && cloud.material.colorWrite,
       'particle depth/color settings survive captures');
     assert(renderer.info.programs.every(program => !program.diagnostics || program.diagnostics.runnable), 'all shaders compile');
@@ -132,7 +213,7 @@
     console.error(error);
   } finally {
     if (hole) hole.dispose();
-    for (const object of [cloud, ring, underlay]) if (object) { object.geometry.dispose(); object.material.dispose(); }
+    for (const object of [cloud, ring, underlay, sheet, pair]) if (object) { object.geometry.dispose(); object.material.dispose(); }
     if (texture) texture.dispose();
     target.dispose(); renderer.dispose();
     document.getElementById('results').textContent = results.join('\n');

@@ -26,8 +26,9 @@ exports.__esModule = true;
 exports.BlackHoleSceneCapture = void 0;
 var THREE = __importStar(require("three"));
 // Point sprites are drawn in framebuffer pixels, so depth smoothing is too.
-var POINT_SMOOTHING_PIXELS = 16;
-var POINT_SMOOTHING_SAMPLES = 32;
+// The walk can skip a gap between sprites narrower than one step.
+var POINT_SMOOTHING_STEP_PIXELS = 2;
+var POINT_SMOOTHING_STEPS = 8;
 function depthTarget() {
     var target = new THREE.WebGLRenderTarget(1, 1);
     target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
@@ -53,10 +54,10 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             uniforms: {
                 color: { value: this.foreground.texture },
                 depth: { value: this.foreground.depthTexture },
-                smoothingRadius: { value: new THREE.Vector2() }
+                smoothingStep: { value: new THREE.Vector2() }
             },
             vertexShader: "varying vec2 sampleUv;\n        void main() { sampleUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }",
-            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        uniform vec2 smoothingRadius;\n        float light(vec4 sampleColor) {\n          return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));\n        }\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          // Additive black padding contributes neither light nor coverage.\n          if (light(sampleColor) == 0.0) discard;\n          gl_FragColor = sampleColor;\n          float sampleDepth = texture2D(depth, sampleUv).x;\n          if (smoothingRadius.x > 0.0 && sampleDepth < 1.0) {\n            // Overlapping sprites share one depth per pixel, which would lens\n            // each square quad separately. Average nearby depths by light so\n            // the batch bends as one continuous sheet.\n            float weight = light(sampleColor);\n            float weightedDepth = weight * sampleDepth;\n            float covered = 0.0;\n            for (int i = 0; i < ".concat(POINT_SMOOTHING_SAMPLES, "; i++) {\n              float radius = sqrt((float(i) + 0.5) / ").concat(POINT_SMOOTHING_SAMPLES, ".0);\n              float angle = float(i) * 2.39996323;\n              vec2 uv = sampleUv + vec2(cos(angle), sin(angle)) * radius * smoothingRadius;\n              float neighborDepth = texture2D(depth, uv).x;\n              float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;\n              weight += neighborWeight;\n              weightedDepth += neighborWeight * neighborDepth;\n              covered += neighborWeight > 0.0 ? 1.0 : 0.0;\n            }\n            // Preserve depth in sparse neighborhoods; fade smoothing in from\n            // 60% to 90% coverage, using the samples already gathered above.\n            float density = covered / ").concat(POINT_SMOOTHING_SAMPLES, ".0;\n            sampleDepth = mix(sampleDepth, weightedDepth / weight, smoothstep(0.6, 0.9, density));\n          }\n          gl_FragDepthEXT = sampleDepth;\n        }"),
+            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        uniform vec2 smoothingStep;\n        float light(vec4 sampleColor) {\n          return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));\n        }\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          // Additive black padding contributes neither light nor coverage.\n          if (light(sampleColor) == 0.0) discard;\n          gl_FragColor = sampleColor;\n          float sampleDepth = texture2D(depth, sampleUv).x;\n          if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {\n            // Overlapping sprites share one depth per pixel, which would lens\n            // each square quad separately. Average depths by light across the\n            // sprites connected to this pixel, walking outward in eight\n            // directions until the first gap, so an overlapping batch bends\n            // as one sheet while separate sprites keep their own depths.\n            float weight = light(sampleColor);\n            float weightedDepth = weight * sampleDepth;\n            for (int x = -1; x <= 1; x++) {\n              for (int y = -1; y <= 1; y++) {\n                if (x == 0 && y == 0) continue;\n                // Whole-pixel steps stay on texel centers.\n                vec2 offset = vec2(float(x), float(y)) * smoothingStep;\n                for (int i = 1; i <= ".concat(POINT_SMOOTHING_STEPS, "; i++) {\n                  vec2 uv = sampleUv + offset * float(i);\n                  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) break;\n                  float neighborDepth = texture2D(depth, uv).x;\n                  float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;\n                  if (neighborWeight == 0.0) break;\n                  weight += neighborWeight;\n                  weightedDepth += neighborWeight * neighborDepth;\n                }\n              }\n            }\n            sampleDepth = weightedDepth / weight;\n          }\n          gl_FragDepthEXT = sampleDepth;\n        }"),
             extensions: { fragDepth: true },
             transparent: true,
             premultipliedAlpha: true,
@@ -250,10 +251,10 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 // depth of a faint particle overlapping it in the captured image.
                 renderer.setRenderTarget(entry.surface ? this.surfaces : this.transparent);
                 var composite = this.composite.material;
-                composite.uniforms.smoothingRadius.value
+                composite.uniforms.smoothingStep.value
                     .set(1 / this.size.x, 1 / this.size.y)
                     .multiplyScalar(entry.object.isPoints
-                    ? POINT_SMOOTHING_PIXELS
+                    ? POINT_SMOOTHING_STEP_PIXELS
                     : 0);
                 composite.depthFunc = THREE.LessEqualDepth;
                 composite.depthWrite = true;

@@ -126,25 +126,32 @@
     // Nearby, non-overlapping sprites must not borrow each other's depth.
     // Their square footprints have a four-pixel gap in the capture, and the
     // farther green sprite cannot physically change the nearer red image.
+    // Sprites larger than the smoothing radius, or red neighbors overlapping
+    // the near sprite at its own depth, must not let depth across the gap.
     cloud.visible = false; ring.visible = false;
     camera.quaternion.copy(initialView);
-    pair = new T.Points(new T.BufferGeometry()
-      .setAttribute('color', new T.Float32BufferAttribute([1, 0, 0, 0, 1, 0], 3)),
+    pair = new T.Points(new T.BufferGeometry(),
       new T.PointsMaterial({ sizeAttenuation: false, map: texture, vertexColors: true, transparent: true, depthWrite: false }));
     scene.add(pair);
     const focal = size / 2 / Math.tan(camera.fov * Math.PI / 360);
     for (const quality of ['low', 'high']) {
       hole = new Spacekit.BlackHole('sparse', { massSolar: 4e6, lensScene: true, accretionDisk: false, quality }, simulation);
-      for (const spriteSize of [8, 16]) for (const offset of [0, 0.5]) {
+      for (const spriteSize of [8, 16, 24, 32]) for (const offset of [0, 0.5]) for (const crowded of [false, true]) {
         const halfSpacing = (spriteSize + 4) / 2;
-        pair.geometry.setAttribute('position', new T.Float32BufferAttribute([
-          (-halfSpacing + offset) * 10 / focal, 0, -2,
-          (halfSpacing + offset) * 28 / focal, 0, -20,
-        ], 3));
+        const near = [[-halfSpacing + offset, 0]];
+        if (crowded) {
+          const step = 0.75 * spriteSize;
+          near.push([-halfSpacing + offset - step, 0], [-halfSpacing + offset, step], [-halfSpacing + offset, -step]);
+        }
+        const positions = [], colors = [];
+        for (const [x, y] of near) positions.push(x * 10 / focal, y * 10 / focal, -2), colors.push(1, 0, 0);
+        positions.push((halfSpacing + offset) * 28 / focal, 0, -20); colors.push(0, 1, 0);
+        pair.geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+        pair.geometry.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
         pair.material.size = spriteSize;
-        pair.geometry.setDrawRange(0, 1);
+        pair.geometry.setDrawRange(0, near.length);
         const alone = render();
-        pair.geometry.setDrawRange(0, 2);
+        pair.geometry.setDrawRange(0, near.length + 1);
         const together = render();
         let difference = 0, light = 0;
         for (let i = 0; i < alone.length; i += 4) {
@@ -152,7 +159,8 @@
           light += alone[i];
         }
         assert(light > 1000 && difference === 0,
-          quality + ': disjoint ' + spriteSize + 'px sprites preserve depth at offset ' + offset + ' (' + difference + ' difference)');
+          quality + ': disjoint ' + spriteSize + 'px sprites' + (crowded ? ' beside a cluster' : '') +
+          ' preserve depth at offset ' + offset + ' (' + difference + ' difference)');
       }
       hole.dispose(); hole = null;
     }

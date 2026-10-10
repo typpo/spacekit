@@ -55,7 +55,8 @@ export class BlackHoleSceneCapture {
           float sampleDepth = texture2D(depth, sampleUv).x;
           if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {
             // Smooth overlapping sprite depths along eight directions to avoid
-            // lensing each square separately. Stop at each sampled gap.
+            // lensing each square separately. Stop at each sampled gap so
+            // separate sprites keep their own depths.
             float weightedDepth = weight * sampleDepth;
             for (int x = -1; x <= 1; x++) {
               for (int y = -1; y <= 1; y++) {

@@ -10,6 +10,8 @@ Jest's CPU tests do not compile or execute the GPU shaders.
 - [Disk sampling](black-hole-sampling.html): low/high quality against dense integration.
 - [Capture colors](black-hole-color.html): dark gradients and transparent blending
   against independent sRGB values, including foreground and all background layers.
+- [Particle fades](particle-fades.html): authored halo brightness on the canvas,
+  through the foreground lens pass, and in particle and sky captures.
 - [Scene lensing](black-hole-scene.html?compareHierarchy=1): meshes, sprites, lines,
   GPU particles, resizing, and resource ownership.
 - [Finite source depth](black-hole-scene-depth.html?compareHierarchy=1): image size

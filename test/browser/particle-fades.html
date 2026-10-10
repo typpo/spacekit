@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Particle fade consistency</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running particle fade checks...</pre>
+  <div id="simulation" style="width: 256px; height: 256px"></div>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    // Stop animation while comparing exactly the same source pixels.
+    window.requestAnimationFrame = () => 0;
+    const T = Spacekit.THREE;
+    const results = [];
+    const size = 256;
+    const sim = new Spacekit.Simulation(document.getElementById('simulation'), {
+      basePath: '../../src',
+      jd: 2451545,
+      startPaused: true,
+      maxNumParticles: 1,
+      camera: { initialPosition: [0, 0, 10] },
+    });
+    const renderer = sim.getRenderer();
+    renderer.setPixelRatio(1);
+    renderer.setSize(size, size);
+    const scene = sim.getScene();
+    const camera = sim.getViewer().get3jsCamera();
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+    const particles = sim.getContext().objects.particles;
+    const index = particles.addParticle(
+      new Spacekit.Ephem({
+        a: 1,
+        e: 0,
+        i: 0,
+        om: 0,
+        w: 0,
+        ma: 0,
+        epoch: 2451545,
+      }),
+      { particleSize: 64, color: 0x804020 },
+    );
+    particles.update(2451545);
+    const point = particles.get3jsObjects()[0];
+    const texture = new T.DataTexture(
+      new Uint8Array([255, 255, 255, 255]),
+      1,
+      1,
+    );
+    texture.colorSpace = T.SRGBColorSpace;
+    texture.needsUpdate = true;
+    point.material.uniforms.particleTexture.value = texture;
+    const pixel = new Uint8Array(4);
+    let hole;
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+      results.push('PASS: ' + message);
+    }
+    function draw() {
+      renderer.setRenderTarget(null);
+      renderer.setClearColor(0, 1);
+      renderer.clear();
+      renderer.render(scene, camera);
+    }
+    function read(x, y, target) {
+      if (target) renderer.readRenderTargetPixels(target, x, y, 1, 1, pixel);
+      else {
+        const gl = renderer.getContext();
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      }
+      return Array.from(pixel).slice(0, 3);
+    }
+    function matches(actual, expected) {
+      return actual.every((value, i) => Math.abs(value - expected[i]) <= 2);
+    }
+    function lens(z) {
+      hole?.dispose();
+      hole = sim.createBlackHole('fade', {
+        position: [0, 0, z],
+        massSolar: 4e6,
+        accretionDisk: false,
+        lensScene: true,
+        quality: 'low',
+      });
+    }
+    try {
+      const projected = new T.Vector3(1, 0, 0).project(camera);
+      const x = Math.floor(((projected.x + 1) * size) / 2);
+      for (const alpha of [6, 13, 26, 64, 128, 255]) {
+        texture.image.data[3] = alpha;
+        texture.needsUpdate = true;
+        const expected = [128, 64, 32].map((value) => (value * alpha) / 255);
+        hole?.dispose();
+        hole = undefined;
+        draw();
+        assert(
+          matches(read(x, 128), expected),
+          `Kepler alpha ${alpha}: canvas keeps the authored fade`,
+        );
+        lens(-2);
+        draw();
+        assert(
+          matches(read(x, 128), expected),
+          `Kepler alpha ${alpha}: foreground lens output matches canvas`,
+        );
+        lens(2);
+        draw();
+        assert(
+          matches(read(x, 128, hole.sceneCapture.transparent), expected),
+          `Kepler alpha ${alpha}: background capture keeps the same fade`,
+        );
+      }
+      hole.dispose();
+      hole = undefined;
+      particles.hideParticle(index);
+      const stars = sim.createStaticParticles('stars', [[0, 0, 0]], {
+        size: 64,
+        defaultColor: 0x804020,
+      });
+      const star = stars.get3jsObjects()[0];
+      const locations = [128, 136, 148, 156, 159];
+      const expected = locations.map((x) => {
+        const alpha = Math.max(
+          0,
+          1 - (2 * Math.hypot(x + 0.5 - 128, 0.5)) / 64,
+        );
+        return [128, 64, 32].map((value) => value * alpha);
+      });
+      draw();
+      assert(
+        locations.every((x, i) => matches(read(x, 128), expected[i])),
+        'static particles preserve the radial fade on the canvas',
+      );
+      lens(-2);
+      draw();
+      assert(
+        locations.every((x, i) => matches(read(x, 128), expected[i])),
+        'static particle foreground has the same radial fade',
+      );
+      lens(2);
+      draw();
+      assert(
+        locations.every((x, i) =>
+          matches(read(x, 128, hole.sceneCapture.transparent), expected[i]),
+        ),
+        'static particle background capture has the same radial fade',
+      );
+      // Catalogue stars share this shader but use the infinite background layer.
+      star.userData.spacekitBackground = true;
+      draw();
+      assert(
+        locations.every((x, i) =>
+          matches(read(x, 128, hole.sceneCapture.background), expected[i]),
+        ),
+        'sky capture preserves the star fade',
+      );
+      assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+      results.push('ALL CHECKS PASSED');
+    } catch (error) {
+      results.push('FAIL: ' + error.message);
+      console.error(error);
+    } finally {
+      hole?.dispose();
+      texture.dispose();
+      document.getElementById('results').textContent = results.join('\n');
+    }
+  </script>
+</html>

@@ -186,6 +186,7 @@ export class KeplerParticles {
       depthTest: true,
       depthWrite: false,
       transparent: true,
+      premultipliedAlpha: true,
     });
 
     this.shaderMaterial = shader;

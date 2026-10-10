@@ -123,6 +123,7 @@ var KeplerParticles = /** @class */ (function () {
             depthTest: true,
             depthWrite: false,
             transparent: true,
+            premultipliedAlpha: true,
         });
         this.shaderMaterial = shader;
         this.geometry = geometry;

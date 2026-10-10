@@ -1,5 +1,14 @@
 import { getScaleFactor } from './Scale';
 
+// These marker fades were authored for display-space blending. Premultiply
+// there, then return to linear light so captures and the canvas keep the same
+// soft profile. The material must use premultipliedAlpha.
+const PARTICLE_FADE = `
+  gl_FragColor.rgb = sRGBTransferEOTF(vec4(
+    sRGBTransferOETF(gl_FragColor).rgb * clamp(gl_FragColor.a, 0.0, 1.0), 1.0
+  )).rgb;
+`;
+
 /**
  * @ignore
  */
@@ -11,6 +20,7 @@ export function getOrbitShaderFragment() {
     void main() {
       gl_FragColor = vec4(vColor, 1.0) * texture2D(particleTexture, gl_PointCoord);
       #include <tonemapping_fragment>
+      ${PARTICLE_FADE}
       #include <colorspace_fragment>
     }
   `;
@@ -166,6 +176,7 @@ export const STAR_SHADER_FRAGMENT = `
       float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));
       gl_FragColor = vec4(vColor, a);
       #include <tonemapping_fragment>
+      ${PARTICLE_FADE}
       #include <colorspace_fragment>
     }
 `;

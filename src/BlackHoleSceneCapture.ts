@@ -4,8 +4,7 @@ type Renderable = THREE.Object3D & {
   material: THREE.Material | THREE.Material[];
 };
 
-// Point sprites are drawn in framebuffer pixels, so depth smoothing is too.
-// The walk can skip a gap between sprites narrower than one step.
+// Steps use whole framebuffer pixels per axis; narrower gaps can be skipped.
 const POINT_SMOOTHING_STEP_PIXELS = 2;
 const POINT_SMOOTHING_STEPS = 8;
 
@@ -49,17 +48,14 @@ export class BlackHoleSceneCapture {
         }
         void main() {
           vec4 sampleColor = texture2D(color, sampleUv);
+          float weight = light(sampleColor);
           // Additive black padding contributes neither light nor coverage.
-          if (light(sampleColor) == 0.0) discard;
+          if (weight == 0.0) discard;
           gl_FragColor = sampleColor;
           float sampleDepth = texture2D(depth, sampleUv).x;
           if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {
-            // Overlapping sprites share one depth per pixel, which would lens
-            // each square quad separately. Average depths by light across the
-            // sprites connected to this pixel, walking outward in eight
-            // directions until the first gap, so an overlapping batch bends
-            // as one sheet while separate sprites keep their own depths.
-            float weight = light(sampleColor);
+            // Smooth overlapping sprite depths along eight directions to avoid
+            // lensing each square separately. Stop at each sampled gap.
             float weightedDepth = weight * sampleDepth;
             for (int x = -1; x <= 1; x++) {
               for (int y = -1; y <= 1; y++) {
@@ -300,9 +296,7 @@ export class BlackHoleSceneCapture {
         // particles drawn after it in the same draw call.
         renderer.render(scene, this.camera);
         // Then the nearest depth of everything drawn, without touching color.
-        // The composite discards empty pixels; overlapping particles within
-        // one renderable still share a single captured depth per pixel, so
-        // the composite smooths point depths.
+        // The composite discards empty pixels and smooths overlapping points.
         entry.sources.forEach((material) => {
           material.depthWrite = material.depthTest = true;
           material.colorWrite = false;
@@ -321,13 +315,13 @@ export class BlackHoleSceneCapture {
           entry.surface ? this.surfaces : this.transparent,
         );
         const composite = this.composite.material;
-        composite.uniforms.smoothingStep.value
-          .set(1 / this.size.x, 1 / this.size.y)
-          .multiplyScalar(
-            (entry.object as THREE.Points).isPoints
-              ? POINT_SMOOTHING_STEP_PIXELS
-              : 0,
-          );
+        const step = (entry.object as THREE.Points).isPoints
+          ? POINT_SMOOTHING_STEP_PIXELS
+          : 0;
+        composite.uniforms.smoothingStep.value.set(
+          step / this.size.x,
+          step / this.size.y,
+        );
         composite.depthFunc = THREE.LessEqualDepth;
         composite.depthWrite = true;
         composite.blending = THREE.NormalBlending;

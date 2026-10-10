@@ -65,23 +65,21 @@ try {
         assert(hole.sceneCapture.hasDepthHierarchy, `${quality}: ${width}x${height}, offset ${offset} uses hierarchy`);
       }
     }
-    // Force the optional float-target capability off. The original walk must
-    // still work, without running any hierarchy render passes.
+    // Force the optional float-target capability off. The same image must
+    // still render without running any hierarchy passes.
     const pixels = () => {
       const data = new Uint8Array(target.width * target.height * 4);
       renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, data);
       return data;
     };
-    hole.sceneCapture.depthHierarchyEnabled = false;
     plainRender(scene, camera);
-    const linear = pixels();
-    hole.sceneCapture.depthHierarchyEnabled = true;
+    const accelerated = pixels();
     const hasExtension = renderer.extensions.has;
     renderer.extensions.has = name => name === 'EXT_color_buffer_float' ? false : hasExtension.call(renderer.extensions, name);
     try {
       plainRender(scene, camera);
       assert(!hole.sceneCapture.hasDepthHierarchy, `${quality}: no float targets uses linear fallback`);
-      assert(pixels().every((value, index) => value === linear[index]), `${quality}: fallback is pixel identical`);
+      assert(pixels().every((value, index) => value === accelerated[index]), `${quality}: fallback is pixel identical`);
     } finally { renderer.extensions.has = hasExtension; }
     hole.dispose();
   }

@@ -149,7 +149,7 @@ const hole = sim.createBlackHole('black-hole', {
   accretionDisk: { outerRadius: 12, temperature: 10000 },
 });
 ```
-See the [interactive example](examples/black-hole/index.html) and [physical model, options, and limitations](guides/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
+See the [interactive example](https://typpo.github.io/spacekit/examples/black-hole/) and [physical model, options, and limitations](https://github.com/typpo/spacekit/blob/master/guides/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
 
 # Dependencies
 
@@ -177,10 +177,12 @@ Running `./server.sh` will start a basic Python webserver.  Go to http://localho
 If you're making changes to the code, run `pnpm build` to update the build outputs.  `pnpm build:watch` will continuously watch for your changes and update the build and also host a server on localhost:8001 (so you don't have to start the Python server separately).
 
 After building, run `pnpm exec jest --runInBand` and open the
-[WebGL 2 regression checks](test/browser/webgl2.html) and
-[black-hole GPU checks](test/browser/black-hole.html) through the local server.
+[WebGL 2 regression checks](https://github.com/typpo/spacekit/blob/master/test/browser/webgl2.html) and
+[black-hole GPU checks](https://github.com/typpo/spacekit/blob/master/test/browser/black-hole.html) through the local server.
 These exercise the compiled shaders, orbital particle positions, color output,
 bloom, and depth occlusion on an actual WebGL 2 context.
+See [GPU validation and profiling](https://github.com/typpo/spacekit/blob/master/test/browser/README.md) for the full suite,
+including capture color precision and scene-depth traversal comparisons.
 
 When migrating custom Three.js code, `getRenderer()` now returns a
 `THREE.WebGLRenderer`. Use `texture.colorSpace = THREE.SRGBColorSpace` for

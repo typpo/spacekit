@@ -13,7 +13,6 @@ export declare class BlackHoleSceneCapture {
     readonly backgroundBounds: BlackHoleDepthHierarchy;
     readonly transparentBounds: BlackHoleDepthHierarchy;
     readonly surfaceBounds: BlackHoleDepthHierarchy;
-    depthHierarchyEnabled: boolean;
     hasDepthHierarchy: boolean;
     hasTransparent: boolean;
     hasSurfaces: boolean;

@@ -11,6 +11,9 @@ const POINT_SMOOTHING_STEPS = 8;
 
 function depthTarget(): THREE.WebGLRenderTarget {
   const target = new THREE.WebGLRenderTarget(1, 1);
+  // Preserve dark tones in 8-bit storage; WebGL encodes writes and decodes
+  // samples while keeping capture blending and lens compositing linear.
+  target.texture.colorSpace = THREE.SRGBColorSpace;
   target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   return target;
 }
@@ -28,8 +31,6 @@ export class BlackHoleSceneCapture {
   readonly backgroundBounds = new BlackHoleDepthHierarchy();
   readonly transparentBounds = new BlackHoleDepthHierarchy();
   readonly surfaceBounds = new BlackHoleDepthHierarchy();
-  // Internal A/B switch; unsupported float render targets use the linear walk.
-  depthHierarchyEnabled = true;
   hasDepthHierarchy = false;
   hasTransparent = false;
   hasSurfaces = false;
@@ -123,9 +124,7 @@ export class BlackHoleSceneCapture {
     if (!(camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
       throw new Error('Black hole scene lensing requires a perspective camera');
     }
-    this.hasDepthHierarchy =
-      this.depthHierarchyEnabled &&
-      renderer.extensions.has('EXT_color_buffer_float');
+    this.hasDepthHierarchy = renderer.extensions.has('EXT_color_buffer_float');
     const sourceCamera = camera as THREE.PerspectiveCamera;
     const previousTarget = renderer.getRenderTarget();
     const cubeFace = renderer.getActiveCubeFace();

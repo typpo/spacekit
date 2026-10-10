@@ -74,11 +74,11 @@ Procedural orbital lanes and knots modulate the local density and temperature. T
 
 When `EXT_color_buffer_float` is available, each populated capture layer builds
 32-bit floating-point minimum/maximum depth bounds for 8×8 and 64×64 pixel tiles.
-The outgoing ray skips original sample intervals only when the entire tile is
+The outgoing ray skips one-pixel sample intervals only when the entire tile is
 empty or its depth range cannot intersect the ray. It retains the first and last
-samples at tile boundaries for the continuous-surface crossing test. The original
-sample grid, color compositing, sprite depth smoothing, and volumetric disk
-integration stay the same. Without float color targets, the linear walk is used.
+samples at tile boundaries for the continuous-surface crossing test. It preserves
+the sample grid, color compositing, sprite depth smoothing, and volumetric disk
+integration. Without float color targets, the linear walk is used.
 Scene-lensing and standalone modes compile separate shader programs so unused
 depth traversal code does not affect the standalone disk. Switching modes
 compiles the other program on first use; subsequent toggles reuse it.
@@ -87,14 +87,9 @@ This adds two small GPU passes per captured layer and approximately 1.34 MiB of
 bounds textures across three layers at 2560×1440. It targets scene-lensing cost;
 standalone disk integration does not benefit. There is no new public option.
 
-Append `?compareHierarchy=1` to the scene, scene-depth, stars, and transparency
-GPU check pages to compare every lensed image byte for byte with the original
-linear walk. [The hierarchy checks](../test/browser/black-hole-hierarchy.html?compareHierarchy=1)
-also exercise odd sizes, asymmetric frusta, resizing, and the capability fallback.
-The diagnostic helper `test/browser/black-hole-profile.js` provides GPU timings
-for capture, hierarchy generation, and the final lens shader. Stop automatic
-animation before calling `profileBlackHole(simulation, hole)`; instrumentation
-adds overhead, so measure total frame cost separately.
+Color captures use sRGB 8-bit storage to preserve dark tones. Texture sampling
+and blending operate in linear light. See the [contributor GPU checks](../test/browser/README.md)
+for correctness comparisons and profiling instructions.
 
 ## References and validation
 
@@ -105,7 +100,7 @@ adds overhead, so measure total frame cost separately.
 
 `test/BlackHole.test.ts` checks the solar horizon, radius ratios, ISCO period, critical capture threshold, weak-field deflection, null invariant, integration convergence, positioning/scaling, time scrubbing, camera updates, validation, and resource ownership. Browser checks are also necessary: numerical CPU tests do not compile the GPU shader.
 
-After `pnpm build`, serve the repository and open [the WebGL checks](../test/browser/black-hole.html). They render the actual shader into a framebuffer at both quality settings, compare the shadow diameter with the finite-observer prediction (within two pixels at 256 × 256), and verify translation, foreground/background occlusion, removal, optical-depth response, deterministic disk animation and scrubbing, exact edge-on thickness without bloom, scale-height response, transfer convergence between quality settings, both inward and outward radial rays, artistic-speed equivalence to accelerated simulation time, and full-disk views out to 100 horizon radii. [The sampling comparison](../test/browser/black-hole-sampling.html) also renders a fixed turbulent disk against a much denser integration reference, checking both quality levels and showing the previous one-sample artifacts beside the current result.
+After `pnpm build`, serve the repository and open [the WebGL checks](../test/browser/black-hole.html). They render the actual shader into a framebuffer at both quality settings, compare the shadow diameter with the finite-observer prediction (within two pixels at 256 × 256), and verify translation, foreground/background occlusion, removal, optical-depth response, deterministic disk animation and scrubbing, exact edge-on thickness without bloom, scale-height response, transfer convergence between quality settings, both inward and outward radial rays, artistic-speed equivalence to accelerated simulation time, and full-disk views out to 100 horizon radii. [The sampling comparison](../test/browser/black-hole-sampling.html) also renders a fixed turbulent disk against a much denser integration reference, checking both quality levels against an undersampled stress control.
 
 [The scene-lensing checks](../test/browser/black-hole-scene.html) exercise actual sphere, sprite, orbit-line, custom GPU particle, and additive Sun images at both quality levels. They also cover foreground occlusion, transparent layering, moving objects, camera changes without simulation ticks, resizing, resource reuse/removal, and restoration of caller render state.
 

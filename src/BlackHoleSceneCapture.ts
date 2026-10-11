@@ -8,6 +8,8 @@ type Renderable = THREE.Object3D & {
 // Steps use whole framebuffer pixels per axis; narrower gaps can be skipped.
 const POINT_SMOOTHING_STEP_PIXELS = 2;
 const POINT_SMOOTHING_STEPS = 8;
+// Matches the main frame, so lensed edges keep the same coverage levels.
+const CAPTURE_SAMPLES = 4;
 
 function depthTarget(): THREE.WebGLRenderTarget {
   const target = new THREE.WebGLRenderTarget(1, 1);
@@ -18,12 +20,31 @@ function depthTarget(): THREE.WebGLRenderTarget {
   return target;
 }
 
+// Multisampled color resolves to edge coverage. WebGL 2 resolves multisampled
+// depth in an implementation-defined way, so depth comes from a separate
+// single-sample pass instead.
+function multisampleTarget(): THREE.WebGLRenderTarget {
+  const target = new THREE.WebGLRenderTarget(1, 1, {
+    samples: CAPTURE_SAMPLES,
+    stencilBuffer: false,
+    resolveDepthBuffer: false,
+  });
+  target.texture.colorSpace = THREE.SRGBColorSpace;
+  return target;
+}
+
 /** Camera-clipped color/depth layers for screen-space scene lensing. */
 export class BlackHoleSceneCapture {
   readonly background = depthTarget();
   readonly transparent = depthTarget();
   readonly surfaces = depthTarget();
-  readonly foreground = depthTarget();
+  /** Multisampled scratch color; holds the foreground after each capture. */
+  readonly foreground = multisampleTarget();
+  // Single-sample scratch: depth for the multisampled color passes, and both
+  // color and depth for points and sprites. Their shapes come from texture
+  // alpha, which multisampling does not antialias.
+  private readonly scratch = depthTarget();
+  private readonly emptyScene = new THREE.Scene();
   readonly clearColor = new THREE.Color();
   readonly viewProjection = new THREE.Matrix4();
   readonly depthRange = new THREE.Vector2();
@@ -33,6 +54,8 @@ export class BlackHoleSceneCapture {
   readonly surfaceBounds = new BlackHoleDepthHierarchy();
   hasTransparent = false;
   hasSurfaces = false;
+  /** Approximate angle subtended by one capture texel, in radians. */
+  texelAngle = 0;
   private readonly camera = new THREE.PerspectiveCamera();
   private readonly viewport = new THREE.Vector4();
   private readonly compositeScene = new THREE.Scene();
@@ -41,7 +64,8 @@ export class BlackHoleSceneCapture {
     new THREE.ShaderMaterial({
       uniforms: {
         color: { value: this.foreground.texture },
-        depth: { value: this.foreground.depthTexture },
+        depth: { value: this.scratch.depthTexture },
+        texelSize: { value: new THREE.Vector2() },
         smoothingStep: { value: new THREE.Vector2() },
       },
       vertexShader: `varying vec2 sampleUv;
@@ -49,6 +73,7 @@ export class BlackHoleSceneCapture {
       fragmentShader: `varying vec2 sampleUv;
         uniform sampler2D color;
         uniform sampler2D depth;
+        uniform vec2 texelSize;
         uniform vec2 smoothingStep;
         float light(vec4 sampleColor) {
           return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));
@@ -60,6 +85,16 @@ export class BlackHoleSceneCapture {
           if (weight == 0.0) discard;
           gl_FragColor = sampleColor;
           float sampleDepth = texture2D(depth, sampleUv).x;
+          // Multisampling covers edge pixels whose centers the single-sample
+          // depth pass missed. They belong to the nearest adjacent surface.
+          if (sampleDepth == 1.0) {
+            for (int x = -1; x <= 1; x++) {
+              for (int y = -1; y <= 1; y++) {
+                sampleDepth = min(sampleDepth,
+                  texture2D(depth, sampleUv + vec2(float(x), float(y)) * texelSize).x);
+              }
+            }
+          }
           if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {
             // Smooth overlapping sprite depths along eight directions to avoid
             // lensing each square separately. Stop at each sampled gap so
@@ -114,6 +149,37 @@ export class BlackHoleSceneCapture {
     this.camera.projectionMatrixInverse.copy(projection).invert();
   }
 
+  // Merge captured color and the single-sample depth scratch into a layer.
+  private compositeLayer(
+    renderer: THREE.WebGLRenderer,
+    color: THREE.WebGLRenderTarget,
+    target: THREE.WebGLRenderTarget,
+    smoothingPixels: number,
+    underneath: boolean,
+  ): void {
+    const composite = this.composite.material;
+    composite.uniforms.color.value = color.texture;
+    renderer.setRenderTarget(target);
+    composite.uniforms.smoothingStep.value.set(
+      smoothingPixels / this.size.x,
+      smoothingPixels / this.size.y,
+    );
+    composite.depthFunc = THREE.LessEqualDepth;
+    composite.depthWrite = true;
+    composite.blending = THREE.NormalBlending;
+    renderer.render(this.compositeScene, this.camera);
+    if (!underneath) return;
+    // A nearer translucent pixel must not reject light behind it. Blend
+    // farther fragments underneath without replacing the nearest depth.
+    // The strict depth test excludes pixels handled by the first pass.
+    composite.depthFunc = THREE.GreaterDepth;
+    composite.depthWrite = false;
+    composite.blending = THREE.CustomBlending;
+    composite.blendSrc = THREE.OneMinusDstAlphaFactor;
+    composite.blendDst = THREE.OneFactor;
+    renderer.render(this.compositeScene, this.camera);
+  }
+
   render(
     renderer: THREE.WebGLRenderer,
     scene: THREE.Scene,
@@ -141,11 +207,20 @@ export class BlackHoleSceneCapture {
     renderer.getClearColor(this.clearColor);
     renderer.getCurrentViewport(this.viewport);
     this.size.set(Math.max(1, this.viewport.z), Math.max(1, this.viewport.w));
-    for (const target of [this.background, this.transparent, this.foreground]) {
+    for (const target of [
+      this.background,
+      this.transparent,
+      this.foreground,
+      this.scratch,
+    ]) {
       if (target.width !== this.size.x || target.height !== this.size.y) {
         target.setSize(this.size.x, this.size.y);
       }
     }
+    this.composite.material.uniforms.texelSize.value.set(
+      1 / this.size.x,
+      1 / this.size.y,
+    );
     // A distant Skybox must remain in the background capture. Starting at the
     // lens plane also avoids the simulation camera's very small near plane.
     const near = Math.max(
@@ -261,6 +336,8 @@ export class BlackHoleSceneCapture {
       renderer.shadowMap.autoUpdate = false;
       renderer.autoClear = false;
       this.clipCamera(sourceCamera, near, far);
+      this.texelAngle =
+        2 / (this.camera.projectionMatrix.elements[5] * this.size.y);
       this.composite.layers.mask = camera.layers.mask;
       this.viewProjection.multiplyMatrices(
         this.camera.projectionMatrix,
@@ -269,9 +346,25 @@ export class BlackHoleSceneCapture {
       objects.forEach(({ object, mask, transparent }) => {
         object.layers.mask = transparent ? 0 : mask;
       });
-      clear(this.background);
+      clear(this.foreground);
       renderer.render(scene, this.camera);
+      // Infinite sky writes no depth, so the depth pass can leave it out.
       scene.background = null;
+      const opaque: THREE.Material[] = [];
+      objects.forEach(({ object, sources, background, transparent }) => {
+        if (background) object.layers.mask = 0;
+        else if (!transparent) opaque.push(...sources);
+      });
+      opaque.forEach((material) => {
+        material.colorWrite = false;
+      });
+      clear(this.scratch);
+      renderer.render(scene, this.camera);
+      opaque.forEach((material) => {
+        material.colorWrite = materials.get(material)!.colorWrite;
+      });
+      clear(this.background);
+      this.compositeLayer(renderer, this.foreground, this.background, 0, false);
       clear(this.transparent);
       const transparentObjects = objects.filter(
         (entry) => entry.transparent && (entry.mask & camera.layers.mask) !== 0,
@@ -301,12 +394,15 @@ export class BlackHoleSceneCapture {
       });
       for (const entry of transparentObjects) {
         entry.object.layers.mask = entry.mask;
-        // Reuse the foreground target as temporary storage until its final
-        // capture, avoiding another full-resolution color/depth allocation.
-        clear(this.foreground);
+        const sprites =
+          (entry.object as THREE.Points).isPoints ||
+          (entry.object as THREE.Sprite).isSprite;
         // Color first, with the material's own depth settings. Forcing depth
         // writes here would let each sprite's transparent corners hide the
-        // particles drawn after it in the same draw call.
+        // particles drawn after it in the same draw call. Until its final
+        // capture, the foreground target is multisampled scratch.
+        const color = sprites ? this.scratch : this.foreground;
+        clear(color);
         renderer.render(scene, this.camera);
         // Then the nearest depth of everything drawn, without touching color.
         // The composite discards empty pixels and smooths overlapping points.
@@ -314,6 +410,7 @@ export class BlackHoleSceneCapture {
           material.depthWrite = material.depthTest = true;
           material.colorWrite = false;
         });
+        if (!sprites) clear(this.scratch);
         renderer.render(scene, this.camera);
         entry.sources.forEach((material) => {
           const original = materials.get(material)!;
@@ -324,30 +421,15 @@ export class BlackHoleSceneCapture {
         entry.object.layers.mask = 0;
         // Keep surfaces at their own distance instead of moving a ring to the
         // depth of a faint particle overlapping it in the captured image.
-        renderer.setRenderTarget(
+        this.compositeLayer(
+          renderer,
+          color,
           entry.surface ? this.surfaces : this.transparent,
+          (entry.object as THREE.Points).isPoints
+            ? POINT_SMOOTHING_STEP_PIXELS
+            : 0,
+          true,
         );
-        const composite = this.composite.material;
-        const step = (entry.object as THREE.Points).isPoints
-          ? POINT_SMOOTHING_STEP_PIXELS
-          : 0;
-        composite.uniforms.smoothingStep.value.set(
-          step / this.size.x,
-          step / this.size.y,
-        );
-        composite.depthFunc = THREE.LessEqualDepth;
-        composite.depthWrite = true;
-        composite.blending = THREE.NormalBlending;
-        renderer.render(this.compositeScene, this.camera);
-        // A nearer translucent pixel must not reject light behind it. Blend
-        // farther fragments underneath without replacing the nearest depth.
-        // The strict depth test excludes pixels handled by the first pass.
-        composite.depthFunc = THREE.GreaterDepth;
-        composite.depthWrite = false;
-        composite.blending = THREE.CustomBlending;
-        composite.blendSrc = THREE.OneMinusDstAlphaFactor;
-        composite.blendDst = THREE.OneFactor;
-        renderer.render(this.compositeScene, this.camera);
       }
       objects.forEach(({ object, mask, background }) => {
         // Infinite sky belongs only to the background color capture. It must
@@ -362,6 +444,9 @@ export class BlackHoleSceneCapture {
           Math.min(near, sourceCamera.far),
         );
         renderer.render(scene, this.camera);
+      } else {
+        // Resolve the cleared samples; clearing alone does not.
+        renderer.render(this.emptyScene, this.camera);
       }
       this.backgroundBounds.render(renderer, this.background);
       if (this.hasTransparent)
@@ -395,6 +480,7 @@ export class BlackHoleSceneCapture {
       this.transparent,
       this.surfaces,
       this.foreground,
+      this.scratch,
     ])
       target.dispose();
     this.composite.geometry.dispose();

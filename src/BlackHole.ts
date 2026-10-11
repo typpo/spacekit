@@ -214,6 +214,7 @@ export class BlackHole implements SimulationObject {
         sceneViewProjection: { value: new THREE.Matrix4() },
         sceneSize: { value: new THREE.Vector2() },
         sceneDepthRange: { value: new THREE.Vector2() },
+        sceneTexelAngle: { value: 0 },
         sceneForeground: { value: null },
         sceneClearColor: { value: new THREE.Color() },
       },
@@ -247,6 +248,7 @@ export class BlackHole implements SimulationObject {
         uniforms.sceneClearColor.value.copy(this.sceneCapture.clearColor);
         uniforms.sceneHasTransparent.value = this.sceneCapture.hasTransparent;
         uniforms.sceneHasSurfaces.value = this.sceneCapture.hasSurfaces;
+        uniforms.sceneTexelAngle.value = this.sceneCapture.texelAngle;
       }
     };
     this.setSceneLensingEnabled(options.lensScene ?? false);

@@ -47,6 +47,7 @@ uniform bool sceneHasSurfaces;
 uniform mat4 sceneViewProjection;
 uniform vec2 sceneSize;
 uniform vec2 sceneDepthRange;
+uniform float sceneTexelAngle;
 uniform sampler2D sceneForeground;
 #else
 const bool lensScene = false;
@@ -61,6 +62,7 @@ vec3 emittedLight;
 float transmission;
 float firstDiskDistance;
 bool captured;
+bool unrepresentableDepth;
 
 float hash(vec3 p) {
   p = fract(p * 0.1031);
@@ -159,8 +161,10 @@ void writeDepth(vec3 ray, float distanceInRadii) {
   vec3 apparentPosition = cameraPosition + ray * distanceInRadii * horizonRadius;
   vec4 clip = viewProjection * vec4(apparentPosition, 1.0);
   float depth = clip.z / clip.w * 0.5 + 0.5;
-  if (clip.w <= 0.0 || depth < 0.0 || depth > 1.0) discard;
-  gl_FragDepth = depth;
+  // Discarded after the trace: scene lensing takes screen-space derivatives,
+  // which need every pixel of each 2x2 quad.
+  if (clip.w <= 0.0 || depth < 0.0 || depth > 1.0) unrepresentableDepth = true;
+  else gl_FragDepth = depth;
 }
 
 void escaped(vec3 direction, vec3 closestPoint) {
@@ -289,94 +293,383 @@ void traceRay() {
 }
 
 #ifdef SCENE_LENSING
-// Return the last sample in a tile only when its entire depth range
-// cannot intersect this ray. Keep both endpoint samples: the final sample seeds
-// the continuous-surface crossing test at the next tile boundary.
-float skipDepthTile(highp usampler2D boundsTexture, float tileSize, vec3 first, vec3 delta,
-    vec2 uv, vec2 inverseDelta, float lo, float stride, float steps, float index) {
-  vec2 tile = floor(uv * sceneSize / tileSize);
-  vec2 edge = (tile + step(vec2(0.0), delta.xy)) * tileSize / sceneSize;
-  vec2 exitAlong = (edge - first.xy) * inverseDelta;
-  float end = min(steps - 1.0, floor((min(exitAlong.x, exitAlong.y) - lo) / stride - 0.5 - 0.001));
-  if (end <= index + 1.0) return index;
-  vec2 bounds = uintBitsToFloat(texelFetch(boundsTexture, ivec2(tile), 0).rg);
-  float rayNear = first.z + delta.z * (lo + (index + 0.5) * stride);
-  float rayFar = first.z + delta.z * (lo + (end + 0.5) * stride);
-  float margin = delta.z * (stride * 0.5 + 0.0000002);
-  if (bounds.x == 1.0 || rayFar < bounds.x - margin || rayNear > bounds.y + margin) return end;
-  return index;
+// Rays from radially adjacent pixels bend in one plane through the camera, so
+// their outgoing asymptotes project onto the same screen line. Up to
+// LENS_RAYS sub-rays spread across a pixel's radial footprint therefore share
+// one path, and every texel fetch along it.
+#define LENS_RAYS 4
+struct LensPath {
+  vec2 start;      // texel coordinates of the first column's center
+  vec2 step;       // texel offset between consecutive columns
+  vec2 rowStep;    // offset to the second texel of a column: (0, 1) or (1, 0)
+  float columns;   // index of the last column, or -1 when nothing is in view
+  float tolerance; // depth change over four ray steps between columns
+  int rays;
+  // Hardware depth of the ray at column zero and its increase per column,
+  // then the change of each per pixel of radial offset across the footprint.
+  vec4 depth;
+  vec4 bounds;     // smallest and largest depth, then slope, of all sub-rays
+};
+
+// Sub-ray offsets in pixels, evenly spaced across the pixel.
+float rayOffset(int ray, int rays) {
+  return (float(ray) + 0.5) / float(rays) - 0.5;
 }
 
-// Follow the outgoing asymptote through the camera's depth image. Screen x/y
-// and hardware depth are linear in the same projected-line parameter, so each
-// one-pixel interval can be intersected without an arbitrary world thickness.
-vec4 sceneSample(sampler2D colors, sampler2D depths, highp usampler2D fineBounds, highp usampler2D coarseBounds, vec4 start, vec4 direction,
-    bool transparent, float limit, vec4 surface, float surfaceHit, out float firstHit) {
-  firstHit = -1.0;
-  vec4 light = vec4(0.0);
-  if (direction.w <= 0.0) return surface;
-  float offset = max(0.0, (sceneDepthRange.x - start.w) / direction.w);
-  start += direction * offset;
-  vec3 first = start.xyz / start.w * 0.5 + 0.5;
-  vec3 last = direction.xyz / direction.w * 0.5 + 0.5;
-  vec3 delta = last - first;
+// Screen x/y and hardware depth are linear in the same projected-line
+// parameter, so the asymptote is a line through the camera's depth image.
+bool projectRay(vec4 origin, vec4 direction, out vec3 first, out vec3 delta) {
+  first = vec3(0.0);
+  delta = vec3(0.0);
+  if (direction.w <= 0.0) return false;
+  origin += direction * max(0.0, (sceneDepthRange.x - origin.w) / direction.w);
+  first = origin.xyz / origin.w * 0.5 + 0.5;
+  delta = direction.xyz / direction.w * 0.5 + 0.5 - first;
+  return delta.z > 0.0;
+}
+
+// A projected ray's depth at the path's first column and its increase per
+// column, measured along the path's major axis.
+vec2 depthAlong(LensPath path, vec3 first, vec3 delta) {
+  bool xMajor = path.rowStep.y > 0.0;
+  float size = xMajor ? sceneSize.x : sceneSize.y;
+  float along = xMajor ? delta.x : delta.y;
+  along = along < 0.0 ? min(along, -0.00000001) : max(along, 0.00000001);
+  return vec2(
+    first.z + delta.z * ((xMajor ? path.start.x : path.start.y) / size - (xMajor ? first.x : first.y)) / along,
+    delta.z * (xMajor ? path.step.x : path.step.y) / size / along);
+}
+
+// Adjacent texels show one continuous surface when their depths differ by
+// less than four ray steps, or by less than a surface up to about 87 degrees
+// from the line of sight changes across one cell. Hardware depth differences
+// are relative distance differences scaled by 1 - depth.
+const float SURFACE_SLOPE = 20.0;
+float continuity(LensPath path, float depth) {
+  return max(path.tolerance, (1.0 - depth) * sceneTexelAngle * SURFACE_SLOPE);
+}
+
+// The smallest texel depth continuous with a surface at the given depth.
+float shallowest(LensPath path, float depth) {
+  float slope = sceneTexelAngle * SURFACE_SLOPE;
+  return min(depth - path.tolerance, (depth - slope) / (1.0 - slope));
+}
+
+// The smallest and largest depth of any sub-ray at a column.
+vec2 rayDepths(LensPath path, float column) {
+  return path.bounds.xy + column * (column < 0.0 ? path.bounds.wz : path.bounds.zw);
+}
+
+LensPath lensPath(vec4 origin, vec4 direction, vec4 originX, vec4 originY,
+    vec4 directionX, vec4 directionY, bool differentiable, out vec4 directionRadial) {
+  LensPath path;
+  path.start = vec2(0.0);
+  path.step = vec2(1.0, 0.0);
+  path.rowStep = vec2(0.0, 1.0);
+  path.columns = -1.0;
+  path.tolerance = 0.0;
+  path.rays = 1;
+  path.depth = vec4(2.0, 1.0, 0.0, 0.0);
+  path.bounds = vec4(2.0, 2.0, 1.0, 1.0);
+  directionRadial = vec4(0.0);
+  vec3 first, delta;
+  if (!projectRay(origin, direction, first, delta)) return path;
   vec2 inverseDelta = mix(vec2(-1.0), vec2(1.0), step(vec2(0.0), delta.xy)) /
     max(abs(delta.xy), vec2(0.00000001));
   vec2 a = -first.xy * inverseDelta;
   vec2 b = (1.0 - first.xy) * inverseDelta;
   vec2 entry = min(a, b), exitPoint = max(a, b);
   float lo = max(0.0, max(entry.x, entry.y));
-  // Keep pixel intervals fixed as occluders enter or leave the ray.
   float hi = min(1.0, min(exitPoint.x, exitPoint.y));
-  if (lo > hi || lo > limit || delta.z <= 0.0) return surface;
-  vec2 pixelSpan = abs(delta.xy) * sceneSize;
-  float steps = clamp(ceil(max(pixelSpan.x, pixelSpan.y) * (hi - lo)), 1.0, 1024.0);
-  float stride = (hi - lo) / steps;
-  float previousDifference = 0.0;
-  float previousDepth = 1.0;
-  float previousHit = -1.0;
-  bool previousSurface = false;
-  float index = 0.0;
-  for (int i = 0; i < 1024; i++) {
-    if (index >= steps) break;
-    float along = lo + (index + 0.5) * stride;
-    if (along - stride * 0.5 > limit) break;
-    vec2 uv = first.xy + delta.xy * along;
-    // Sample color and depth at the same texel, including one-pixel orbits.
-    uv = (floor(uv * sceneSize) + 0.5) / sceneSize;
-    float depth = texture2D(depths, uv).x;
-    float hit = (depth - first.z) / delta.z;
-    float difference = along - hit;
-    // Curved/sloping surfaces can cross the ray between sampled texels even
-    // when neither texel's constant-depth slab contains the intersection.
-    bool continuous = abs(depth - previousDepth) <= max(0.001, 4.0 * stride * delta.z);
-    bool crossed = previousSurface && continuous && previousDifference < 0.0 && difference >= 0.0;
-    if (depth < 1.0 && hit <= limit && (previousHit < 0.0 || hit > previousHit + stride) &&
-        (crossed || abs(difference) <= stride * 0.5 + 0.0000002)) {
-      // Insert the mesh layer at its own distance while marching particles
-      // once. A single batch may contain light on both sides of a ring.
-      if (surfaceHit >= 0.0 && hit > surfaceHit) {
-        light += (1.0 - light.a) * surface;
-        surface = vec4(0.0);
-        surfaceHit = -1.0;
-        if (light.a >= 0.999) return light;
-      }
-      // Capture targets have no mipmaps. Accumulate premultiplied light from
-      // front to back, continuing through additive halos and translucency.
-      vec4 source = texture2D(colors, uv);
-      light += (1.0 - light.a) * source;
-      if (firstHit < 0.0) firstHit = hit;
-      if (!transparent || light.a >= 0.999) return light;
-      previousHit = hit;
+  if (lo > hi) return path;
+  vec2 p0 = (first.xy + delta.xy * lo) * sceneSize;
+  vec2 span = (first.xy + delta.xy * hi) * sceneSize - p0;
+  bool xMajor = abs(span.x) >= abs(span.y);
+  float major0 = xMajor ? p0.x : p0.y;
+  float extent = xMajor ? span.x : span.y;
+  float sense = extent < 0.0 ? -1.0 : 1.0;
+  // Columns are texel centers along the major axis. Each holds the two
+  // texels straddling the path, for linear interpolation across it.
+  vec2 perTexel = abs(extent) > 0.000001 ? span / abs(extent) :
+    (xMajor ? vec2(sense, 0.0) : vec2(0.0, sense));
+  float count = abs(floor(major0 + extent) - floor(major0)) + 1.0;
+  // Longer paths sample every k-th column to stay within the step budget.
+  float stride = ceil(count / 1023.0);
+  path.columns = floor((count - 1.0) / stride);
+  path.start = p0 + perTexel * ((floor(major0) + 0.5 - major0) * sense);
+  path.step = perTexel * stride;
+  path.rowStep = xMajor ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
+  path.depth.xy = depthAlong(path, first, delta);
+  path.tolerance = 4.0 * path.depth.y;
+  // Sub-rays across the radial footprint, where it spans more than one texel
+  // of the source image at either end of the path's depth range.
+  vec2 radial = normalize(perTexel);
+  vec4 originRadial = originX * radial.x + originY * radial.y;
+  directionRadial = directionX * radial.x + directionY * radial.y;
+  vec3 firstA, deltaA, firstB, deltaB;
+  if (differentiable &&
+      projectRay(origin - 0.5 * originRadial, direction - 0.5 * directionRadial, firstA, deltaA) &&
+      projectRay(origin + 0.5 * originRadial, direction + 0.5 * directionRadial, firstB, deltaB)) {
+    vec2 depths = vec2(first.z + delta.z * lo, first.z + delta.z * hi);
+    vec2 tA = clamp((depths - firstA.z) / deltaA.z, 0.0, 1.0);
+    vec2 tB = clamp((depths - firstB.z) / deltaB.z, 0.0, 1.0);
+    float width = max(
+      distance((firstA.xy + deltaA.xy * tA.x) * sceneSize, (firstB.xy + deltaB.xy * tB.x) * sceneSize),
+      distance((firstA.xy + deltaA.xy * tA.y) * sceneSize, (firstB.xy + deltaB.xy * tB.y) * sceneSize));
+    vec4 edges = vec4(depthAlong(path, firstA, deltaA), depthAlong(path, firstB, deltaB));
+    // Sub-rays sample the source image at most one texel apart. Each keeps
+    // the path, with its own depth along it, which must increase.
+    vec2 perOffset = edges.zw - edges.xy;
+    if (path.depth.y > 0.5 * abs(perOffset.y)) {
+      path.rays = int(clamp(ceil(width - 0.05), 1.0, float(LENS_RAYS)));
+      if (path.rays > 1) path.depth.zw = perOffset;
     }
-    previousDifference = difference;
-    previousDepth = depth;
-    previousSurface = depth < 1.0;
-    float next = skipDepthTile(coarseBounds, 64.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
-    if (next == index) next = skipDepthTile(fineBounds, 8.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
-    index = max(index + 1.0, next);
   }
-  return light + (1.0 - light.a) * surface;
+  path.bounds = vec4(path.depth.x - 0.5 * abs(path.depth.z), path.depth.x + 0.5 * abs(path.depth.z),
+    path.depth.y - 0.5 * abs(path.depth.w), path.depth.y + 0.5 * abs(path.depth.w));
+  return path;
+}
+
+// The two texels straddling the path at column n, with their linear weights.
+void readColumn(sampler2D depths, LensPath path, float n, out vec2 depth, out vec2 weight, out ivec2 texel) {
+  vec2 center = path.start + path.step * n;
+  float across = dot(center, path.rowStep);
+  float row = floor(across - 0.5);
+  texel = ivec2(floor(center) * (1.0 - path.rowStep) + row * path.rowStep);
+  ivec2 next = texel + ivec2(path.rowStep);
+  ivec2 size = ivec2(sceneSize);
+  depth = vec2(1.0);
+  weight = vec2(row + 1.5 - across, across - 0.5 - row);
+  if (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, size))) {
+    depth.x = texelFetch(depths, texel, 0).x;
+  }
+  if (weight.y > 0.0 && all(greaterThanEqual(next, ivec2(0))) && all(lessThan(next, size))) {
+    depth.y = texelFetch(depths, next, 0).x;
+  }
+}
+
+vec2 tileBounds(highp usampler2D bounds, vec2 tile) {
+  ivec2 index = ivec2(tile);
+  if (any(lessThan(index, ivec2(0))) || any(greaterThanEqual(index, textureSize(bounds, 0)))) {
+    return vec2(1.0, 0.0);
+  }
+  return uintBitsToFloat(texelFetch(bounds, index, 0).rg);
+}
+
+// The last column in the tile at column n, and the depth bounds of the texels
+// those columns read. The second texel of a column can lie in the next tile
+// across the path.
+vec3 tileAt(highp usampler2D bounds, float tileSize, LensPath path, float n) {
+  vec2 center = path.start + path.step * n;
+  vec2 tile = floor(center / tileSize);
+  vec2 lower = tile * tileSize;
+  vec2 exits = vec2(1e9);
+  if (path.step.x != 0.0) exits.x = (lower.x + (path.step.x > 0.0 ? tileSize : 0.0) - center.x) / path.step.x;
+  if (path.step.y != 0.0) exits.y = (lower.y + (path.step.y > 0.0 ? tileSize : 0.0) - center.y) / path.step.y;
+  float last = clamp(n + ceil(min(exits.x, exits.y)) - 1.0, n, path.columns);
+  float acrossFirst = dot(center, path.rowStep);
+  float acrossLast = dot(path.start + path.step * last, path.rowStep);
+  float tileLow = dot(lower, path.rowStep);
+  vec2 range = tileBounds(bounds, tile);
+  if (floor(min(acrossFirst, acrossLast) - 0.5) < tileLow) {
+    vec2 below = tileBounds(bounds, tile - path.rowStep);
+    range = vec2(min(range.x, below.x), max(range.y, below.y));
+  }
+  if (floor(max(acrossFirst, acrossLast) - 0.5) + 1.0 >= tileLow + tileSize) {
+    vec2 above = tileBounds(bounds, tile + path.rowStep);
+    range = vec2(min(range.x, above.x), max(range.y, above.y));
+  }
+  return vec3(last, range);
+}
+
+// The first column from which the rest of a tile entered at column n can be
+// skipped. Every contribution in the cells up to its last column needs a tile
+// texel no shallower than the rays at the cell's first column and no deeper
+// than at its last.
+float skipFrom(LensPath path, float n, vec3 tile) {
+  if (tile.y == 1.0 || tile.y > rayDepths(path, tile.x).y) return n;
+  return floor((tile.z - path.bounds.x) / path.bounds.z) + 2.0;
+}
+
+// Whether the previous column's texels can contribute to the next cell. A
+// crossing from them also needs them within the continuity tolerance.
+bool previousIdle(LensPath path, float n, vec2 previousDepth) {
+  float near = rayDepths(path, n - 1.0).x;
+  float far = rayDepths(path, n).y + continuity(path, near);
+  return all(bvec2(
+    previousDepth.x >= 1.0 || previousDepth.x < near || previousDepth.x > far,
+    previousDepth.y >= 1.0 || previousDepth.y < near || previousDepth.y > far));
+}
+
+// Infinitely distant captured light (stars, skybox) along an escaped
+// direction: linear interpolation among texels without finite depth, so
+// nearby geometry never leaks into the sky. Geometry hides the sky behind it.
+vec4 distantSky(vec2 uv) {
+  vec2 position = uv * sceneSize - 0.5;
+  vec2 cell = floor(position);
+  vec2 f = position - cell;
+  vec4 weight = vec4((1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y);
+  vec4 sky = vec4(0.0);
+  for (int i = 0; i < 4; i++) {
+    ivec2 texel = ivec2(cell) + ivec2(i % 2, i / 2);
+    if (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, ivec2(sceneSize)))) {
+      sky[i] = texelFetch(sceneDepth, texel, 0).x == 1.0 ? 1.0 : 0.0;
+    }
+  }
+  if (sky == vec4(1.0)) return textureLod(sceneColor, uv, 0.0);
+  weight *= sky;
+  float total = dot(weight, vec4(1.0));
+  if (total <= 0.0) return vec4(0.0);
+  vec4 color = vec4(0.0);
+  for (int i = 0; i < 4; i++) {
+    if (weight[i] > 0.0) color += weight[i] * texelFetch(sceneColor, ivec2(cell) + ivec2(i % 2, i / 2), 0);
+  }
+  return color / total;
+}
+
+// Reconstruct one captured layer along the path, for every sub-ray. Between
+// two columns, each surface is interpolated linearly in depth and color,
+// across and along the path, then composited front to back. Edges and thin
+// lines receive partial coverage instead of a binary hit. Light from another
+// layer is inserted at its nearest depth. firstHit returns the nearest depth
+// of all light, and opaqueAt where every sub-ray became opaque.
+void sceneSample(sampler2D colors, sampler2D depths, highp usampler2D fineBounds,
+    highp usampler2D coarseBounds, LensPath path, bool transparent, float limit,
+    vec4 inserted[LENS_RAYS], float insertedAt,
+    out vec4 light[LENS_RAYS], out float firstHit, out float opaqueAt) {
+  bool pending[LENS_RAYS];
+  for (int s = 0; s < LENS_RAYS; s++) {
+    light[s] = vec4(0.0);
+    pending[s] = insertedAt >= 0.0;
+  }
+  firstHit = -1.0;
+  opaqueAt = 2.0;
+  int remaining = path.rays;
+  // Cells starting deeper than the limit cannot contribute.
+  float lastColumn = min(path.columns, floor((min(limit, 1.0) - path.bounds.x) / path.bounds.z) + 1.0);
+  ivec2 rowStep = ivec2(path.rowStep);
+  vec2 previousDepth = vec2(1.0), previousWeight = vec2(0.0);
+  ivec2 previousTexel = ivec2(0);
+  float n = 0.0;
+  // Per tile: last column, depth bounds, and the column it can be skipped from.
+  vec4 coarse = vec4(-1.0), fine = vec4(-1.0);
+  float coarseEntry = -1.0, fineEntry = -1.0;
+  for (int i = 0; i < 1024; i++) {
+    if (n > lastColumn) break;
+    // Skip the rest of a tile whose depth bounds cannot meet the rays,
+    // including once they pass its deepest texel. Keep the tile's last
+    // column to seed the cell after it.
+    if (n > coarse.x) {
+      coarse.xyz = tileAt(coarseBounds, 64.0, path, n);
+      coarse.w = skipFrom(path, n, coarse.xyz);
+      coarseEntry = n;
+    }
+    float skipTo = -1.0, entry = coarseEntry;
+    if (n >= coarse.w && n < coarse.x) skipTo = coarse.x;
+    else {
+      if (n > fine.x) {
+        fine.xyz = tileAt(fineBounds, 8.0, path, n);
+        fine.w = skipFrom(path, n, fine.xyz);
+        fineEntry = n;
+      }
+      if (n >= fine.w && n < fine.x) skipTo = fine.x;
+      entry = fineEntry;
+    }
+    // Within a tile, the previous column's texels are part of its bounds.
+    if (skipTo > n && (n > entry || previousIdle(path, n, previousDepth))) {
+      readColumn(depths, path, skipTo, previousDepth, previousWeight, previousTexel);
+      n = skipTo + 1.0;
+      continue;
+    }
+    vec2 currentDepth, currentWeight;
+    ivec2 currentTexel;
+    readColumn(depths, path, n, currentDepth, currentWeight, currentTexel);
+    vec4 depth = vec4(previousDepth, currentDepth);
+    vec4 weight = vec4(previousWeight, currentWeight);
+    vec4 present = vec4(lessThan(depth, vec4(1.0)));
+    if (present != vec4(0.0)) {
+      // A surface can meet a ray in this cell only through a texel between
+      // the rays' depths here, or one continuous with such a texel.
+      vec4 open = present * step(shallowest(path, rayDepths(path, n - 1.0).x), depth) *
+        step(depth, vec4(rayDepths(path, n).y));
+      vec4 assigned = vec4(0.0);
+      // Visit the cell's surfaces nearest first. Texels continuous with the
+      // nearest remaining one belong to the same surface.
+      for (int c = 0; c < 4; c++) {
+        open *= 1.0 - assigned;
+        if (open == vec4(0.0)) break;
+        vec4 candidates = mix(vec4(2.0), depth, open);
+        float seed = min(min(candidates.x, candidates.y), min(candidates.z, candidates.w));
+        float tolerance = continuity(path, seed);
+        vec4 own = present * (1.0 - assigned) * step(abs(depth - seed), vec4(tolerance));
+        assigned = max(assigned, own);
+        vec4 ownWeight = own * weight;
+        vec2 coverage = vec2(ownWeight.x + ownWeight.y, ownWeight.z + ownWeight.w);
+        if (coverage.x + coverage.y <= 0.0) continue;
+        vec4 nearer = present * (1.0 - step(seed - tolerance, depth)) * weight;
+        vec2 occluded = vec2(nearer.x + nearer.y, nearer.z + nearer.w);
+        vec2 surface = vec2(dot(ownWeight.xy, depth.xy), dot(ownWeight.zw, depth.zw)) /
+          max(coverage, vec2(0.000001));
+        bool fetched = false;
+        vec4 previousColor = vec4(0.0), currentColor = vec4(0.0);
+        for (int s = 0; s < LENS_RAYS; s++) {
+          if (s >= path.rays) break;
+          if (light[s].a >= 0.999) continue;
+          float offset = rayOffset(s, path.rays);
+          float slope = path.depth.y + offset * path.depth.w;
+          float rayDepth = path.depth.x + offset * path.depth.z + slope * (n - 1.0);
+          float t;
+          if (coverage.x > 0.0 && coverage.y > 0.0) {
+            // A continuous surface: intersect its depth, interpolated between
+            // the columns, where the ray passes from in front to behind it.
+            float front = surface.x - rayDepth;
+            float back = surface.y - rayDepth - slope;
+            if (front <= 0.0 || back > 0.0) continue;
+            t = front / (front - back);
+          } else {
+            // An edge or isolated texel, at its own depth.
+            t = ((coverage.x > 0.0 ? surface.x : surface.y) - rayDepth) / slope;
+            if (t < 0.0 || t >= 1.0) continue;
+          }
+          float hitDepth = rayDepth + slope * t;
+          if (hitDepth > limit) continue;
+          if (!fetched) {
+            fetched = true;
+            if (ownWeight.x > 0.0) previousColor += ownWeight.x * texelFetch(colors, previousTexel, 0);
+            if (ownWeight.y > 0.0) previousColor += ownWeight.y * texelFetch(colors, previousTexel + rowStep, 0);
+            if (ownWeight.z > 0.0) currentColor += ownWeight.z * texelFetch(colors, currentTexel, 0);
+            if (ownWeight.w > 0.0) currentColor += ownWeight.w * texelFetch(colors, currentTexel + rowStep, 0);
+          }
+          // Premultiplied light with its coverage of the interpolation cell.
+          vec4 source = mix(previousColor, currentColor, t);
+          // An opaque surface continues behind nearer occluders. Its coverage
+          // counts only the texels where it could have been visible.
+          if (!transparent) {
+            source /= max(max(1.0 - mix(occluded.x, occluded.y, t), source.a), 0.000001);
+          }
+          if (pending[s] && hitDepth > insertedAt) {
+            light[s] += (1.0 - light[s].a) * inserted[s];
+            pending[s] = false;
+          }
+          light[s] += (1.0 - light[s].a) * source;
+          firstHit = firstHit < 0.0 ? hitDepth : min(firstHit, hitDepth);
+          if (light[s].a >= 0.999) {
+            remaining--;
+            if (remaining == 0) opaqueAt = hitDepth;
+          }
+        }
+      }
+    }
+    previousDepth = currentDepth;
+    previousWeight = currentWeight;
+    previousTexel = currentTexel;
+    if (remaining == 0) break;
+    n += 1.0;
+  }
+  for (int s = 0; s < LENS_RAYS; s++) {
+    if (pending[s]) light[s] += (1.0 - light[s].a) * inserted[s];
+  }
+  if (insertedAt >= 0.0) firstHit = firstHit < 0.0 ? insertedAt : min(firstHit, insertedAt);
 }
 #endif
 
@@ -389,6 +682,7 @@ void main() {
   transmission = 1.0;
   firstDiskDistance = -1.0;
   captured = false;
+  unrepresentableDepth = false;
   traceRay();
   // Compute texture derivatives after the variable-length integration loop.
   // Sampling inside that loop makes implicit mip selection undefined.
@@ -397,35 +691,51 @@ void main() {
   vec2 originalUv = screenPosition * 0.5 + 0.5;
   vec4 foreground = texture2D(sceneForeground, originalUv);
   vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);
-  vec4 sourceClip = sceneViewProjection * vec4(escapedWorldDirection, 0.0);
-  vec2 sourceUv = sourceClip.xy / max(sourceClip.w, 0.00001) * 0.5 + 0.5;
-  float opaqueHit = -1.0;
-  vec4 source = vec4(0.0);
-  vec4 transparentSource = vec4(0.0);
+  vec4 rayDirection = sceneViewProjection * vec4(escapedWorldDirection, 0.0);
+  // Ray differentials of the outgoing asymptote, taken while every pixel of
+  // the 2x2 quad is still running. They hold only if all four escaped.
+  vec4 originX = dFdx(rayOrigin), originY = dFdy(rayOrigin);
+  vec4 directionX = dFdx(rayDirection), directionY = dFdy(rayDirection);
+  bool differentiable = fwidth(sampledSky ? 1.0 : 0.0) == 0.0;
+  if (unrepresentableDepth) discard;
   if (sampledSky) {
-    source = sceneSample(sceneColor, sceneDepth, sceneBoundsFine, sceneBoundsCoarse, rayOrigin, sourceClip, false, 1.0, vec4(0.0), -1.0, opaqueHit);
-    float limit = opaqueHit < 0.0 ? 1.0 : opaqueHit;
-    float surfaceHit = -1.0;
-    if (sceneHasSurfaces) {
-      transparentSource = sceneSample(sceneSurfaces, sceneSurfaceDepth, surfaceBoundsFine, surfaceBoundsCoarse, rayOrigin,
-        sourceClip, true, limit, vec4(0.0), -1.0, surfaceHit);
+    vec4 directionRadial;
+    LensPath path = lensPath(rayOrigin, rayDirection, originX, originY, directionX, directionY,
+      differentiable, directionRadial);
+    vec4 light[LENS_RAYS];
+    for (int s = 0; s < LENS_RAYS; s++) light[s] = vec4(0.0);
+    if (path.columns >= 0.0) {
+      // Opaque surfaces first: where they become fully opaque bounds the
+      // translucent layers. Each translucent layer then inserts the light
+      // composited so far at its nearest distance.
+      float firstHit = -1.0, opaqueAt = 2.0, unused;
+      sceneSample(sceneColor, sceneDepth, sceneBoundsFine, sceneBoundsCoarse, path, false,
+        2.0, light, -1.0, light, firstHit, opaqueAt);
+      if (sceneHasSurfaces) {
+        sceneSample(sceneSurfaces, sceneSurfaceDepth, surfaceBoundsFine, surfaceBoundsCoarse, path, true,
+          opaqueAt, light, firstHit, light, firstHit, unused);
+      }
+      if (sceneHasTransparent) {
+        sceneSample(sceneTransparent, sceneTransparentDepth, transparentBoundsFine, transparentBoundsCoarse, path, true,
+          opaqueAt, light, firstHit, light, firstHit, unused);
+      }
     }
-    if (sceneHasTransparent) {
-      float transparentHit;
-      transparentSource = sceneSample(sceneTransparent, sceneTransparentDepth, transparentBoundsFine, transparentBoundsCoarse, rayOrigin,
-        sourceClip, true, limit, transparentSource, surfaceHit, transparentHit);
+    vec3 lensed = vec3(0.0);
+    for (int s = 0; s < LENS_RAYS; s++) {
+      if (s >= path.rays) break;
+      // Do not repeat/clamp the edge of the camera image or bend a foreground
+      // object into the background. The sky fills unavailable image samples.
+      vec3 behind = sky;
+      vec4 direction = rayDirection + rayOffset(s, path.rays) * directionRadial;
+      vec2 uv = direction.xy / max(direction.w, 0.00001) * 0.5 + 0.5;
+      if (direction.w > 0.0 && all(greaterThanEqual(uv, vec2(0.0))) && all(lessThanEqual(uv, vec2(1.0)))) {
+        vec4 distant = distantSky(uv);
+        behind = distant.rgb + (1.0 - distant.a) * behind;
+      }
+      lensed += light[s].rgb + (1.0 - light[s].a) * behind;
     }
+    sky = lensed / float(path.rays);
   }
-  bool inFrame = sourceClip.w > 0.0 && all(greaterThanEqual(sourceUv, vec2(0.0))) &&
-    all(lessThanEqual(sourceUv, vec2(1.0)));
-  // Do not repeat/clamp the edge of the camera image or bend a foreground
-  // object into the background. The sky fills unavailable image samples.
-  if (sampledSky && inFrame && texture2D(sceneDepth, sourceUv).x == 1.0) {
-    vec4 distant = texture2D(sceneColor, sourceUv);
-    sky = distant.rgb + (1.0 - distant.a) * sky;
-  }
-  if (opaqueHit >= 0.0) sky = source.rgb + (1.0 - source.a) * sky;
-  sky = transparentSource.rgb + (1.0 - transparentSource.a) * sky;
   vec3 color = 1.0 - exp(-exposure * emittedLight);
   if (sampledSky) color += transmission * max(sky, vec3(0.0));
   color = clamp(color, 0.0, 1.0);
@@ -434,6 +744,7 @@ void main() {
   color = foreground.rgb + (1.0 - foreground.a) * color;
   gl_FragColor = vec4(color, 1.0);
 #else
+  if (unrepresentableDepth) discard;
   float alpha = captured || sampledSky ? 1.0 : 1.0 - transmission;
   if (alpha < 0.0001) discard;
   vec3 color = 1.0 - exp(-exposure * emittedLight / alpha);

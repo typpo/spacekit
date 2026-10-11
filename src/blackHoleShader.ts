@@ -483,19 +483,21 @@ vec3 tileAt(highp usampler2D bounds, float tileSize, LensPath path, float n) {
 }
 
 // The first column from which the rest of a tile entered at column n can be
-// skipped. Every contribution in the cells up to its last column needs a tile
-// texel no shallower than the rays at the cell's first column and no deeper
-// than at its last.
+// skipped. A surface crosses the rays in a cell only where one of its texels
+// is deeper than the rays and another, continuous with it, is not. Neither
+// remains once every texel of the tile is deeper than the rays at its last
+// column, or once the rays pass its deepest texel.
 float skipFrom(LensPath path, float n, vec3 tile) {
   if (tile.y == 1.0 || tile.y > rayDepths(path, tile.x).y) return n;
   return floor((tile.z - path.bounds.x) / path.bounds.z) + 2.0;
 }
 
 // Whether the previous column's texels can contribute to the next cell. A
-// crossing from them also needs them within the continuity tolerance.
+// crossing from them, in either direction, needs them within the continuity
+// tolerance of the rays.
 bool previousIdle(LensPath path, float n, vec2 previousDepth) {
-  float near = rayDepths(path, n - 1.0).x;
-  float far = rayDepths(path, n).y + continuity(path, near);
+  float near = shallowest(path, rayDepths(path, n - 1.0).x);
+  float far = rayDepths(path, n).y + continuity(path, rayDepths(path, n - 1.0).x);
   return all(bvec2(
     previousDepth.x >= 1.0 || previousDepth.x < near || previousDepth.x > far,
     previousDepth.y >= 1.0 || previousDepth.y < near || previousDepth.y > far));
@@ -621,10 +623,12 @@ void sceneSample(sampler2D colors, sampler2D depths, highp usampler2D fineBounds
           float t;
           if (coverage.x > 0.0 && coverage.y > 0.0) {
             // A continuous surface: intersect its depth, interpolated between
-            // the columns, where the ray passes from in front to behind it.
+            // the columns, where the ray passes through it in either
+            // direction. A steep or double-sided surface can recede faster
+            // than the ray and cross it from behind.
             float front = surface.x - rayDepth;
             float back = surface.y - rayDepth - slope;
-            if (front <= 0.0 || back > 0.0) continue;
+            if (!(front > 0.0 && back <= 0.0) && !(front < 0.0 && back >= 0.0)) continue;
             t = front / (front - back);
           } else {
             // An edge or isolated texel, at its own depth.

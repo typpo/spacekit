@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Black hole grazing-surface validation</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running grazing-surface GPU checks...</pre>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    // A double-sided plane seen nearly edge-on, behind the hole. Its captured
+    // depth slopes steeply, so outgoing rays cross it in both directions:
+    // from in front of the surface to behind it, and from behind to in front.
+    // The reference traces every pixel's null geodesic on the CPU and
+    // intersects the escaped asymptote with the bounded plane.
+    const T = Spacekit.THREE;
+    const size = 400;
+    const renderer = new T.WebGLRenderer();
+    renderer.setSize(size, size);
+    renderer.setClearColor(0, 1);
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(35, 1, 0.01, 100);
+    camera.position.set(0, 0, 8);
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+    const simulation = {
+      getContext: () => ({ options: {}, objects: { renderer } }),
+      getJd: () => 2451545,
+      addObject: (object) => scene.add(...object.get3jsObjects()),
+      removeObject: (object) => {
+        scene.remove(...object.get3jsObjects());
+        object.removalCleanup();
+      },
+    };
+    const results = [];
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+      results.push('PASS: ' + message);
+    }
+
+    const width = 8,
+      height = 4;
+    const plane = new T.Mesh(
+      new T.PlaneGeometry(width, height),
+      new T.MeshBasicMaterial({ color: 0x00ff00, side: T.DoubleSide }),
+    );
+    plane.position.set(0, 0, -6);
+    plane.rotation.y = (86 * Math.PI) / 180;
+    plane.updateMatrixWorld();
+    scene.add(plane);
+
+    // Pixel-center hit map from the escaped asymptote: 1 plane, 0 miss,
+    // -1 unreliable (captured or near the photon sphere).
+    function reference() {
+      const rs = Spacekit.schwarzschildRadiusAu(4e6);
+      const normal = new T.Vector3(0, 0, 1).applyQuaternion(plane.quaternion);
+      const axisU = new T.Vector3(1, 0, 0).applyQuaternion(plane.quaternion);
+      const axisV = new T.Vector3(0, 1, 0).applyQuaternion(plane.quaternion);
+      const tan = Math.tan((camera.fov * Math.PI) / 360);
+      const ro = camera.position.length() / rs;
+      const e1 = camera.position.clone().normalize();
+      const map = new Int8Array(size * size);
+      const critical = Spacekit.SCHWARZSCHILD_CRITICAL_IMPACT;
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          const ray = new T.Vector3(
+            (((x + 0.5) / size) * 2 - 1) * tan,
+            (((y + 0.5) / size) * 2 - 1) * tan,
+            -1,
+          )
+            .transformDirection(camera.matrixWorld)
+            .normalize();
+          const cosine = ray.dot(e1);
+          const tangent = ray.clone().addScaledVector(e1, -cosine);
+          const sine = tangent.length();
+          const b = (ro * sine) / Math.sqrt(1 - 1 / ro);
+          if (sine < 1e-9 || Math.abs(b - critical) < 0.15) {
+            map[y * size + x] = -1;
+            continue;
+          }
+          const e2 = tangent.normalize();
+          // Integrate u = rs/r in the orbital plane until the ray escapes.
+          let u = 1 / ro,
+            v = Math.sqrt(Math.max(0, 1 / (b * b) - u * u + u * u * u));
+          if (cosine > 0) v = -v;
+          let phi = 0,
+            escaped = false;
+          const h = 0.002;
+          for (let i = 0; i < 20000; i++) {
+            const [nu, nv] = Spacekit.stepSchwarzschildRay(u, v, h);
+            if (nu >= 1) break;
+            if (nu <= 0) {
+              phi += (h * u) / (u - nu);
+              escaped = true;
+              break;
+            }
+            u = nu;
+            v = nv;
+            phi += h;
+          }
+          if (!escaped) {
+            map[y * size + x] = -1;
+            continue;
+          }
+          // The asymptote travels along (cos phi, sin phi) at impact b, with
+          // its closest point to the hole on the right of travel.
+          const direction = e1
+            .clone()
+            .multiplyScalar(Math.cos(phi))
+            .addScaledVector(e2, Math.sin(phi));
+          const origin = new T.Vector3()
+            .addScaledVector(e1, b * rs * Math.sin(phi))
+            .addScaledVector(e2, -b * rs * Math.cos(phi));
+          const denominator = normal.dot(direction);
+          let hit = 0;
+          if (Math.abs(denominator) > 1e-9) {
+            const t =
+              normal.dot(plane.position.clone().sub(origin)) / denominator;
+            if (t > 0) {
+              const local = origin
+                .clone()
+                .addScaledVector(direction, t)
+                .sub(plane.position);
+              if (
+                Math.abs(local.dot(axisU)) <= width / 2 &&
+                Math.abs(local.dot(axisV)) <= height / 2
+              )
+                hit = 1;
+            }
+          }
+          map[y * size + x] = hit;
+        }
+      return map;
+    }
+
+    // Pixels whose whole 3x3 neighborhood agrees, away from silhouettes.
+    function interior(map, value) {
+      const out = new Uint8Array(size * size);
+      for (let y = 1; y < size - 1; y++)
+        for (let x = 1; x < size - 1; x++) {
+          let all = true;
+          for (let dy = -1; dy <= 1 && all; dy++)
+            for (let dx = -1; dx <= 1; dx++)
+              if (map[(y + dy) * size + x + dx] !== value) {
+                all = false;
+                break;
+              }
+          out[y * size + x] = all ? 1 : 0;
+        }
+      return out;
+    }
+
+    let hole;
+    try {
+      const map = reference();
+      const inside = interior(map, 1),
+        outside = interior(map, 0);
+      for (const quality of ['low', 'high']) {
+        hole = new Spacekit.BlackHole(
+          'grazing',
+          { massSolar: 4e6, lensScene: true, accretionDisk: false, quality },
+          simulation,
+        );
+        const target = new T.WebGLRenderTarget(size, size);
+        renderer.setRenderTarget(target);
+        renderer.render(scene, camera);
+        const pixels = new Uint8Array(size * size * 4);
+        renderer.readRenderTargetPixels(target, 0, 0, size, size, pixels);
+        target.dispose();
+        let expected = 0,
+          missed = 0,
+          left = 0,
+          right = 0,
+          empty = 0,
+          spurious = 0;
+        for (let i = 0; i < size * size; i++) {
+          const green = pixels[i * 4 + 1];
+          if (inside[i]) {
+            expected++;
+            if (green < 40) missed++;
+            else if (i % size < size / 2) left++;
+            else right++;
+          }
+          if (outside[i]) {
+            empty++;
+            if (green > 200) spurious++;
+          }
+        }
+        assert(
+          expected > 500 && empty > 1000,
+          `${quality}: reference covers ${expected} plane and ${empty} empty pixels`,
+        );
+        assert(
+          missed <= 0.01 * expected,
+          `${quality}: ${missed} of ${expected} pixels inside the lensed plane are missing`,
+        );
+        assert(
+          left > 50 && right > 50,
+          `${quality}: both lensed images are present (${left} left, ${right} right)`,
+        );
+        assert(
+          spurious <= 0.001 * empty,
+          `${quality}: ${spurious} of ${empty} empty pixels show the plane`,
+        );
+        hole.dispose();
+        hole = undefined;
+      }
+      assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+      results.push('ALL CHECKS PASSED');
+    } catch (error) {
+      results.push('FAIL: ' + error.message);
+      console.error(error);
+    } finally {
+      hole?.dispose();
+      plane.geometry.dispose();
+      plane.material.dispose();
+      renderer.dispose();
+      document.getElementById('results').textContent = results.join('\n');
+    }
+  </script>
+</html>

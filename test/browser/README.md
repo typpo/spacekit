@@ -29,6 +29,9 @@ Jest's CPU tests do not compile or execute the GPU shaders.
   lensed along the Einstein ring against a 4×4 area-sampled reference of the same
   scene, per pixel and per angular sector, with one sample per pixel as the
   aliased control.
+- [Grazing surfaces](black-hole-grazing.html): a double-sided plane seen nearly
+  edge-on, whose lensed images cross the outgoing rays in both directions,
+  against CPU-traced geodesics intersected with the bounded plane.
 
 For stage timings, load `black-hole-profile.js` in the example and stop its
 animation loop before calling `profileBlackHole(simulation, hole)`. It measures

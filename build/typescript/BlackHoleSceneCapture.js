@@ -39,40 +39,32 @@ var BlackHoleDepthHierarchy_1 = require("./BlackHoleDepthHierarchy");
 // Steps use whole framebuffer pixels per axis; narrower gaps can be skipped.
 var POINT_SMOOTHING_STEP_PIXELS = 2;
 var POINT_SMOOTHING_STEPS = 8;
-// Matches the main frame, so lensed edges keep the same coverage levels.
-var CAPTURE_SAMPLES = 4;
-function depthTarget() {
-    var target = new THREE.WebGLRenderTarget(1, 1);
+function captureTarget(samples) {
+    if (samples === void 0) { samples = 0; }
+    var target = new THREE.WebGLRenderTarget(1, 1, {
+        samples: samples,
+        resolveDepthBuffer: false,
+    });
     // Preserve dark tones in 8-bit storage; WebGL encodes writes and decodes
     // samples while keeping capture blending and lens compositing linear.
     target.texture.colorSpace = THREE.SRGBColorSpace;
-    target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
-    return target;
-}
-// Multisampled color resolves to edge coverage. WebGL 2 resolves multisampled
-// depth in an implementation-defined way, so depth comes from a separate
-// single-sample pass instead.
-function multisampleTarget() {
-    var target = new THREE.WebGLRenderTarget(1, 1, {
-        samples: CAPTURE_SAMPLES,
-        stencilBuffer: false,
-        resolveDepthBuffer: false,
-    });
-    target.texture.colorSpace = THREE.SRGBColorSpace;
+    // MSAA depth resolves are implementation-defined; capture depth separately.
+    if (!samples)
+        target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
     return target;
 }
 /** Camera-clipped color/depth layers for screen-space scene lensing. */
 var BlackHoleSceneCapture = /** @class */ (function () {
     function BlackHoleSceneCapture() {
-        this.background = depthTarget();
-        this.transparent = depthTarget();
-        this.surfaces = depthTarget();
-        /** Multisampled scratch color; holds the foreground after each capture. */
-        this.foreground = multisampleTarget();
+        this.background = captureTarget();
+        this.transparent = captureTarget();
+        this.surfaces = captureTarget();
+        /** Scratch color with the main frame's 4x MSAA; ends with the foreground. */
+        this.foreground = captureTarget(4);
         // Single-sample scratch: depth for the multisampled color passes, and both
         // color and depth for points and sprites. Their shapes come from texture
         // alpha, which multisampling does not antialias.
-        this.scratch = depthTarget();
+        this.scratch = captureTarget();
         this.emptyScene = new THREE.Scene();
         this.clearColor = new THREE.Color();
         this.viewProjection = new THREE.Matrix4();
@@ -83,8 +75,6 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         this.surfaceBounds = new BlackHoleDepthHierarchy_1.BlackHoleDepthHierarchy();
         this.hasTransparent = false;
         this.hasSurfaces = false;
-        /** Approximate angle subtended by one capture texel, in radians. */
-        this.texelAngle = 0;
         this.camera = new THREE.PerspectiveCamera();
         this.viewport = new THREE.Vector4();
         this.compositeScene = new THREE.Scene();
@@ -92,11 +82,10 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             uniforms: {
                 color: { value: this.foreground.texture },
                 depth: { value: this.scratch.depthTexture },
-                texelSize: { value: new THREE.Vector2() },
                 smoothingStep: { value: new THREE.Vector2() },
             },
             vertexShader: "varying vec2 sampleUv;\n        void main() { sampleUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }",
-            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        uniform vec2 texelSize;\n        uniform vec2 smoothingStep;\n        float light(vec4 sampleColor) {\n          return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));\n        }\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          float weight = light(sampleColor);\n          // Additive black padding contributes neither light nor coverage.\n          if (weight == 0.0) discard;\n          gl_FragColor = sampleColor;\n          float sampleDepth = texture2D(depth, sampleUv).x;\n          // Multisampling covers edge pixels whose centers the single-sample\n          // depth pass missed. They belong to the nearest adjacent surface.\n          if (sampleDepth == 1.0) {\n            for (int x = -1; x <= 1; x++) {\n              for (int y = -1; y <= 1; y++) {\n                sampleDepth = min(sampleDepth,\n                  texture2D(depth, sampleUv + vec2(float(x), float(y)) * texelSize).x);\n              }\n            }\n          }\n          if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {\n            // Smooth overlapping sprite depths along eight directions to avoid\n            // lensing each square separately. Stop at each sampled gap so\n            // separate sprites keep their own depths.\n            float weightedDepth = weight * sampleDepth;\n            for (int x = -1; x <= 1; x++) {\n              for (int y = -1; y <= 1; y++) {\n                if (x == 0 && y == 0) continue;\n                // Whole-pixel steps stay on texel centers.\n                vec2 offset = vec2(float(x), float(y)) * smoothingStep;\n                for (int i = 1; i <= ".concat(POINT_SMOOTHING_STEPS, "; i++) {\n                  vec2 uv = sampleUv + offset * float(i);\n                  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) break;\n                  float neighborDepth = texture2D(depth, uv).x;\n                  float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;\n                  if (neighborWeight == 0.0) break;\n                  weight += neighborWeight;\n                  weightedDepth += neighborWeight * neighborDepth;\n                }\n              }\n            }\n            sampleDepth = weightedDepth / weight;\n          }\n          gl_FragDepth = sampleDepth;\n        }"),
+            fragmentShader: "varying vec2 sampleUv;\n        uniform sampler2D color;\n        uniform sampler2D depth;\n        uniform vec2 smoothingStep;\n        float light(vec4 sampleColor) {\n          return max(max(sampleColor.r, sampleColor.g), max(sampleColor.b, sampleColor.a));\n        }\n        void main() {\n          vec4 sampleColor = texture2D(color, sampleUv);\n          float weight = light(sampleColor);\n          // Additive black padding contributes neither light nor coverage.\n          if (weight == 0.0) discard;\n          gl_FragColor = sampleColor;\n          float sampleDepth = texture2D(depth, sampleUv).x;\n          // Multisampling covers edge pixels whose centers the single-sample\n          // depth pass missed. They belong to the nearest adjacent surface.\n          if (sampleDepth == 1.0) {\n            vec2 texelSize = 1.0 / vec2(textureSize(depth, 0));\n            for (int x = -1; x <= 1; x++) {\n              for (int y = -1; y <= 1; y++) {\n                sampleDepth = min(sampleDepth,\n                  texture2D(depth, sampleUv + vec2(float(x), float(y)) * texelSize).x);\n              }\n            }\n          }\n          if (smoothingStep.x > 0.0 && sampleDepth < 1.0) {\n            // Smooth overlapping sprite depths along eight directions to avoid\n            // lensing each square separately. Stop at each sampled gap so\n            // separate sprites keep their own depths.\n            float weightedDepth = weight * sampleDepth;\n            for (int x = -1; x <= 1; x++) {\n              for (int y = -1; y <= 1; y++) {\n                if (x == 0 && y == 0) continue;\n                // Whole-pixel steps stay on texel centers.\n                vec2 offset = vec2(float(x), float(y)) * smoothingStep;\n                for (int i = 1; i <= ".concat(POINT_SMOOTHING_STEPS, "; i++) {\n                  vec2 uv = sampleUv + offset * float(i);\n                  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) break;\n                  float neighborDepth = texture2D(depth, uv).x;\n                  float neighborWeight = neighborDepth < 1.0 ? light(texture2D(color, uv)) : 0.0;\n                  if (neighborWeight == 0.0) break;\n                  weight += neighborWeight;\n                  weightedDepth += neighborWeight * neighborDepth;\n                }\n              }\n            }\n            sampleDepth = weightedDepth / weight;\n          }\n          gl_FragDepth = sampleDepth;\n        }"),
             transparent: true,
             premultipliedAlpha: true,
             toneMapped: false,
@@ -174,7 +163,6 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 target.setSize(this.size.x, this.size.y);
             }
         }
-        this.composite.material.uniforms.texelSize.value.set(1 / this.size.x, 1 / this.size.y);
         // A distant Skybox must remain in the background capture. Starting at the
         // lens plane also avoids the simulation camera's very small near plane.
         var near = Math.max(sourceCamera.near, planeDistance > 0 ? planeDistance : sourceCamera.far);
@@ -263,8 +251,6 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             renderer.shadowMap.autoUpdate = false;
             renderer.autoClear = false;
             this.clipCamera(sourceCamera, near, far);
-            this.texelAngle =
-                2 / (this.camera.projectionMatrix.elements[5] * this.size.y);
             this.composite.layers.mask = camera.layers.mask;
             this.viewProjection.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
             objects.forEach(function (_a) {

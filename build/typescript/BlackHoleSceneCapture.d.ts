@@ -5,7 +5,7 @@ export declare class BlackHoleSceneCapture {
     readonly background: THREE.WebGLRenderTarget<THREE.Texture<unknown, THREE.TextureEventMap>>;
     readonly transparent: THREE.WebGLRenderTarget<THREE.Texture<unknown, THREE.TextureEventMap>>;
     readonly surfaces: THREE.WebGLRenderTarget<THREE.Texture<unknown, THREE.TextureEventMap>>;
-    /** Multisampled scratch color; holds the foreground after each capture. */
+    /** Scratch color with the main frame's 4x MSAA; ends with the foreground. */
     readonly foreground: THREE.WebGLRenderTarget<THREE.Texture<unknown, THREE.TextureEventMap>>;
     private readonly scratch;
     private readonly emptyScene;
@@ -18,8 +18,6 @@ export declare class BlackHoleSceneCapture {
     readonly surfaceBounds: BlackHoleDepthHierarchy;
     hasTransparent: boolean;
     hasSurfaces: boolean;
-    /** Approximate angle subtended by one capture texel, in radians. */
-    texelAngle: number;
     private readonly camera;
     private readonly viewport;
     private readonly compositeScene;

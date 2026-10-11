@@ -162,7 +162,6 @@ var BlackHole = /** @class */ (function () {
                 sceneViewProjection: { value: new THREE.Matrix4() },
                 sceneSize: { value: new THREE.Vector2() },
                 sceneDepthRange: { value: new THREE.Vector2() },
-                sceneTexelAngle: { value: 0 },
                 sceneForeground: { value: null },
                 sceneClearColor: { value: new THREE.Color() },
             },
@@ -193,7 +192,6 @@ var BlackHole = /** @class */ (function () {
                 uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
                 uniforms.sceneHasTransparent.value = _this.sceneCapture.hasTransparent;
                 uniforms.sceneHasSurfaces.value = _this.sceneCapture.hasSurfaces;
-                uniforms.sceneTexelAngle.value = _this.sceneCapture.texelAngle;
             }
         };
         this.setSceneLensingEnabled((_o = options.lensScene) !== null && _o !== void 0 ? _o : false);

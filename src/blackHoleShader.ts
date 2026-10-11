@@ -47,7 +47,7 @@ uniform bool sceneHasSurfaces;
 uniform mat4 sceneViewProjection;
 uniform vec2 sceneSize;
 uniform vec2 sceneDepthRange;
-uniform float sceneTexelAngle;
+float sceneTexelAngle;
 uniform sampler2D sceneForeground;
 #else
 const bool lensScene = false;
@@ -692,6 +692,8 @@ void main() {
   // Sampling inside that loop makes implicit mip selection undefined.
   vec3 sky = hasBackground ? texture2D(backgroundTexture, skyUv).rgb : sceneClearColor;
 #ifdef SCENE_LENSING
+  // Clipping the capture camera changes only its depth mapping.
+  sceneTexelAngle = 2.0 * inverseProjection[1][1] / sceneSize.y;
   vec2 originalUv = screenPosition * 0.5 + 0.5;
   vec4 foreground = texture2D(sceneForeground, originalUv);
   vec4 rayOrigin = sceneViewProjection * vec4(escapedWorldOrigin, 1.0);

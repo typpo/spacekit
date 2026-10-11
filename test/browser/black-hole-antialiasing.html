@@ -73,11 +73,11 @@
         }
       return out;
     }
-    // Per-pixel absolute error, relative to the reference light.
-    function pixelError(image, reference, channel) {
+    // Absolute error relative to reference light, for pixels or sector bins.
+    function relativeError(image, reference, stride = 1, offset = 0) {
       let difference = 0,
         light = 0;
-      for (let i = channel; i < reference.length; i += 4) {
+      for (let i = offset; i < reference.length; i += stride) {
         difference += Math.abs(image[i] - reference[i]);
         light += reference[i];
       }
@@ -98,20 +98,10 @@
         }
       return bins;
     }
-    function sectorError(image, reference, channel) {
-      const a = sectors(image, channel),
-        b = sectors(reference, channel);
-      let difference = 0,
-        light = 0;
-      for (let i = 0; i < b.length; i++) {
-        difference += Math.abs(a[i] - b[i]);
-        light += b[i];
-      }
-      return difference / light;
-    }
     function errors(lensed, control) {
-      const sampled = control.toFixed(3);
-      return `error ${lensed.toFixed(3)}; one sample per pixel ${sampled}`;
+      return `error ${lensed.toFixed(
+        3,
+      )}; one sample per pixel ${control.toFixed(3)}`;
     }
     const objects = [];
     try {
@@ -163,16 +153,23 @@
           [1, 'sphere silhouette'],
           [2, 'thin translucent ribbon'],
         ]) {
-          const lensed = pixelError(image, reference, channel);
-          const control = pixelError(aliased, reference, channel);
+          const lensed = relativeError(image, reference, 4, channel);
+          const control = relativeError(aliased, reference, 4, channel);
           assert(
             lensed < 0.55 * control,
             `${quality}: ${name} matches the area-sampled reference (` +
               errors(lensed, control) +
               ')',
           );
-          const lensedSectors = sectorError(image, reference, channel);
-          const controlSectors = sectorError(aliased, reference, channel);
+          const referenceSectors = sectors(reference, channel);
+          const lensedSectors = relativeError(
+            sectors(image, channel),
+            referenceSectors,
+          );
+          const controlSectors = relativeError(
+            sectors(aliased, channel),
+            referenceSectors,
+          );
           assert(
             lensedSectors < 0.5 * controlSectors,
             `${quality}: ${name} coverage is smooth along the ring (` +

@@ -49,7 +49,7 @@ export interface SimulationContext {
         camera: Camera;
         scene: Scene;
         particles: KeplerParticles;
-        composer?: EffectComposer;
+        composer: EffectComposer;
     };
     container: {
         width: number;
@@ -109,7 +109,7 @@ export declare class Simulation {
     private initialRenderComplete;
     private scene;
     private renderer;
-    private composer?;
+    private composer;
     /**
      * @param {HTMLCanvasElement} simulationElt The container for this simulation.
      * @param {Object} options for simulation
@@ -164,7 +164,7 @@ export declare class Simulation {
     /**
      * @private
      */
-    private initPasses;
+    private initComposer;
     /**
      * @private
      */

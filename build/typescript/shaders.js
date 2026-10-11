@@ -8,7 +8,7 @@ var Scale_1 = require("./Scale");
  * @ignore
  */
 function getOrbitShaderFragment() {
-    return "\n    varying vec3 vColor;\n    uniform sampler2D particleTexture;\n\n    void main() {\n      gl_FragColor = vec4(vColor, 1.0) * texture2D(particleTexture, gl_PointCoord);\n      #ifdef SOFT_PARTICLE\n        // Retune the bundled glow's opacity for linear-light rendering and\n        // taper its nonzero outer rim to zero. Custom sprite art is unchanged.\n        float radius = 2.0 * length(gl_PointCoord - vec2(0.5));\n        gl_FragColor.a = pow(gl_FragColor.a, 2.2) * (1.0 - smoothstep(0.7, 1.0, radius));\n      #endif\n      #include <tonemapping_fragment>\n      #include <colorspace_fragment>\n    }\n  ";
+    return "\n    varying vec3 vColor;\n    uniform sampler2D particleTexture;\n\n    void main() {\n      gl_FragColor = vec4(vColor, 1.0) * texture2D(particleTexture, gl_PointCoord);\n      #include <tonemapping_fragment>\n      #include <colorspace_fragment>\n    }\n  ";
 }
 /**
  * @ignore

@@ -2,12 +2,7 @@ import * as THREE from 'three';
 // @ts-ignore
 import julian from 'julian';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import {
-  BloomEffect,
-  EffectComposer,
-  EffectPass,
-  RenderPass,
-} from 'postprocessing';
+import { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 
 import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
 
@@ -68,7 +63,7 @@ export interface SimulationContext {
     camera: Camera;
     scene: Scene;
     particles: KeplerParticles;
-    composer?: EffectComposer;
+    composer: EffectComposer;
   };
   container: {
     width: number;
@@ -152,7 +147,7 @@ export class Simulation {
 
   private renderer: WebGLRenderer;
 
-  private composer?: EffectComposer;
+  private composer: EffectComposer;
 
   /**
    * @param {HTMLCanvasElement} simulationElt The container for this simulation.
@@ -250,8 +245,9 @@ export class Simulation {
 
     this.renderer = this.initRenderer();
     this.scene = new THREE.Scene();
+    this.composer = this.initComposer();
     this.camera = new Camera(this.getContext());
-    this.composer = undefined;
+    this.composer.setMainCamera(this.camera.get3jsCamera());
 
     // Orbit particle system must be initialized after scene is created and
     // scale is set.
@@ -332,9 +328,6 @@ export class Simulation {
         this.simulationElt.appendChild(this.stats!.dom);
       }
     }
-
-    // Set up effect composer, etc.
-    this.initPasses();
   }
 
   /**
@@ -382,26 +375,14 @@ export class Simulation {
   /**
    * @private
    */
-  private initPasses() {
-    const camera = this.camera.get3jsCamera();
-    const bloomEffect = new BloomEffect({
-      width: 240,
-      height: 240,
-      luminanceThreshold: 0.2,
-    });
-    bloomEffect.blendMode.opacity.value = 2.3;
-    const bloomPass = new EffectPass(camera, bloomEffect);
-    // Bloom is opt-in through the composer.
-    bloomPass.enabled = false;
-
+  private initComposer(): EffectComposer {
     // sRGB8 targets preserve dark-tone precision and blend in linear light in
     // WebGL 2, just like the lens captures. MSAA belongs on this scene target;
     // the final fullscreen pass converts the resolved image for display.
     const composer = new EffectComposer(this.renderer, { multisampling: 4 });
-    composer.addPass(new RenderPass(this.scene, camera));
-    composer.addPass(bloomPass);
-    composer.addPass(new EffectPass(camera));
-    this.composer = composer;
+    composer.addPass(new RenderPass(this.scene));
+    composer.addPass(new EffectPass());
+    return composer;
   }
 
   /**
@@ -451,7 +432,7 @@ export class Simulation {
       const camera = this.camera.get3jsCamera();
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
-      this.composer!.setSize(newWidth, newHeight);
+      this.composer.setSize(newWidth, newHeight);
       this.staticForcedUpdate();
       this.lastResizeUpdateTime = now;
     }
@@ -508,7 +489,7 @@ export class Simulation {
 
     // All transparent materials blend in linear light before display output,
     // whether or not a black hole lenses the scene. RenderPass clears each frame.
-    this.composer!.render();
+    this.composer.render();
 
     if (this.onTick) {
       this.onTick();

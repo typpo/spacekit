@@ -72,13 +72,13 @@ Procedural orbital lanes and knots modulate the local density and temperature. T
 
 ### Accelerated scene-depth traversal
 
-When `EXT_color_buffer_float` is available, each populated capture layer builds
-32-bit floating-point minimum/maximum depth bounds for 8×8 and 64×64 pixel tiles.
-The outgoing ray skips one-pixel sample intervals only when the entire tile is
-empty or its depth range cannot intersect the ray. It retains the first and last
-samples at tile boundaries for the continuous-surface crossing test. It preserves
-the sample grid, color compositing, sprite depth smoothing, and volumetric disk
-integration. Without float color targets, the linear walk is used.
+Each populated capture layer builds exact minimum/maximum depth bounds for 8×8
+and 64×64 pixel tiles, stored as 32-bit float bit patterns in `RG32UI` targets
+that every WebGL 2 device can render to. The outgoing ray skips one-pixel sample
+intervals only when the entire tile is empty or its depth range cannot intersect
+the ray. It keeps the first and last samples at tile boundaries for the
+continuous-surface crossing test, so the sample grid, color compositing, sprite
+depth smoothing, and volumetric disk integration are unaffected.
 Scene-lensing and standalone modes compile separate shader programs so unused
 depth traversal code does not affect the standalone disk. Switching modes
 compiles the other program on first use; subsequent toggles reuse it.
@@ -88,15 +88,12 @@ bounds textures across three layers at 2560×1440. It targets scene-lensing cost
 standalone disk integration does not benefit. There is no new public option.
 
 Color captures and the main frame use sRGB 8-bit storage to preserve dark tones.
-Texture sampling and blending operate in linear light, including overlapping
-transparency over surfaces with scene lensing disabled. The main frame uses
-4-sample MSAA (limited by device support) and a final display-conversion pass;
-bloom remains disabled by default. This fixes the blending mismatch without
-removing the capture-depth and sampling limitations above. The bundled particle
-glow and star fades have opacity profiles tuned for linear blending, with the
-glow tapering to zero at its outer edge. Custom particle textures keep their
-original alpha. See the [contributor GPU checks](../test/browser/README.md)
-for correctness comparisons and profiling instructions.
+Texture sampling and blending operate in linear light, so lensed and unlensed
+transparency match. The main frame uses 4-sample MSAA (limited by device support)
+and a final display-conversion pass. The bundled particle glow and star fades
+have opacity profiles for linear blending, and the glow tapers to zero at its
+outer edge. See the [contributor GPU checks](../test/browser/README.md) for
+validation and profiling instructions.
 
 ## References and validation
 
@@ -107,7 +104,7 @@ for correctness comparisons and profiling instructions.
 
 `test/BlackHole.test.ts` checks the solar horizon, radius ratios, ISCO period, critical capture threshold, weak-field deflection, null invariant, integration convergence, positioning/scaling, time scrubbing, camera updates, validation, and resource ownership. Browser checks are also necessary: numerical CPU tests do not compile the GPU shader.
 
-After `pnpm build`, serve the repository and open [the WebGL checks](../test/browser/black-hole.html). They render the actual shader into a framebuffer at both quality settings, compare the shadow diameter with the finite-observer prediction (within two pixels at 256 × 256), and verify translation, foreground/background occlusion, removal, optical-depth response, deterministic disk animation and scrubbing, exact edge-on thickness without bloom, scale-height response, transfer convergence between quality settings, both inward and outward radial rays, artistic-speed equivalence to accelerated simulation time, and full-disk views out to 100 horizon radii. [The sampling comparison](../test/browser/black-hole-sampling.html) also renders a fixed turbulent disk against a much denser integration reference, checking both quality levels against an undersampled stress control.
+After `pnpm build`, serve the repository and open [the WebGL checks](../test/browser/black-hole.html). They render the actual shader into a framebuffer at both quality settings, compare the shadow diameter with the finite-observer prediction (within two pixels at 256 × 256), and verify translation, foreground/background occlusion, removal, optical-depth response, deterministic disk animation and scrubbing, exact edge-on thickness, scale-height response, transfer convergence between quality settings, both inward and outward radial rays, artistic-speed equivalence to accelerated simulation time, and full-disk views out to 100 horizon radii. [The sampling comparison](../test/browser/black-hole-sampling.html) also renders a fixed turbulent disk against a much denser integration reference, checking both quality levels against an undersampled stress control.
 
 [The scene-lensing checks](../test/browser/black-hole-scene.html) exercise actual sphere, sprite, orbit-line, custom GPU particle, and additive Sun images at both quality levels. They also cover foreground occlusion, transparent layering, moving objects, camera changes without simulation ticks, resizing, resource reuse/removal, and restoration of caller render state.
 

@@ -319,25 +319,6 @@
         }
         fuzzyObject.material.uniforms.particleTexture.value.dispose();
         reset();
-        // The main frame must not acquire the hierarchy's optional float-target
-        // requirement. Exercise the supported no-float path through Simulation.
-        const has = renderer.extensions.has;
-        renderer.extensions.has = (name) =>
-          name === 'EXT_color_buffer_float'
-            ? false
-            : has.call(renderer.extensions, name);
-        plane(0x206080, 1, -4);
-        object('mesh', red, 0.25, -2, false);
-        object('sprite', blue, 0.25, -1, false);
-        draw();
-        const fallbackReference = sample();
-        lens(0);
-        draw();
-        assert(
-          matches(sample(), fallbackReference),
-          'linear frame and lensed transparency match without float render targets',
-        );
-        renderer.extensions.has = has;
         reset();
         // Verify real MSAA coverage, not just the configured sample count.
         const triangle = new T.Mesh(

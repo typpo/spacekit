@@ -180,22 +180,22 @@ After building, run `pnpm exec jest --runInBand` and open the
 [WebGL 2 regression checks](https://github.com/typpo/spacekit/blob/master/test/browser/webgl2.html) and
 [black-hole GPU checks](https://github.com/typpo/spacekit/blob/master/test/browser/black-hole.html) through the local server.
 These exercise the compiled shaders, orbital particle positions, color output,
-bloom, and depth occlusion on an actual WebGL 2 context.
-See [GPU validation and profiling](https://github.com/typpo/spacekit/blob/master/test/browser/README.md) for the full suite,
-including capture color precision and scene-depth traversal comparisons.
+and depth occlusion on an actual WebGL 2 context.
+See [GPU validation and profiling](https://github.com/typpo/spacekit/blob/master/test/browser/README.md) for the full suite.
 
-When migrating custom Three.js code, `getRenderer()` now returns a
-`THREE.WebGLRenderer`. Use `texture.colorSpace = THREE.SRGBColorSpace` for
-caller-provided color images (including black-hole skies); Spacekit sets this
-automatically for its own image textures. Custom `ShaderMaterial` fragments
-should use Three.js's `colorspace_fragment` chunk for output conversion.
-The simulation renders through its composer into an MSAA sRGB render target,
-where WebGL 2 blends in linear light, then converts the resolved frame for display.
-Use `sim.getContext().objects.composer.render()` for a manually rendered frame;
-calling `getRenderer().render()` directly bypasses this pipeline. Bloom remains
-disabled by default and can be enabled on the composer's bloom pass (`passes[1]`).
-See the [Three.js migration guide](https://github.com/mrdoob/three.js/wiki/Migration-Guide)
-for changes to the exposed `Spacekit.THREE` API since r135.
+## Rendering with Three.js
+
+`getRenderer()` returns a `THREE.WebGLRenderer`. Set
+`texture.colorSpace = THREE.SRGBColorSpace` on caller-provided color images
+(including black-hole skies); Spacekit does this for its own image textures.
+Custom `ShaderMaterial` fragments should end with Three.js's
+`colorspace_fragment` chunk.
+
+The simulation renders each frame through its composer
+(`sim.getContext().objects.composer`) into a 4× MSAA sRGB render target, where
+WebGL 2 blends in linear light, then converts the resolved frame for display.
+Call `composer.render()` to render a frame manually; `getRenderer().render()`
+draws outside this pipeline.
 
 # Usage
 

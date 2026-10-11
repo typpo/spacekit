@@ -5,13 +5,11 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running GPU checks...</pre>
 <script src="../../build/spacekit.js?sampling=4"></script>
-<script src="black-hole-hierarchy-check.js"></script>
 <script>
 // Run through the local HTTP server. This tests the compiled GPU shader, not
 // a second CPU implementation of it. Failures are also reported to the console.
 const T = Spacekit.THREE;
 const renderer = new T.WebGLRenderer();
-compareBlackHoleHierarchy(renderer);
 renderer.setSize(256, 256);
 const target = new T.WebGLRenderTarget(256, 256, { colorSpace: T.SRGBColorSpace });
 const camera = new T.PerspectiveCamera(12, 1, 0.001, 1000);
@@ -139,8 +137,8 @@ try {
   const extendedDifference = extendedCoarse.reduce((sum, value, index) => sum + (index % 4 === 3 ? 0 : Math.abs(value - extended[index])), 0) / energy(extended);
   assert(extendedDifference < 0.08, '100-radii disk agrees across quality settings: ' + extendedDifference.toFixed(4));
   disk.dispose();
-  // Measure the foreground gas away from the lensed central ring, with no
-  // bloom and an observer exactly in the midplane. A screen-space line fails.
+  // Measure the foreground gas away from the lensed central ring, with an
+  // observer exactly in the midplane. A screen-space line fails.
   camera.up.set(0, 0, 1);
   camera.position.set(0, -43 * rs, 0);
   camera.lookAt(0, 0, 0);

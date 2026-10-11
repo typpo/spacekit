@@ -197,7 +197,6 @@ export class BlackHole implements SimulationObject {
         },
         hasBackground: { value: !!options.backgroundTexture },
         backgroundTexture: { value: options.backgroundTexture ?? null },
-        sceneDepthHierarchy: { value: false },
         sceneBoundsFine: { value: null },
         sceneBoundsCoarse: { value: null },
         transparentBoundsFine: { value: null },
@@ -245,8 +244,6 @@ export class BlackHole implements SimulationObject {
           .set(center.x, center.y, center.z, 1)
           .applyMatrix4(uniforms.viewProjection.value);
         this.sceneCapture.render(renderer, scene, camera, centerClip.w);
-        uniforms.sceneDepthHierarchy.value =
-          this.sceneCapture.hasDepthHierarchy;
         uniforms.sceneClearColor.value.copy(this.sceneCapture.clearColor);
         uniforms.sceneHasTransparent.value = this.sceneCapture.hasTransparent;
         uniforms.sceneHasSurfaces.value = this.sceneCapture.hasSurfaces;

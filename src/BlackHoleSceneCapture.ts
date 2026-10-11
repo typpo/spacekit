@@ -31,7 +31,6 @@ export class BlackHoleSceneCapture {
   readonly backgroundBounds = new BlackHoleDepthHierarchy();
   readonly transparentBounds = new BlackHoleDepthHierarchy();
   readonly surfaceBounds = new BlackHoleDepthHierarchy();
-  hasDepthHierarchy = false;
   hasTransparent = false;
   hasSurfaces = false;
   private readonly camera = new THREE.PerspectiveCamera();
@@ -124,7 +123,12 @@ export class BlackHoleSceneCapture {
     if (!(camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
       throw new Error('Black hole scene lensing requires a perspective camera');
     }
-    this.hasDepthHierarchy = renderer.extensions.has('EXT_color_buffer_float');
+    for (const bounds of [
+      this.backgroundBounds,
+      this.transparentBounds,
+      this.surfaceBounds,
+    ])
+      bounds.allocate(renderer);
     const sourceCamera = camera as THREE.PerspectiveCamera;
     const previousTarget = renderer.getRenderTarget();
     const cubeFace = renderer.getActiveCubeFace();
@@ -359,13 +363,10 @@ export class BlackHoleSceneCapture {
         );
         renderer.render(scene, this.camera);
       }
-      if (this.hasDepthHierarchy) {
-        this.backgroundBounds.render(renderer, this.background);
-        if (this.hasTransparent)
-          this.transparentBounds.render(renderer, this.transparent);
-        if (this.hasSurfaces)
-          this.surfaceBounds.render(renderer, this.surfaces);
-      }
+      this.backgroundBounds.render(renderer, this.background);
+      if (this.hasTransparent)
+        this.transparentBounds.render(renderer, this.transparent);
+      if (this.hasSurfaces) this.surfaceBounds.render(renderer, this.surfaces);
     } finally {
       materials.forEach((original, material) =>
         Object.assign(material, original),

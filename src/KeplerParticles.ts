@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { DEFAULT_TEXTURE_URL, getThreeJsTexture } from './util';
+import { getThreeJsTexture } from './util';
 
 import { Coordinate3d } from './Coordinates';
 import { getOrbitShaderVertex, getOrbitShaderFragment } from './shaders';
@@ -179,10 +179,6 @@ export class KeplerParticles {
     });
 
     const shader = new THREE.ShaderMaterial({
-      defines:
-        this.options.textureUrl === DEFAULT_TEXTURE_URL
-          ? { SOFT_PARTICLE: 1 }
-          : {},
       uniforms: this.uniforms,
       vertexShader: getOrbitShaderVertex(),
       fragmentShader: getOrbitShaderFragment(),

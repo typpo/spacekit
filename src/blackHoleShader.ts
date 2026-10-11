@@ -30,13 +30,12 @@ uniform bool hasBackground;
 uniform sampler2D backgroundTexture;
 #ifdef SCENE_LENSING
 const bool lensScene = true;
-uniform bool sceneDepthHierarchy;
-uniform sampler2D sceneBoundsFine;
-uniform sampler2D sceneBoundsCoarse;
-uniform sampler2D transparentBoundsFine;
-uniform sampler2D transparentBoundsCoarse;
-uniform sampler2D surfaceBoundsFine;
-uniform sampler2D surfaceBoundsCoarse;
+uniform highp usampler2D sceneBoundsFine;
+uniform highp usampler2D sceneBoundsCoarse;
+uniform highp usampler2D transparentBoundsFine;
+uniform highp usampler2D transparentBoundsCoarse;
+uniform highp usampler2D surfaceBoundsFine;
+uniform highp usampler2D surfaceBoundsCoarse;
 uniform sampler2D sceneColor;
 uniform sampler2D sceneDepth;
 uniform sampler2D sceneTransparent;
@@ -290,17 +289,17 @@ void traceRay() {
 }
 
 #ifdef SCENE_LENSING
-// Return the last original sample in a tile only when its entire depth range
+// Return the last sample in a tile only when its entire depth range
 // cannot intersect this ray. Keep both endpoint samples: the final sample seeds
-// the existing continuous-surface crossing test at the next tile boundary.
-float skipDepthTile(sampler2D boundsTexture, float tileSize, vec3 first, vec3 delta,
+// the continuous-surface crossing test at the next tile boundary.
+float skipDepthTile(highp usampler2D boundsTexture, float tileSize, vec3 first, vec3 delta,
     vec2 uv, vec2 inverseDelta, float lo, float stride, float steps, float index) {
   vec2 tile = floor(uv * sceneSize / tileSize);
   vec2 edge = (tile + step(vec2(0.0), delta.xy)) * tileSize / sceneSize;
   vec2 exitAlong = (edge - first.xy) * inverseDelta;
   float end = min(steps - 1.0, floor((min(exitAlong.x, exitAlong.y) - lo) / stride - 0.5 - 0.001));
   if (end <= index + 1.0) return index;
-  vec2 bounds = texelFetch(boundsTexture, ivec2(tile), 0).rg;
+  vec2 bounds = uintBitsToFloat(texelFetch(boundsTexture, ivec2(tile), 0).rg);
   float rayNear = first.z + delta.z * (lo + (index + 0.5) * stride);
   float rayFar = first.z + delta.z * (lo + (end + 0.5) * stride);
   float margin = delta.z * (stride * 0.5 + 0.0000002);
@@ -311,7 +310,7 @@ float skipDepthTile(sampler2D boundsTexture, float tileSize, vec3 first, vec3 de
 // Follow the outgoing asymptote through the camera's depth image. Screen x/y
 // and hardware depth are linear in the same projected-line parameter, so each
 // one-pixel interval can be intersected without an arbitrary world thickness.
-vec4 sceneSample(sampler2D colors, sampler2D depths, sampler2D fineBounds, sampler2D coarseBounds, vec4 start, vec4 direction,
+vec4 sceneSample(sampler2D colors, sampler2D depths, highp usampler2D fineBounds, highp usampler2D coarseBounds, vec4 start, vec4 direction,
     bool transparent, float limit, vec4 surface, float surfaceHit, out float firstHit) {
   firstHit = -1.0;
   vec4 light = vec4(0.0);
@@ -373,11 +372,8 @@ vec4 sceneSample(sampler2D colors, sampler2D depths, sampler2D fineBounds, sampl
     previousDifference = difference;
     previousDepth = depth;
     previousSurface = depth < 1.0;
-    float next = index;
-    if (sceneDepthHierarchy) {
-      next = skipDepthTile(coarseBounds, 64.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
-      if (next == index) next = skipDepthTile(fineBounds, 8.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
-    }
+    float next = skipDepthTile(coarseBounds, 64.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
+    if (next == index) next = skipDepthTile(fineBounds, 8.0, first, delta, uv, inverseDelta, lo, stride, steps, index);
     index = max(index + 1.0, next);
   }
   return light + (1.0 - light.a) * surface;

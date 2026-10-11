@@ -5,7 +5,7 @@ through the local server. Each page reports PASS/FAIL in its results panel and
 logs failures to the browser console. The checks exercise the compiled renderer;
 Jest's CPU tests do not compile or execute the GPU shaders.
 
-- [WebGL 2](webgl2.html): initialization, orbital particles, colors, and bloom.
+- [WebGL 2](webgl2.html): initialization, orbital particles, and colors.
 - [Black hole](black-hole.html): shadow size, occlusion, disk emission, and animation.
 - [Disk sampling](black-hole-sampling.html): low/high quality against dense integration.
 - [Capture colors](black-hole-color.html): dark gradients and transparent blending
@@ -13,24 +13,18 @@ Jest's CPU tests do not compile or execute the GPU shaders.
 - [Frame transparency](particle-fades.html): independent linear-light references
   for overlapping particles, sprites, meshes, premultiplied materials, and custom
   shaders over black and colored surfaces, with normal/additive blending on both
-  sides of the lens. Also checks actual halo art, MSAA coverage, clearing, resize,
-  and the no-float-target fallback through the normal Simulation frame path.
-- [Scene lensing](black-hole-scene.html?compareHierarchy=1): meshes, sprites, lines,
+  sides of the lens. Also checks the bundled halo art, MSAA coverage, clearing,
+  and resize through the normal Simulation frame path.
+- [Scene lensing](black-hole-scene.html): meshes, sprites, lines,
   GPU particles, resizing, and resource ownership.
-- [Finite source depth](black-hole-scene-depth.html?compareHierarchy=1): image size
+- [Finite source depth](black-hole-scene-depth.html): image size
   against a finite-distance reference, plus occlusion and camera clipping.
-- [Stars](black-hole-stars.html?compareHierarchy=1): real star-catalogue rendering.
-- [Transparency](black-hole-transparency.html?compareHierarchy=1): ordered light
+- [Stars](black-hole-stars.html): real star-catalogue rendering.
+- [Transparency](black-hole-transparency.html): ordered light
   compositing and connected sprite-depth smoothing.
-- [Depth hierarchy](black-hole-hierarchy.html?compareHierarchy=1): odd sizes,
-  asymmetric frusta, resizing, and the float-target capability fallback.
-
-`?compareHierarchy=1` compares each scene-lensed image byte for byte with tile
-skipping disabled. This checks the acceleration's sample-preservation invariant;
-the independent color, geometric, and compositing checks catch errors shared by
-both traversals. The comparison helper is test-only and is not in the runtime bundle.
-Comparisons require `EXT_color_buffer_float`; ordinary scene lensing also works
-without it. The hierarchy page forces that capability off to check the fallback.
+- [Depth hierarchy](black-hole-hierarchy.html): 8×8 and 64×64 tile bounds for every
+  captured layer against an exact CPU reduction of the captured depths, at odd
+  sizes, with asymmetric frusta, and across resizes.
 
 For stage timings, load `black-hole-profile.js` in the example and stop its
 animation loop before calling `profileBlackHole(simulation, hole)`. It measures

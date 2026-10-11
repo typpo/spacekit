@@ -5,12 +5,10 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running hierarchy GPU checks...</pre>
 <script src="../../build/spacekit.js"></script>
-<script src="black-hole-hierarchy-check.js"></script>
 <script>
 const T = Spacekit.THREE;
 const renderer = new T.WebGLRenderer();
-const plainRender = renderer.render.bind(renderer);
-compareBlackHoleHierarchy(renderer);
+const gl = renderer.getContext();
 const scene = new T.Scene();
 const camera = new T.PerspectiveCamera(50, 1, 0.01, 100);
 const target = new T.WebGLRenderTarget(1, 1);
@@ -26,8 +24,95 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
   results.push('PASS: ' + message);
 };
+
+// Independent reference: copy each captured depth texel's exact float bits
+// into an RGBA8 target, then reduce the 8x8 and 64x64 tiles on the CPU.
+const bitsTarget = new T.WebGLRenderTarget(1, 1, { depthBuffer: false });
+const bitsScene = new T.Scene();
+const bitsQuad = new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({
+  glslVersion: T.GLSL3,
+  uniforms: { depth: { value: null } },
+  vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: `
+    uniform highp sampler2D depth;
+    layout(location = 0) out highp vec4 color;
+    void main() {
+      uint bits = floatBitsToUint(texelFetch(depth, ivec2(gl_FragCoord.xy), 0).x);
+      color = vec4(uvec4(bits, bits >> 8, bits >> 16, bits >> 24) & 255u) / 255.0;
+    }`,
+  depthTest: false,
+  depthWrite: false,
+  blending: T.NoBlending,
+  toneMapped: false,
+}));
+bitsQuad.frustumCulled = false;
+bitsScene.add(bitsQuad);
+
+function depthBits(layer) {
+  const { width, height } = layer;
+  bitsTarget.setSize(width, height);
+  bitsQuad.material.uniforms.depth.value = layer.depthTexture;
+  renderer.setRenderTarget(bitsTarget);
+  renderer.render(bitsScene, camera);
+  const bytes = new Uint8Array(width * height * 4);
+  renderer.readRenderTargetPixels(bitsTarget, 0, 0, width, height, bytes);
+  return new Uint32Array(bytes.buffer);
+}
+
+function boundsTexels(boundsTarget) {
+  const { width, height } = boundsTarget;
+  renderer.setRenderTarget(boundsTarget);
+  const texels = new Uint32Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA_INTEGER, gl.UNSIGNED_INT, texels);
+  const bounds = new Uint32Array(width * height * 2);
+  for (let i = 0; i < width * height; i++) {
+    bounds[2 * i] = texels[4 * i];
+    bounds[2 * i + 1] = texels[4 * i + 1];
+  }
+  return bounds;
+}
+
+const ONE = 0x3f800000; // floatBitsToUint(1.0): an empty pixel.
+function reduce(values, width, height, isBounds) {
+  const w = Math.ceil(width / 8), h = Math.ceil(height / 8);
+  const out = new Uint32Array(w * h * 2);
+  for (let ty = 0; ty < h; ty++) {
+    for (let tx = 0; tx < w; tx++) {
+      let lo = ONE, hi = 0;
+      for (let y = ty * 8; y < Math.min(height, ty * 8 + 8); y++) {
+        for (let x = tx * 8; x < Math.min(width, tx * 8 + 8); x++) {
+          const i = y * width + x;
+          const min = isBounds ? values[2 * i] : values[i];
+          const max = isBounds ? values[2 * i + 1] : values[i] < ONE ? values[i] : 0;
+          lo = Math.min(lo, min);
+          hi = Math.max(hi, max);
+        }
+      }
+      out[2 * (ty * w + tx)] = lo;
+      out[2 * (ty * w + tx) + 1] = hi;
+    }
+  }
+  return out;
+}
+
+const equal = (a, b) => a.length === b.length && a.every((value, i) => value === b[i]);
+
+function checkLayer(name, layer, hierarchy, label) {
+  const { width, height } = layer;
+  const bits = depthBits(layer);
+  const fine = reduce(bits, width, height, false);
+  const coarse = reduce(fine, Math.ceil(width / 8), Math.ceil(height / 8), true);
+  assert(
+    hierarchy.fine.width === Math.ceil(width / 8) && hierarchy.coarse.width === Math.ceil(width / 64) &&
+      hierarchy.fine.height === Math.ceil(height / 8) && hierarchy.coarse.height === Math.ceil(height / 64),
+    `${label}: ${name} bounds are sized to the capture`,
+  );
+  assert(equal(boundsTexels(hierarchy.fine), fine), `${label}: ${name} 8x8 bounds match exact depths`);
+  assert(equal(boundsTexels(hierarchy.coarse), coarse), `${label}: ${name} 64x64 bounds match exact depths`);
+  return bits.some(value => value < ONE);
+}
+
 try {
-  assert(new URLSearchParams(location.search).has('compareHierarchy'), 'pixel comparison enabled');
   const positions = [];
   let seed = 123;
   const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
@@ -50,41 +135,32 @@ try {
   const sphere = new T.Mesh(new T.SphereGeometry(2, 32, 16), new T.MeshBasicMaterial({ color: 0xffff00 }));
   sphere.position.set(3, 1, -8);
   scene.add(sphere);
+  let populated = 0;
   for (const quality of ['low', 'high']) {
     hole = new Spacekit.BlackHole('hierarchy', { massSolar: 4e6, lensScene: true, accretionDisk: false, quality }, simulation);
-    for (const [width, height] of [[1, 1], [63, 65], [257, 129], [641, 359]]) {
-      target.setSize(width, height);
-      renderer.setRenderTarget(target);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+    // Odd sizes exercise partial edge tiles; the resize order shrinks and
+    // grows the bounds targets.
+    for (const [width, height] of [[1, 1], [63, 65], [641, 359], [257, 129]]) {
       for (const offset of [0, 0.09]) {
+        target.setSize(width, height);
+        camera.aspect = width / height;
         camera.position.set(offset * 10, 0, 8);
         camera.lookAt(0, 0, 0);
         camera.setViewOffset(width * 2, height * 2, width * (0.5 + offset), height * 0.5, width, height);
+        renderer.setRenderTarget(target);
         renderer.render(scene, camera);
-        assert(hole.sceneCapture.hasDepthHierarchy, `${quality}: ${width}x${height}, offset ${offset} uses hierarchy`);
+        const capture = hole.sceneCapture;
+        const label = `${quality} ${width}x${height} offset ${offset}`;
+        if (checkLayer('background', capture.background, capture.backgroundBounds, label)) populated++;
+        if (capture.hasTransparent && checkLayer('transparent', capture.transparent, capture.transparentBounds, label)) populated++;
+        if (capture.hasSurfaces && checkLayer('surface', capture.surfaces, capture.surfaceBounds, label)) populated++;
       }
     }
-    // Force the optional float-target capability off. The same image must
-    // still render without running any hierarchy passes.
-    const pixels = () => {
-      const data = new Uint8Array(target.width * target.height * 4);
-      renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, data);
-      return data;
-    };
-    plainRender(scene, camera);
-    const accelerated = pixels();
-    const hasExtension = renderer.extensions.has;
-    renderer.extensions.has = name => name === 'EXT_color_buffer_float' ? false : hasExtension.call(renderer.extensions, name);
-    try {
-      plainRender(scene, camera);
-      assert(!hole.sceneCapture.hasDepthHierarchy, `${quality}: no float targets uses linear fallback`);
-      assert(pixels().every((value, index) => value === accelerated[index]), `${quality}: fallback is pixel identical`);
-    } finally { renderer.extensions.has = hasExtension; }
     hole.dispose();
+    hole = undefined;
   }
-  assert(window.hierarchyComparisons === 16, 'all 16 resized/asymmetric images match the linear walk exactly');
-  assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+  assert(populated >= 24, `bounds were checked against populated depth in ${populated} layers`);
+  assert(gl.getError() === 0, 'no WebGL errors');
   results.push('ALL CHECKS PASSED');
 } catch (error) {
   results.push('FAIL: ' + error.message);
@@ -92,6 +168,9 @@ try {
 } finally {
   hole?.dispose();
   target.dispose();
+  bitsTarget.dispose();
+  bitsQuad.geometry.dispose();
+  bitsQuad.material.dispose();
   scene.traverse(object => { object.geometry?.dispose(); object.material?.dispose(); });
   renderer.dispose();
   document.getElementById('results').textContent = results.join('\n');

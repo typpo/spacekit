@@ -10,12 +10,6 @@ export function getOrbitShaderFragment() {
 
     void main() {
       gl_FragColor = vec4(vColor, 1.0) * texture2D(particleTexture, gl_PointCoord);
-      #ifdef SOFT_PARTICLE
-        // Retune the bundled glow's opacity for linear-light rendering and
-        // taper its nonzero outer rim to zero. Custom sprite art is unchanged.
-        float radius = 2.0 * length(gl_PointCoord - vec2(0.5));
-        gl_FragColor.a = pow(gl_FragColor.a, 2.2) * (1.0 - smoothstep(0.7, 1.0, radius));
-      #endif
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
     }

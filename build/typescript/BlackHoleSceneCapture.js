@@ -61,7 +61,6 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         this.backgroundBounds = new BlackHoleDepthHierarchy_1.BlackHoleDepthHierarchy();
         this.transparentBounds = new BlackHoleDepthHierarchy_1.BlackHoleDepthHierarchy();
         this.surfaceBounds = new BlackHoleDepthHierarchy_1.BlackHoleDepthHierarchy();
-        this.hasDepthHierarchy = false;
         this.hasTransparent = false;
         this.hasSurfaces = false;
         this.camera = new THREE.PerspectiveCamera();
@@ -99,7 +98,14 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         if (!camera.isPerspectiveCamera) {
             throw new Error('Black hole scene lensing requires a perspective camera');
         }
-        this.hasDepthHierarchy = renderer.extensions.has('EXT_color_buffer_float');
+        for (var _i = 0, _a = [
+            this.backgroundBounds,
+            this.transparentBounds,
+            this.surfaceBounds,
+        ]; _i < _a.length; _i++) {
+            var bounds = _a[_i];
+            bounds.allocate(renderer);
+        }
         var sourceCamera = camera;
         var previousTarget = renderer.getRenderTarget();
         var cubeFace = renderer.getActiveCubeFace();
@@ -112,8 +118,8 @@ var BlackHoleSceneCapture = /** @class */ (function () {
         renderer.getClearColor(this.clearColor);
         renderer.getCurrentViewport(this.viewport);
         this.size.set(Math.max(1, this.viewport.z), Math.max(1, this.viewport.w));
-        for (var _i = 0, _a = [this.background, this.transparent, this.foreground]; _i < _a.length; _i++) {
-            var target = _a[_i];
+        for (var _b = 0, _c = [this.background, this.transparent, this.foreground]; _b < _c.length; _b++) {
+            var target = _c[_b];
             if (target.width !== this.size.x || target.height !== this.size.y) {
                 target.setSize(this.size.x, this.size.y);
             }
@@ -238,8 +244,8 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 var object = _a.object;
                 object.layers.mask = 0;
             });
-            for (var _b = 0, transparentObjects_1 = transparentObjects; _b < transparentObjects_1.length; _b++) {
-                var entry = transparentObjects_1[_b];
+            for (var _d = 0, transparentObjects_1 = transparentObjects; _d < transparentObjects_1.length; _d++) {
+                var entry = transparentObjects_1[_d];
                 entry.object.layers.mask = entry.mask;
                 // Reuse the foreground target as temporary storage until its final
                 // capture, avoiding another full-resolution color/depth allocation.
@@ -295,13 +301,11 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 this.clipCamera(sourceCamera, sourceCamera.near, Math.min(near, sourceCamera.far));
                 renderer.render(scene, this.camera);
             }
-            if (this.hasDepthHierarchy) {
-                this.backgroundBounds.render(renderer, this.background);
-                if (this.hasTransparent)
-                    this.transparentBounds.render(renderer, this.transparent);
-                if (this.hasSurfaces)
-                    this.surfaceBounds.render(renderer, this.surfaces);
-            }
+            this.backgroundBounds.render(renderer, this.background);
+            if (this.hasTransparent)
+                this.transparentBounds.render(renderer, this.transparent);
+            if (this.hasSurfaces)
+                this.surfaceBounds.render(renderer, this.surfaces);
         }
         finally {
             materials.forEach(function (original, material) {

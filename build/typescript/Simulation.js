@@ -213,8 +213,9 @@ var Simulation = /** @class */ (function () {
         this.animate = this.animate.bind(this);
         this.renderer = this.initRenderer();
         this.scene = new THREE.Scene();
+        this.composer = this.initComposer();
         this.camera = new Camera_1.default(this.getContext());
-        this.composer = undefined;
+        this.composer.setMainCamera(this.camera.get3jsCamera());
         // Orbit particle system must be initialized after scene is created and
         // scale is set.
         this.particles = new KeplerParticles_1.KeplerParticles({
@@ -280,8 +281,6 @@ var Simulation = /** @class */ (function () {
                 this.simulationElt.appendChild(this.stats.dom);
             }
         }
-        // Set up effect composer, etc.
-        this.initPasses();
     };
     /**
      * @private
@@ -313,25 +312,14 @@ var Simulation = /** @class */ (function () {
     /**
      * @private
      */
-    Simulation.prototype.initPasses = function () {
-        var camera = this.camera.get3jsCamera();
-        var bloomEffect = new postprocessing_1.BloomEffect({
-            width: 240,
-            height: 240,
-            luminanceThreshold: 0.2,
-        });
-        bloomEffect.blendMode.opacity.value = 2.3;
-        var bloomPass = new postprocessing_1.EffectPass(camera, bloomEffect);
-        // Bloom is opt-in through the composer.
-        bloomPass.enabled = false;
+    Simulation.prototype.initComposer = function () {
         // sRGB8 targets preserve dark-tone precision and blend in linear light in
         // WebGL 2, just like the lens captures. MSAA belongs on this scene target;
         // the final fullscreen pass converts the resolved image for display.
         var composer = new postprocessing_1.EffectComposer(this.renderer, { multisampling: 4 });
-        composer.addPass(new postprocessing_1.RenderPass(this.scene, camera));
-        composer.addPass(bloomPass);
-        composer.addPass(new postprocessing_1.EffectPass(camera));
-        this.composer = composer;
+        composer.addPass(new postprocessing_1.RenderPass(this.scene));
+        composer.addPass(new postprocessing_1.EffectPass());
+        return composer;
     };
     /**
      * @private

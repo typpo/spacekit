@@ -145,7 +145,6 @@ var BlackHole = /** @class */ (function () {
                 },
                 hasBackground: { value: !!options.backgroundTexture },
                 backgroundTexture: { value: (_m = options.backgroundTexture) !== null && _m !== void 0 ? _m : null },
-                sceneDepthHierarchy: { value: false },
                 sceneBoundsFine: { value: null },
                 sceneBoundsCoarse: { value: null },
                 transparentBoundsFine: { value: null },
@@ -190,8 +189,6 @@ var BlackHole = /** @class */ (function () {
                     .set(center.x, center.y, center.z, 1)
                     .applyMatrix4(uniforms.viewProjection.value);
                 _this.sceneCapture.render(renderer, scene, camera, centerClip.w);
-                uniforms.sceneDepthHierarchy.value =
-                    _this.sceneCapture.hasDepthHierarchy;
                 uniforms.sceneClearColor.value.copy(_this.sceneCapture.clearColor);
                 uniforms.sceneHasTransparent.value = _this.sceneCapture.hasTransparent;
                 uniforms.sceneHasSurfaces.value = _this.sceneCapture.hasSurfaces;

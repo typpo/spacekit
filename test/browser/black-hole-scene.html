@@ -5,11 +5,9 @@
 <link rel="icon" href="data:,">
 <pre id="results">Running scene lensing GPU checks...</pre>
 <script src="../../build/spacekit.js"></script>
-<script src="black-hole-hierarchy-check.js"></script>
 <script>
 const T = Spacekit.THREE;
 const renderer = new T.WebGLRenderer();
-compareBlackHoleHierarchy(renderer);
 renderer.setSize(256, 256);
 renderer.setClearColor(0x102030);
 const target = new T.WebGLRenderTarget(256, 256);

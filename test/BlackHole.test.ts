@@ -128,36 +128,16 @@ describe('BlackHole scene integration', () => {
       'transparent',
       'surfaces',
       'foreground',
+      'backgroundBounds',
+      'transparentBounds',
+      'surfaceBounds',
     ].map((layer) => jest.spyOn(capture[layer], 'dispose'));
     first.dispose();
     first.dispose();
     disposals.forEach((dispose) => expect(dispose).toHaveBeenCalledTimes(1));
   });
 
-  test('only scene lensing requires a depth-texture extension', () => {
-    const sim = simulation();
-    sim.getContext = () => ({
-      options: {},
-      objects: {
-        renderer: {
-          extensions: { has: (name: string) => name !== 'WEBGL_depth_texture' },
-          capabilities: { getMaxPrecision: () => 'highp' },
-        },
-      },
-    });
-    expect(
-      () => new BlackHole('bh', { massSolar: 4e6, lensScene: true }, sim),
-    ).toThrow(/WEBGL_depth_texture/);
-    expect(sim.addObject).not.toHaveBeenCalled();
-    const hole = new BlackHole('bh', { massSolar: 4e6 }, sim);
-    expect(sim.addObject).toHaveBeenCalledWith(hole);
-    expect(() => hole.setSceneLensingEnabled(true)).toThrow(
-      /WEBGL_depth_texture/,
-    );
-    hole.dispose();
-  });
-
-  test.each([1, 2, 3, 4, 5, 6])(
+  test.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
     'capture failure in pass %p restores caller materials and renderer state',
     (failedPass) => {
       const capture = new BlackHoleSceneCapture();
@@ -176,6 +156,7 @@ describe('BlackHole scene integration', () => {
       let clearAlpha = 0.7;
       let renders = 0;
       const renderer = {
+        extensions: { has: () => true },
         autoClear: false,
         xr: { enabled: true },
         shadowMap: { autoUpdate: true },

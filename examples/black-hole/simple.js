@@ -24,6 +24,7 @@ const ctx = canvas.getContext('2d');
 ctx.fillStyle = '#000';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 const backgroundTexture = new Spacekit.THREE.CanvasTexture(canvas);
+backgroundTexture.colorSpace = Spacekit.THREE.SRGBColorSpace;
 backgroundTexture.wrapS = Spacekit.THREE.RepeatWrapping;
 const skyImage = new Image();
 skyImage.onload = () => {

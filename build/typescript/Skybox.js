@@ -15,18 +15,29 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
-exports.SkyboxPresets = exports.Skybox = exports.getSkyboxOrientationTransform = void 0;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SkyboxPresets = exports.Skybox = void 0;
+exports.getSkyboxOrientationTransform = getSkyboxOrientationTransform;
 var THREE = __importStar(require("three"));
 var CoordinateTransforms_1 = require("./CoordinateTransforms");
 var Units_1 = __importDefault(require("./Units"));
@@ -42,7 +53,7 @@ function getAstronomicalProjectionTransform() {
 function getSkyboxOrientationTransform(options, obliquity) {
     var nativeTextureAdjustment = new THREE.Matrix4();
     if (options.longitudeOffsetDeg) {
-        nativeTextureAdjustment.multiply(new THREE.Matrix4().makeRotationZ(Units_1["default"].rad(options.longitudeOffsetDeg)));
+        nativeTextureAdjustment.multiply(new THREE.Matrix4().makeRotationZ(Units_1.default.rad(options.longitudeOffsetDeg)));
     }
     if (options.mirrorLongitude) {
         nativeTextureAdjustment.multiply(new THREE.Matrix4().makeScale(1, -1, 1));
@@ -53,7 +64,6 @@ function getSkyboxOrientationTransform(options, obliquity) {
         .multiply(nativeTextureAdjustment)
         .multiply(getAstronomicalProjectionTransform());
 }
-exports.getSkyboxOrientationTransform = getSkyboxOrientationTransform;
 /**
  * A class that adds a skybox (technically a skysphere) to a visualization.
  */
@@ -78,9 +88,10 @@ var Skybox = /** @class */ (function () {
      * @private
      */
     Skybox.prototype.init = function () {
-        var geometry = new THREE.SphereBufferGeometry(1e10, 32, 32);
+        var geometry = new THREE.SphereGeometry(1e10, 32, 32);
         var fullTextureUrl = (0, util_1.getFullTextureUrl)(this.options.textureUrl, this.context.options.basePath);
         var texture = new THREE.TextureLoader().load(fullTextureUrl);
+        texture.colorSpace = THREE.SRGBColorSpace;
         var material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.BackSide,
@@ -88,7 +99,7 @@ var Skybox = /** @class */ (function () {
             opacity: this.options.opacity || 1,
             // The sky is behind everything, so it needs no depth. Leaving the depth
             // buffer clear also marks it as infinitely distant for scene captures.
-            depthWrite: false
+            depthWrite: false,
         });
         var sky = new THREE.Mesh(geometry, material);
         sky.applyMatrix4(getSkyboxOrientationTransform(this.options));
@@ -138,14 +149,14 @@ exports.SkyboxPresets = {
         // galactic plane horizontal and the bulge centered in the image.
         textureUrl: '{{assets}}/skybox/eso_milkyway.jpg',
         longitudeOffsetDeg: 180,
-        mirrorLongitude: true
+        mirrorLongitude: true,
     },
     ESO_LITE: {
         // Derived from the same ESO galaxy-centric panorama convention as
         // ESO_GIGAGALAXY.
         textureUrl: '{{assets}}/skybox/eso_lite.png',
         longitudeOffsetDeg: 180,
-        mirrorLongitude: true
+        mirrorLongitude: true,
     },
     NASA_TYCHO: {
         // Source: NASA SVS 3895 /vis/.../starmap_g8k.jpg, the galactic-coordinate
@@ -153,6 +164,6 @@ exports.SkyboxPresets = {
         // byte-for-byte.
         textureUrl: '{{assets}}/skybox/nasa_tycho.jpg',
         longitudeOffsetDeg: 180,
-        mirrorLongitude: true
-    }
+        mirrorLongitude: true,
+    },
 };

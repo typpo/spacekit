@@ -9,10 +9,10 @@ interface BaseKeplerParticleOptions {
     jd?: number;
     maxNumParticles?: number;
 }
-declare type KeplerParticlesOptions = BaseKeplerParticleOptions & {
+type KeplerParticlesOptions = BaseKeplerParticleOptions & {
     defaultSize?: number;
 };
-declare type KeplerParticleOptions = BaseKeplerParticleOptions & {
+type KeplerParticleOptions = BaseKeplerParticleOptions & {
     particleSize?: number;
 };
 /**

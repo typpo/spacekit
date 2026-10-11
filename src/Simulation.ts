@@ -1,16 +1,10 @@
 import * as THREE from 'three';
 // @ts-ignore
 import julian from 'julian';
-import Stats from 'three/examples/jsm/libs/stats.module';
-import {
-  BloomEffect,
-  EffectComposer,
-  EffectPass,
-  RenderPass,
-  // @ts-ignore
-} from 'postprocessing';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 
-import type { Scene, Object3D, Vector3, WebGL1Renderer } from 'three';
+import type { Scene, Object3D, Vector3, WebGLRenderer } from 'three';
 
 import Camera from './Camera';
 import { BlackHole, BlackHoleOptions } from './BlackHole';
@@ -65,11 +59,11 @@ export interface SimulationContext {
   simulation: Simulation;
   options: SpacekitOptions;
   objects: {
-    renderer: WebGL1Renderer;
+    renderer: WebGLRenderer;
     camera: Camera;
     scene: Scene;
     particles: KeplerParticles;
-    composer?: EffectComposer;
+    composer: EffectComposer;
   };
   container: {
     width: number;
@@ -151,9 +145,9 @@ export class Simulation {
 
   private scene: Scene;
 
-  private renderer: WebGL1Renderer;
+  private renderer: WebGLRenderer;
 
-  private composer?: EffectComposer;
+  private composer: EffectComposer;
 
   /**
    * @param {HTMLCanvasElement} simulationElt The container for this simulation.
@@ -229,7 +223,7 @@ export class Simulation {
 
     // This makes controls.lookAt and other objects treat the positive Z axis
     // as "up" direction.
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+    THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
     // Scale
     if (this.options.unitsPerAu) {
@@ -251,8 +245,9 @@ export class Simulation {
 
     this.renderer = this.initRenderer();
     this.scene = new THREE.Scene();
+    this.composer = this.initComposer();
     this.camera = new Camera(this.getContext());
-    this.composer = undefined;
+    this.composer.setMainCamera(this.camera.get3jsCamera());
 
     // Orbit particle system must be initialized after scene is created and
     // scale is set.
@@ -333,19 +328,26 @@ export class Simulation {
         this.simulationElt.appendChild(this.stats!.dom);
       }
     }
-
-    // Set up effect composer, etc.
-    this.initPasses();
   }
 
   /**
    * @private
    */
-  private initRenderer(): THREE.WebGL1Renderer {
-    // TODO(ian): Upgrade to webgl 2. See https://discourse.threejs.org/t/webgl2-breaking-custom-shader/16603/4
-    const renderer = new THREE.WebGL1Renderer({
-      antialias: true,
-      //logarithmicDepthBuffer: true,
+  private initRenderer(): THREE.WebGLRenderer {
+    // Three.js requires WebGL 2; report a useful error on unsupported devices.
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgl2', {
+      antialias: false,
+      alpha: false,
+    });
+    if (!context) {
+      throw new Error(
+        'Spacekit requires a browser and GPU with WebGL 2 support.',
+      );
+    }
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      context,
     });
     console.info(
       'Max texture resolution:',
@@ -373,56 +375,14 @@ export class Simulation {
   /**
    * @private
    */
-  private initPasses() {
-    //const smaaEffect = new SMAAEffect(assets.get("smaa-search"), assets.get("smaa-area"));
-    //smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.065);
-
-    const camera = this.camera.get3jsCamera();
-
-    /*
-    const sunGeometry = new THREE.SphereBufferGeometry(
-      rescaleNumber(0.004),
-      16,
-    );
-    const sunMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffddaa,
-      transparent: true,
-      depthWrite: false,
-      fog: false,
-    });
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    const rescaled = rescaleArray([0.1, 0.1, 0.0]);
-    sun.position.set(rescaled[0], rescaled[1], rescaled[2]);
-    sun.updateMatrix();
-    sun.updateMatrixWorld();
-
-    const godRaysEffect = new GodRaysEffect(camera, sun, {
-      color: 0xfff5f2,
-      blur: false,
-    });
-    */
-    //godRaysEffect.dithering = true;
-
-    const bloomEffect = new BloomEffect({
-      width: 240,
-      height: 240,
-      luminanceThreshold: 0.2,
-    });
-    bloomEffect.blendMode.opacity.value = 2.3;
-
-    const renderPass = new RenderPass(this.scene, camera);
-    renderPass.renderToScreen = false;
-
-    const effectPass = new EffectPass(
-      camera,
-      /*smaaEffect, godRaysEffect*/ bloomEffect,
-    );
-    effectPass.renderToScreen = true;
-
-    const composer = new EffectComposer(this.renderer);
-    composer.addPass(renderPass);
-    composer.addPass(effectPass);
-    this.composer = composer;
+  private initComposer(): EffectComposer {
+    // sRGB8 targets preserve dark-tone precision and blend in linear light in
+    // WebGL 2, just like the lens captures. MSAA belongs on this scene target;
+    // the final fullscreen pass converts the resolved image for display.
+    const composer = new EffectComposer(this.renderer, { multisampling: 4 });
+    composer.addPass(new RenderPass(this.scene));
+    composer.addPass(new EffectPass());
+    return composer;
   }
 
   /**
@@ -472,7 +432,7 @@ export class Simulation {
       const camera = this.camera.get3jsCamera();
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
-      this.renderer.setSize(newWidth, newHeight);
+      this.composer.setSize(newWidth, newHeight);
       this.staticForcedUpdate();
       this.lastResizeUpdateTime = now;
     }
@@ -527,12 +487,9 @@ export class Simulation {
     }
     this.camera.update();
 
-    // Update three.js scene
-    // EffectComposer disables autoClear. Translucent emission must not
-    // accumulate over previous frames.
-    this.renderer.clear();
-    this.renderer.render(this.scene, this.camera.get3jsCamera());
-    //this.composer.render(0.1);
+    // All transparent materials blend in linear light before display output,
+    // whether or not a black hole lenses the scene. RenderPass clears each frame.
+    this.composer.render();
 
     if (this.onTick) {
       this.onTick();
@@ -664,7 +621,7 @@ export class Simulation {
    * @param {Number} color Color of light, default 0x333333
    */
   createAmbientLight(color: number = 0x333333) {
-    this.scene.add(new THREE.AmbientLight(color));
+    this.scene.add(new THREE.AmbientLight(color, Math.PI));
     this.useLightSources = true;
   }
 
@@ -688,7 +645,8 @@ export class Simulation {
 
     // Pointlight is for standard meshes created by ShapeObjects.
     // TODO(ian): Remove this point light.
-    const pointLight = new THREE.PointLight();
+    // Preserve illumination at AU scales with Three.js's physical light units.
+    const pointLight = new THREE.PointLight(color, Math.PI, 0, 0);
 
     if (typeof pos === 'undefined') {
       // The light comes from the camera.
@@ -969,9 +927,9 @@ export class Simulation {
 
   /**
    * Get the three.js renderer
-   * @return {THREE.WebGL1Renderer} The THREE.js renderer
+   * @return {THREE.WebGLRenderer} The THREE.js renderer
    */
-  getRenderer(): THREE.WebGL1Renderer {
+  getRenderer(): THREE.WebGLRenderer {
     return this.renderer;
   }
 

@@ -25,7 +25,7 @@ export declare function getFullUrl(template: string, basePath: string): string;
  * ```
  */
 export declare function getFullTextureUrl(template: string, basePath: string): string;
-export declare function getThreeJsTexture(template: string, basePath: string): THREE.Texture;
+export declare function getThreeJsTexture(template: string, basePath: string): THREE.Texture<HTMLImageElement, THREE.TextureEventMap>;
 export declare function getDefaultBasePath(): "/src/" | "https://typpo.github.io/spacekit/src";
 /**
  * Performs a standard binary search on an array of values returning the index of the found item or the twos complement

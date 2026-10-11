@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <link rel="icon" href="data:," />
   <meta charset="utf-8" /><title>Black-hole sampling comparison</title>
   <style>
     body {
@@ -23,7 +24,7 @@
   <script>
     const T = Spacekit.THREE,
       size = 480;
-    const renderer = new T.WebGL1Renderer();
+    const renderer = new T.WebGLRenderer();
     renderer.setSize(size, size);
     const target = new T.WebGLRenderTarget(size, size),
       scene = new T.Scene();
@@ -82,14 +83,14 @@
       return data;
     }
     const productionSamples = material.defines.VOLUME_SAMPLES;
-    const previous = draw(
-      "Previous: one gas sample per segment",
+    const undersampled = draw(
+      "Stress control: one gas sample per segment",
       0.025,
       1024,
       1
     );
     const current = draw(
-      "Updated: " + productionSamples + " gas samples per segment",
+      "High quality: " + productionSamples + " gas samples per segment",
       0.025,
       1024,
       productionSamples
@@ -112,14 +113,14 @@
       return sum / energy;
     }
     const coarse = draw("Low quality", 0.05, 768, 2, false, 0.04);
-    const oldError = error(previous),
+    const controlError = error(undersampled),
       newError = error(current),
       coarseError = error(coarse);
-    const passed = newError < oldError * 0.4 && coarseError < oldError * 0.6;
+    const passed = newError < controlError * 0.4 && coarseError < controlError * 0.6;
     document.getElementById("result").textContent =
       (passed ? "PASS" : "FAIL") +
-      ": error vs dense integration — previous " +
-      oldError.toFixed(4) +
+      ": error vs dense integration — undersampled control " +
+      controlError.toFixed(4) +
       ", high " +
       newError.toFixed(4) +
       ", low " +

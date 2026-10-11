@@ -14,6 +14,9 @@ Note that this library is a work in progress and the API might change!
 
 # Usage
 
+Spacekit requires WebGL 2 and uses Three.js r186 (0.186.1). Devices without
+WebGL 2 support receive an error when creating a `Simulation`.
+
 Install via npm:
 
 ```
@@ -146,7 +149,7 @@ const hole = sim.createBlackHole('black-hole', {
   accretionDisk: { outerRadius: 12, temperature: 10000 },
 });
 ```
-See the [interactive example](examples/black-hole/index.html) and [physical model, options, and limitations](guides/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
+See the [interactive example](https://typpo.github.io/spacekit/examples/black-hole/) and [physical model, options, and limitations](https://github.com/typpo/spacekit/blob/master/guides/black-holes.md). The model traces light around a non-rotating mass; it does not change other objects' orbits.
 
 # Dependencies
 
@@ -172,6 +175,27 @@ If you want to contribute to this project, you will also need to install Python 
 Running `./server.sh` will start a basic Python webserver.  Go to http://localhost:8001/examples/index.html to load a simple example.
 
 If you're making changes to the code, run `pnpm build` to update the build outputs.  `pnpm build:watch` will continuously watch for your changes and update the build and also host a server on localhost:8001 (so you don't have to start the Python server separately).
+
+After building, run `pnpm exec jest --runInBand` and open the
+[WebGL 2 regression checks](https://github.com/typpo/spacekit/blob/master/test/browser/webgl2.html) and
+[black-hole GPU checks](https://github.com/typpo/spacekit/blob/master/test/browser/black-hole.html) through the local server.
+These exercise the compiled shaders, orbital particle positions, color output,
+and depth occlusion on an actual WebGL 2 context.
+See [GPU validation and profiling](https://github.com/typpo/spacekit/blob/master/test/browser/README.md) for the full suite.
+
+## Rendering with Three.js
+
+`getRenderer()` returns a `THREE.WebGLRenderer`. Set
+`texture.colorSpace = THREE.SRGBColorSpace` on caller-provided color images
+(including black-hole skies); Spacekit does this for its own image textures.
+Custom `ShaderMaterial` fragments should end with Three.js's
+`colorspace_fragment` chunk.
+
+The simulation renders each frame through its composer
+(`sim.getContext().objects.composer`) into a 4× MSAA sRGB render target, where
+WebGL 2 blends in linear light, then converts the resolved frame for display.
+Call `composer.render()` to render a frame manually; `getRenderer().render()`
+draws outside this pipeline.
 
 # Usage
 

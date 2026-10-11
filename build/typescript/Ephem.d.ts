@@ -1,4 +1,4 @@
-declare type EphemAttribute = 'a' | 'e' | 'i' | 'q' | 'epoch' | 'period' | 'tp' | 'ma' | 'n' | 'L' | 'om' | 'w' | 'wBar' | 'GM';
+type EphemAttribute = 'a' | 'e' | 'i' | 'q' | 'epoch' | 'period' | 'tp' | 'ma' | 'n' | 'L' | 'om' | 'w' | 'wBar' | 'GM';
 interface EphemAttributes {
     a?: number;
     e?: number;

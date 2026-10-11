@@ -8,7 +8,7 @@
 <script>
 (async () => {
   const T = Spacekit.THREE;
-  const renderer = new T.WebGL1Renderer();
+  const renderer = new T.WebGLRenderer();
   const size = 256;
   renderer.setSize(size, size);
   renderer.setClearColor(0, 0);
@@ -39,7 +39,7 @@
     renderer.render(scene, camera);
     return read(target);
   };
-  let texture, cloud, ring, underlay, sheet, pair, hole;
+  let texture, disc, cloud, ring, underlay, sheet, pair, hole;
   try {
     texture = await new Promise((resolve, reject) => new T.TextureLoader().load(
       '../../src/assets/sprites/fuzzyparticle.png', resolve, undefined, reject));
@@ -127,8 +127,17 @@
     // red image, even with large sprites or a cluster at the near depth.
     cloud.visible = false; ring.visible = false;
     camera.quaternion.copy(initialView);
+    // A solid disc keeps every sprite size visibly lit, independent of the
+    // bundled glow's falloff.
+    const discData = new Uint8Array(32 * 32 * 4);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+      const inside = Math.hypot(x + 0.5 - 16, y + 0.5 - 16) < 15;
+      discData.set([255, 255, 255, inside ? 255 : 0], (y * 32 + x) * 4);
+    }
+    disc = new T.DataTexture(discData, 32, 32);
+    disc.needsUpdate = true;
     pair = new T.Points(new T.BufferGeometry(),
-      new T.PointsMaterial({ sizeAttenuation: false, map: texture, vertexColors: true, transparent: true, depthWrite: false }));
+      new T.PointsMaterial({ sizeAttenuation: false, map: disc, vertexColors: true, transparent: true, depthWrite: false }));
     scene.add(pair);
     const focal = size / 2 / Math.tan(camera.fov * Math.PI / 360);
     for (const quality of ['low', 'high']) {
@@ -215,6 +224,7 @@
     if (hole) hole.dispose();
     for (const object of [cloud, ring, underlay, sheet, pair]) if (object) { object.geometry.dispose(); object.material.dispose(); }
     if (texture) texture.dispose();
+    if (disc) disc.dispose();
     target.dispose(); renderer.dispose();
     document.getElementById('results').textContent = results.join('\n');
   }

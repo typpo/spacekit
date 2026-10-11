@@ -15,14 +15,24 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-exports.__esModule = true;
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeplerParticles = void 0;
 var THREE = __importStar(require("three"));
 var util_1 = require("./util");
@@ -77,7 +87,7 @@ var KeplerParticles = /** @class */ (function () {
         }
         var defaultMapTexture = (0, util_1.getThreeJsTexture)(this.options.textureUrl, this.context.options.basePath);
         this.uniforms = {
-            texture: { value: defaultMapTexture }
+            particleTexture: { value: defaultMapTexture },
         };
         var particleCount = this.options.maxNumParticles || DEFAULT_PARTICLE_COUNT;
         this.elements = [];
@@ -96,7 +106,7 @@ var KeplerParticles = /** @class */ (function () {
             wBar: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
             q: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
             M: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
-            a0: new THREE.BufferAttribute(new Float32Array(particleCount), 1)
+            a0: new THREE.BufferAttribute(new Float32Array(particleCount), 1),
         };
         this.attributes.M.setUsage(THREE.DynamicDrawUsage);
         this.attributes.a0.setUsage(THREE.DynamicDrawUsage);
@@ -112,7 +122,7 @@ var KeplerParticles = /** @class */ (function () {
             fragmentShader: (0, shaders_1.getOrbitShaderFragment)(),
             depthTest: true,
             depthWrite: false,
-            transparent: true
+            transparent: true,
         });
         this.shaderMaterial = shader;
         this.geometry = geometry;

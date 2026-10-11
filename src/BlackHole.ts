@@ -54,13 +54,14 @@ export interface BlackHoleOptions {
   /**
    * Lens the camera image, including meshes, sprites, lines and particles.
    * Default false. Screen-space approximation for perspective cameras.
-   * Requires WEBGL_depth_texture; uses captured finite source distances.
+   * Requires WebGL 2; uses captured finite source distances.
    * Enable on at most one black hole per simulation.
    */
   lensScene?: boolean;
   /**
    * Optional caller-owned equirectangular sky, with north at +Z and longitude
    * zero at +X (center of texture). Replaces the background with a lensed sky.
+   * Set colorSpace to THREE.SRGBColorSpace for display-color images.
    * Use on only one black hole per scene. Enable lensScene to also lens objects.
    */
   backgroundTexture?: THREE.Texture;
@@ -100,7 +101,7 @@ function diskAspectRatio(value: number): number {
  * A stationary Schwarzschild black hole, with GPU null-geodesic ray tracing.
  * Models light around an isolated non-spinning, uncharged mass; it does not
  * change Spacekit's Kepler orbits or simulate accretion hydrodynamics.
- * Requires WebGL EXT_frag_depth and highp fragment precision.
+ * Requires WebGL 2 and highp fragment precision.
  */
 export class BlackHole implements SimulationObject {
   private readonly id: string;
@@ -150,13 +151,8 @@ export class BlackHole implements SimulationObject {
       throw new Error('Black hole quality must be low or high');
     }
     const renderer = context.objects.renderer;
-    if (
-      !renderer.extensions.has('EXT_frag_depth') ||
-      renderer.capabilities.getMaxPrecision('highp') !== 'highp'
-    ) {
-      throw new Error(
-        'Black holes require EXT_frag_depth and highp fragment precision',
-      );
+    if (renderer.capabilities.getMaxPrecision('highp') !== 'highp') {
+      throw new Error('Black holes require highp fragment precision');
     }
     const rotation = new THREE.Matrix4().makeRotationFromQuaternion(
       new THREE.Quaternion().setFromUnitVectors(
@@ -201,7 +197,12 @@ export class BlackHole implements SimulationObject {
         },
         hasBackground: { value: !!options.backgroundTexture },
         backgroundTexture: { value: options.backgroundTexture ?? null },
-        lensScene: { value: false },
+        sceneBoundsFine: { value: null },
+        sceneBoundsCoarse: { value: null },
+        transparentBoundsFine: { value: null },
+        transparentBoundsCoarse: { value: null },
+        surfaceBoundsFine: { value: null },
+        surfaceBoundsCoarse: { value: null },
         sceneColor: { value: null },
         sceneDepth: { value: null },
         sceneTransparent: { value: null },
@@ -216,7 +217,6 @@ export class BlackHole implements SimulationObject {
         sceneForeground: { value: null },
         sceneClearColor: { value: new THREE.Color() },
       },
-      extensions: { fragDepth: true },
       transparent: true,
       depthTest: true,
       depthWrite: true,
@@ -238,7 +238,7 @@ export class BlackHole implements SimulationObject {
         camera.matrixWorldInverse,
       );
       this.mesh.getWorldPosition(uniforms.center.value);
-      if (uniforms.lensScene.value && this.sceneCapture) {
+      if (material.defines.SCENE_LENSING && this.sceneCapture) {
         const center = uniforms.center.value;
         centerClip
           .set(center.x, center.y, center.z, 1)
@@ -318,6 +318,18 @@ export class BlackHole implements SimulationObject {
     if (enabled) {
       this.assertSceneLensingAvailable();
       if (!this.sceneCapture) this.sceneCapture = new BlackHoleSceneCapture();
+      material.uniforms.sceneBoundsFine.value =
+        this.sceneCapture.backgroundBounds.fine.texture;
+      material.uniforms.sceneBoundsCoarse.value =
+        this.sceneCapture.backgroundBounds.coarse.texture;
+      material.uniforms.transparentBoundsFine.value =
+        this.sceneCapture.transparentBounds.fine.texture;
+      material.uniforms.transparentBoundsCoarse.value =
+        this.sceneCapture.transparentBounds.coarse.texture;
+      material.uniforms.surfaceBoundsFine.value =
+        this.sceneCapture.surfaceBounds.fine.texture;
+      material.uniforms.surfaceBoundsCoarse.value =
+        this.sceneCapture.surfaceBounds.coarse.texture;
       material.uniforms.sceneColor.value = this.sceneCapture.background.texture;
       material.uniforms.sceneDepth.value =
         this.sceneCapture.background.depthTexture;
@@ -339,7 +351,13 @@ export class BlackHole implements SimulationObject {
     } else if (sceneLensOwners.get(this.simulation) === this) {
       sceneLensOwners.delete(this.simulation);
     }
-    material.uniforms.lensScene.value = enabled;
+    // Keep the extra traversal code out of the standalone disk program;
+    // unused branches can still increase GPU register pressure.
+    if (!!material.defines.SCENE_LENSING !== enabled) {
+      if (enabled) material.defines.SCENE_LENSING = 1;
+      else delete material.defines.SCENE_LENSING;
+      material.needsUpdate = true;
+    }
     material.depthTest = !enabled;
     material.depthWrite = !enabled;
     material.blending = enabled ? THREE.NoBlending : THREE.NormalBlending;
@@ -353,13 +371,6 @@ export class BlackHole implements SimulationObject {
   }
 
   private assertSceneLensingAvailable(): void {
-    if (
-      !this.simulation
-        .getContext()
-        .objects.renderer.extensions.has('WEBGL_depth_texture')
-    ) {
-      throw new Error('Black hole scene lensing requires WEBGL_depth_texture');
-    }
     const owner = sceneLensOwners.get(this.simulation);
     if (owner && owner !== this) {
       throw new Error('Only one black hole can lens the scene per simulation');

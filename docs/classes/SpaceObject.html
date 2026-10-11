@@ -1,951 +1,447 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>SpaceObject | spacekit</title>
-	<meta name="description" content="Documentation for spacekit">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="../assets/css/main.css">
-	<script async src="../assets/js/search.js" id="search-script"></script>
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="../index.html" class="title">spacekit</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="../modules.html">spacekit</a>
-				</li>
-				<li>
-					<a href="SpaceObject.html">SpaceObject</a>
-				</li>
-			</ul>
-			<h1>Class SpaceObject</h1>
-		</div>
-	</div>
-</header>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>SpaceObject | spacekit</title><meta name="description" content="Documentation for spacekit"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">spacekit</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
 <div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>An object that can be added to a visualization.</p>
-					</div>
-					<dl class="tsd-comment-tags">
-						<dt>example</dt>
-						<dd><pre><code><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myObject</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">addObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;planet1&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">position:</span><span style="color: #000000"> [</span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">],</span>
-<span style="color: #000000">  </span><span style="color: #001080">scale:</span><span style="color: #000000"> [</span><span style="color: #098658">1</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">],</span>
-<span style="color: #000000">  </span><span style="color: #001080">particleSize:</span><span style="color: #000000"> </span><span style="color: #098658">5</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">labelText:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;My object&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">labelUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;http://...&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">hideOrbit:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">ephem:</span><span style="color: #000000"> </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #795E26">Ephem</span><span style="color: #000000">({...}),</span>
-<span style="color: #000000">  </span><span style="color: #001080">textureUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;/path/to/spriteTexture.png&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">basePath:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;/base&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">ecliptic:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #001080">lineColor:</span><span style="color: #000000"> </span><span style="color: #098658">0xCCCCCC</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">displayLines:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">  </span><span style="color: #001080">theme:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #001080">color:</span><span style="color: #000000"> </span><span style="color: #098658">0xFFFFFF</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">orbitColor:</span><span style="color: #000000"> </span><span style="color: #098658">0x888888</span><span style="color: #000000">,</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">});</span>
-</code></pre>
-						</dd>
-					</dl>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">SpaceObject</span>
-						<ul class="tsd-hierarchy">
-							<li>
-								<a href="RotatingObject.html" class="tsd-signature-type" data-tsd-kind="Class">RotatingObject</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel">
-				<h3>Implements</h3>
-				<ul class="tsd-hierarchy">
-					<li><a href="../interfaces/SimulationObject.html" class="tsd-signature-type" data-tsd-kind="Interface">SimulationObject</a></li>
-				</ul>
-			</section>
-			<section class="tsd-panel-group tsd-index-group">
-				<h2>Index</h2>
-				<section class="tsd-panel tsd-index-panel">
-					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Constructors</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="SpaceObject.html#constructor" class="tsd-kind-icon">constructor</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-private-protected">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_context" class="tsd-kind-icon">_context</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_id" class="tsd-kind-icon">_id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_initialized" class="tsd-kind-icon">_initialized</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_options" class="tsd-kind-icon">_options</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_renderMethod" class="tsd-kind-icon">_render<wbr>Method</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#_simulation" class="tsd-kind-icon">_simulation</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Methods</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getBoundingObject" class="tsd-kind-icon">get<wbr>Bounding<wbr>Object</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getColor" class="tsd-kind-icon">get<wbr>Color</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getId" class="tsd-kind-icon">get<wbr>Id</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getLabelVisibility" class="tsd-kind-icon">get<wbr>Label<wbr>Visibility</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getOrbit" class="tsd-kind-icon">get<wbr>Orbit</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#getPosition" class="tsd-kind-icon">get<wbr>Position</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#init" class="tsd-kind-icon">init</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#isReady" class="tsd-kind-icon">is<wbr>Ready</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#isStaticObject" class="tsd-kind-icon">is<wbr>Static<wbr>Object</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#orbitAround" class="tsd-kind-icon">orbit<wbr>Around</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#removalCleanup" class="tsd-kind-icon">removal<wbr>Cleanup</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#setLabelVisibility" class="tsd-kind-icon">set<wbr>Label<wbr>Visibility</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#setPosition" class="tsd-kind-icon">set<wbr>Position</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><a href="SpaceObject.html#setPositionedObject" class="tsd-kind-icon">set<wbr>Positioned<wbr>Object</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="SpaceObject.html#update" class="tsd-kind-icon">update</a></li>
-							</ul>
-						</section>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
-					<a name="constructor" class="tsd-anchor"></a>
-					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Space<wbr>Object<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">: </span><a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SpaceObjectOptions</a>, simulation<span class="tsd-signature-symbol">: </span><a href="Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a>, autoInit<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="SpaceObject.html" class="tsd-signature-type" data-tsd-kind="Class">SpaceObject</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L204">SpaceObject.ts:204</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>id: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>Unique id of this object</p>
-										</div>
-									</div>
-								</li>
-								<li>
-									<h5>options: <a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SpaceObjectOptions</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>Options container</p>
-										</div>
-									</div>
-								</li>
-								<li>
-									<h5>simulation: <a href="Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a></h5>
-								</li>
-								<li>
-									<h5>autoInit: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>Automatically initialize this object. If false
-											you must call init() manually.</p>
-										</div>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="SpaceObject.html" class="tsd-signature-type" data-tsd-kind="Class">SpaceObject</a></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-private-protected">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_context" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _context</h3>
-					<div class="tsd-signature tsd-kind-icon">_context<span class="tsd-signature-symbol">:</span> <a href="../interfaces/SimulationContext.html" class="tsd-signature-type" data-tsd-kind="Interface">SimulationContext</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L135">SpaceObject.ts:135</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_id" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _id</h3>
-					<div class="tsd-signature tsd-kind-icon">_id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L129">SpaceObject.ts:129</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_initialized" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _initialized</h3>
-					<div class="tsd-signature tsd-kind-icon">_initialized<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L143">SpaceObject.ts:143</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_options" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _options</h3>
-					<div class="tsd-signature tsd-kind-icon">_options<span class="tsd-signature-symbol">:</span> <a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">SpaceObjectOptions</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L131">SpaceObject.ts:131</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_renderMethod" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> <span class="tsd-flag ts-flagOptional">Optional</span> _render<wbr>Method</h3>
-					<div class="tsd-signature tsd-kind-icon">_render<wbr>Method<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;SPRITE&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;PARTICLESYSTEM&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;ROTATING_OBJECT&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;SPHERE&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L137">SpaceObject.ts:137</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-					<a name="_simulation" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _simulation</h3>
-					<div class="tsd-signature tsd-kind-icon">_simulation<span class="tsd-signature-symbol">:</span> <a href="Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L133">SpaceObject.ts:133</a></li>
-						</ul>
-					</aside>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="get3jsObjects" class="tsd-anchor"></a>
-					<h3>get3js<wbr>Objects</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get3js<wbr>Objects<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#get3jsObjects">get3jsObjects</a></p>
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L629">SpaceObject.ts:629</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the THREE.js objects that represent this SpaceObject.  The first
-										object returned is the primary object.  Other objects may be returned,
-									such as rings, ellipses, etc.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4>
-							<p>A list of THREE.js objects</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getBoundingObject" class="tsd-anchor"></a>
-					<h3>get<wbr>Bounding<wbr>Object</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Bounding<wbr>Object<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L651">SpaceObject.ts:651</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Specifies the object that is used to compute the bounding box. By default,
-									this will be the first THREE.js object in this class&#39;s list of objects.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>THREE.js object</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getColor" class="tsd-anchor"></a>
-					<h3>get<wbr>Color</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Color<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L660">SpaceObject.ts:660</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the color of this object. Usually this corresponds to the color of
-									the dot representing the object as well as its orbit.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
-							<p>A hexidecimal color value, e.g. 0xFFFFFF</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getId" class="tsd-anchor"></a>
-					<h3>get<wbr>Id</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Id<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#getId">getId</a></p>
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L705">SpaceObject.ts:705</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the unique ID of this object.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
-							<p>Unique ID</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getLabelVisibility" class="tsd-anchor"></a>
-					<h3>get<wbr>Label<wbr>Visibility</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Label<wbr>Visibility<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L679">SpaceObject.ts:679</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets label visilibity status.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-							<p>Whether label is visible.</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getOrbit" class="tsd-anchor"></a>
-					<h3>get<wbr>Orbit</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Orbit<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="Orbit.html" class="tsd-signature-type" data-tsd-kind="Class">Orbit</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L671">SpaceObject.ts:671</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the {Orbit} object for this SpaceObject.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="Orbit.html" class="tsd-signature-type" data-tsd-kind="Class">Orbit</a></h4>
-							<p>Orbit object</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getPosition" class="tsd-anchor"></a>
-					<h3>get<wbr>Position</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Position<span class="tsd-signature-symbol">(</span>jd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules.html#Coordinate3d" class="tsd-signature-type" data-tsd-kind="Type alias">Coordinate3d</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L518">SpaceObject.ts:518</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Gets the visualization coordinates of this object at a given time.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>jd: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>JD date</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../modules.html#Coordinate3d" class="tsd-signature-type" data-tsd-kind="Type alias">Coordinate3d</a></h4>
-							<p>[X, Y,Z] coordinates</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="init" class="tsd-anchor"></a>
-					<h3>init</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L253">SpaceObject.ts:253</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Initializes label and three.js objects. Called automatically unless you&#39;ve
-										set autoInit to false in constructor (this init is suppressed by some
-									child classes).</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="isReady" class="tsd-anchor"></a>
-					<h3>is<wbr>Ready</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">is<wbr>Ready<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L722">SpaceObject.ts:722</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Determines whether object is ready to be measured or added to scene.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-							<p>True if ready</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="isStaticObject" class="tsd-anchor"></a>
-					<h3>is<wbr>Static<wbr>Object</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">is<wbr>Static<wbr>Object<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L714">SpaceObject.ts:714</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Determines whether object is static (can&#39;t change its position) or whether
-									its position can be updated (ie, it has ephemeris)</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-							<p>Whether this object can change its position.</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="orbitAround" class="tsd-anchor"></a>
-					<h3>orbit<wbr>Around</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">orbit<wbr>Around<span class="tsd-signature-symbol">(</span>spaceObj<span class="tsd-signature-symbol">: </span><a href="SpaceObject.html" class="tsd-signature-type" data-tsd-kind="Class">SpaceObject</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L496">SpaceObject.ts:496</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Make this object orbit another orbit.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>spaceObj: <a href="SpaceObject.html" class="tsd-signature-type" data-tsd-kind="Class">SpaceObject</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The SpaceObject that will serve as the origin of this object&#39;s orbit.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="removalCleanup" class="tsd-anchor"></a>
-					<h3>removal<wbr>Cleanup</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">removal<wbr>Cleanup<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#removalCleanup">removalCleanup</a></p>
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L726">SpaceObject.ts:726</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setLabelVisibility" class="tsd-anchor"></a>
-					<h3>set<wbr>Label<wbr>Visibility</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Label<wbr>Visibility<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L687">SpaceObject.ts:687</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Toggle the visilibity of the label.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>val: <span class="tsd-signature-type">boolean</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Whether to show or hide.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setPosition" class="tsd-anchor"></a>
-					<h3>set<wbr>Position</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Position<span class="tsd-signature-symbol">(</span>x<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, y<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, z<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L507">SpaceObject.ts:507</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Updates the position of this object. Applicable only if this object is a
-									sprite and not a particle type.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>x: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>X position</p>
-									</div>
-								</li>
-								<li>
-									<h5>y: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Y position</p>
-									</div>
-								</li>
-								<li>
-									<h5>z: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Z position</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-					<a name="setPositionedObject" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagProtected">Protected</span> set<wbr>Positioned<wbr>Object</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Positioned<wbr>Object<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L280">SpaceObject.ts:280</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>obj: <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Any THREE.js object</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="update" class="tsd-anchor"></a>
-					<h3>update</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">update<span class="tsd-signature-symbol">(</span>jd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, force<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#update">update</a></p>
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/SpaceObject.ts#L547">SpaceObject.ts:547</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Updates the object and its label positions for a given time.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>jd: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>JD date</p>
-									</div>
-								</li>
-								<li>
-									<h5>force: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Whether to force an update regardless of checks for
-										movement.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class=" ">
-						<a href="../modules.html">Exports</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-enum">
-						<a href="../enums/OrbitType.html" class="tsd-kind-icon">Orbit<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="BlackHole.html" class="tsd-kind-icon">Black<wbr>Hole</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Ephem.html" class="tsd-kind-icon">Ephem</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="EphemerisTable.html" class="tsd-kind-icon">Ephemeris<wbr>Table</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="KeplerParticles.html" class="tsd-kind-icon">Kepler<wbr>Particles</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="NaturalSatellites.html" class="tsd-kind-icon">Natural<wbr>Satellites</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Orbit.html" class="tsd-kind-icon">Orbit</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="RotatingObject.html" class="tsd-kind-icon">Rotating<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="ShapeObject.html" class="tsd-kind-icon">Shape<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Simulation.html" class="tsd-kind-icon">Simulation</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Skybox.html" class="tsd-kind-icon">Skybox</a>
-					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="SpaceObject.html" class="tsd-kind-icon">Space<wbr>Object</a>
-						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="SpaceObject.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_context" class="tsd-kind-icon">_context</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_id" class="tsd-kind-icon">_id</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_initialized" class="tsd-kind-icon">_initialized</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_options" class="tsd-kind-icon">_options</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_renderMethod" class="tsd-kind-icon">_render<wbr>Method</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#_simulation" class="tsd-kind-icon">_simulation</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getBoundingObject" class="tsd-kind-icon">get<wbr>Bounding<wbr>Object</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getColor" class="tsd-kind-icon">get<wbr>Color</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getId" class="tsd-kind-icon">get<wbr>Id</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getLabelVisibility" class="tsd-kind-icon">get<wbr>Label<wbr>Visibility</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getOrbit" class="tsd-kind-icon">get<wbr>Orbit</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#getPosition" class="tsd-kind-icon">get<wbr>Position</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#init" class="tsd-kind-icon">init</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#isReady" class="tsd-kind-icon">is<wbr>Ready</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#isStaticObject" class="tsd-kind-icon">is<wbr>Static<wbr>Object</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#orbitAround" class="tsd-kind-icon">orbit<wbr>Around</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#removalCleanup" class="tsd-kind-icon">removal<wbr>Cleanup</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#setLabelVisibility" class="tsd-kind-icon">set<wbr>Label<wbr>Visibility</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#setPosition" class="tsd-kind-icon">set<wbr>Position</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-protected">
-								<a href="SpaceObject.html#setPositionedObject" class="tsd-kind-icon">set<wbr>Positioned<wbr>Object</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="SpaceObject.html#update" class="tsd-kind-icon">update</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
-				<ul class="after-current">
-					<li class=" tsd-kind-class">
-						<a href="SphereObject.html" class="tsd-kind-icon">Sphere<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Stars.html" class="tsd-kind-icon">Stars</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="StaticParticles.html" class="tsd-kind-icon">Static<wbr>Particles</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/AccretionDiskOptions.html" class="tsd-kind-icon">Accretion<wbr>Disk<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/BlackHoleOptions.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/BlackHoleRadii.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Radii</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SkyboxOptions.html" class="tsd-kind-icon">Skybox<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../modules.html#Coordinate3d" class="tsd-kind-icon">Coordinate3d</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../modules.html#CoordinateXYZ" class="tsd-kind-icon">CoordinateXYZ</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#EphemPresets" class="tsd-kind-icon">Ephem<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#GM" class="tsd-kind-icon">GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#METERS_PER_AU" class="tsd-kind-icon">METERS_<wbr>PER_<wbr>AU</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SCHWARZSCHILD_CRITICAL_IMPACT" class="tsd-kind-icon">SCHWARZSCHILD_<wbr>CRITICAL_<wbr>IMPACT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SOLAR_GM" class="tsd-kind-icon">SOLAR_<wbr>GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SPEED_OF_LIGHT" class="tsd-kind-icon">SPEED_<wbr>OF_<wbr>LIGHT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SkyboxPresets" class="tsd-kind-icon">Skybox<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SpaceObjectPresets" class="tsd-kind-icon">Space<wbr>Object<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#THREE" class="tsd-kind-icon">THREE</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#getSkyboxOrientationTransform" class="tsd-kind-icon">get<wbr>Skybox<wbr>Orientation<wbr>Transform</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#schwarzschildOrbitalPeriodSeconds" class="tsd-kind-icon">schwarzschild<wbr>Orbital<wbr>Period<wbr>Seconds</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#schwarzschildRadiusAu" class="tsd-kind-icon">schwarzschild<wbr>Radius<wbr>Au</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#stepSchwarzschildRay" class="tsd-kind-icon">step<wbr>Schwarzschild<wbr>Ray</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">SpaceObject</a></li></ul>
+<h1>Class SpaceObject</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>An object that can be added to a visualization.</p>
 </div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">myObject</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">addObject</span><span class="hl-1">(</span><span class="hl-5">&#39;planet1&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">position:</span><span class="hl-1"> [</span><span class="hl-13">0</span><span class="hl-1">, </span><span class="hl-13">0</span><span class="hl-1">, </span><span class="hl-13">0</span><span class="hl-1">],</span><br/><span class="hl-1">  </span><span class="hl-0">scale:</span><span class="hl-1"> [</span><span class="hl-13">1</span><span class="hl-1">, </span><span class="hl-13">1</span><span class="hl-1">, </span><span class="hl-13">1</span><span class="hl-1">],</span><br/><span class="hl-1">  </span><span class="hl-0">particleSize:</span><span class="hl-1"> </span><span class="hl-13">5</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">labelText:</span><span class="hl-1"> </span><span class="hl-5">&#39;My object&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">labelUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;http://...&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">hideOrbit:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">ephem:</span><span class="hl-1"> </span><span class="hl-2">new</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-4">Ephem</span><span class="hl-1">({...}),</span><br/><span class="hl-1">  </span><span class="hl-0">textureUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;/path/to/spriteTexture.png&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">basePath:</span><span class="hl-1"> </span><span class="hl-5">&#39;/base&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">ecliptic:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">lineColor:</span><span class="hl-1"> </span><span class="hl-13">0xCCCCCC</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">displayLines:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  </span><span class="hl-0">theme:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">color:</span><span class="hl-1"> </span><span class="hl-13">0xFFFFFF</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">orbitColor:</span><span class="hl-1"> </span><span class="hl-13">0x888888</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span>
+</code><button>Copy</button></pre>
+
+</div></div></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="448">
+<h4>Hierarchy (<a href="../hierarchy.html#SpaceObject">View Summary</a>)</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">SpaceObject</span>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><a href="RotatingObject.html" class="tsd-signature-type tsd-kind-class">RotatingObject</a></li></ul></li></ul></section>
+<section class="tsd-panel">
+<h4>Implements</h4>
+<ul class="tsd-hierarchy">
+<li><a href="../interfaces/SimulationObject.html" class="tsd-signature-type tsd-kind-interface">SimulationObject</a></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:128</li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#_context" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>context</span></a>
+<a href="#_id" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>id</span></a>
+<a href="#_initialized" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>initialized</span></a>
+<a href="#_options" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>options</span></a>
+<a href="#_rendermethod" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>render<wbr/>Method?</span></a>
+<a href="#_simulation" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>simulation</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#get3jsobjects" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get3js<wbr/>Objects</span></a>
+<a href="#getboundingobject" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Bounding<wbr/>Object</span></a>
+<a href="#getcolor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Color</span></a>
+<a href="#getid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Id</span></a>
+<a href="#getlabelvisibility" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Label<wbr/>Visibility</span></a>
+<a href="#getorbit" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Orbit</span></a>
+<a href="#getposition" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Position</span></a>
+<a href="#init" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a>
+<a href="#isready" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Ready</span></a>
+<a href="#isstaticobject" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Static<wbr/>Object</span></a>
+<a href="#orbitaround" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>orbit<wbr/>Around</span></a>
+<a href="#removalcleanup" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>removal<wbr/>Cleanup</span></a>
+<a href="#setlabelvisibility" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Label<wbr/>Visibility</span></a>
+<a href="#setposition" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Position</span></a>
+<a href="#setpositionedobject" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Positioned<wbr/>Object</span></a>
+<a href="#update" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructorspaceobject"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">SpaceObject</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type tsd-kind-interface">SpaceObjectOptions</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">simulation</span><span class="tsd-signature-symbol">:</span> <a href="Simulation.html" class="tsd-signature-type tsd-kind-class">Simulation</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">autoInit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">SpaceObject</a><a href="#constructorspaceobject" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>Unique id of this object</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type tsd-kind-interface">SpaceObjectOptions</a></span>
+<div class="tsd-comment tsd-typography"><p>Options container</p>
 </div>
-<div class="overlay"></div>
-<script src="../assets/js/main.js"></script>
-</body>
-</html>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5 id="atmosphere"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">atmosphere</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">color</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">enable</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">innerSizeRatio</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">outerSizeRatio</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="axialtilt"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">axialTilt</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="basepath"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">basePath</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="color"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">color</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="debug"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">debug</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">showAxes</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">showGrid</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="ecliptic"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">ecliptic</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">displayLines</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">lineColor</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span> <span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="ephem"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">ephem</span><span class="tsd-signature-symbol">?: </span><a href="Ephem.html" class="tsd-signature-type tsd-kind-class">Ephem</a></h5></li>
+<li class="tsd-parameter">
+<h5 id="ephemtable"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">ephemTable</span><span class="tsd-signature-symbol">?: </span><a href="EphemerisTable.html" class="tsd-signature-type tsd-kind-class">EphemerisTable</a></h5></li>
+<li class="tsd-parameter">
+<h5 id="hideorbit"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">hideOrbit</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="labeltext"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">labelText</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="labelurl"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">labelUrl</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="levelsofdetail"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">levelsOfDetail</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">radii</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">segments</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="orbitpathsettings"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">orbitPathSettings</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">leadDurationYears</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">numberSamplePoints</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">trailDurationYears</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="particlesize"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">particleSize</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="position"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">position</span><span class="tsd-signature-symbol">?: </span><a href="../types/Coordinate3d.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate3d</a></h5></li>
+<li class="tsd-parameter">
+<h5 id="radius"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">radius</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="rotation"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">rotation</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">betaDeg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">enable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">jd0</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">lambdaDeg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">period</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">phi0</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">speed</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">yorp</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="scale"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">scale</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="shape"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">shape</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">color</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">shapeUrl</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">}</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="textureurl"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">textureUrl</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="theme"><code class="tsd-tag">Optional</code><span class="tsd-kind-property">theme</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">color</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">orbitColor</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span> <span class="tsd-signature-symbol">}</span></h5></li></ul></li>
+<li><span><span class="tsd-kind-parameter">simulation</span>: <a href="Simulation.html" class="tsd-signature-type tsd-kind-class">Simulation</a></span></li>
+<li><span><span class="tsd-kind-parameter">autoInit</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></span>
+<div class="tsd-comment tsd-typography"><p>Automatically initialize this object. If false
+you must call init() manually.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">SpaceObject</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-see">
+<h4 class="tsd-anchor-link" id="see">See<a href="#see" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Orbit</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:204</li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_context"><code class="tsd-tag">Protected</code><span>_<wbr/>context</span><a href="#_context" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_context</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/SimulationContext.html" class="tsd-signature-type tsd-kind-interface">SimulationContext</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:135</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_id"><code class="tsd-tag">Protected</code><span>_<wbr/>id</span><a href="#_id" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:129</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_initialized"><code class="tsd-tag">Protected</code><span>_<wbr/>initialized</span><a href="#_initialized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_initialized</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:143</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_options"><code class="tsd-tag">Protected</code><span>_<wbr/>options</span><a href="#_options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/SpaceObjectOptions.html" class="tsd-signature-type tsd-kind-interface">SpaceObjectOptions</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:131</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_rendermethod"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Optional</code><span>_<wbr/>render<wbr/>Method</span><a href="#_rendermethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_renderMethod</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;SPRITE&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;PARTICLESYSTEM&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;ROTATING_OBJECT&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;SPHERE&quot;</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:137</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="_simulation"><code class="tsd-tag">Protected</code><span>_<wbr/>simulation</span><a href="#_simulation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_simulation</span><span class="tsd-signature-symbol">:</span> <a href="Simulation.html" class="tsd-signature-type tsd-kind-class">Simulation</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:133</li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="get3jsobjects"><span>get3js<wbr/>Objects</span><a href="#get3jsobjects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="get3jsobjects-1"><span class="tsd-kind-call-signature">get3jsObjects</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#get3jsobjects-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets the THREE.js objects that represent this SpaceObject.  The first
+object returned is the primary object.  Other objects may be returned,
+such as rings, ellipses, etc.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><p>A list of THREE.js objects</p>
+<aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#get3jsobjects">get3jsObjects</a></p>
+<ul>
+<li>Defined in SpaceObject.ts:629</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getboundingobject"><span>get<wbr/>Bounding<wbr/>Object</span><a href="#getboundingobject" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getboundingobject-1"><span class="tsd-kind-call-signature">getBoundingObject</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#getboundingobject-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Specifies the object that is used to compute the bounding box. By default,
+this will be the first THREE.js object in this class's list of objects.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>THREE.js object</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:651</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getcolor"><span>get<wbr/>Color</span><a href="#getcolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getcolor-1"><span class="tsd-kind-call-signature">getColor</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#getcolor-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets the color of this object. Usually this corresponds to the color of
+the dot representing the object as well as its orbit.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>A hexidecimal color value, e.g. 0xFFFFFF</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:660</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getid"><span>get<wbr/>Id</span><a href="#getid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getid-1"><span class="tsd-kind-call-signature">getId</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#getid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets the unique ID of this object.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><p>Unique ID</p>
+<aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#getid">getId</a></p>
+<ul>
+<li>Defined in SpaceObject.ts:705</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getlabelvisibility"><span>get<wbr/>Label<wbr/>Visibility</span><a href="#getlabelvisibility" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getlabelvisibility-1"><span class="tsd-kind-call-signature">getLabelVisibility</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#getlabelvisibility-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets label visilibity status.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether label is visible.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:679</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getorbit"><span>get<wbr/>Orbit</span><a href="#getorbit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getorbit-1"><span class="tsd-kind-call-signature">getOrbit</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Orbit.html" class="tsd-signature-type tsd-kind-class">Orbit</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><a href="#getorbit-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets the {Orbit} object for this SpaceObject.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="Orbit.html" class="tsd-signature-type tsd-kind-class">Orbit</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><p>Orbit object</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:671</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getposition"><span>get<wbr/>Position</span><a href="#getposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getposition-1"><span class="tsd-kind-call-signature">getPosition</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">jd</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Coordinate3d.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate3d</a><a href="#getposition-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Gets the visualization coordinates of this object at a given time.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">jd</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>JD date</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/Coordinate3d.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate3d</a></h4><p>[X, Y,Z] coordinates</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:518</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="init"><span>init</span><a href="#init" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="init-1"><span class="tsd-kind-call-signature">init</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#init-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Initializes label and three.js objects. Called automatically unless you've
+set autoInit to false in constructor (this init is suppressed by some
+child classes).</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:253</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isready"><span>is<wbr/>Ready</span><a href="#isready" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isready-1"><span class="tsd-kind-call-signature">isReady</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#isready-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Determines whether object is ready to be measured or added to scene.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True if ready</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:722</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isstaticobject"><span>is<wbr/>Static<wbr/>Object</span><a href="#isstaticobject" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isstaticobject-1"><span class="tsd-kind-call-signature">isStaticObject</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#isstaticobject-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Determines whether object is static (can't change its position) or whether
+its position can be updated (ie, it has ephemeris)</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether this object can change its position.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:714</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="orbitaround"><span>orbit<wbr/>Around</span><a href="#orbitaround" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="orbitaround-1"><span class="tsd-kind-call-signature">orbitAround</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">spaceObj</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">SpaceObject</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#orbitaround-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Make this object orbit another orbit.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">spaceObj</span>: <a href="" class="tsd-signature-type tsd-kind-class">SpaceObject</a></span>
+<div class="tsd-comment tsd-typography"><p>The SpaceObject that will serve as the origin of this object's orbit.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:496</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="removalcleanup"><span>removal<wbr/>Cleanup</span><a href="#removalcleanup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="removalcleanup-1"><span class="tsd-kind-call-signature">removalCleanup</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#removalcleanup-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#removalcleanup">removalCleanup</a></p>
+<ul>
+<li>Defined in SpaceObject.ts:726</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setlabelvisibility"><span>set<wbr/>Label<wbr/>Visibility</span><a href="#setlabelvisibility" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setlabelvisibility-1"><span class="tsd-kind-call-signature">setLabelVisibility</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">val</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setlabelvisibility-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Toggle the visilibity of the label.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">val</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to show or hide.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:687</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setposition"><span>set<wbr/>Position</span><a href="#setposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setposition-1"><span class="tsd-kind-call-signature">setPosition</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">x</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">y</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">z</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setposition-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Updates the position of this object. Applicable only if this object is a
+sprite and not a particle type.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">x</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>X position</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">y</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Y position</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">z</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Z position</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:507</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="setpositionedobject"><code class="tsd-tag">Protected</code><span>set<wbr/>Positioned<wbr/>Object</span><a href="#setpositionedobject" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-protected">
+<li class="tsd-is-protected">
+<div class="tsd-signature tsd-anchor-link" id="setpositionedobject-1"><span class="tsd-kind-call-signature">setPositionedObject</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">obj</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setpositionedobject-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description"><code class="tsd-tag">Protected</code>
+<div class="tsd-comment tsd-typography"><p>Used by child classes to set the object that gets its position updated.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">obj</span>: <span class="tsd-signature-type">Object3D</span></span>
+<div class="tsd-comment tsd-typography"><p>Any THREE.js object</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in SpaceObject.ts:280</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="update"><span>update</span><a href="#update" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="update-1"><span class="tsd-kind-call-signature">update</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">jd</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">force</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#update-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Updates the object and its label positions for a given time.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">jd</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>JD date</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">force</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to force an update regardless of checks for
+movement.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/SimulationObject.html">SimulationObject</a>.<a href="../interfaces/SimulationObject.html#update">update</a></p>
+<ul>
+<li>Defined in SpaceObject.ts:547</li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#_context" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>context</span></a><a href="#_id" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>id</span></a><a href="#_initialized" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>initialized</span></a><a href="#_options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>options</span></a><a href="#_rendermethod" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>render<wbr/>Method</span></a><a href="#_simulation" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>_<wbr/>simulation</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#get3jsobjects"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get3js<wbr/>Objects</span></a><a href="#getboundingobject"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Bounding<wbr/>Object</span></a><a href="#getcolor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Color</span></a><a href="#getid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Id</span></a><a href="#getlabelvisibility"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Label<wbr/>Visibility</span></a><a href="#getorbit"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Orbit</span></a><a href="#getposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Position</span></a><a href="#init"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a><a href="#isready"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Ready</span></a><a href="#isstaticobject"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Static<wbr/>Object</span></a><a href="#orbitaround"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>orbit<wbr/>Around</span></a><a href="#removalcleanup"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>removal<wbr/>Cleanup</span></a><a href="#setlabelvisibility"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Label<wbr/>Visibility</span></a><a href="#setposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Position</span></a><a href="#setpositionedobject" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Positioned<wbr/>Object</span></a><a href="#update"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">spacekit</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

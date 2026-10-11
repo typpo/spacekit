@@ -1,397 +1,118 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>spacekit</title>
-	<meta name="description" content="Documentation for spacekit">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-	<script async src="assets/js/search.js" id="search-script"></script>
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">spacekit</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<h1>spacekit</h1>
-		</div>
-	</div>
-</header>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>spacekit</title><meta name="description" content="Documentation for spacekit"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">spacekit</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
 <div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<a href="#spacekit" id="spacekit" style="color: inherit; text-decoration: none;">
-					<h1>spacekit</h1>
-				</a>
-				<p><a href="https://travis-ci.com/typpo/spacekit"><img src="https://travis-ci.com/typpo/spacekit.svg?branch=master" alt="Build Status"></a>
-				<a href="https://www.npmjs.com/package/spacekit.js"><img src="https://img.shields.io/npm/v/spacekit.js" alt="npm"></a></p>
-				<p>Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.</p>
-				<p>You can check out an editable live example on <a href="https://jsfiddle.net/typpo/x9nv8jg0/6/">jsfiddle</a>, or look at a variety of live examples on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="https://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="https://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="https://www.ianww.com/ceres/">and</a> <a href="https://www.asterank.com/exoplanets">many</a> <a href="https://www.ianww.com/pluto/">other</a> <a href="https://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
-				<p>See the <strong><a href="https://typpo.github.io/spacekit/">full documentation</a></strong></p>
-				<p>Note that this library is a work in progress and the API might change!</p>
-				<p><a href="https://typpo.github.io/spacekit/"><img src="https://i.imgur.com/u48FCjJ.jpg" alt="spacekit examples"></a></p>
-				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
-					<h1>Usage</h1>
-				</a>
-				<p>Install via npm:</p>
-				<pre><code><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">install</span><span style="color: #000000"> </span><span style="color: #001080">spacekit</span><span style="color: #000000">.</span><span style="color: #001080">js</span>
-</code></pre>
-				<p>And then use <code>require</code> or <code>import</code>:</p>
-				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">Spacekit</span><span style="color: #000000"> = </span><span style="color: #795E26">require</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;spacekit.js&#039;</span><span style="color: #000000">);</span>
-<span style="color: #008000">// or</span>
-<span style="color: #AF00DB">import</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000"> </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;spacekit.js&#039;</span><span style="color: #000000">;</span>
-</code></pre>
-				<p>You can also <a href="https://github.com/typpo/spacekit/tree/master/build">download a raw build</a> or use the latest build in a script tag:</p>
-				<pre><code class="language-html"><span style="color: #800000">&lt;script</span><span style="color: #000000FF"> </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://typpo.github.io/spacekit/build/spacekit.js&quot;</span><span style="color: #800000">&gt;&lt;/script&gt;</span>
-</code></pre>
-				<a href="#terminology-and-components" id="terminology-and-components" style="color: inherit; text-decoration: none;">
-					<h1>Terminology and components</h1>
-				</a>
-				<p><code>Simulation</code>: the main container for your visualization.  A simulation is comprised by a <code>Camera</code> plus whatever you choose to put in it. See <a href="https://typpo.github.io/spacekit/docs/class/src/Simulation.js~Simulation.html">documentation</a> for full options.</p>
-				<pre><code class="language-javascript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">sim</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #795E26">Simulation</span><span style="color: #000000">(</span><span style="color: #001080">document</span><span style="color: #000000">.</span><span style="color: #795E26">getElementById</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;my-container&#039;</span><span style="color: #000000">), {</span>
-<span style="color: #000000"> </span><span style="color: #008000">// Required</span>
-<span style="color: #000000"> </span><span style="color: #001080">basePath:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;../path/to/asset&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000"> </span><span style="color: #008000">// Optional</span>
-<span style="color: #000000"> </span><span style="color: #001080">camera:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">   </span><span style="color: #001080">initialPosition:</span><span style="color: #000000"> [</span><span style="color: #098658">0</span><span style="color: #000000">, -</span><span style="color: #098658">10</span><span style="color: #000000">, </span><span style="color: #098658">5</span><span style="color: #000000">],</span>
-<span style="color: #000000">   </span><span style="color: #001080">enableDrift:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000"> },</span>
-<span style="color: #000000"> </span><span style="color: #001080">debug:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">   </span><span style="color: #001080">showAxes:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">   </span><span style="color: #001080">showGrid:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000">   </span><span style="color: #001080">showStats:</span><span style="color: #000000"> </span><span style="color: #0000FF">false</span><span style="color: #000000">,</span>
-<span style="color: #000000"> },</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p><code>Skybox</code>: the image background of the visualization.  The &quot;universe&quot; of the visualization is contained within a large sphere, so &quot;skysphere&quot; may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho. See <a href="https://typpo.github.io/spacekit/variable/index.html#static-variable-SkyboxPresets">documentation</a> for full preset options.</p>
-				<pre><code class="language-javascript"><span style="color: #008000">// Use an existing skybox preset.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">skybox</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createSkybox</span><span style="color: #000000">(</span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SkyboxPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">NASA_TYCHO</span><span style="color: #000000">);</span>
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>spacekit</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="spacekit" class="tsd-anchor-link">spacekit<a href="#spacekit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p><a href="https://travis-ci.com/typpo/spacekit"><img src="https://travis-ci.com/typpo/spacekit.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.npmjs.com/package/spacekit.js"><img src="https://img.shields.io/npm/v/spacekit.js" alt="npm"></a></p>
+<p>Spacekit is a JavaScript library for creating interactive 3D space visualizations - whether of the Earth/moon system, solar system, or beyond.</p>
+<p>You can check out an editable live example on <a href="https://jsfiddle.net/typpo/x9nv8jg0/6/">jsfiddle</a>, or look at a variety of live examples on <a href="https://www.spacereference.org/solar-system#ob=2001-einstein-1973-eb,7672-hawking-1995-uo2,2709-sagan-1982-fh">SpaceReference.org</a>.  This library generalizes work that is currently used on <a href="https://www.asterank.com/">Asterank</a>, <a href="https://www.meteorshowers.org/">Meteor Showers</a>, <a href="https://dinosaurpictures.org/ancient-earth">Ancient Earth</a>, <a href="https://www.ianww.com/ceres/">and</a> <a href="https://www.asterank.com/exoplanets">many</a> <a href="https://www.ianww.com/pluto/">other</a> <a href="https://www.ianww.com/moonviz/">things</a> into a single open-source 3D engine for space that is both accurate and visually stunning.</p>
+<p>See the <strong><a href="https://typpo.github.io/spacekit/">full documentation</a></strong></p>
+<p>Note that this library is a work in progress and the API might change!</p>
+<p><a href="https://typpo.github.io/spacekit/"><img src="https://i.imgur.com/u48FCjJ.jpg" alt="spacekit examples"></a></p>
+<h1 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Spacekit requires WebGL 2 and uses Three.js r186 (0.186.1). Devices without
+WebGL 2 support receive an error when creating a <code>Simulation</code>.</p>
+<p>Install via npm:</p>
+<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><span class="hl-1"> </span><span class="hl-0">spacekit</span><span class="hl-1">.</span><span class="hl-0">js</span>
+</code><button>Copy</button></pre>
 
-<span style="color: #008000">// Add a skybox preset</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">skybox</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createSkybox</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">textureUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;../path/to/image.png&#039;</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p><code>Stars</code>: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.</p>
-				<pre><code class="language-javascript"><span style="color: #008000">// Use an existing skybox preset.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">skybox</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createStars</span><span style="color: #000000">({</span><span style="color: #001080">minSize </span><span style="color: #008000">/* optional */</span><span style="color: #001080">:</span><span style="color: #000000"> </span><span style="color: #098658">0.75</span><span style="color: #000000"> </span><span style="color: #008000">/* default */</span><span style="color: #000000">});</span>
+<p>And then use <code>require</code> or <code>import</code>:</p>
+<pre><code class="js"><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">Spacekit</span><span class="hl-1"> = </span><span class="hl-4">require</span><span class="hl-1">(</span><span class="hl-5">&#39;spacekit.js&#39;</span><span class="hl-1">);</span><br/><span class="hl-6">// or</span><br/><span class="hl-7">import</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1"> </span><span class="hl-7">from</span><span class="hl-1"> </span><span class="hl-5">&#39;spacekit.js&#39;</span><span class="hl-1">;</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Add a skybox preset</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">skybox</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createSkybox</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">textureUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;../path/to/image.png&#039;</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p><code>SpaceObject</code>: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply &quot;Object&quot;).  SpaceObjects can orbit, rotate, etc.  Subclasses include <code>RotatingObject</code> (has a defined spin axis), <code>ShapeObject</code> (has a 3D shapefile), and <code>SphereObject</code> (is spherical, like the Earth).</p>
-				<pre><code class="language-javascript"><span style="color: #008000">// Create objects using presets. The presets include scientific ephem params and/or position.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">sun</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;sun&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">SUN</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;mercury&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">MERCURY</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;venus&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">VENUS</span><span style="color: #000000">);</span>
+<p>You can also <a href="https://github.com/typpo/spacekit/tree/master/build">download a raw build</a> or use the latest build in a script tag:</p>
+<pre><code class="html"><span class="hl-8">&lt;</span><span class="hl-9">script</span><span class="hl-10"> </span><span class="hl-11">src</span><span class="hl-10">=</span><span class="hl-12">&quot;https://typpo.github.io/spacekit/build/spacekit.js&quot;</span><span class="hl-8">&gt;&lt;/</span><span class="hl-9">script</span><span class="hl-8">&gt;</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Create a stationary object at [3, 1, -5] position.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">obj</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;myobj&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">position:</span><span style="color: #000000"> [</span><span style="color: #098658">3</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">, -</span><span style="color: #098658">5</span><span style="color: #000000">],</span>
-<span style="color: #000000">};</span>
+<h1 id="terminology-and-components" class="tsd-anchor-link">Terminology and components<a href="#terminology-and-components" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p><code>Simulation</code>: the main container for your visualization.  A simulation is comprised by a <code>Camera</code> plus whatever you choose to put in it. See <a href="https://typpo.github.io/spacekit/docs/class/src/Simulation.js~Simulation.html">documentation</a> for full options.</p>
+<pre><code class="javascript"><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">sim</span><span class="hl-1"> = </span><span class="hl-2">new</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-4">Simulation</span><span class="hl-1">(</span><span class="hl-0">document</span><span class="hl-1">.</span><span class="hl-4">getElementById</span><span class="hl-1">(</span><span class="hl-5">&#39;my-container&#39;</span><span class="hl-1">), {</span><br/><span class="hl-1"> </span><span class="hl-6">// Required</span><br/><span class="hl-1"> </span><span class="hl-0">basePath:</span><span class="hl-1"> </span><span class="hl-5">&#39;../path/to/asset&#39;</span><span class="hl-1">,</span><br/><span class="hl-1"> </span><span class="hl-6">// Optional</span><br/><span class="hl-1"> </span><span class="hl-0">camera:</span><span class="hl-1"> {</span><br/><span class="hl-1">   </span><span class="hl-0">initialPosition:</span><span class="hl-1"> [</span><span class="hl-13">0</span><span class="hl-1">, -</span><span class="hl-13">10</span><span class="hl-1">, </span><span class="hl-13">5</span><span class="hl-1">],</span><br/><span class="hl-1">   </span><span class="hl-0">enableDrift:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1"> },</span><br/><span class="hl-1"> </span><span class="hl-0">debug:</span><span class="hl-1"> {</span><br/><span class="hl-1">   </span><span class="hl-0">showAxes:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1">   </span><span class="hl-0">showGrid:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1">   </span><span class="hl-0">showStats:</span><span class="hl-1"> </span><span class="hl-2">false</span><span class="hl-1">,</span><br/><span class="hl-1"> },</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Create an object that orbits.</span>
+<p><code>Skybox</code>: the image background of the visualization.  The &quot;universe&quot; of the visualization is contained within a large sphere, so &quot;skysphere&quot; may be a better (less conventional) way to describe it.  Some skybox assets are provided, including starry milky way background from ESA and NASA Tycho. See <a href="https://typpo.github.io/spacekit/variable/index.html#static-variable-SkyboxPresets">documentation</a> for full preset options.</p>
+<pre><code class="javascript"><span class="hl-6">// Use an existing skybox preset.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">skybox</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createSkybox</span><span class="hl-1">(</span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SkyboxPresets</span><span class="hl-1">.</span><span class="hl-3">NASA_TYCHO</span><span class="hl-1">);</span><br/><br/><span class="hl-6">// Add a skybox preset</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">skybox</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createSkybox</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-0">textureUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;../path/to/image.png&#39;</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Ephem is a class representing Kepler ephemerides, which defines the trajectory of astronomical objects as well</span>
-<span style="color: #008000">// as artificial satellites in the sky, i.e., the position (and possibly velocity) over time.</span>
-<span style="color: #001080">const</span><span style="color: #000000"> </span><span style="color: #001080">ephem</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #795E26">Ephem</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">epoch:</span><span style="color: #000000"> </span><span style="color: #098658">2458600.5</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">a:</span><span style="color: #000000"> </span><span style="color: #098658">5.38533</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">e:</span><span style="color: #000000"> </span><span style="color: #098658">0.19893</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">i:</span><span style="color: #000000"> </span><span style="color: #098658">22.11137</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">om:</span><span style="color: #000000"> </span><span style="color: #098658">294.42992</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">w:</span><span style="color: #000000"> </span><span style="color: #098658">314.28890</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">ma:</span><span style="color: #000000"> </span><span style="color: #098658">229.14238</span><span style="color: #000000">,</span>
-<span style="color: #000000">}, </span><span style="color: #A31515">&#039;deg&#039;</span><span style="color: #000000">);</span>
+<p><code>Stars</code>: an alternative to a skybox.  Instead of showing an image, this class loads real star data and positions the stars accordingly in the simulation.  Usually this is more performant but less visually stunning.</p>
+<pre><code class="javascript"><span class="hl-6">// Use an existing skybox preset.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">skybox</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createStars</span><span class="hl-1">({</span><span class="hl-0">minSize </span><span class="hl-6">/* optional */</span><span class="hl-0">:</span><span class="hl-1"> </span><span class="hl-13">0.75</span><span class="hl-1"> </span><span class="hl-6">/* default */</span><span class="hl-1">});</span><br/><br/><span class="hl-6">// Add a skybox preset</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">skybox</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createSkybox</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-0">textureUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;../path/to/image.png&#39;</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #001080">const</span><span style="color: #000000"> </span><span style="color: #001080">asteroid</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Asteroid Aci&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">ephem</span><span style="color: #000000">,</span>
-<span style="color: #000000">});</span>
+<p><code>SpaceObject</code>: an object that can be added to the visualization (SpaceObjects can sometimes be referred to as simply &quot;Object&quot;).  SpaceObjects can orbit, rotate, etc.  Subclasses include <code>RotatingObject</code> (has a defined spin axis), <code>ShapeObject</code> (has a 3D shapefile), and <code>SphereObject</code> (is spherical, like the Earth).</p>
+<pre><code class="javascript"><span class="hl-6">// Create objects using presets. The presets include scientific ephem params and/or position.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">sun</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;sun&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">SUN</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;mercury&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">MERCURY</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;venus&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">VENUS</span><span class="hl-1">);</span><br/><br/><span class="hl-6">// Create a stationary object at [3, 1, -5] position.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">obj</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;myobj&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">position:</span><span class="hl-1"> [</span><span class="hl-13">3</span><span class="hl-1">, </span><span class="hl-13">1</span><span class="hl-1">, -</span><span class="hl-13">5</span><span class="hl-1">],</span><br/><span class="hl-1">};</span><br/><br/><span class="hl-6">// Create an object that orbits.</span><br/><br/><span class="hl-6">// Ephem is a class representing Kepler ephemerides, which defines the trajectory of astronomical objects as well</span><br/><span class="hl-6">// as artificial satellites in the sky, i.e., the position (and possibly velocity) over time.</span><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-0">ephem</span><span class="hl-1"> = </span><span class="hl-2">new</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-4">Ephem</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-0">epoch:</span><span class="hl-1"> </span><span class="hl-13">2458600.5</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">a:</span><span class="hl-1"> </span><span class="hl-13">5.38533</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">e:</span><span class="hl-1"> </span><span class="hl-13">0.19893</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">i:</span><span class="hl-1"> </span><span class="hl-13">22.11137</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">om:</span><span class="hl-1"> </span><span class="hl-13">294.42992</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">w:</span><span class="hl-1"> </span><span class="hl-13">314.28890</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">ma:</span><span class="hl-1"> </span><span class="hl-13">229.14238</span><span class="hl-1">,</span><br/><span class="hl-1">}, </span><span class="hl-5">&#39;deg&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-0">asteroid</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;Asteroid Aci&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">ephem</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-6">// Create a shape object</span><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-0">obj</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createShape</span><span class="hl-1">(</span><span class="hl-5">&#39;myobj&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">position:</span><span class="hl-1"> [</span><span class="hl-13">3</span><span class="hl-1">, </span><span class="hl-13">1</span><span class="hl-1">, -</span><span class="hl-13">5</span><span class="hl-1">],</span><br/><span class="hl-1">  </span><span class="hl-0">shape:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">// Example shape file -</span><br/><span class="hl-1">    </span><span class="hl-6">// http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046</span><br/><span class="hl-1">    </span><span class="hl-0">shapeUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;../path/to/shape.obj&#39;</span><span class="hl-1">, </span><span class="hl-6">// Cacus</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  </span><span class="hl-0">rotation:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">lambdaDeg:</span><span class="hl-1"> </span><span class="hl-13">251</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">betaDeg:</span><span class="hl-1"> -</span><span class="hl-13">63</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">period:</span><span class="hl-1"> </span><span class="hl-13">3.755067</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">yorp:</span><span class="hl-1"> </span><span class="hl-13">1.9e-8</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">phi0:</span><span class="hl-1"> </span><span class="hl-13">0</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">jd0:</span><span class="hl-1"> </span><span class="hl-13">2443568.0</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  </span><span class="hl-0">debug:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">showAxes:</span><span class="hl-1"> </span><span class="hl-2">true</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-6">// Create a sphere object</span><br/><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createSphere</span><span class="hl-1">(</span><span class="hl-5">&#39;earth&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">textureUrl:</span><span class="hl-1"> </span><span class="hl-5">&#39;./earth_66mya.jpg&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">radius:</span><span class="hl-1"> </span><span class="hl-13">2</span><span class="hl-1"> </span><span class="hl-6">/* default to 1 */</span><br/><span class="hl-1">  </span><span class="hl-0">debug</span><span class="hl-1">: {</span><br/><span class="hl-1">    </span><span class="hl-0">showAxes:</span><span class="hl-1"> </span><span class="hl-2">true</span><span class="hl-1">,</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Create a shape object</span>
-<span style="color: #001080">const</span><span style="color: #000000"> </span><span style="color: #001080">obj</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createShape</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;myobj&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">position:</span><span style="color: #000000"> [</span><span style="color: #098658">3</span><span style="color: #000000">, </span><span style="color: #098658">1</span><span style="color: #000000">, -</span><span style="color: #098658">5</span><span style="color: #000000">],</span>
-<span style="color: #000000">  </span><span style="color: #001080">shape:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #008000">// Example shape file -</span>
-<span style="color: #000000">    </span><span style="color: #008000">// http://astro.troja.mff.cuni.cz/projects/asteroids3D/web.php?page=db_asteroid_detail&amp;asteroid_id=1046</span>
-<span style="color: #000000">    </span><span style="color: #001080">shapeUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;../path/to/shape.obj&#039;</span><span style="color: #000000">, </span><span style="color: #008000">// Cacus</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">  </span><span style="color: #001080">rotation:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #001080">lambdaDeg:</span><span style="color: #000000"> </span><span style="color: #098658">251</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">betaDeg:</span><span style="color: #000000"> -</span><span style="color: #098658">63</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">period:</span><span style="color: #000000"> </span><span style="color: #098658">3.755067</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">yorp:</span><span style="color: #000000"> </span><span style="color: #098658">1.9e-8</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">phi0:</span><span style="color: #000000"> </span><span style="color: #098658">0</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">jd0:</span><span style="color: #000000"> </span><span style="color: #098658">2443568.0</span><span style="color: #000000">,</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">  </span><span style="color: #001080">debug:</span><span style="color: #000000"> {</span>
-<span style="color: #000000">    </span><span style="color: #001080">showAxes:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">});</span>
+<p><code>KeplerParticles</code>: an optimized class for creating many particles that follow Kepler orbits.  These particles don't have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.</p>
+<p><code>BlackHole</code>: a stationary Schwarzschild black hole with mass-derived dimensions, traced light paths, and an optional accretion disk. Positions use AU; disk radii use Schwarzschild radii.</p>
+<pre><code class="javascript"><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">hole</span><span class="hl-1"> = </span><span class="hl-0">sim</span><span class="hl-1">.</span><span class="hl-4">createBlackHole</span><span class="hl-1">(</span><span class="hl-5">&#39;black-hole&#39;</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-0">massSolar:</span><span class="hl-1"> </span><span class="hl-13">4e6</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">position:</span><span class="hl-1"> [</span><span class="hl-13">0</span><span class="hl-1">, </span><span class="hl-13">0</span><span class="hl-1">, </span><span class="hl-13">0</span><span class="hl-1">],</span><br/><span class="hl-1">  </span><span class="hl-0">accretionDisk:</span><span class="hl-1"> { </span><span class="hl-0">outerRadius:</span><span class="hl-1"> </span><span class="hl-13">12</span><span class="hl-1">, </span><span class="hl-0">temperature:</span><span class="hl-1"> </span><span class="hl-13">10000</span><span class="hl-1"> },</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Create a sphere object</span>
-<span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createSphere</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;earth&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">textureUrl:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;./earth_66mya.jpg&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">radius:</span><span style="color: #000000"> </span><span style="color: #098658">2</span><span style="color: #000000"> </span><span style="color: #008000">/* default to 1 */</span>
-<span style="color: #000000">  </span><span style="color: #001080">debug</span><span style="color: #000000">: {</span>
-<span style="color: #000000">    </span><span style="color: #001080">showAxes:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
-<span style="color: #000000">  },</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p><code>KeplerParticles</code>: an optimized class for creating many particles that follow Kepler orbits.  These particles don&#39;t have a specific shape or size.  Instead, they share a 2D texture.  This is useful for when you want to show many objects at once, such as the asteroid belt.</p>
-				<p><code>BlackHole</code>: a stationary Schwarzschild black hole with mass-derived dimensions, traced light paths, and an optional accretion disk. Positions use AU; disk radii use Schwarzschild radii.</p>
-				<pre><code class="language-javascript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">hole</span><span style="color: #000000"> = </span><span style="color: #001080">sim</span><span style="color: #000000">.</span><span style="color: #795E26">createBlackHole</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;black-hole&#039;</span><span style="color: #000000">, {</span>
-<span style="color: #000000">  </span><span style="color: #001080">massSolar:</span><span style="color: #000000"> </span><span style="color: #098658">4e6</span><span style="color: #000000">,</span>
-<span style="color: #000000">  </span><span style="color: #001080">position:</span><span style="color: #000000"> [</span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">, </span><span style="color: #098658">0</span><span style="color: #000000">],</span>
-<span style="color: #000000">  </span><span style="color: #001080">accretionDisk:</span><span style="color: #000000"> { </span><span style="color: #001080">outerRadius:</span><span style="color: #000000"> </span><span style="color: #098658">12</span><span style="color: #000000">, </span><span style="color: #001080">temperature:</span><span style="color: #000000"> </span><span style="color: #098658">10000</span><span style="color: #000000"> },</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p>See the <a href="examples/black-hole/index.html">interactive example</a> and <a href="guides/black-holes.md">physical model, options, and limitations</a>. The model traces light around a non-rotating mass; it does not change other objects&#39; orbits.</p>
-				<a href="#dependencies" id="dependencies" style="color: inherit; text-decoration: none;">
-					<h1>Dependencies</h1>
-				</a>
-				<p>Spacekit relies on some image and data assets that are not included in the Javascript file.</p>
-				<p>By default, these dependencies are hosted on the spacekit site (typpo.github.io/spacekit).  If you want to host these assets yourself, you can set the <code>Simulation</code>&#39;s <code>basePath</code> parameter to a folder that contains these files:</p>
-				<ul>
-					<li><a href="https://github.com/typpo/spacekit/tree/master/src/assets">Spacekit asset directory</a></li>
-					<li><a href="https://github.com/typpo/spacekit/tree/master/src/data">Spacekit data directory</a></li>
-				</ul>
-				<p>For example:</p>
-				<pre><code><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">viz</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #795E26">Simulation</span><span style="color: #000000">({</span>
-<span style="color: #000000">  </span><span style="color: #001080">basePath:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;https://mysite.com/static/spacekit&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">});</span>
-</code></pre>
-				<p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
-				<a href="#running-an-example" id="running-an-example" style="color: inherit; text-decoration: none;">
-					<h1>Running an Example</h1>
-				</a>
-				<p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/index.html">http://localhost:8001/examples/index.html</a> to load a simple example.</p>
-				<p>If you&#39;re making changes to the code, run <code>pnpm build</code> to update the build outputs.  <code>pnpm build:watch</code> will continuously watch for your changes and update the build and also host a server on localhost:8001 (so you don&#39;t have to start the Python server separately).</p>
-				<a href="#usage-1" id="usage-1" style="color: inherit; text-decoration: none;">
-					<h1>Usage</h1>
-				</a>
-				<p>See the <a href="https://github.com/typpo/spacekit/tree/master/examples">examples</a> directory for full usage examples.  For now, here&#39;s some example code that will build an interactive visualization of a couple planets:</p>
-				<pre><code class="language-javascript"><span style="color: #008000">// Create the visualization and put it in our div.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">viz</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #795E26">Simulation</span><span style="color: #000000">(</span><span style="color: #001080">document</span><span style="color: #000000">.</span><span style="color: #795E26">getElementById</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;main-container&#039;</span><span style="color: #000000">), {</span>
-<span style="color: #000000">  </span><span style="color: #001080">assetPath:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;../src/assets&#039;</span><span style="color: #000000">,</span>
-<span style="color: #000000">});</span>
+<p>See the <a href="https://typpo.github.io/spacekit/examples/black-hole/">interactive example</a> and <a href="https://github.com/typpo/spacekit/blob/master/guides/black-holes.md">physical model, options, and limitations</a>. The model traces light around a non-rotating mass; it does not change other objects' orbits.</p>
+<h1 id="dependencies" class="tsd-anchor-link">Dependencies<a href="#dependencies" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Spacekit relies on some image and data assets that are not included in the Javascript file.</p>
+<p>By default, these dependencies are hosted on the spacekit site (<a href="http://typpo.github.io/spacekit">typpo.github.io/spacekit</a>).  If you want to host these assets yourself, you can set the <code>Simulation</code>'s <code>basePath</code> parameter to a folder that contains these files:</p>
+<ul>
+<li><a href="https://github.com/typpo/spacekit/tree/master/src/assets">Spacekit asset directory</a></li>
+<li><a href="https://github.com/typpo/spacekit/tree/master/src/data">Spacekit data directory</a></li>
+</ul>
+<p>For example:</p>
+<pre><code><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">viz</span><span class="hl-1"> = </span><span class="hl-2">new</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-4">Simulation</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-0">basePath:</span><span class="hl-1"> </span><span class="hl-5">&#39;https://mysite.com/static/spacekit&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code><button>Copy</button></pre>
 
-<span style="color: #008000">// Create a skybox using NASA TYCHO artwork.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">skybox</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createSkybox</span><span style="color: #000000">(</span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SkyboxPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">NASA_TYCHO</span><span style="color: #000000">);</span>
+<p>If you want to contribute to this project, you will also need to install Python (2.7 or 3).</p>
+<h1 id="running-an-example" class="tsd-anchor-link">Running an Example<a href="#running-an-example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Running <code>./server.sh</code> will start a basic Python webserver.  Go to <a href="http://localhost:8001/examples/index.html">http://localhost:8001/examples/index.html</a> to load a simple example.</p>
+<p>If you're making changes to the code, run <code>pnpm build</code> to update the build outputs.  <code>pnpm build:watch</code> will continuously watch for your changes and update the build and also host a server on localhost:8001 (so you don't have to start the Python server separately).</p>
+<p>After building, run <code>pnpm exec jest --runInBand</code> and open the
+<a href="https://github.com/typpo/spacekit/blob/master/test/browser/webgl2.html">WebGL 2 regression checks</a> and
+<a href="https://github.com/typpo/spacekit/blob/master/test/browser/black-hole.html">black-hole GPU checks</a> through the local server.
+These exercise the compiled shaders, orbital particle positions, color output,
+and depth occlusion on an actual WebGL 2 context.
+See <a href="https://github.com/typpo/spacekit/blob/master/test/browser/README.md">GPU validation and profiling</a> for the full suite.</p>
+<h2 id="rendering-with-threejs" class="tsd-anchor-link">Rendering with Three.js<a href="#rendering-with-threejs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p><code>getRenderer()</code> returns a <code>THREE.WebGLRenderer</code>. Set
+<code>texture.colorSpace = THREE.SRGBColorSpace</code> on caller-provided color images
+(including black-hole skies); Spacekit does this for its own image textures.
+Custom <code>ShaderMaterial</code> fragments should end with Three.js's
+<code>colorspace_fragment</code> chunk.</p>
+<p>The simulation renders each frame through its composer
+(<code>sim.getContext().objects.composer</code>) into a 4× MSAA sRGB render target, where
+WebGL 2 blends in linear light, then converts the resolved frame for display.
+Call <code>composer.render()</code> to render a frame manually; <code>getRenderer().render()</code>
+draws outside this pipeline.</p>
+<h1 id="usage-1" class="tsd-anchor-link">Usage<a href="#usage-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>See the <a href="https://github.com/typpo/spacekit/tree/master/examples">examples</a> directory for full usage examples.  For now, here's some example code that will build an interactive visualization of a couple planets:</p>
+<pre><code class="javascript"><span class="hl-6">// Create the visualization and put it in our div.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">viz</span><span class="hl-1"> = </span><span class="hl-2">new</span><span class="hl-1"> </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-4">Simulation</span><span class="hl-1">(</span><span class="hl-0">document</span><span class="hl-1">.</span><span class="hl-4">getElementById</span><span class="hl-1">(</span><span class="hl-5">&#39;main-container&#39;</span><span class="hl-1">), {</span><br/><span class="hl-1">  </span><span class="hl-0">assetPath:</span><span class="hl-1"> </span><span class="hl-5">&#39;../src/assets&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-6">// Create a skybox using NASA TYCHO artwork.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">skybox</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createSkybox</span><span class="hl-1">(</span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SkyboxPresets</span><span class="hl-1">.</span><span class="hl-3">NASA_TYCHO</span><span class="hl-1">);</span><br/><br/><span class="hl-6">// Create our first object - the sun - using a preset space object.</span><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-3">sun</span><span class="hl-1"> = </span><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;sun&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">SUN</span><span class="hl-1">);</span><br/><br/><span class="hl-6">// Then add some planets</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;mercury&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">MERCURY</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;venus&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">VENUS</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;earth&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">EARTH</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;mars&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">MARS</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;jupiter&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">JUPITER</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;saturn&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">SATURN</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;uranus&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">URANUS</span><span class="hl-1">);</span><br/><span class="hl-0">viz</span><span class="hl-1">.</span><span class="hl-4">createObject</span><span class="hl-1">(</span><span class="hl-5">&#39;neptune&#39;</span><span class="hl-1">, </span><span class="hl-0">Spacekit</span><span class="hl-1">.</span><span class="hl-0">SpaceObjectPresets</span><span class="hl-1">.</span><span class="hl-3">NEPTUNE</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
 
-<span style="color: #008000">// Create our first object - the sun - using a preset space object.</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">sun</span><span style="color: #000000"> = </span><span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;sun&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">SUN</span><span style="color: #000000">);</span>
-
-<span style="color: #008000">// Then add some planets</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;mercury&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">MERCURY</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;venus&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">VENUS</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;earth&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">EARTH</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;mars&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">MARS</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;jupiter&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">JUPITER</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;saturn&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">SATURN</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;uranus&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">URANUS</span><span style="color: #000000">);</span>
-<span style="color: #001080">viz</span><span style="color: #000000">.</span><span style="color: #795E26">createObject</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;neptune&#039;</span><span style="color: #000000">, </span><span style="color: #001080">Spacekit</span><span style="color: #000000">.</span><span style="color: #001080">SpaceObjectPresets</span><span style="color: #000000">.</span><span style="color: #0070C1">NEPTUNE</span><span style="color: #000000">);</span>
-</code></pre>
-				<p><img src="https://i.imgur.com/WseTJidl.jpg" alt="example"></p>
-			</div>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class=" ">
-						<a href="modules.html">Exports</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-enum">
-						<a href="enums/OrbitType.html" class="tsd-kind-icon">Orbit<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/BlackHole.html" class="tsd-kind-icon">Black<wbr>Hole</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/Ephem.html" class="tsd-kind-icon">Ephem</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/EphemerisTable.html" class="tsd-kind-icon">Ephemeris<wbr>Table</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/KeplerParticles.html" class="tsd-kind-icon">Kepler<wbr>Particles</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/NaturalSatellites.html" class="tsd-kind-icon">Natural<wbr>Satellites</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/Orbit.html" class="tsd-kind-icon">Orbit</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/RotatingObject.html" class="tsd-kind-icon">Rotating<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/ShapeObject.html" class="tsd-kind-icon">Shape<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/Simulation.html" class="tsd-kind-icon">Simulation</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/Skybox.html" class="tsd-kind-icon">Skybox</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/SpaceObject.html" class="tsd-kind-icon">Space<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/SphereObject.html" class="tsd-kind-icon">Sphere<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/Stars.html" class="tsd-kind-icon">Stars</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/StaticParticles.html" class="tsd-kind-icon">Static<wbr>Particles</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/AccretionDiskOptions.html" class="tsd-kind-icon">Accretion<wbr>Disk<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/BlackHoleOptions.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/BlackHoleRadii.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Radii</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/SkyboxOptions.html" class="tsd-kind-icon">Skybox<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#Coordinate3d" class="tsd-kind-icon">Coordinate3d</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#CoordinateXYZ" class="tsd-kind-icon">CoordinateXYZ</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#EphemPresets" class="tsd-kind-icon">Ephem<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#GM" class="tsd-kind-icon">GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#METERS_PER_AU" class="tsd-kind-icon">METERS_<wbr>PER_<wbr>AU</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#SCHWARZSCHILD_CRITICAL_IMPACT" class="tsd-kind-icon">SCHWARZSCHILD_<wbr>CRITICAL_<wbr>IMPACT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#SOLAR_GM" class="tsd-kind-icon">SOLAR_<wbr>GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#SPEED_OF_LIGHT" class="tsd-kind-icon">SPEED_<wbr>OF_<wbr>LIGHT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#SkyboxPresets" class="tsd-kind-icon">Skybox<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#SpaceObjectPresets" class="tsd-kind-icon">Space<wbr>Object<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#THREE" class="tsd-kind-icon">THREE</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#getSkyboxOrientationTransform" class="tsd-kind-icon">get<wbr>Skybox<wbr>Orientation<wbr>Transform</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#schwarzschildOrbitalPeriodSeconds" class="tsd-kind-icon">schwarzschild<wbr>Orbital<wbr>Period<wbr>Seconds</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#schwarzschildRadiusAu" class="tsd-kind-icon">schwarzschild<wbr>Radius<wbr>Au</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#stepSchwarzschildRay" class="tsd-kind-icon">step<wbr>Schwarzschild<wbr>Ray</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-</body>
-</html>
+<p><img src="https://i.imgur.com/WseTJidl.jpg" alt="example"></p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#spacekit"><span>spacekit</span></a><a href="#usage"><span>Usage</span></a><a href="#terminology-and-components"><span>Terminology and components</span></a><a href="#dependencies"><span>Dependencies</span></a><a href="#running-an-example"><span>Running an <wbr/>Example</span></a>
+<ul>
+<li><a href="#rendering-with-threejs"><span>Rendering with <wbr/>Three.js</span></a></li></ul><a href="#usage-1"><span>Usage</span></a></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">spacekit</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

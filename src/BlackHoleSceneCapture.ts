@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { BlackHoleDepthHierarchy } from './BlackHoleDepthHierarchy';
 
 type Renderable = THREE.Object3D & {
   material: THREE.Material | THREE.Material[];
@@ -10,6 +11,9 @@ const POINT_SMOOTHING_STEPS = 8;
 
 function depthTarget(): THREE.WebGLRenderTarget {
   const target = new THREE.WebGLRenderTarget(1, 1);
+  // Preserve dark tones in 8-bit storage; WebGL encodes writes and decodes
+  // samples while keeping capture blending and lens compositing linear.
+  target.texture.colorSpace = THREE.SRGBColorSpace;
   target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   return target;
 }
@@ -24,6 +28,9 @@ export class BlackHoleSceneCapture {
   readonly viewProjection = new THREE.Matrix4();
   readonly depthRange = new THREE.Vector2();
   readonly size = new THREE.Vector2();
+  readonly backgroundBounds = new BlackHoleDepthHierarchy();
+  readonly transparentBounds = new BlackHoleDepthHierarchy();
+  readonly surfaceBounds = new BlackHoleDepthHierarchy();
   hasTransparent = false;
   hasSurfaces = false;
   private readonly camera = new THREE.PerspectiveCamera();
@@ -76,9 +83,8 @@ export class BlackHoleSceneCapture {
             }
             sampleDepth = weightedDepth / weight;
           }
-          gl_FragDepthEXT = sampleDepth;
+          gl_FragDepth = sampleDepth;
         }`,
-      extensions: { fragDepth: true },
       transparent: true,
       premultipliedAlpha: true,
       toneMapped: false,
@@ -117,6 +123,12 @@ export class BlackHoleSceneCapture {
     if (!(camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
       throw new Error('Black hole scene lensing requires a perspective camera');
     }
+    for (const bounds of [
+      this.backgroundBounds,
+      this.transparentBounds,
+      this.surfaceBounds,
+    ])
+      bounds.allocate(renderer);
     const sourceCamera = camera as THREE.PerspectiveCamera;
     const previousTarget = renderer.getRenderTarget();
     const cubeFace = renderer.getActiveCubeFace();
@@ -351,6 +363,10 @@ export class BlackHoleSceneCapture {
         );
         renderer.render(scene, this.camera);
       }
+      this.backgroundBounds.render(renderer, this.background);
+      if (this.hasTransparent)
+        this.transparentBounds.render(renderer, this.transparent);
+      if (this.hasSurfaces) this.surfaceBounds.render(renderer, this.surfaces);
     } finally {
       materials.forEach((original, material) =>
         Object.assign(material, original),
@@ -371,6 +387,9 @@ export class BlackHoleSceneCapture {
   }
 
   dispose(): void {
+    this.backgroundBounds.dispose();
+    this.transparentBounds.dispose();
+    this.surfaceBounds.dispose();
     for (const target of [
       this.background,
       this.transparent,

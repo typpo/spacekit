@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Black-hole capture color precision</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running capture color checks...</pre>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    const T = Spacekit.THREE;
+    const width = 256,
+      height = 32;
+    const renderer = new T.WebGLRenderer({ antialias: false });
+    renderer.setSize(width, height);
+    renderer.setClearColor(0, 1);
+    const output = new T.WebGLRenderTarget(width, height, {
+      colorSpace: T.SRGBColorSpace,
+    });
+    const camera = new T.PerspectiveCamera(50, width / height, 0.01, 100);
+    camera.position.set(0, 0, 8);
+    camera.lookAt(0, 0, 0);
+    const scene = new T.Scene();
+    const simulation = {
+      getContext: () => ({ options: {}, objects: { renderer } }),
+      getJd: () => 2451545,
+      addObject: (object) => scene.add(...object.get3jsObjects()),
+      removeObject: (object) => {
+        scene.remove(...object.get3jsObjects());
+        object.removalCleanup();
+      },
+    };
+    const ramp = new Uint8Array(64 * 4);
+    for (let i = 0; i < 64; i++) ramp.set([i, i, i, 255], i * 4);
+    const texture = new T.DataTexture(ramp, 64, 1);
+    texture.colorSpace = T.SRGBColorSpace;
+    texture.needsUpdate = true;
+    const material = new T.MeshBasicMaterial({
+      map: texture,
+      toneMapped: false,
+    });
+    const mesh = new T.Mesh(new T.PlaneGeometry(1, 1), material);
+    const sprite = new T.Sprite(
+      new T.SpriteMaterial({
+        color: 0x060c18,
+        opacity: 0.2,
+        toneMapped: false,
+      }),
+    );
+    const pixels = new Uint8Array(width * height * 4);
+    const results = [];
+    let hole;
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+      results.push('PASS: ' + message);
+    }
+    function position(object, z) {
+      object.position.z = z;
+      const h = 2 * (8 - z) * Math.tan((25 * Math.PI) / 180);
+      object.scale.set((h * width) / height, h, 1);
+    }
+    function render() {
+      renderer.setRenderTarget(output);
+      renderer.render(scene, camera);
+      renderer.readRenderTargetPixels(output, 0, 0, width, height, pixels);
+    }
+    function pixel(x) {
+      return Array.from(
+        pixels.slice((16 * width + x) * 4, (16 * width + x) * 4 + 3),
+      );
+    }
+    // Independent sRGB transfer functions, not another capture/traversal path.
+    function attenuated(value, opacity) {
+      const encoded = value / 255;
+      const linear =
+        (encoded <= 0.04045
+          ? encoded / 12.92
+          : ((encoded + 0.055) / 1.055) ** 2.4) * opacity;
+      return Math.round(
+        255 *
+          (linear <= 0.0031308
+            ? 12.92 * linear
+            : 1.055 * linear ** (1 / 2.4) - 0.055),
+      );
+    }
+    function matches(actual, expected) {
+      return actual.every((value, i) => Math.abs(value - expected[i]) <= 1);
+    }
+    try {
+      scene.add(mesh);
+      position(mesh, 4);
+      render();
+      assert(
+        Array.from({ length: 64 }, (_, i) => pixel(i * 4 + 2)[0]).every(
+          (value, i) => value === i,
+        ),
+        'direct render preserves the 64-shade dark ramp',
+      );
+      for (const quality of ['low', 'high']) {
+        hole = new Spacekit.BlackHole(
+          'color',
+          { massSolar: 4e6, lensScene: true, accretionDisk: false, quality },
+          simulation,
+        );
+        for (const opacity of [1, 0.2]) {
+          scene.add(mesh);
+          position(mesh, 4);
+          material.map = texture;
+          material.color.set(0xffffff);
+          material.opacity = opacity;
+          material.transparent = opacity < 1;
+          material.needsUpdate = true;
+          render();
+          const row = Array.from({ length: 64 }, (_, i) => pixel(i * 4 + 2)[0]);
+          assert(
+            matches(
+              row,
+              row.map((_, i) => attenuated(i, opacity)),
+            ),
+            `${quality}: foreground ramp matches expected sRGB values at opacity ${opacity}`,
+          );
+          if (opacity === 1)
+            assert(
+              new Set(row).size >= 62,
+              `${quality}: capture preserves dark-tone detail (${
+                new Set(row).size
+              }/64 shades)`,
+            );
+        }
+        // Constant dark colors avoid depending on where the lens samples a
+        // gradient. This independently exercises all background layer formats.
+        for (const layer of ['opaque', 'surface', 'particle']) {
+          const opacity = layer === 'opaque' ? 1 : 0.2;
+          material.map = null;
+          material.color.set(0x060c18);
+          material.opacity = opacity;
+          material.transparent = opacity < 1;
+          material.needsUpdate = true;
+          position(mesh, -4);
+          position(sprite, -4);
+          scene.remove(mesh, sprite);
+          scene.add(layer === 'particle' ? sprite : mesh);
+          render();
+          assert(
+            matches(
+              pixel(32),
+              [6, 12, 24].map((value) => attenuated(value, opacity)),
+            ),
+            `${quality}: ${layer} background preserves dark colors and linear blending`,
+          );
+        }
+        scene.remove(sprite);
+        hole.dispose();
+      }
+      assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+      results.push('ALL CHECKS PASSED');
+    } catch (error) {
+      results.push('FAIL: ' + error.message);
+      console.error(error);
+    } finally {
+      hole?.dispose();
+      mesh.geometry.dispose();
+      material.dispose();
+      sprite.material.dispose();
+      texture.dispose();
+      output.dispose();
+      renderer.dispose();
+      document.getElementById('results').textContent = results.join('\n');
+    }
+  </script>
+</html>

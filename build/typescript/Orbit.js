@@ -15,17 +15,27 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.Orbit = exports.OrbitType = void 0;
 var THREE = __importStar(require("three"));
 // @ts-ignore
@@ -40,14 +50,14 @@ var OrbitType;
     OrbitType[OrbitType["HYPERBOLIC"] = 2] = "HYPERBOLIC";
     OrbitType[OrbitType["ELLIPTICAL"] = 3] = "ELLIPTICAL";
     OrbitType[OrbitType["TABLE"] = 4] = "TABLE";
-})(OrbitType = exports.OrbitType || (exports.OrbitType = {}));
+})(OrbitType || (exports.OrbitType = OrbitType = {}));
 var sin = Math.sin, cos = Math.cos, sqrt = Math.sqrt;
 var DEFAULT_LEAD_TRAIL_YEARS = 10;
 var DEFAULT_SAMPLE_POINTS = 360;
 var DEFAULT_ORBIT_PATH_SETTINGS = {
     leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
     trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
-    numberSamplePoints: DEFAULT_SAMPLE_POINTS
+    numberSamplePoints: DEFAULT_SAMPLE_POINTS,
 };
 /**
  * Special cube root function that assumes input is always positive.
@@ -366,7 +376,7 @@ var Orbit = /** @class */ (function () {
             tp = this.ephem.getUnsafe('tp');
         }
         // Use current date as a fallback if time of perihelion is not available.
-        var centerDate = tp ? tp : julian_1["default"].toJulianDay(new Date());
+        var centerDate = tp ? tp : julian_1.default.toJulianDay(new Date());
         var startJd = centerDate - this.options.orbitPathSettings.trailDurationYears * 365.25;
         var endJd = centerDate + this.options.orbitPathSettings.leadDurationYears * 365.25;
         var step = (endJd - startJd) / this.options.orbitPathSettings.numberSamplePoints;
@@ -458,7 +468,7 @@ var Orbit = /** @class */ (function () {
     Orbit.prototype.generateAndCacheOrbitShape = function (pointVectors) {
         this.orbitPoints = pointVectors;
         this.orbitShape = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pointVectors), new THREE.LineBasicMaterial({
-            color: new THREE.Color(this.options.color || 0x444444)
+            color: new THREE.Color(this.options.color || 0x444444),
         }));
         return this.orbitShape;
     };
@@ -493,7 +503,7 @@ var Orbit = /** @class */ (function () {
         var geometry = new THREE.BufferGeometry().setFromPoints(filteredPoints);
         this.eclipticDropLines = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
             color: this.options.eclipticLineColor || 0x333333,
-            blending: THREE.AdditiveBlending
+            blending: THREE.AdditiveBlending,
         }));
         return this.eclipticDropLines;
     };

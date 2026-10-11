@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Linear frame transparency</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running transparency checks...</pre>
+  <div id="simulation" style="width: 256px; height: 256px"></div>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    window.requestAnimationFrame = () => 0;
+    (async () => {
+      const T = Spacekit.THREE;
+      const results = [];
+      const size = 256;
+      const sim = new Spacekit.Simulation(
+        document.getElementById('simulation'),
+        {
+          basePath: '../../src',
+          jd: 2451545,
+          startPaused: true,
+          maxNumParticles: 4,
+          camera: { initialPosition: [0, 0, 8] },
+        },
+      );
+      const renderer = sim.getRenderer();
+      const composer = sim.getContext().objects.composer;
+      renderer.setPixelRatio(1);
+      composer.setSize(size, size);
+      const scene = sim.getScene();
+      const camera = sim.getViewer().get3jsCamera();
+      camera.up.set(0, 1, 0);
+      camera.lookAt(0, 0, 0);
+      camera.updateMatrixWorld();
+      sim.getViewer().get3jsCameraControls().enableDamping = false;
+      const pixels = new Uint8Array(size * size * 4);
+      const red = 0xff4020,
+        blue = 0x2040ff;
+      const particles = sim.getContext().objects.particles;
+      const indices = [red, blue].map((color) =>
+        particles.addParticle(
+          new Spacekit.Ephem({
+            a: 1,
+            e: 0,
+            i: 0,
+            om: 0,
+            w: 0,
+            ma: 0,
+            epoch: 2451545,
+          }),
+          { particleSize: 512, color },
+        ),
+      );
+      const kepler = particles.get3jsObjects()[0];
+      const texture = new T.DataTexture(
+        new Uint8Array([255, 255, 255, 64]),
+        1,
+        1,
+      );
+      texture.colorSpace = T.SRGBColorSpace;
+      texture.needsUpdate = true;
+      kepler.material.uniforms.particleTexture.value = texture;
+      let hole;
+      function assert(condition, message) {
+        if (!condition) throw new Error(message);
+        results.push('PASS: ' + message);
+      }
+      const decode = (c) =>
+        c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      const encode = (c) =>
+        255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055);
+      const rgb = (hex) =>
+        [hex >> 16, (hex >> 8) & 255, hex & 255].map((c) => decode(c / 255));
+      // Independent reference: compose straight-alpha colors in linear light,
+      // then apply the display transfer function exactly once.
+      function expected(background, layers, additive) {
+        let color = rgb(background);
+        for (const [hex, alpha] of layers) {
+          color = color.map((c, i) =>
+            Math.min(1, rgb(hex)[i] * alpha + c * (additive ? 1 : 1 - alpha)),
+          );
+        }
+        return color.map(encode);
+      }
+      function sample(x = 100, y = 128) {
+        const gl = renderer.getContext();
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        return Array.from(pixels.slice(0, 3));
+      }
+      function matches(actual, reference) {
+        return actual.every((c, i) => Math.abs(c - reference[i]) <= 2);
+      }
+      function draw() {
+        sim.animate();
+      }
+      function reset() {
+        hole?.dispose();
+        hole = undefined;
+        for (const o of scene.children.slice()) {
+          scene.remove(o);
+          if (o !== kepler) {
+            o.geometry?.dispose();
+            o.material?.dispose();
+          }
+        }
+        indices.forEach((i) => particles.hideParticle(i));
+      }
+      function plane(color, opacity, z) {
+        const mesh = new T.Mesh(
+          new T.PlaneGeometry(50, 50),
+          new T.MeshBasicMaterial({
+            color,
+            opacity,
+            transparent: opacity < 1,
+            depthWrite: opacity === 1,
+          }),
+        );
+        mesh.position.z = z;
+        scene.add(mesh);
+        return mesh;
+      }
+      function lens(z) {
+        hole = sim.createBlackHole('fade', {
+          position: [0, 0, z],
+          massSolar: 4e6,
+          accretionDisk: false,
+          lensScene: true,
+          quality: 'low',
+        });
+      }
+      function object(kind, color, opacity, z, additive) {
+        let o;
+        const options = {
+          color,
+          opacity,
+          transparent: true,
+          depthWrite: false,
+          blending: additive ? T.AdditiveBlending : T.NormalBlending,
+        };
+        if (kind === 'sprite') {
+          o = new T.Sprite(new T.SpriteMaterial(options));
+          o.scale.set(50, 50, 1);
+        } else if (kind === 'points') {
+          o = new T.Points(
+            new T.BufferGeometry().setFromPoints([new T.Vector3()]),
+            new T.PointsMaterial({
+              ...options,
+              size: 512,
+              sizeAttenuation: false,
+            }),
+          );
+        } else if (kind === 'shader') {
+          const material = new T.ShaderMaterial({
+            uniforms: {
+              color: { value: new T.Color(color) },
+              opacity: { value: opacity },
+            },
+            vertexShader:
+              'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader:
+              'uniform vec3 color; uniform float opacity; void main() { gl_FragColor = vec4(color, opacity);\n#include <colorspace_fragment>\n}',
+            transparent: true,
+            depthWrite: false,
+            blending: options.blending,
+          });
+          o = new T.Mesh(new T.PlaneGeometry(50, 50), material);
+        } else {
+          o = new T.Mesh(
+            new T.PlaneGeometry(50, 50),
+            new T.MeshBasicMaterial({
+              ...options,
+              premultipliedAlpha: kind === 'premultiplied mesh',
+            }),
+          );
+        }
+        o.position.z = z;
+        scene.add(o);
+        return o;
+      }
+      try {
+        for (const background of [0, 0x206080]) {
+          for (const placement of ['foreground', 'background']) {
+            for (const kind of [
+              'Kepler',
+              'mesh',
+              'premultiplied mesh',
+              'sprite',
+              'points',
+              'shader',
+            ]) {
+              for (const additive of [false, true]) {
+                for (const count of [1, 2]) {
+                  reset();
+                  plane(background, 1, -4);
+                  const alpha = kind === 'Kepler' ? 64 / 255 : 0.25;
+                  const layers = [
+                    [red, alpha],
+                    [blue, alpha],
+                  ].slice(0, count);
+                  if (kind === 'Kepler') {
+                    scene.add(kepler);
+                    kepler.material.blending = additive
+                      ? T.AdditiveBlending
+                      : T.NormalBlending;
+                    indices.slice(0, count).forEach((i, n) => {
+                      particles.setParticleSize(512, i);
+                      particles.setParticleOrigin(i, [-1, 0, n - 2]);
+                    });
+                    particles.update(2451545);
+                  } else
+                    layers.forEach(([color, a], n) =>
+                      object(kind, color, a, n - 2, additive),
+                    );
+                  const reference = expected(background, layers, additive);
+                  draw();
+                  const direct = sample();
+                  lens(placement === 'foreground' ? -6 : 0);
+                  draw();
+                  const lensed = sample();
+                  const label = `${kind}, ${count} layer(s), ${
+                    additive ? 'additive' : 'normal'
+                  }, ${placement}, background ${background.toString(16)}`;
+                  assert(
+                    matches(direct, reference),
+                    label +
+                      ': ordinary frame matches linear reference (' +
+                      direct +
+                      ')',
+                  );
+                  assert(
+                    matches(lensed, reference) && matches(lensed, direct),
+                    label + ': lensed frame matches (' + lensed + ')',
+                  );
+                }
+              }
+            }
+          }
+        }
+        reset();
+        // Exercise the actual radial star shader: overlaps over a surface and
+        // separate objects at different depths, rather than just constant alpha.
+        plane(0x206080, 1, -4);
+        const stars = [red, blue].map((color, n) =>
+          sim.createStaticParticles('star' + n, [[0, 0, n - 2]], {
+            size: 100,
+            defaultColor: color,
+          }),
+        );
+        stars.forEach(
+          (s) => (s.get3jsObjects()[0].material.depthWrite = false),
+        );
+        draw();
+        const starSamples = [92, 110, 128, 150].map((x) => sample(x));
+        lens(-6);
+        draw();
+        assert(
+          [92, 110, 128, 150].every((x, i) =>
+            matches(sample(x), starSamples[i]),
+          ),
+          'overlapping radial star fades over a surface match in the foreground',
+        );
+        reset();
+        // Use the actual bundled halo, including its shader-selected falloff.
+        sim.removeObject(particles);
+        const loaded = new Promise(
+          (resolve) => (T.DefaultLoadingManager.onLoad = resolve),
+        );
+        const fuzzy = new Spacekit.KeplerParticles(
+          {
+            textureUrl: '{{assets}}/sprites/fuzzyparticle.png',
+            maxNumParticles: 2,
+          },
+          sim,
+        );
+        const fuzzyIndices = [red, blue].map((color) =>
+          fuzzy.addParticle(
+            new Spacekit.Ephem({
+              a: 1,
+              e: 0,
+              i: 0,
+              om: 0,
+              w: 0,
+              ma: 0,
+              epoch: 2451545,
+            }),
+            { particleSize: 100, color },
+          ),
+        );
+        fuzzyIndices.forEach((i, n) =>
+          fuzzy.setParticleOrigin(i, [-1, 0, n - 2]),
+        );
+        fuzzy.update(2451545);
+        await loaded;
+        const fuzzyObject = fuzzy.get3jsObjects()[0];
+        const positions = [78, 84, 92, 110, 128, 150, 164, 177];
+        for (const background of [0, 0x206080]) {
+          const surface = plane(background, 1, -4);
+          draw();
+          const direct = positions.map((x) => sample(x));
+          lens(-6);
+          draw();
+          assert(
+            positions.every((x, i) => matches(sample(x), direct[i])),
+            `overlapping bundled halos over ${background.toString(
+              16,
+            )} match through the foreground lens pass`,
+          );
+          if (background === 0)
+            assert(
+              sample(78).every((c) => c === 0) &&
+                sample(177).every((c) => c === 0) &&
+                sample(128).some((c) => c > 100),
+              'bundled halo has zero-light outer edges and a visible core',
+            );
+          hole.dispose();
+          hole = undefined;
+          scene.remove(surface);
+          surface.geometry.dispose();
+          surface.material.dispose();
+        }
+        fuzzyObject.material.uniforms.particleTexture.value.dispose();
+        reset();
+        reset();
+        // Verify real MSAA coverage, not just the configured sample count.
+        const triangle = new T.Mesh(
+          new T.BufferGeometry().setAttribute(
+            'position',
+            new T.Float32BufferAttribute(
+              [-2, -2, 0, 2, -1.7, 0, -1.7, 2, 0],
+              3,
+            ),
+          ),
+          new T.MeshBasicMaterial({ color: 0xffffff }),
+        );
+        scene.add(triangle);
+        const partial = () => {
+          draw();
+          const gl = renderer.getContext();
+          gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+          let n = 0;
+          for (let i = 0; i < pixels.length; i += 4)
+            if (pixels[i] > 0 && pixels[i] < 255) n++;
+          return n;
+        };
+        const samples = composer.multisampling;
+        composer.multisampling = 0;
+        const aliased = partial();
+        composer.multisampling = samples;
+        const antialiased = partial();
+        assert(
+          samples > 0 && antialiased > aliased + 100,
+          `scene MSAA resolves fractional edge coverage (${aliased} -> ${antialiased})`,
+        );
+        scene.remove(triangle);
+        triangle.geometry.dispose();
+        triangle.material.dispose();
+        draw();
+        assert(
+          sample().every((c) => c === 0),
+          'clearing removes light from the previous frame',
+        );
+        // Resize through the same path as the window event, at two pixel ratios.
+        const elt = document.getElementById('simulation');
+        for (const ratio of [1, 2]) {
+          renderer.setPixelRatio(ratio);
+          elt.style.width = '320px';
+          elt.style.height = '180px';
+          sim.lastResizeUpdateTime = 0;
+          sim.resizeUpdate();
+          draw();
+          assert(
+            composer.inputBuffer.width === 320 * ratio &&
+              composer.inputBuffer.height === 180 * ratio &&
+              camera.aspect === 320 / 180,
+            `resize keeps composer, camera, and drawing buffer aligned at DPR ${ratio}`,
+          );
+        }
+        assert(renderer.getContext().getError() === 0, 'no WebGL errors');
+        results.push('ALL CHECKS PASSED');
+      } catch (error) {
+        results.push('FAIL: ' + error.message);
+        console.error(error);
+      } finally {
+        hole?.dispose();
+        texture.dispose();
+        document.getElementById('results').textContent = results.join('\n');
+      }
+    })();
+  </script>
+</html>

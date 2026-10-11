@@ -30,13 +30,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -47,12 +57,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -73,10 +83,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShapeObject = void 0;
 var THREE = __importStar(require("three"));
-var OBJLoader_1 = require("three/examples/jsm/loaders/OBJLoader");
+var OBJLoader_js_1 = require("three/examples/jsm/loaders/OBJLoader.js");
 var RotatingObject_1 = require("./RotatingObject");
 var ShapeObject = /** @class */ (function (_super) {
     __extends(ShapeObject, _super);
@@ -94,9 +104,8 @@ var ShapeObject = /** @class */ (function (_super) {
      * @see RotatingObject
      */
     function ShapeObject(id, options, simulation) {
-        var _this = this;
         var _a;
-        _this = _super.call(this, id, options, simulation, false /* autoInit */) || this;
+        var _this = _super.call(this, id, options, simulation, false /* autoInit */) || this;
         if (!options.shape) {
             throw new Error('ShapeObject requires an options.shape object');
         }
@@ -109,13 +118,13 @@ var ShapeObject = /** @class */ (function (_super) {
             console.info(_this._id, item, 'loading progress:', loaded, '/', total);
         };
         _this.loadingPromise = new Promise(function (resolve) {
-            var loader = new OBJLoader_1.OBJLoader(manager);
+            var loader = new OBJLoader_js_1.OBJLoader(manager);
             // TODO(ian): Make shapeurl follow assetpath logic.
             loader.load(options.shape.shapeUrl, function (object) {
                 object.traverse(function (child) {
                     if (child instanceof THREE.Mesh) {
                         var material = new THREE.MeshStandardMaterial({
-                            color: _this._options.shape.color || 0xcccccc
+                            color: _this._options.shape.color || 0xcccccc,
                         });
                         child.material = material;
                         child.geometry.scale(0.05, 0.05, 0.05);

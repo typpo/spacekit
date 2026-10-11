@@ -1,629 +1,274 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>KeplerParticles | spacekit</title>
-	<meta name="description" content="Documentation for spacekit">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="../assets/css/main.css">
-	<script async src="../assets/js/search.js" id="search-script"></script>
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="../index.html" class="title">spacekit</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="../modules.html">spacekit</a>
-				</li>
-				<li>
-					<a href="KeplerParticles.html">KeplerParticles</a>
-				</li>
-			</ul>
-			<h1>Class KeplerParticles</h1>
-		</div>
-	</div>
-</header>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>KeplerParticles | spacekit</title><meta name="description" content="Documentation for spacekit"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">spacekit</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
 <div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>An efficient way to render many objects in space with Kepler orbits.
-						Primarily used by Simulation to render all non-static objects.</p>
-					</div>
-					<dl class="tsd-comment-tags">
-						<dt>see</dt>
-						<dd><p>Simulation</p>
-						</dd>
-					</dl>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-hierarchy">
-				<h3>Hierarchy</h3>
-				<ul class="tsd-hierarchy">
-					<li>
-						<span class="target">KeplerParticles</span>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel-group tsd-index-group">
-				<h2>Index</h2>
-				<section class="tsd-panel tsd-index-panel">
-					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Constructors</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="KeplerParticles.html#constructor" class="tsd-kind-icon">constructor</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="KeplerParticles.html#instanceCount" class="tsd-kind-icon">instance<wbr>Count</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Methods</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#addParticle" class="tsd-kind-icon">add<wbr>Particle</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#getId" class="tsd-kind-icon">get<wbr>Id</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#hideParticle" class="tsd-kind-icon">hide<wbr>Particle</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#setParticleColor" class="tsd-kind-icon">set<wbr>Particle<wbr>Color</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#setParticleOrigin" class="tsd-kind-icon">set<wbr>Particle<wbr>Origin</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#setParticleSize" class="tsd-kind-icon">set<wbr>Particle<wbr>Size</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="KeplerParticles.html#update" class="tsd-kind-icon">update</a></li>
-							</ul>
-						</section>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
-					<a name="constructor" class="tsd-anchor"></a>
-					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Kepler<wbr>Particles<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">KeplerParticlesOptions</span>, contextOrSimulation<span class="tsd-signature-symbol">: </span><a href="Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="KeplerParticles.html" class="tsd-signature-type" data-tsd-kind="Class">KeplerParticles</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L110">KeplerParticles.ts:110</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>options: <span class="tsd-signature-type">KeplerParticlesOptions</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>Options container</p>
-										</div>
-									</div>
-								</li>
-								<li>
-									<h5>contextOrSimulation: <a href="Simulation.html" class="tsd-signature-type" data-tsd-kind="Class">Simulation</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>Simulation context or object</p>
-										</div>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="KeplerParticles.html" class="tsd-signature-type" data-tsd-kind="Class">KeplerParticles</a></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
-					<a name="instanceCount" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> instance<wbr>Count</h3>
-					<div class="tsd-signature tsd-kind-icon">instance<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L72">KeplerParticles.ts:72</a></li>
-						</ul>
-					</aside>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="addParticle" class="tsd-anchor"></a>
-					<h3>add<wbr>Particle</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">add<wbr>Particle<span class="tsd-signature-symbol">(</span>ephem<span class="tsd-signature-symbol">: </span><a href="Ephem.html" class="tsd-signature-type" data-tsd-kind="Class">Ephem</a>, options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">KeplerParticleOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L207">KeplerParticles.ts:207</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Add a particle to this particle system.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>ephem: <a href="Ephem.html" class="tsd-signature-type" data-tsd-kind="Class">Ephem</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Kepler ephemeris</p>
-									</div>
-								</li>
-								<li>
-									<h5>options: <span class="tsd-signature-type">KeplerParticleOptions</span><span class="tsd-signature-symbol"> = {}</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Options container</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
-							<p>The index of this article in the attribute list.</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="get3jsObjects" class="tsd-anchor"></a>
-					<h3>get3js<wbr>Objects</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get3js<wbr>Objects<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L345">KeplerParticles.ts:345</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Get THREE.js objects that comprise this point cloud</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Event</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4>
-							<p>List of objects to add to THREE.js scene</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getId" class="tsd-anchor"></a>
-					<h3>get<wbr>Id</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Id<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L353">KeplerParticles.ts:353</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Get unique id for this object.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
-							<p>Unique id</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="hideParticle" class="tsd-anchor"></a>
-					<h3>hide<wbr>Particle</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">hide<wbr>Particle<span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L257">KeplerParticles.ts:257</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Hides the particle at the given offset so it is no longer drawn. The particle still takes up space in the array
-									though.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>offset: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setParticleColor" class="tsd-anchor"></a>
-					<h3>set<wbr>Particle<wbr>Color</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Particle<wbr>Color<span class="tsd-signature-symbol">(</span>colorValue<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L289">KeplerParticles.ts:289</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Changes the color of the particle at the given offset to the given color.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>colorValue: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The new color of this particle (e.g. hex number)</p>
-									</div>
-								</li>
-								<li>
-									<h5>offset: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The location of this particle in the attributes * array</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setParticleOrigin" class="tsd-anchor"></a>
-					<h3>set<wbr>Particle<wbr>Origin</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Particle<wbr>Origin<span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newOrigin<span class="tsd-signature-symbol">: </span><a href="../modules.html#Coordinate3d" class="tsd-signature-type" data-tsd-kind="Type alias">Coordinate3d</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L306">KeplerParticles.ts:306</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Change the <code>origin</code> attribute of a particle.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>offset: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The location of this particle in the attributes * array.</p>
-									</div>
-								</li>
-								<li>
-									<h5>newOrigin: <a href="../modules.html#Coordinate3d" class="tsd-signature-type" data-tsd-kind="Type alias">Coordinate3d</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The new XYZ coordinates of the body that this particle orbits.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setParticleSize" class="tsd-anchor"></a>
-					<h3>set<wbr>Particle<wbr>Size</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Particle<wbr>Size<span class="tsd-signature-symbol">(</span>size<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L273">KeplerParticles.ts:273</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>size: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The new size of this particle</p>
-									</div>
-								</li>
-								<li>
-									<h5>offset: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The location of this particle in the attributes * array</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="update" class="tsd-anchor"></a>
-					<h3>update</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">update<span class="tsd-signature-symbol">(</span>jd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/typpo/spacekit/blob/ffa004c/src/KeplerParticles.ts#L315">KeplerParticles.ts:315</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Update the position for all particles</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>jd: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>JD date</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class=" ">
-						<a href="../modules.html">Exports</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-enum">
-						<a href="../enums/OrbitType.html" class="tsd-kind-icon">Orbit<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="BlackHole.html" class="tsd-kind-icon">Black<wbr>Hole</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Ephem.html" class="tsd-kind-icon">Ephem</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="EphemerisTable.html" class="tsd-kind-icon">Ephemeris<wbr>Table</a>
-					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-class">
-						<a href="KeplerParticles.html" class="tsd-kind-icon">Kepler<wbr>Particles</a>
-						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="KeplerParticles.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
-								<a href="KeplerParticles.html#instanceCount" class="tsd-kind-icon">instance<wbr>Count</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#addParticle" class="tsd-kind-icon">add<wbr>Particle</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#get3jsObjects" class="tsd-kind-icon">get3js<wbr>Objects</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#getId" class="tsd-kind-icon">get<wbr>Id</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#hideParticle" class="tsd-kind-icon">hide<wbr>Particle</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#setParticleColor" class="tsd-kind-icon">set<wbr>Particle<wbr>Color</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#setParticleOrigin" class="tsd-kind-icon">set<wbr>Particle<wbr>Origin</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#setParticleSize" class="tsd-kind-icon">set<wbr>Particle<wbr>Size</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="KeplerParticles.html#update" class="tsd-kind-icon">update</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
-				<ul class="after-current">
-					<li class=" tsd-kind-class">
-						<a href="NaturalSatellites.html" class="tsd-kind-icon">Natural<wbr>Satellites</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Orbit.html" class="tsd-kind-icon">Orbit</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="RotatingObject.html" class="tsd-kind-icon">Rotating<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="ShapeObject.html" class="tsd-kind-icon">Shape<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Simulation.html" class="tsd-kind-icon">Simulation</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Skybox.html" class="tsd-kind-icon">Skybox</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="SpaceObject.html" class="tsd-kind-icon">Space<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="SphereObject.html" class="tsd-kind-icon">Sphere<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="Stars.html" class="tsd-kind-icon">Stars</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="StaticParticles.html" class="tsd-kind-icon">Static<wbr>Particles</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/AccretionDiskOptions.html" class="tsd-kind-icon">Accretion<wbr>Disk<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/BlackHoleOptions.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/BlackHoleRadii.html" class="tsd-kind-icon">Black<wbr>Hole<wbr>Radii</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SimulationContext.html" class="tsd-kind-icon">Simulation<wbr>Context</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SimulationObject.html" class="tsd-kind-icon">Simulation<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SkyboxOptions.html" class="tsd-kind-icon">Skybox<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/SpaceObjectOptions.html" class="tsd-kind-icon">Space<wbr>Object<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../modules.html#Coordinate3d" class="tsd-kind-icon">Coordinate3d</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../modules.html#CoordinateXYZ" class="tsd-kind-icon">CoordinateXYZ</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#EphemPresets" class="tsd-kind-icon">Ephem<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#GM" class="tsd-kind-icon">GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#METERS_PER_AU" class="tsd-kind-icon">METERS_<wbr>PER_<wbr>AU</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SCHWARZSCHILD_CRITICAL_IMPACT" class="tsd-kind-icon">SCHWARZSCHILD_<wbr>CRITICAL_<wbr>IMPACT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SOLAR_GM" class="tsd-kind-icon">SOLAR_<wbr>GM</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SPEED_OF_LIGHT" class="tsd-kind-icon">SPEED_<wbr>OF_<wbr>LIGHT</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SkyboxPresets" class="tsd-kind-icon">Skybox<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#SpaceObjectPresets" class="tsd-kind-icon">Space<wbr>Object<wbr>Presets</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="../modules.html#THREE" class="tsd-kind-icon">THREE</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#getSkyboxOrientationTransform" class="tsd-kind-icon">get<wbr>Skybox<wbr>Orientation<wbr>Transform</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#schwarzschildOrbitalPeriodSeconds" class="tsd-kind-icon">schwarzschild<wbr>Orbital<wbr>Period<wbr>Seconds</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#schwarzschildRadiusAu" class="tsd-kind-icon">schwarzschild<wbr>Radius<wbr>Au</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../modules.html#stepSchwarzschildRay" class="tsd-kind-icon">step<wbr>Schwarzschild<wbr>Ray</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">KeplerParticles</a></li></ul>
+<h1>Class KeplerParticles</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>An efficient way to render many objects in space with Kepler orbits.
+Primarily used by Simulation to render all non-static objects.</p>
 </div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-see">
+<h4 class="tsd-anchor-link" id="see">See<a href="#see" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Simulation</p>
+</div></div></section><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:71</li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#instancecount" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>instance<wbr/>Count</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#addparticle" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Particle</span></a>
+<a href="#get3jsobjects" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get3js<wbr/>Objects</span></a>
+<a href="#getid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Id</span></a>
+<a href="#hideparticle" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>hide<wbr/>Particle</span></a>
+<a href="#setparticlecolor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Color</span></a>
+<a href="#setparticleorigin" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Origin</span></a>
+<a href="#setparticlesize" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Size</span></a>
+<a href="#update" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructorkeplerparticles"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">KeplerParticles</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">KeplerParticlesOptions</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">contextOrSimulation</span><span class="tsd-signature-symbol">:</span> <a href="Simulation.html" class="tsd-signature-type tsd-kind-class">Simulation</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">KeplerParticles</a><a href="#constructorkeplerparticles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type">KeplerParticlesOptions</span></span>
+<div class="tsd-comment tsd-typography"><p>Options container</p>
 </div>
-<div class="overlay"></div>
-<script src="../assets/js/main.js"></script>
-</body>
-</html>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><span>textureUrl</span></h5>
+<div class="tsd-comment tsd-typography"><p>Template url for sprite</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span>basePath</span></h5>
+<div class="tsd-comment tsd-typography"><p>Base path for simulation supporting files</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span>jd</span></h5>
+<div class="tsd-comment tsd-typography"><p>JD date value</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span>maxNumParticles</span></h5>
+<div class="tsd-comment tsd-typography"><p>Maximum number of particles to display. Defaults to 4096</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span>defaultSize</span></h5>
+<div class="tsd-comment tsd-typography"><p>Default size of particles. Note this
+can be overriden by SpaceObject particleSize. Defaults to 25</p>
+</div></li></ul></li>
+<li><span><span class="tsd-kind-parameter">contextOrSimulation</span>: <a href="Simulation.html" class="tsd-signature-type tsd-kind-class">Simulation</a></span>
+<div class="tsd-comment tsd-typography"><p>Simulation context or object</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">KeplerParticles</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:110</li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="instancecount"><code class="tsd-tag">Static</code><span>instance<wbr/>Count</span><a href="#instancecount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">instanceCount</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:72</li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="addparticle"><span>add<wbr/>Particle</span><a href="#addparticle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="addparticle-1"><span class="tsd-kind-call-signature">addParticle</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">ephem</span><span class="tsd-signature-symbol">:</span> <a href="Ephem.html" class="tsd-signature-type tsd-kind-class">Ephem</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">KeplerParticleOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#addparticle-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Add a particle to this particle system.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">ephem</span>: <a href="Ephem.html" class="tsd-signature-type tsd-kind-class">Ephem</a></span>
+<div class="tsd-comment tsd-typography"><p>Kepler ephemeris</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type">KeplerParticleOptions</span><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Options container</p>
+</div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><span>particleSize</span></h5>
+<div class="tsd-comment tsd-typography"><p>Size of particles</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><span>color</span></h5>
+<div class="tsd-comment tsd-typography"><p>Color of particles</p>
+</div></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The index of this article in the attribute list.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:207</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="get3jsobjects"><span>get3js<wbr/>Objects</span><a href="#get3jsobjects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="get3jsobjects-1"><span class="tsd-kind-call-signature">get3jsObjects</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#get3jsobjects-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get THREE.js objects that comprise this point cloud</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object3D</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object3DEventMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><p>List of objects to add to THREE.js scene</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:345</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getid"><span>get<wbr/>Id</span><a href="#getid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getid-1"><span class="tsd-kind-call-signature">getId</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#getid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get unique id for this object.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><p>Unique id</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:353</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="hideparticle"><span>hide<wbr/>Particle</span><a href="#hideparticle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="hideparticle-1"><span class="tsd-kind-call-signature">hideParticle</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#hideparticle-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Hides the particle at the given offset so it is no longer drawn. The particle still takes up space in the array
+though.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">offset</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:257</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setparticlecolor"><span>set<wbr/>Particle<wbr/>Color</span><a href="#setparticlecolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setparticlecolor-1"><span class="tsd-kind-call-signature">setParticleColor</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">colorValue</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setparticlecolor-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Changes the color of the particle at the given offset to the given color.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">colorValue</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The new color of this particle (e.g. hex number)</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">offset</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The location of this particle in the attributes * array</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:289</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setparticleorigin"><span>set<wbr/>Particle<wbr/>Origin</span><a href="#setparticleorigin" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setparticleorigin-1"><span class="tsd-kind-call-signature">setParticleOrigin</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">newOrigin</span><span class="tsd-signature-symbol">:</span> <a href="../types/Coordinate3d.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate3d</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setparticleorigin-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Change the <code>origin</code> attribute of a particle.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">offset</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The location of this particle in the attributes * array.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">newOrigin</span>: <a href="../types/Coordinate3d.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate3d</a></span>
+<div class="tsd-comment tsd-typography"><p>The new XYZ coordinates of the body that this particle orbits.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:306</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setparticlesize"><span>set<wbr/>Particle<wbr/>Size</span><a href="#setparticlesize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setparticlesize-1"><span class="tsd-kind-call-signature">setParticleSize</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">size</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">offset</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setparticlesize-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Changes the size of the particle at the given offset to the given size. Setting the size to 0 hides the particle.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">size</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The new size of this particle</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">offset</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The location of this particle in the attributes * array</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:273</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="update"><span>update</span><a href="#update" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="update-1"><span class="tsd-kind-call-signature">update</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">jd</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#update-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Update the position for all particles</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">jd</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>JD date</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in KeplerParticles.ts:315</li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#instancecount"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>instance<wbr/>Count</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#addparticle"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Particle</span></a><a href="#get3jsobjects"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get3js<wbr/>Objects</span></a><a href="#getid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Id</span></a><a href="#hideparticle"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>hide<wbr/>Particle</span></a><a href="#setparticlecolor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Color</span></a><a href="#setparticleorigin"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Origin</span></a><a href="#setparticlesize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Particle<wbr/>Size</span></a><a href="#update"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">spacekit</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

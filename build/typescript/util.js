@@ -15,15 +15,30 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-exports.__esModule = true;
-exports.binarySearch = exports.getDefaultBasePath = exports.getThreeJsTexture = exports.getFullTextureUrl = exports.getFullUrl = exports.DEFAULT_TEXTURE_URL = void 0;
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_TEXTURE_URL = void 0;
+exports.getFullUrl = getFullUrl;
+exports.getFullTextureUrl = getFullTextureUrl;
+exports.getThreeJsTexture = getThreeJsTexture;
+exports.getDefaultBasePath = getDefaultBasePath;
+exports.binarySearch = binarySearch;
 var THREE = __importStar(require("three"));
 var DEFAULT_COMPARER_METHOD = function (a, b) {
     return a - b;
@@ -47,7 +62,6 @@ function getFullUrl(template, basePath) {
         .replace('{{assets}}', "".concat(basePath, "/assets"))
         .replace('{{data}}', "".concat(basePath, "/data"));
 }
-exports.getFullUrl = getFullUrl;
 /**
  * Returns the complete URL to a texture given a basepath and a template url.
  * @param {String} template URL containing optional template parameters
@@ -61,7 +75,6 @@ exports.getFullUrl = getFullUrl;
 function getFullTextureUrl(template, basePath) {
     return getFullUrl(template || exports.DEFAULT_TEXTURE_URL, basePath);
 }
-exports.getFullTextureUrl = getFullTextureUrl;
 /*
  * Returns a THREE.js texture given a basepath and a template url.
  * @param {String} template URL containing optional template parameters
@@ -69,15 +82,15 @@ exports.getFullTextureUrl = getFullTextureUrl;
  */
 function getThreeJsTexture(template, basePath) {
     var fullTextureUrl = getFullTextureUrl(template, basePath);
-    return new THREE.TextureLoader().load(fullTextureUrl);
+    var texture = new THREE.TextureLoader().load(fullTextureUrl);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
 }
-exports.getThreeJsTexture = getThreeJsTexture;
 function getDefaultBasePath() {
     return window.location.href.indexOf('localhost') > -1
         ? '/src/'
         : 'https://typpo.github.io/spacekit/src';
 }
-exports.getDefaultBasePath = getDefaultBasePath;
 /**
  * Performs a standard binary search on an array of values returning the index of the found item or the twos complement
  * negative of the closest value if the exact value isn't found. For example for array: [10, 20, 30]
@@ -123,4 +136,3 @@ function binarySearch(data, value, comparer) {
     }
     return ~left;
 }
-exports.binarySearch = binarySearch;

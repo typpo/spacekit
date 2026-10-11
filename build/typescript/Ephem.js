@@ -1,24 +1,24 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ephem = exports.GM = void 0;
 var METERS_IN_AU = 149597870700;
 var SECONDS_IN_DAY = 86400;
 // TODO(ian): Allow multiple valid attrs for a single quantity and map them
 // internally to a single canonical attribute.
 var EPHEM_VALID_ATTRS = new Set([
-    'a',
-    'e',
-    'i',
-    'q',
+    'a', // Semi-major axis
+    'e', // Eccentricity
+    'i', // Inclination
+    'q', // Perihelion distance
     'epoch',
-    'period',
-    'tp',
-    'ma',
-    'n',
-    'L',
-    'om',
-    'w',
-    'wBar',
+    'period', // in days
+    'tp', // time of perihelion
+    'ma', // Mean anomaly
+    'n', // Mean motion
+    'L', // Mean longitude
+    'om', // Longitude of Ascending Node
+    'w', // Argument of Perihelion = Longitude of Perihelion - Longitude of Ascending Node
+    'wBar', // Longitude of Perihelion = Longitude of Ascending Node + Argument of Perihelion
     'GM', // Gravitational constant of more massive body
 ]);
 // Which of these are angular measurements.
@@ -46,7 +46,7 @@ exports.GM = {
     SATURN: 3.7940585200000003e16,
     URANUS: 5.794548600000008e15,
     NEPTUNE: 6.8365271005800236e15,
-    PLUTO_CHARON: 9.7700000000000068e11
+    PLUTO_CHARON: 9.7700000000000068e11,
 };
 // Returns true if object is a number.
 function isDef(obj) {
@@ -266,7 +266,7 @@ var Ephem = /** @class */ (function () {
             i: this.getUnsafe('i'),
             om: this.getUnsafe('om'),
             ma: this.getUnsafe('ma'),
-            w: this.getUnsafe('w')
+            w: this.getUnsafe('w'),
         }, 'rad');
     };
     return Ephem;

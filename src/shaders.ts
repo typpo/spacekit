@@ -6,10 +6,12 @@ import { getScaleFactor } from './Scale';
 export function getOrbitShaderFragment() {
   return `
     varying vec3 vColor;
-    uniform sampler2D texture;
+    uniform sampler2D particleTexture;
 
     void main() {
-      gl_FragColor = vec4(vColor, 1.0) * texture2D(texture, gl_PointCoord);
+      gl_FragColor = vec4(vColor, 1.0) * texture2D(particleTexture, gl_PointCoord);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
     }
   `;
 }
@@ -37,27 +39,6 @@ export function getOrbitShaderVertex() {
 
     // CPU-computed term for parabolic orbits
     attribute float a0;
-
-    // COSH Function (Hyperbolic Cosine)
-    float cosh(float val) {
-      float tmp = exp(val);
-      float cosH = (tmp + 1.0 / tmp) / 2.0;
-      return cosH;
-    }
-
-    // TANH Function (Hyperbolic Tangent)
-    float tanh(float val) {
-      float tmp = exp(val);
-      float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
-      return tanH;
-    }
-
-    // SINH Function (Hyperbolic Sine)
-    float sinh(float val) {
-      float tmp = exp(val);
-      float sinH = (tmp - 1.0 / tmp) / 2.0;
-      return sinH;
-    }
 
     // Cube root helper that assumes param is positive
     float cbrt(float x) {
@@ -182,8 +163,10 @@ export const STAR_SHADER_FRAGMENT = `
     varying vec3 vColor;
 
     void main() {
-      float a = 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5));
+      float a = pow(max(0.0, 1.0 - 2.0 * length(gl_PointCoord - vec2(0.5, 0.5))), 2.2);
       gl_FragColor = vec4(vColor, a);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
     }
 `;
 
@@ -201,29 +184,6 @@ export const STAR_SHADER_VERTEX = `
         // rounding ordinary projected depth makes stars blink as the view moves.
         gl_Position.z = gl_Position.w;
         #endif
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_VERTEX = `
-    attribute float size;
-    attribute vec3 customColor;
-    varying vec3 vColor;
-    void main() {
-      vColor = customColor;
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = size * (300.0 / -mvPosition.z);
-      gl_Position = projectionMatrix * mvPosition;
-    }
-`;
-
-export const GENERIC_PARTICLE_SHADER_FRAGMENT = `
-    uniform vec3 color;
-    uniform sampler2D texture;
-    varying vec3 vColor;
-    void main() {
-      gl_FragColor = vec4(color * vColor, 1.0);
-      gl_FragColor = gl_FragColor * texture2D(texture, gl_PointCoord);
-      if (gl_FragColor.a < ALPHATEST) discard;
     }
 `;
 
@@ -275,6 +235,8 @@ export const ATMOSPHERE_SHADER_FRAGMENT = `
                        // * pointLights[i].color
 
     gl_FragColor = vec4(color, 1.0) * intensity * addedLights;
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 
@@ -310,6 +272,8 @@ export const SPHERE_SHADER_FRAGMENT = `
     vec3 lightDir = normalize(vViewLightPos - vViewPosition);
     float lambertian = max(dot(normal, lightDir), 0.0);
     gl_FragColor = texture2D(sphereTexture, vUv) * vec4(vec3(1.0) * lambertian, 1.0);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 
@@ -380,5 +344,7 @@ export const RING_SHADER_FRAGMENT = `
     // it is a left operand.
     // https://github.com/typpo/spacekit/issues/22
     gl_FragColor = vec4(lights() * shadow(), 1.0) * color();
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;

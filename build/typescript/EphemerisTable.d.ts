@@ -2,10 +2,10 @@ import type { Coordinate3d } from './Coordinates';
 /**
  * A class representing an ephemeris look-up table for defining a space object.
  */
-declare type InterpolationType = 'lagrange';
-declare type EphemType = 'cartesianposvel';
-declare type DistanceUnits = 'au' | 'km';
-declare type TimeUnits = 'day' | 'sec';
+type InterpolationType = 'lagrange';
+type EphemType = 'cartesianposvel';
+type DistanceUnits = 'au' | 'km';
+type TimeUnits = 'day' | 'sec';
 interface EphemerisTableData {
     data: number[][];
     ephemerisType: EphemType;

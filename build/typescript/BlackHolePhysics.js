@@ -1,6 +1,9 @@
 "use strict";
-exports.__esModule = true;
-exports.stepSchwarzschildRay = exports.schwarzschildOrbitalPeriodSeconds = exports.schwarzschildRadiusAu = exports.SCHWARZSCHILD_CRITICAL_IMPACT = exports.METERS_PER_AU = exports.SOLAR_GM = exports.SPEED_OF_LIGHT = void 0;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SCHWARZSCHILD_CRITICAL_IMPACT = exports.METERS_PER_AU = exports.SOLAR_GM = exports.SPEED_OF_LIGHT = void 0;
+exports.schwarzschildRadiusAu = schwarzschildRadiusAu;
+exports.schwarzschildOrbitalPeriodSeconds = schwarzschildOrbitalPeriodSeconds;
+exports.stepSchwarzschildRay = stepSchwarzschildRay;
 /** Schwarzschild geometry. Distances used by the ray solver are in horizon radii. */
 exports.SPEED_OF_LIGHT = 299792458;
 // IAU 2015 nominal solar mass parameter (m^3 s^-2), avoiding uncertainty in G.
@@ -13,7 +16,6 @@ function schwarzschildRadiusAu(massSolar) {
     }
     return (2 * exports.SOLAR_GM * massSolar) / Math.pow(exports.SPEED_OF_LIGHT, 2) / exports.METERS_PER_AU;
 }
-exports.schwarzschildRadiusAu = schwarzschildRadiusAu;
 /** Circular geodesic period, measured at infinity, at r >= 3 horizon radii. */
 function schwarzschildOrbitalPeriodSeconds(massSolar, radiusInSchwarzschildRadii) {
     var rs = schwarzschildRadiusAu(massSolar) * exports.METERS_PER_AU;
@@ -24,7 +26,6 @@ function schwarzschildOrbitalPeriodSeconds(massSolar, radiusInSchwarzschildRadii
     return (((2 * Math.PI * rs) / exports.SPEED_OF_LIGHT) *
         Math.sqrt(2 * Math.pow(radiusInSchwarzschildRadii, 3)));
 }
-exports.schwarzschildOrbitalPeriodSeconds = schwarzschildOrbitalPeriodSeconds;
 /**
  * Reference null-geodesic solver, also useful for checking the GPU integrator.
  * u = rs/r, v = du/dphi; u'' = 1.5 u^2 - u. The conserved quantity is
@@ -47,4 +48,3 @@ function stepSchwarzschildRay(u, v, step) {
         v + (step * (a + 2 * b + 2 * c + d)) / 6,
     ];
 }
-exports.stepSchwarzschildRay = stepSchwarzschildRay;

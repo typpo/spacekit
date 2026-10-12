@@ -8,6 +8,65 @@ type Renderable = THREE.Object3D & {
 // Steps use whole framebuffer pixels per axis; narrower gaps can be skipped.
 const POINT_SMOOTHING_STEP_PIXELS = 2;
 const POINT_SMOOTHING_STEPS = 8;
+
+const bounds = new THREE.Sphere();
+
+/**
+ * Whether the material draws vertices where the geometry puts them. Custom
+ * vertex shaders may move them, unless marked with
+ * `userData.spacekitStandardTransform`.
+ */
+function keepsGeometryBounds(material: THREE.Material): boolean {
+  if ((material as THREE.ShaderMaterial).isShaderMaterial) {
+    return material.userData.spacekitStandardTransform === true;
+  }
+  return (
+    material.onBeforeCompile === THREE.Material.prototype.onBeforeCompile &&
+    !(material as THREE.MeshStandardMaterial).displacementMap
+  );
+}
+
+/**
+ * The nearest view depth that any of these objects can reach, Infinity when
+ * none reaches the depth range, or 0 when one has no trustworthy bounds.
+ */
+function nearestDepth(
+  objects: { object: THREE.Object3D; sources: THREE.Material[] }[],
+  camera: THREE.Camera,
+  near: number,
+  far: number,
+): number {
+  let nearest = Infinity;
+  for (const { object, sources } of objects) {
+    const geometry = (object as THREE.Mesh).geometry as
+      | THREE.BufferGeometry
+      | undefined;
+    if (
+      !object.frustumCulled ||
+      (object as THREE.InstancedMesh).isInstancedMesh ||
+      (object as THREE.SkinnedMesh).isSkinnedMesh ||
+      !sources.every(keepsGeometryBounds)
+    ) {
+      return 0;
+    }
+    if ((object as THREE.Sprite).isSprite) {
+      // Sprite corners are offset across the view plane, at the center depth.
+      bounds.set(bounds.center.setFromMatrixPosition(object.matrixWorld), 0);
+    } else if (geometry) {
+      if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+      if (!geometry.boundingSphere) return 0;
+      bounds.copy(geometry.boundingSphere).applyMatrix4(object.matrixWorld);
+    } else {
+      return 0;
+    }
+    const depth = -bounds.center.applyMatrix4(camera.matrixWorldInverse).z;
+    if (!Number.isFinite(depth) || !Number.isFinite(bounds.radius)) return 0;
+    if (depth - bounds.radius >= far || depth + bounds.radius <= near) continue;
+    nearest = Math.min(nearest, depth - bounds.radius);
+  }
+  return nearest;
+}
+
 function captureTarget(samples = 0): THREE.WebGLRenderTarget {
   const target = new THREE.WebGLRenderTarget(1, 1, {
     samples,
@@ -417,11 +476,26 @@ export class BlackHoleSceneCapture {
         object.layers.mask = background ? 0 : mask;
       });
       clear(this.foreground);
-      if (near > sourceCamera.near) {
+      const foregroundFar = Math.min(near, sourceCamera.far);
+      const content = nearestDepth(
+        objects.filter(
+          (entry) =>
+            !entry.background && (entry.mask & camera.layers.mask) !== 0,
+        ),
+        camera,
+        sourceCamera.near,
+        foregroundFar,
+      );
+      if (near > sourceCamera.near && content < foregroundFar) {
+        // Spacekit's near plane is tiny. Starting the depth range there leaves
+        // nearby surfaces only a few depth steps apart, so a veil could fail
+        // its depth test against the surface behind it. Start at the nearest
+        // bounded content instead, keeping a margin for rounding. Objects
+        // without trustworthy bounds keep the camera's own near plane.
         this.clipCamera(
           sourceCamera,
-          sourceCamera.near,
-          Math.min(near, sourceCamera.far),
+          Math.max(sourceCamera.near, 0.5 * content),
+          foregroundFar,
         );
         renderer.render(scene, this.camera);
       } else {

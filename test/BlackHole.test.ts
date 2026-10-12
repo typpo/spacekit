@@ -148,6 +148,9 @@ describe('BlackHole scene integration', () => {
         depthWrite: false,
       });
       const sprite = new THREE.Sprite(material);
+      // In front of the lens plane, so that the foreground pass renders it.
+      sprite.position.z = -0.25;
+      sprite.updateMatrixWorld();
       const hole = new THREE.Object3D();
       hole.userData.spacekitBlackHole = true;
       scene.add(sprite, hole);

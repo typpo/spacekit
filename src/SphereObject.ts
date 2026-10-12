@@ -91,6 +91,7 @@ export class SphereObject extends RotatingObject {
           vertexShader: SPHERE_SHADER_VERTEX,
           fragmentShader: SPHERE_SHADER_FRAGMENT,
           transparent: true,
+          userData: { spacekitStandardTransform: true },
         });
       } else {
         const color = this._options.color ?? 0xbbbbbb;
@@ -213,6 +214,7 @@ export class SphereObject extends RotatingObject {
       side: THREE.BackSide,
       transparent: true,
       depthWrite: false,
+      userData: { spacekitStandardTransform: true },
     });
 
     return new THREE.Mesh(geometry, material);
@@ -275,6 +277,7 @@ export class SphereObject extends RotatingObject {
         transparent: true,
         alphaTest: 0.1,
         side: THREE.DoubleSide,
+        userData: { spacekitStandardTransform: true },
       });
     } else {
       material = new THREE.MeshBasicMaterial({

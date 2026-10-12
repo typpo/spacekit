@@ -39,6 +39,57 @@ var BlackHoleDepthHierarchy_1 = require("./BlackHoleDepthHierarchy");
 // Steps use whole framebuffer pixels per axis; narrower gaps can be skipped.
 var POINT_SMOOTHING_STEP_PIXELS = 2;
 var POINT_SMOOTHING_STEPS = 8;
+var bounds = new THREE.Sphere();
+/**
+ * Whether the material draws vertices where the geometry puts them. Custom
+ * vertex shaders may move them, unless marked with
+ * `userData.spacekitStandardTransform`.
+ */
+function keepsGeometryBounds(material) {
+    if (material.isShaderMaterial) {
+        return material.userData.spacekitStandardTransform === true;
+    }
+    return (material.onBeforeCompile === THREE.Material.prototype.onBeforeCompile &&
+        !material.displacementMap);
+}
+/**
+ * The nearest view depth that any of these objects can reach, Infinity when
+ * none reaches the depth range, or 0 when one has no trustworthy bounds.
+ */
+function nearestDepth(objects, camera, near, far) {
+    var nearest = Infinity;
+    for (var _i = 0, objects_1 = objects; _i < objects_1.length; _i++) {
+        var _a = objects_1[_i], object = _a.object, sources = _a.sources;
+        var geometry = object.geometry;
+        if (!object.frustumCulled ||
+            object.isInstancedMesh ||
+            object.isSkinnedMesh ||
+            !sources.every(keepsGeometryBounds)) {
+            return 0;
+        }
+        if (object.isSprite) {
+            // Sprite corners are offset across the view plane, at the center depth.
+            bounds.set(bounds.center.setFromMatrixPosition(object.matrixWorld), 0);
+        }
+        else if (geometry) {
+            if (!geometry.boundingSphere)
+                geometry.computeBoundingSphere();
+            if (!geometry.boundingSphere)
+                return 0;
+            bounds.copy(geometry.boundingSphere).applyMatrix4(object.matrixWorld);
+        }
+        else {
+            return 0;
+        }
+        var depth = -bounds.center.applyMatrix4(camera.matrixWorldInverse).z;
+        if (!Number.isFinite(depth) || !Number.isFinite(bounds.radius))
+            return 0;
+        if (depth - bounds.radius >= far || depth + bounds.radius <= near)
+            continue;
+        nearest = Math.min(nearest, depth - bounds.radius);
+    }
+    return nearest;
+}
 function captureTarget(samples) {
     if (samples === void 0) { samples = 0; }
     var target = new THREE.WebGLRenderTarget(1, 1, {
@@ -137,8 +188,8 @@ var BlackHoleSceneCapture = /** @class */ (function () {
             this.transparentBounds,
             this.surfaceBounds,
         ]; _i < _a.length; _i++) {
-            var bounds = _a[_i];
-            bounds.allocate(renderer);
+            var bounds_1 = _a[_i];
+            bounds_1.allocate(renderer);
         }
         var sourceCamera = camera;
         var previousTarget = renderer.getRenderTarget();
@@ -343,8 +394,17 @@ var BlackHoleSceneCapture = /** @class */ (function () {
                 object.layers.mask = background ? 0 : mask;
             });
             clear(this.foreground);
-            if (near > sourceCamera.near) {
-                this.clipCamera(sourceCamera, sourceCamera.near, Math.min(near, sourceCamera.far));
+            var foregroundFar = Math.min(near, sourceCamera.far);
+            var content = nearestDepth(objects.filter(function (entry) {
+                return !entry.background && (entry.mask & camera.layers.mask) !== 0;
+            }), camera, sourceCamera.near, foregroundFar);
+            if (near > sourceCamera.near && content < foregroundFar) {
+                // Spacekit's near plane is tiny. Starting the depth range there leaves
+                // nearby surfaces only a few depth steps apart, so a veil could fail
+                // its depth test against the surface behind it. Start at the nearest
+                // bounded content instead, keeping a margin for rounding. Objects
+                // without trustworthy bounds keep the camera's own near plane.
+                this.clipCamera(sourceCamera, Math.max(sourceCamera.near, 0.5 * content), foregroundFar);
                 renderer.render(scene, this.camera);
             }
             else {

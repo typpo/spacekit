@@ -124,6 +124,7 @@ var SphereObject = /** @class */ (function (_super) {
                     vertexShader: shaders_1.SPHERE_SHADER_VERTEX,
                     fragmentShader: shaders_1.SPHERE_SHADER_FRAGMENT,
                     transparent: true,
+                    userData: { spacekitStandardTransform: true },
                 });
             }
             else {
@@ -219,6 +220,7 @@ var SphereObject = /** @class */ (function (_super) {
             side: THREE.BackSide,
             transparent: true,
             depthWrite: false,
+            userData: { spacekitStandardTransform: true },
         });
         return new THREE.Mesh(geometry, material);
     };
@@ -265,6 +267,7 @@ var SphereObject = /** @class */ (function (_super) {
                 transparent: true,
                 alphaTest: 0.1,
                 side: THREE.DoubleSide,
+                userData: { spacekitStandardTransform: true },
             });
         }
         else {

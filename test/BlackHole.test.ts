@@ -128,6 +128,7 @@ describe('BlackHole scene integration', () => {
       'transparent',
       'surfaces',
       'foreground',
+      'scratch',
       'backgroundBounds',
       'transparentBounds',
       'surfaceBounds',
@@ -157,6 +158,7 @@ describe('BlackHole scene integration', () => {
       let renders = 0;
       const renderer = {
         extensions: { has: () => true },
+        initRenderTarget: jest.fn(),
         autoClear: false,
         xr: { enabled: true },
         shadowMap: { autoUpdate: true },

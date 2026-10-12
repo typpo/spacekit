@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Black hole lensing antialiasing validation</title>
+  <link rel="icon" href="data:," />
+  <pre id="results">Running lensing antialiasing GPU checks...</pre>
+  <script src="../../build/spacekit.js"></script>
+  <script>
+    // Thin ribbons and a silhouette bent along the Einstein ring must be as
+    // smooth as an area-sampled image of the same lensed scene. The reference
+    // renders the scene at four times the resolution and averages each 4x4
+    // block in linear light. Taking one sample per block instead gives an
+    // aliased image of the same scene, so each check also shows that the
+    // metric detects aliasing.
+    const T = Spacekit.THREE;
+    const size = 256,
+      scale = 4;
+    const renderer = new T.WebGLRenderer();
+    renderer.setSize(size, size);
+    renderer.setClearColor(0, 1);
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(35, 1, 0.01, 100);
+    camera.position.z = 8;
+    camera.lookAt(0, 0, 0);
+    const simulation = {
+      getContext: () => ({ options: {}, objects: { renderer } }),
+      getJd: () => 2451545,
+      addObject: (object) => scene.add(...object.get3jsObjects()),
+      removeObject: (object) => {
+        scene.remove(...object.get3jsObjects());
+        object.removalCleanup();
+      },
+    };
+    const results = [];
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+      results.push('PASS: ' + message);
+    }
+    function render(width) {
+      const target = new T.WebGLRenderTarget(width, width);
+      renderer.setRenderTarget(target);
+      renderer.render(scene, camera);
+      const pixels = new Uint8Array(width * width * 4);
+      renderer.readRenderTargetPixels(target, 0, 0, width, width, pixels);
+      target.dispose();
+      return pixels;
+    }
+    // Linear-light average of each 4x4 block, or its single sample nearest the
+    // pixel center.
+    function downsample(pixels, pointSampled) {
+      const out = new Float64Array(size * size * 4);
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          for (let c = 0; c < 3; c++) {
+            let sum = 0;
+            if (pointSampled) {
+              sum =
+                pixels[
+                  ((y * scale + 2) * size * scale + x * scale + 2) * 4 + c
+                ];
+            } else {
+              for (let j = 0; j < scale; j++)
+                for (let i = 0; i < scale; i++) {
+                  sum +=
+                    pixels[
+                      ((y * scale + j) * size * scale + x * scale + i) * 4 + c
+                    ];
+                }
+              sum /= scale * scale;
+            }
+            out[(y * size + x) * 4 + c] = sum;
+          }
+        }
+      return out;
+    }
+    // Absolute error relative to reference light, for pixels or sector bins.
+    function relativeError(image, reference, stride = 1, offset = 0) {
+      let difference = 0,
+        light = 0;
+      for (let i = offset; i < reference.length; i += stride) {
+        difference += Math.abs(image[i] - reference[i]);
+        light += reference[i];
+      }
+      return difference / light;
+    }
+    // The light in each half-degree sector around the hole. Stair steps, combs
+    // and dotted lines change how much of an edge or ribbon each sector
+    // contains; blur across or along the ring does not.
+    function sectors(image, channel) {
+      const bins = new Float64Array(720);
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          const angle = Math.atan2(y + 0.5 - size / 2, x + 0.5 - size / 2);
+          bins[
+            Math.floor((angle / (2 * Math.PI) + 0.5) * bins.length) %
+              bins.length
+          ] += image[(y * size + x) * 4 + channel];
+        }
+      return bins;
+    }
+    function errors(lensed, control) {
+      return `error ${lensed.toFixed(
+        3,
+      )}; one sample per pixel ${control.toFixed(3)}`;
+    }
+    const objects = [];
+    try {
+      // A thin opaque ribbon (red) and a thin translucent ribbon (blue) bend
+      // into arcs stretched along the Einstein ring and compressed across it.
+      // A sphere (green) directly behind the hole becomes a ring whose edges
+      // are its silhouette. Meshes scale with resolution, unlike one-pixel
+      // WebGL lines.
+      const ribbon = new T.Mesh(
+        new T.RingGeometry(0.47, 0.51, 256),
+        new T.MeshBasicMaterial({ color: 0xff0000, side: T.DoubleSide }),
+      );
+      ribbon.position.set(0.12, 0.08, -4);
+      const sphere = new T.Mesh(
+        new T.SphereGeometry(0.25, 64, 32),
+        new T.MeshBasicMaterial({ color: 0x00ff00 }),
+      );
+      sphere.position.z = -12;
+      const veil = new T.Mesh(
+        new T.RingGeometry(0.9, 0.95, 256),
+        new T.MeshBasicMaterial({
+          color: 0x0000ff,
+          side: T.DoubleSide,
+          transparent: true,
+          opacity: 0.8,
+        }),
+      );
+      veil.position.set(-0.2, 0.1, -9);
+      veil.rotation.x = 0.4;
+      objects.push(ribbon, sphere, veil);
+      scene.add(ribbon, sphere, veil);
+      for (const quality of ['low', 'high']) {
+        const hole = new Spacekit.BlackHole(
+          'antialiasing',
+          {
+            massSolar: 4e6,
+            lensScene: true,
+            accretionDisk: false,
+            quality,
+          },
+          simulation,
+        );
+        const image = render(size);
+        const high = render(size * scale);
+        const reference = downsample(high, false);
+        const aliased = downsample(high, true);
+        for (const [channel, name] of [
+          [0, 'thin opaque ribbon'],
+          [1, 'sphere silhouette'],
+          [2, 'thin translucent ribbon'],
+        ]) {
+          const lensed = relativeError(image, reference, 4, channel);
+          const control = relativeError(aliased, reference, 4, channel);
+          assert(
+            lensed < 0.55 * control,
+            `${quality}: ${name} matches the area-sampled reference (` +
+              errors(lensed, control) +
+              ')',
+          );
+          const referenceSectors = sectors(reference, channel);
+          const lensedSectors = relativeError(
+            sectors(image, channel),
+            referenceSectors,
+          );
+          const controlSectors = relativeError(
+            sectors(aliased, channel),
+            referenceSectors,
+          );
+          assert(
+            lensedSectors < 0.5 * controlSectors,
+            `${quality}: ${name} coverage is smooth along the ring (` +
+              errors(lensedSectors, controlSectors) +
+              ')',
+          );
+        }
+        hole.dispose();
+      }
+      assert(
+        renderer.info.programs.every(
+          (program) => !program.diagnostics || program.diagnostics.runnable,
+        ),
+        'all shaders compile',
+      );
+      results.push('ALL CHECKS PASSED');
+    } catch (error) {
+      results.push('FAIL: ' + error.message);
+      console.error(error);
+    } finally {
+      objects.forEach((object) => {
+        object.geometry.dispose();
+        object.material.dispose();
+      });
+      renderer.dispose();
+      document.getElementById('results').textContent = results.join('\n');
+    }
+  </script>
+</html>
